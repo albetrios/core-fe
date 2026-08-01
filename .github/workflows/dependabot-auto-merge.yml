@@ -36,8 +36,12 @@ jobs:
     name: Enable auto-merge for approved low-risk Dependabot updates
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # No environment selection: RELEASE_PLEASE_TOKEN is a repository secret now
-    # (single-trunk migration), readable without selecting an environment.
+    # RELEASE_PLEASE_TOKEN is an environment secret, so this job selects the
+    # `development` environment to read it. That environment has an empty
+    # protection block, so nothing is gated — which matters here because this
+    # job runs on Dependabot PR branches: a `deploymentBranchPolicy` on
+    # `development` would reject them outright and silently break auto-merge.
+    environment: development
     # Maintainer approved + Dependabot-authored + the non-major npm group only.
     # `npm-major` does not contain the substring `npm-non-major`, so majors never match.
     if: >-

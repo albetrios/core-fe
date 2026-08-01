@@ -167,7 +167,7 @@ export const envFieldDescriptions: Readonly<Record<string, string>> = {
   NETLIFY_SITE_ID: 'Netlify site ID (deploy target).',
   NODE_VERSION: 'Node version for CI/build; keep in lock step with .nvmrc.',
   RELEASE_PLEASE_TOKEN:
-    'GitHub Actions PAT (repository secret) for release-please, dependabot-auto-merge, and the weekly PAT canary. Set via `gh secret set RELEASE_PLEASE_TOKEN --repo` (no --env); CI only — never bundled or read locally.',
+    'GitHub Actions PAT (environment secret on `development`) for release-please, dependabot-auto-merge, and the weekly PAT canary — all three jobs select `environment: development` to read it. Set via `gh secret set RELEASE_PLEASE_TOKEN --env development`; CI only — never bundled or read locally.',
   CONTEXT7_API_KEY:
     'Context7 docs-MCP API key; consumed by .mcp.json for the docs MCP (local tooling).',
   SONAR_ADMIN_PASSWORD:

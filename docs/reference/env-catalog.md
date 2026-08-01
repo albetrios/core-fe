@@ -20,7 +20,7 @@ build-time or local-only, never synced to a GitHub Environment.
 | `NETLIFY_AUTH_TOKEN` | secret | — | — | — | Netlify CLI deploy token (CI only). |
 | `NETLIFY_SITE_ID` | secret | — | — | — | Netlify site ID (deploy target). |
 | `NODE_VERSION` | build·local | — | — | — | Node version for CI/build; keep in lock step with .nvmrc. |
-| `RELEASE_PLEASE_TOKEN` | build·local | — | — | — | GitHub Actions PAT (repository secret) for release-please, dependabot-auto-merge, and the weekly PAT canary. Set via `gh secret set RELEASE_PLEASE_TOKEN --repo` (no --env); CI only — never bundled or read locally. |
+| `RELEASE_PLEASE_TOKEN` | build·local | — | — | — | GitHub Actions PAT (environment secret on `development`) for release-please, dependabot-auto-merge, and the weekly PAT canary — all three jobs select `environment: development` to read it. Set via `gh secret set RELEASE_PLEASE_TOKEN --env development`; CI only — never bundled or read locally. |
 | `SENTRY_AUTH_TOKEN` | secret | — | — | — | Sentry source-map upload token (CI only); see docs/integrations/sentry-sourcemaps.md. |
 | `SENTRY_ORG` | secret | — | — | — | Sentry organization slug (source-map upload). |
 | `SENTRY_PROJECT` | secret | — | — | — | Sentry project slug (source-map upload). |

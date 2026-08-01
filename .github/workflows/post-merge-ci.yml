@@ -96,10 +96,19 @@ jobs:
     concurrency:
       group: post-merge-release-please-${{ github.ref }}
       cancel-in-progress: false
-    # UNGATED — the PAT is a repository secret (RELEASE_PLEASE_TOKEN), so this job
-    # no longer selects an environment to read it. Refreshing the standing Release
-    # PR is harmless; the ONE human gate lives at the production deploy
+    # RELEASE_PLEASE_TOKEN is an ENVIRONMENT secret, so this job must select an
+    # environment to read it. `development` is the only viable choice: its
+    # protection block is empty (.github/environments/development.json), so
+    # selecting it grants secret access WITHOUT adding a gate. `production` is
+    # not usable here — its requiredReviewers would pause this job on every
+    # merge to main. Effectively still ungated: refreshing the standing Release
+    # PR is harmless, and the ONE human gate lives at the production deploy
     # (release-deploy.yml), nowhere else.
+    #
+    # ⚠ Adding any protection rule to the `development` environment (required
+    # reviewers, wait timer, branch policy) will silently start blocking this
+    # job — and the pat-canary and dependabot-auto-merge jobs with it.
+    environment: development
     permissions:
       contents: write
       pull-requests: write
@@ -124,7 +133,7 @@ jobs:
       - name: Tripwire — RELEASE_PLEASE_TOKEN not provisioned
         if: env.HAS_RELEASE_PLEASE_TOKEN != 'true'
         run: |
-          echo "::warning title=RELEASE_PLEASE_TOKEN not provisioned::Release Please is running on the default GITHUB_TOKEN fallback. Release-PR auto-merge will NOT re-trigger post-merge CI, so no tag/GitHub Release is created on the merge commit. Add a PAT (repo + workflow scopes) as the RELEASE_PLEASE_TOKEN repository secret."
+          echo "::warning title=RELEASE_PLEASE_TOKEN not provisioned::Release Please is running on the default GITHUB_TOKEN fallback. Release-PR auto-merge will NOT re-trigger post-merge CI, so no tag/GitHub Release is created on the merge commit. Add a PAT (Contents + Pull requests + Workflows, read/write) as the RELEASE_PLEASE_TOKEN ENVIRONMENT secret on 'development': gh secret set RELEASE_PLEASE_TOKEN --env development. A repository-scoped secret of the same name is NOT read by this job."
 
       # When the PAT IS set, probe it actively: an expired/revoked PAT still lets
       # release-please fall back to github.token and run green, but the merged
@@ -142,7 +151,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/user || echo 000)
           if [ "$code" = "401" ]; then
-            echo "::error title=RELEASE_PLEASE_TOKEN invalid::The PAT returned 401 (expired or revoked). A merged Release PR will not cut a tag/Release and production will not deploy. Rotate the RELEASE_PLEASE_TOKEN repository secret."
+            echo "::error title=RELEASE_PLEASE_TOKEN invalid::The PAT returned 401 (expired or revoked). A merged Release PR will not cut a tag/Release and production will not deploy. Rotate the RELEASE_PLEASE_TOKEN environment secret on 'development': gh secret set RELEASE_PLEASE_TOKEN --env development."
             exit 1
           fi
           if [ "$code" != "200" ]; then
