@@ -136,4 +136,40 @@ describe('supply-chain dependency floors (no downgrade past a known CVE)', () =>
   it('floors minimatch >=10.2.5 via pnpm override (ReDoS on the 10.1.x line)', () => {
     expect(atLeast(pkg.pnpm.overrides.minimatch, [10, 2, 5])).toBe(true);
   });
+
+  it('floors brace-expansion >=5.0.8 via pnpm override (unbounded-expansion OOM DoS — GHSA-mh99-v99m-4gvg)', () => {
+    // Reached through the minimatch 10.x line the override above pins.
+    expect(atLeast(pkg.pnpm.overrides['brace-expansion'], [5, 0, 8])).toBe(true);
+  });
+
+  // netlify-cli (dev-only CLI) transitives — floors, since upstream still resolves
+  // the vulnerable versions. None of these ship in the client bundle.
+  it('floors @fastify/static >=10.1.2 via pnpm override (route-guard bypass + non-canonical path authz bypass)', () => {
+    expect(atLeast(pkg.pnpm.overrides['@fastify/static'], [10, 1, 2])).toBe(true);
+  });
+
+  it('floors fast-uri >=3.1.4 via pnpm override (host confusion — GHSA-v2hh-gcrm-f6hx, GHSA-4c8g-83qw-93j6)', () => {
+    expect(atLeast(pkg.pnpm.overrides['fast-uri'], [3, 1, 4])).toBe(true);
+  });
+
+  it('floors find-my-way >=9.7.0 via pnpm override (HTTP/2 DDoS — GHSA-c96f-x56v-gq3h)', () => {
+    expect(atLeast(pkg.pnpm.overrides['find-my-way'], [9, 7, 0])).toBe(true);
+  });
+
+  it('floors sharp >=0.35.1 via pnpm override (inherited libvips CVEs — GHSA-f88m-g3jw-g9cj)', () => {
+    expect(atLeast(pkg.pnpm.overrides.sharp, [0, 35, 1])).toBe(true);
+  });
+
+  it('floors svgo >=4.0.2 via pnpm override (removeScripts leaves executable scripts — GHSA-2p49-hgcm-8545)', () => {
+    expect(atLeast(pkg.pnpm.overrides.svgo, [4, 0, 2])).toBe(true);
+  });
+
+  it('floors the js-yaml 5.x line >=5.2.2 via pnpm override (flow-collection parsing DoS — GHSA-pm4m-ph32-ghv5)', () => {
+    // Version-scoped selector: cosmiconfig's unaffected js-yaml@4 tree is untouched.
+    expect(atLeast(pkg.pnpm.overrides['js-yaml@5'], [5, 2, 2])).toBe(true);
+  });
+
+  it('floors postcss >=8.5.18 via pnpm override (sourceMappingURL path traversal — GHSA-r28c-9q8g-f849)', () => {
+    expect(atLeast(pkg.pnpm.overrides.postcss, [8, 5, 18])).toBe(true);
+  });
 });
