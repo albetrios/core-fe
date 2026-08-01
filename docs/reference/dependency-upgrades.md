@@ -54,7 +54,7 @@ Revisit these when Dependabot or direct dependency upgrades remove the need.
 ## Pins and known constraints
 
 - **`@tanstack/react-router`** is pinned to the **1.170.x** line (`~1.170.17` in [`package.json`](../../package.json)). The earlier **1.169** minors that caused unhandled navigation rejections and maximum update depth in guard tests are resolved as of **1.170.17** — verified against the full guard + unit suite (96 guard tests, 1291 unit tests, build + `build:check` all green) in the 1.160→1.170 bump. Minor/major bumps on this fast-moving router still go through a **deliberate spike** (Dependabot `ignore` keeps them off auto-merge); patches within `~1.170.x` flow normally.
-- **React 19**, **Vite 8**, **ESLint 10**, **lucide-react 1.x**, and similar **majors** are intentionally **not** part of routine bumps — schedule separately with full `pnpm validate` and E2E. **`netlify-cli`** is kept current on the **v26** line (dev-only CLI).
+- **React 19**, **Vite 8**, **ESLint 10**, **lucide-react 1.x**, and similar **majors** are intentionally **not** part of routine bumps — schedule separately with full `pnpm validate` and E2E. **`netlify-cli`** is kept current on the **v27** line (dev-only CLI; moved off v26 in the npm-major group bump — v27 drops Node 20 and requires 22.13+, which the repo's `engines.node >=24` already satisfies).
 
 ## Audit noise
 
@@ -66,6 +66,24 @@ audits the prod-reachable graph only); document accepted risk for dev-only
 transitives if no patched upgrade exists yet.
 
 ## Upgrade decisions log
+
+### npm-major group — web-vitals 6, jest-dom 7, netlify-cli 27, size-limit 13 (2026-08-01) — ADOPTED
+
+- **`web-vitals` 5.3 → 6.0** is the only **production** dependency in the group.
+  `src/app/observability/performance.ts` imports `onCLS`/`onFCP`/`onINP`/`onLCP`/`onTTFB`
+  from the **standard** entry point — all five survive v6 unchanged. The two breaking
+  changes do not reach this codebase: the `includeProcessedEventEntries` default flip
+  affects only the **attribution** build (not imported here), and the
+  `verbatimModuleSyntax` module cleanup is covered by the type-check lane
+  (`import type { Metric }` still resolves). Soft-Navigation support is opt-in.
+- **`@testing-library/jest-dom` 6.9 → 7.0** now requires `@testing-library/dom` as a
+  real peer (already direct via `@testing-library/react`) and Node ≥ 22 — satisfied by
+  `engines.node >=24`.
+- **`netlify-cli` 26 → 27** and **`size-limit` 12 → 13** are dev-only; both drop Node 20,
+  which this repo never targeted.
+- Verified by the full `Quality gate` (1651 unit tests, build + preload/size budget,
+  lint/biome/tsc, security lanes). **E2E was not run** — that lane is local-only and
+  needs core-be on `:3000`.
 
 ### React 19 + React Compiler (2026-06-12) — ADOPTED
 
