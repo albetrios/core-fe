@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.4.0](https://github.com/nikunjmavani/core-fe/compare/v1.3.0...v1.4.0) (2026-08-01)
+
+
+### Added
+
+* **github-sync:** diff/skip-default/prune deploy variables + env-var catalog ([#197](https://github.com/nikunjmavani/core-fe/issues/197)) ([b7884c6](https://github.com/nikunjmavani/core-fe/commit/b7884c6b0dc218f473b4b8376c5dd2f6924fce88))
+* make settings destinations searchable in ⌘K (F2) ([#191](https://github.com/nikunjmavani/core-fe/issues/191)) ([b5ab5a6](https://github.com/nikunjmavani/core-fe/commit/b5ab5a6b17146563cc72a311c31c1294ff08ad77))
+* **settings:** working member invitations + custom role creation ([#180](https://github.com/nikunjmavani/core-fe/issues/180)) ([8184ff7](https://github.com/nikunjmavani/core-fe/commit/8184ff79d4dee1e4dc84d5952263ff496de95fe3))
+* **setup:** port setup:mac-tools — hands-off macOS external-tool install ([#174](https://github.com/nikunjmavani/core-fe/issues/174)) ([fece209](https://github.com/nikunjmavani/core-fe/commit/fece209fead4768c8c004aad0633bd95ff2f5a3a))
+* SW-handoff update reloads, dev OTP autofill, "Core" rebrand ([#176](https://github.com/nikunjmavani/core-fe/issues/176)) ([1655b29](https://github.com/nikunjmavani/core-fe/commit/1655b29c7cb395e93f3961b032936b3f9e0fbfed))
+
+
+### Fixed
+
+* **agent-os:** restore shadcn project rules, sweep dev-branch wording, correct skill/command claims ([#170](https://github.com/nikunjmavani/core-fe/issues/170)) ([c06fc16](https://github.com/nikunjmavani/core-fe/commit/c06fc16ed84f23e193cdaf62bcaaa1518bafe37f))
+* **auth:** never dead-end an authenticated user on /unauthorized after login ([#181](https://github.com/nikunjmavani/core-fe/issues/181)) ([0cc16fd](https://github.com/nikunjmavani/core-fe/commit/0cc16fd4b7f74f766e590deee55d32a085dee829))
+* **ci:** migrate deps:audit to npm's bulk advisory endpoint ([#167](https://github.com/nikunjmavani/core-fe/issues/167)) ([64bdf1d](https://github.com/nikunjmavani/core-fe/commit/64bdf1df61647843a10254f887fba975b2b149dc))
+* **env:** close the deploy-workflow env seam (VITE_APP_ENV, list sync, Sentry pass-through) ([#166](https://github.com/nikunjmavani/core-fe/issues/166)) ([656809c](https://github.com/nikunjmavani/core-fe/commit/656809ccc8ae9f4f849f32662ac930577e480ee6))
+* **hooks:** gate org-scoped list queries on an active organization ([#186](https://github.com/nikunjmavani/core-fe/issues/186)) ([59de1ca](https://github.com/nikunjmavani/core-fe/commit/59de1ca8ccd5ec9662f79a36eb03ef8be77055d1))
+* hybrid-mode walkthrough — member/role mgmt, onboarding invites, org/notifications/billing fixes ([#182](https://github.com/nikunjmavani/core-fe/issues/182)) ([633ca8c](https://github.com/nikunjmavani/core-fe/commit/633ca8cca360218b507be6d9f673173a601f1a38))
+* **i18n:** complete locale parity and guard against drift ([#175](https://github.com/nikunjmavani/core-fe/issues/175)) ([602c432](https://github.com/nikunjmavani/core-fe/commit/602c432578039b5aa391282ec658d7914cba1eab))
+* **notifications:** channel PUSH → WEB_PUSH (core-be [#971](https://github.com/nikunjmavani/core-fe/issues/971) breaking rename) ([#184](https://github.com/nikunjmavani/core-fe/issues/184)) ([33aa883](https://github.com/nikunjmavani/core-fe/commit/33aa88395b15273edf65c25d642a2a9a1b08c4e3))
+* **onboarding:** cross-user state leak, workspace landing, deep links, review rows ([#177](https://github.com/nikunjmavani/core-fe/issues/177)) ([0f1efd2](https://github.com/nikunjmavani/core-fe/commit/0f1efd2f4c6dd37ab3da5bb8bd84ac21ddd95187))
+* org switching, logout revocation, and dashboard placeholder data (walkthrough [#2](https://github.com/nikunjmavani/core-fe/issues/2)) ([#179](https://github.com/nikunjmavani/core-fe/issues/179)) ([a98f5a6](https://github.com/nikunjmavani/core-fe/commit/a98f5a6613c0113ea15890dc879f76ce38886ab2))
+* post-backend re-alignment — canonical notifications, step-up auth, join-org flow, UX polish ([#183](https://github.com/nikunjmavani/core-fe/issues/183)) ([7c50259](https://github.com/nikunjmavani/core-fe/commit/7c5025968e63dbb4fbb1c40c25e94c4d68558768))
+* profile job title round-trip + personal-workspace billing 403 ([#189](https://github.com/nikunjmavani/core-fe/issues/189)) ([720c0c7](https://github.com/nikunjmavani/core-fe/commit/720c0c7a0e293bea450b0e45c5e184f098aebc54))
+* **quality:** resolve Biome lint-lane panic + sweep config/doc drift ([#173](https://github.com/nikunjmavani/core-fe/issues/173)) ([e3e3bbb](https://github.com/nikunjmavani/core-fe/commit/e3e3bbb3a90c140082b1cb3ea5a13a7c27e6b8c3))
+* reach Integrations settings + hide org-settings command on personal ([#190](https://github.com/nikunjmavani/core-fe/issues/190)) ([ab00fbc](https://github.com/nikunjmavani/core-fe/commit/ab00fbccb60428896f4c7355b11af8de3cc2b0d0))
+* **routes:** suspended-leaf gateway, preload order, login.search.ts, DataTable folder-per-unit ([#169](https://github.com/nikunjmavani/core-fe/issues/169)) ([dee805d](https://github.com/nikunjmavani/core-fe/commit/dee805de52e2c80335713e913f4eae74746dc8bc))
+* **settings:** Profile save + Delete account actually persist (were fake-success no-ops) ([#178](https://github.com/nikunjmavani/core-fe/issues/178)) ([15e6bac](https://github.com/nikunjmavani/core-fe/commit/15e6bac1e00c19fb6fda4c2b17c34622c827ceed))
+* **tenancy:** drop write-only last-organization localStorage persistence ([#185](https://github.com/nikunjmavani/core-fe/issues/185)) ([fa7efe7](https://github.com/nikunjmavani/core-fe/commit/fa7efe77e75e9639d99ad50fc0d7925199024c73))
+* validate profile form before opening the save-confirm dialog (F7) ([#192](https://github.com/nikunjmavani/core-fe/issues/192)) ([776a818](https://github.com/nikunjmavani/core-fe/commit/776a8185c2613d6d7cecd0d25c1f171f465e9eb8))
+
+
+### Documentation
+
+* **deps:** record the npm-major bump and correct the netlify-cli line claim ([#213](https://github.com/nikunjmavani/core-fe/issues/213)) ([6776c37](https://github.com/nikunjmavani/core-fe/commit/6776c3777e91d24594427b2cdbf44d0690227b1f))
+* **env:** catalog RELEASE_PLEASE_TOKEN in the env reference ([#204](https://github.com/nikunjmavani/core-fe/issues/204)) ([d8f8371](https://github.com/nikunjmavani/core-fe/commit/d8f8371b581c1a34a233c1a8ccd8d6dfa3fde17a))
+* fix data-mutations inventory drift; guard it with a test ([#198](https://github.com/nikunjmavani/core-fe/issues/198)) ([#202](https://github.com/nikunjmavani/core-fe/issues/202)) ([672df67](https://github.com/nikunjmavani/core-fe/commit/672df67a260f23f6f23a72ad3ea9441cdf10e597))
+* sweep audit drift — README rewrite, broken links, testid inventory, OVERVIEW refreshes ([#171](https://github.com/nikunjmavani/core-fe/issues/171)) ([cec085b](https://github.com/nikunjmavani/core-fe/commit/cec085b0ee809befbb259720e6eba24f0a09b65a))
+* **tenancy:** sync localStorage / last-used-org claims after [#185](https://github.com/nikunjmavani/core-fe/issues/185) ([#187](https://github.com/nikunjmavani/core-fe/issues/187)) ([4d5856c](https://github.com/nikunjmavani/core-fe/commit/4d5856c9e81739fcfeda62882b6183c5ad65e540))
+
 ## [1.3.0](https://github.com/nikunjmavani/core-fe/compare/v1.2.5...v1.3.0) (2026-07-14)
 
 
