@@ -71,19 +71,33 @@ A secret's **scope must match how the job that reads it is triggered**:
 | declares **no** `environment:` | **Repository**  | **manual** — `gh secret set <NAME> --repo …` (no `--env`) |
 
 Deploy/build values (`NETLIFY_*`, `VITE_*`) are read by the environment-gated
-deploy job → **environment secrets** (github:sync uploads them). CI/automation
-tokens read by **ungated** jobs → **repository secrets** (set by hand).
+deploy job → **environment secrets** (github:sync uploads them).
 
-Today the only repository secret is **`RELEASE_PLEASE_TOKEN`** — read ungated by
-`release-please`, the `pat-canary`, and `dependabot-auto-merge`:
+**There are no repository secrets.** `RELEASE_PLEASE_TOKEN` is an **environment
+secret on `development`**, read by `release-please` (post-merge-ci), the
+`pat-canary` (scheduled-release-guards), and `dependabot-auto-merge`. All three
+jobs therefore declare `environment: development`:
 
 ```bash
-gh secret set RELEASE_PLEASE_TOKEN --repo nikunjmavani/core-fe   # NO --env
+gh secret set RELEASE_PLEASE_TOKEN --env development --repo nikunjmavani/core-fe
 ```
 
 Use a fine-grained PAT scoped to this repo (Contents + Pull requests + Workflows,
-read/write). `github:sync` does **not** manage repository secrets — add any future
-ones (Slack webhook, Codecov/Stryker/npm token, …) the same manual way.
+read/write). `github:sync` reconciles deploy values from `.env.<environment>` and
+leaves **unmanaged keys untouched**, so a hand-added `RELEASE_PLEASE_TOKEN` on
+`development` survives a sync.
+
+> **`development`, never `production`.** These three are automation jobs, not
+> deploys. `development` has an empty `protection` block, so selecting it grants
+> secret access without gating anything. `production` carries `requiredReviewers`
+> and a `protectedBranches` deployment policy — selecting it would pause
+> post-merge CI for approval on every merge to `main`, and would reject
+> `dependabot-auto-merge` outright (it runs on unprotected PR branches).
+>
+> **Consequence to keep in mind:** adding _any_ protection rule to `development`
+> now silently blocks all three automation jobs. Pinned by
+> `tests/ci/post-merge-ci.policy.test.ts`, `tests/ci/dependabot-flows.policy.test.ts`,
+> and `tests/ci/release-guards.policy.test.ts`.
 
 ## Commands
 

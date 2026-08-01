@@ -32,4 +32,13 @@ describe('release-flow guards policy', () => {
     expect(workflow).toContain('RELEASE_PLEASE_TOKEN not provisioned');
     expect(workflow).toContain('The PAT returned 401');
   });
+
+  it('reads the PAT from the same `development` environment release-please uses', () => {
+    // RELEASE_PLEASE_TOKEN is an environment secret. If the canary did not select
+    // the SAME environment, it would probe an absent secret and report a false
+    // "not provisioned" tripwire every Monday while the real token was fine —
+    // the canary would stop being evidence about the token release-please uses.
+    expect(workflow).toContain('environment: development');
+    expect(workflow).not.toContain('environment: production');
+  });
 });
