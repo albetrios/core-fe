@@ -38,8 +38,10 @@ export default defineConfig(({ mode }) => {
       react(),
       babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),
+      // Local/dev always ships multi-locale so Appearance → Language works live.
+      // Production builds still honour BUILD_I18N_MODE (default single for white-label).
       i18nBuild({
-        modeFlag: env.BUILD_I18N_MODE,
+        modeFlag: mode === 'development' ? 'multi' : env.BUILD_I18N_MODE,
         localeFlag: env.BUILD_I18N_LOCALE,
       }),
       versionJson(buildId),

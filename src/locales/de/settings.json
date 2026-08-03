@@ -1,0 +1,177 @@
+{
+  "nav": {
+    "ariaSections": "Einstellungsbereiche",
+    "ariaSettings": "Einstellungen",
+    "searchPlaceholder": "Suchen",
+    "searchAria": "Einstellungen durchsuchen",
+    "empty": "Keine Treffer",
+    "groups": {
+      "account": "Konto",
+      "organization": "Organisation"
+    },
+    "profile": "Profil",
+    "account": "Konto",
+    "security": "Sicherheit",
+    "notifications": "Benachrichtigungen",
+    "sessions": "Sitzungen",
+    "general": "Allgemein",
+    "members": "Mitglieder",
+    "roles": "Rollen",
+    "billing": "Abrechnung",
+    "integrations": "Integrationen"
+  },
+  "security": {
+    "heading": "Sicherheit",
+    "description": "Zwei-Faktor-Authentifizierung und Passkeys.",
+    "mfa": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "description": "Bei der Anmeldung einen Authenticator-Code verlangen.",
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert",
+      "setup": "Zwei-Faktor einrichten",
+      "disable": "Zwei-Faktor deaktivieren",
+      "disableTitle": "Zwei-Faktor-Authentifizierung deaktivieren?",
+      "disableDescription": "Ihr Konto ist dann weniger geschützt. Sie können sie jederzeit wieder aktivieren.",
+      "disableConfirm": "Deaktivieren",
+      "setupTitle": "Zwei-Faktor-Authentifizierung einrichten",
+      "setupDescription": "Scannen Sie den QR-Code mit Ihrer Authenticator-App oder geben Sie den Geheimschlüssel manuell ein.",
+      "recoveryTitle": "Wiederherstellungscodes speichern",
+      "recoveryDescription": "Bewahren Sie diese sicher auf. Jeder funktioniert einmal, wenn Sie Ihr Gerät verlieren.",
+      "done": "Fertig",
+      "cancel": "Abbrechen",
+      "verifyEnable": "Bestätigen & aktivieren",
+      "codeLabel": "6-stelligen Code eingeben",
+      "codeAria": "Sechsstelliger Authenticator-Code",
+      "secretLabel": "Manueller Eingabeschlüssel",
+      "copySecret": "Geheimschlüssel kopieren",
+      "copiedSecret": "Kopiert",
+      "scanHint": "Öffnen Sie Google Authenticator, 1Password oder eine andere TOTP-App und scannen Sie diesen Code.",
+      "errors": {
+        "setupFailed": "Einrichtung konnte nicht gestartet werden. Bitte erneut versuchen.",
+        "invalidCode": "Dieser Code stimmte nicht. Geben Sie den aktuellen 6-stelligen Code ein."
+      }
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "description": "Ohne Passwort mit Ihrem Gerät anmelden.",
+      "add": "Passkey hinzufügen",
+      "empty": "Noch keine Passkeys. Fügen Sie einen hinzu, um sich ohne Passwort anzumelden.",
+      "removeAria": "{{name}} entfernen",
+      "addTitle": "Passkey hinzufügen",
+      "addDescription": "Benennen Sie ihn, damit Sie ihn später erkennen. Ihr Gerät fordert Sie zur Erstellung auf.",
+      "nameLabel": "Name",
+      "namePlaceholder": "MacBook Touch ID",
+      "cancel": "Abbrechen",
+      "submit": "Passkey hinzufügen"
+    },
+    "overview": {
+      "title": "Kontoschutz",
+      "description": "Kurzübersicht, was Ihre Anmeldung schützt.",
+      "score": "{{score}} von {{total}} aktiv",
+      "mfaOn": "Zwei-Faktor-Authentifizierung ist aktiv",
+      "mfaOff": "Zwei-Faktor-Authentifizierung ist aus",
+      "passkeysOn": "{{count}} Passkey registriert",
+      "passkeysOn_other": "{{count}} Passkeys registriert",
+      "passkeysOff": "Keine Passkeys registriert",
+      "idleProtection": "Automatische Abmeldung bei Inaktivität ist aktiv"
+    },
+    "recoveryCodes": {
+      "reveal": "Codes anzeigen",
+      "hide": "Codes ausblenden",
+      "copyAll": "Alle kopieren",
+      "download": ".txt herunterladen",
+      "copySuccess": "Wiederherstellungscodes kopiert — Zwischenablage wird in 1 Minute geleert",
+      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
+      "downloadStarted": "Download gestartet",
+      "clipboardNotice": "Kopierte Geheimnisse werden nach einer Minute aus der Zwischenablage entfernt.",
+      "acknowledge": "Ich habe diese Wiederherstellungscodes sicher gespeichert"
+    },
+    "stepUp": {
+      "title": "Bestätigen Sie Ihre Identität",
+      "description": "Aus Sicherheitsgründen erneut verifizieren, bevor Anmeldeeinstellungen geändert werden.",
+      "passwordLabel": "Passwort",
+      "totpLabel": "Authenticator-Code",
+      "emailCodeLabel": "Bestätigungscode",
+      "emailCodeSent": "Wir haben einen 6-stelligen Code an {{email}} gesendet.",
+      "resend": "Code erneut senden",
+      "resent": "Code gesendet",
+      "verify": "Bestätigen",
+      "verifying": "Wird geprüft…",
+      "invalid": "Das stimmte nicht. Bitte erneut versuchen.",
+      "passwordRequired": "Diese Aktion erfordert Ihr Passwort oder einen Authenticator-Code."
+    }
+  },
+  "discard": {
+    "title": "Ungespeicherte Änderungen verwerfen?",
+    "description": "Sie haben ungespeicherte Änderungen. Beim Verlassen dieses Bereichs gehen sie verloren.",
+    "stay": "Weiter bearbeiten",
+    "leave": "Änderungen verwerfen"
+  },
+  "panels": {
+    "members": {
+      "title": "Mitglieder",
+      "description": "Personen in dieser Organisation.",
+      "loadFailed": "Mitglieder konnten nicht geladen werden. Bitte erneut versuchen.",
+      "emptyTitle": "Noch keine Mitglieder",
+      "emptyDescription": "Laden Sie Teammitglieder ein, um in dieser Organisation zusammenzuarbeiten.",
+      "searchPlaceholder": "Mitglieder suchen…",
+      "noResults": "Keine Mitglieder entsprechen Ihrer Suche.",
+      "loadMore": "Mehr laden",
+      "actionsAria": "Aktionen für {{name}}",
+      "changeRole": "Rolle ändern",
+      "suspend": "Sperren",
+      "reactivate": "Reaktivieren",
+      "removeAction": "Aus Organisation entfernen",
+      "removeAria": "{{name}} entfernen",
+      "removeTitle": "{{name}} entfernen?",
+      "removeDescription": "Die Person verliert den Zugriff auf diese Organisation. Sie können kurz nach der Bestätigung rückgängig machen.",
+      "removeConfirm": "Entfernen",
+      "removePending": "{{name}} wird entfernt…"
+    },
+    "roles": {
+      "title": "Rollen",
+      "description": "Berechtigungssätze, die Sie Mitgliedern zuweisen können.",
+      "loadFailed": "Rollen konnten nicht geladen werden. Bitte erneut versuchen.",
+      "emptyTitle": "Noch keine Rollen",
+      "emptyDescription": "Erstellen Sie eine benutzerdefinierte Rolle für einen maßgeschneiderten Berechtigungssatz.",
+      "searchPlaceholder": "Rollen suchen…",
+      "noResults": "Keine Rollen entsprechen Ihrer Suche.",
+      "loadMore": "Mehr laden",
+      "systemBadge": "System",
+      "memberCount": "{{count}} Mitglied",
+      "memberCount_other": "{{count}} Mitglieder",
+      "actionsAria": "Aktionen für {{name}}",
+      "editAction": "Rolle bearbeiten",
+      "deleteAction": "Rolle löschen",
+      "deleteAria": "{{name}} löschen",
+      "deleteTitle": "{{name}} löschen?",
+      "deleteDescription": "Mitglieder mit dieser Rolle benötigen eine neue Zuweisung. Sie können kurz nach der Bestätigung rückgängig machen.",
+      "deleteConfirm": "Löschen",
+      "deletePending": "{{name}} wird gelöscht…"
+    },
+    "listSort": {
+      "label": "Sortieren nach",
+      "nameAsc": "Name (A–Z)",
+      "nameDesc": "Name (Z–A)",
+      "newest": "Neueste zuerst",
+      "oldest": "Älteste zuerst"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Wie Sie in der App erscheinen. Sichtbar für Personen in Ihrer Organisation.",
+      "completeness": "Profil zu {{percent}} % vollständig",
+      "confirmTitle": "Profiländerungen speichern?",
+      "confirmDescription": "Möchten Sie Ihre Profilinformationen wirklich aktualisieren?",
+      "confirmSave": "Änderungen speichern",
+      "confirmCancel": "Abbrechen",
+      "saving": "Wird gespeichert…",
+      "save": "Änderungen speichern"
+    },
+    "account": {
+      "deleteTitle": "Ihr Konto löschen?",
+      "deleteDescription": "Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden. Alle Ihre Daten werden entfernt.",
+      "deleteConfirm": "Konto löschen",
+      "deleteCancel": "Abbrechen"
+    }
+  }
+}

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils.ts';
@@ -9,6 +8,7 @@ import {
 } from '@/shared/components/Dashboard/dashboard.constants.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
+import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
 import { Building2 } from '@/shared/icons/index.ts';
 import type { OrganizationStatusValue } from '@/shared/tenancy/me-context.ts';
 
@@ -41,19 +41,16 @@ export function DashboardHero({
   orgStatus,
 }: DashboardHeroProps) {
   const { t } = useTranslation(DASHBOARD_NS);
+  const { formatDate } = useLocaleFormat();
   const isTeam = orgType === 'TEAM';
   const personalOnly = useDeploymentMode() === 'personal-only';
   const showOrgContext = !personalOnly;
-  // Read the clock once per mount, not on every render (purity).
-  const todayLabel = useMemo(
-    () =>
-      new Date().toLocaleDateString(undefined, {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-      }),
-    [],
-  );
+  // Honour Appearance → regional locale + timezone (live when prefs change).
+  const todayLabel = formatDate(new Date(), {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <header

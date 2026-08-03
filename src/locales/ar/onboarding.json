@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "الإعداد الأولي"
+  },
+  "steps": {
+    "welcome": {
+      "title": "مرحبًا بك",
+      "description": "لنُعد حسابك في خطوات سريعة."
+    },
+    "profile": {
+      "title": "عنك",
+      "description": "أخبرنا قليلًا عن نفسك."
+    },
+    "questions": {
+      "title": "بعض الأسئلة السريعة",
+      "description": "اختياري — يساعدنا على تخصيص مساحة عملك."
+    },
+    "workspace": {
+      "title": "مساحة عملك",
+      "description": "سمِّ المؤسسة التي تريد إنشاءها."
+    },
+    "invite": {
+      "title": "ادعُ فريقك",
+      "description": "أضف زملاء الآن أو تخطَّ وافعل ذلك لاحقًا."
+    },
+    "done": {
+      "title": "أنت جاهز",
+      "description": "راجع وانتقل إلى لوحة التحكم."
+    }
+  },
+  "welcome": {
+    "body": "سنساعدك على إعداد ملفك الشخصي وإنشاء مؤسستك الأولى ودعوة فريقك. يستغرق دقيقة فقط.",
+    "bodyPersonal": "سنساعدك على إعداد ملفك الشخصي وتخصيص مساحة عملك. يستغرق دقيقة فقط."
+  },
+  "profile": {
+    "firstNameLabel": "الاسم الأول",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "اسم العائلة",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "ما حجم فريقك؟",
+      "options": {
+        "justMe": "أنا فقط",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "لأي غرض ستستخدم Core بشكل أساسي؟",
+      "options": {
+        "customerManagement": "إدارة العملاء",
+        "teamCollaboration": "تعاون الفريق",
+        "analyticsReporting": "التحليلات والتقارير",
+        "internalTools": "أدوات داخلية",
+        "somethingElse": "شيء آخر"
+      }
+    },
+    "referral": {
+      "label": "كيف سمعت عنا؟",
+      "options": {
+        "search": "بحث",
+        "socialMedia": "وسائل التواصل",
+        "friendOrColleague": "صديق أو زميل",
+        "blogOrArticle": "مدونة أو مقال",
+        "other": "أخرى"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "اسم المؤسسة",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "رابط مساحة العمل (اختياري)",
+    "slugPlaceholder": "acme",
+    "urlPreview": "ستكون مساحة عملك على <1>core.app/{{slug}}</1>",
+    "slugFallback": "your-workspace"
+  },
+  "invite": {
+    "emailLabel": "بريد الزميل",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "إضافة",
+    "invalidEmail": "أدخل عنوان بريد إلكتروني صالحًا.",
+    "duplicateEmail": "هذا الزميل موجود بالفعل في القائمة.",
+    "removeAriaLabel": "إزالة {{email}}"
+  },
+  "done": {
+    "nameLabel": "الاسم",
+    "organizationLabel": "المؤسسة",
+    "invitesLabel": "الدعوات",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}} معلّقة",
+    "invitesPending_other": "{{count}} معلّقة"
+  },
+  "actions": {
+    "back": "رجوع",
+    "continue": "متابعة",
+    "enterDashboard": "الدخول إلى لوحة التحكم",
+    "settingUp": "جارٍ الإعداد…"
+  },
+  "defaults": {
+    "organizationName": "مؤسستي",
+    "memberRoleName": "عضو",
+    "memberRoleDescription": "الدور الافتراضي للزملاء المدعوين."
+  },
+  "toast": {
+    "finishSuccess": "مرحبًا! مساحة عملك جاهزة.",
+    "finishError": "حدث خطأ أثناء إنهاء الإعداد. يُرجى المحاولة مرة أخرى.",
+    "invitePartialFailure_one": "المساحة جاهزة — تعذّر إرسال {{count}} دعوة. يمكنك إعادة الإرسال من الأعضاء.",
+    "invitePartialFailure_other": "المساحة جاهزة — تعذّر إرسال {{count}} دعوات. يمكنك إعادة الإرسال من الأعضاء."
+  },
+  "guard": {
+    "title": "مغادرة الإعداد الأولي؟",
+    "description": "تقدمك محفوظ محليًا، لكن المغادرة الآن قد تقاطع الإعداد.",
+    "discard": "مغادرة",
+    "stay": "البقاء"
+  }
+}

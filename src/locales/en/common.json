@@ -20,6 +20,14 @@
     "heading": "Regional format locale",
     "description": "Intl date, number, and currency output — independent of UI language."
   },
+  "dateTime": {
+    "heading": "Date & time",
+    "description": "Saved on this device — changes apply live to every date in the app."
+  },
+  "timeZone": {
+    "heading": "Timezone",
+    "preview": "Timezone: {{value}}"
+  },
   "dateFormat": {
     "heading": "Date & time format",
     "auto": "Locale default (numeric)",
@@ -62,6 +70,8 @@
     "heading": "Preview currency"
   },
   "direction": {
+    "heading": "Text direction",
+    "auto": "Follow language",
     "ltr": "Left-to-right",
     "rtl": "Right-to-left"
   },

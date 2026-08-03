@@ -1,0 +1,177 @@
+{
+  "nav": {
+    "ariaSections": "Sezioni impostazioni",
+    "ariaSettings": "Impostazioni",
+    "searchPlaceholder": "Cerca",
+    "searchAria": "Cerca nelle impostazioni",
+    "empty": "Nessuna corrispondenza",
+    "groups": {
+      "account": "Account",
+      "organization": "Organizzazione"
+    },
+    "profile": "Profilo",
+    "account": "Account",
+    "security": "Sicurezza",
+    "notifications": "Notifiche",
+    "sessions": "Sessioni",
+    "general": "Generale",
+    "members": "Membri",
+    "roles": "Ruoli",
+    "billing": "Fatturazione",
+    "integrations": "Integrazioni"
+  },
+  "security": {
+    "heading": "Sicurezza",
+    "description": "Autenticazione a due fattori e passkey.",
+    "mfa": {
+      "title": "Autenticazione a due fattori",
+      "description": "Richiedi un codice autenticatore all'accesso.",
+      "enabled": "Attivata",
+      "disabled": "Disattivata",
+      "setup": "Configura autenticazione a due fattori",
+      "disable": "Disattiva autenticazione a due fattori",
+      "disableTitle": "Disattivare l'autenticazione a due fattori?",
+      "disableDescription": "Il tuo account sarà meno protetto. Potrai riattivarla in qualsiasi momento.",
+      "disableConfirm": "Disattiva",
+      "setupTitle": "Configura l'autenticazione a due fattori",
+      "setupDescription": "Scansiona il codice QR con l'app di autenticazione oppure inserisci il segreto manualmente.",
+      "recoveryTitle": "Salva i tuoi codici di recupero",
+      "recoveryDescription": "Conservali in un posto sicuro. Ognuno funziona una sola volta se perdi il dispositivo.",
+      "done": "Fatto",
+      "cancel": "Annulla",
+      "verifyEnable": "Verifica e attiva",
+      "codeLabel": "Inserisci il codice a 6 cifre",
+      "codeAria": "Codice autenticatore a sei cifre",
+      "secretLabel": "Chiave di inserimento manuale",
+      "copySecret": "Copia segreto",
+      "copiedSecret": "Copiato",
+      "scanHint": "Apri Google Authenticator, 1Password o un'altra app TOTP e scansiona questo codice.",
+      "errors": {
+        "setupFailed": "Impossibile avviare la configurazione. Riprova.",
+        "invalidCode": "Quel codice non corrisponde. Inserisci il codice attuale a 6 cifre."
+      }
+    },
+    "passkeys": {
+      "title": "Passkey",
+      "description": "Accedi senza password usando il tuo dispositivo.",
+      "add": "Aggiungi passkey",
+      "empty": "Nessuna passkey ancora. Aggiungine una per accedere senza password.",
+      "removeAria": "Rimuovi {{name}}",
+      "addTitle": "Aggiungi una passkey",
+      "addDescription": "Assegnale un nome per riconoscerla in seguito. Il dispositivo ti chiederà di crearla.",
+      "nameLabel": "Nome",
+      "namePlaceholder": "MacBook Touch ID",
+      "cancel": "Annulla",
+      "submit": "Aggiungi passkey"
+    },
+    "overview": {
+      "title": "Protezione account",
+      "description": "Panoramica rapida di ciò che protegge l'accesso.",
+      "score": "{{score}} di {{total}} attivi",
+      "mfaOn": "L'autenticazione a due fattori è attiva",
+      "mfaOff": "L'autenticazione a due fattori è disattivata",
+      "passkeysOn": "{{count}} passkey registrata",
+      "passkeysOn_other": "{{count}} passkey registrate",
+      "passkeysOff": "Nessuna passkey registrata",
+      "idleProtection": "Disconnessione automatica per inattività attiva"
+    },
+    "recoveryCodes": {
+      "reveal": "Mostra codici",
+      "hide": "Nascondi codici",
+      "copyAll": "Copia tutti",
+      "download": "Scarica .txt",
+      "copySuccess": "Codici di recupero copiati — gli appunti si cancellano tra 1 minuto",
+      "copyFailed": "Impossibile copiare negli appunti",
+      "downloadStarted": "Download avviato",
+      "clipboardNotice": "I segreti copiati vengono cancellati dagli appunti dopo un minuto.",
+      "acknowledge": "Ho salvato questi codici di recupero in un posto sicuro"
+    },
+    "stepUp": {
+      "title": "Conferma la tua identità",
+      "description": "Per sicurezza, verifica di nuovo prima di modificare le impostazioni di accesso.",
+      "passwordLabel": "Password",
+      "totpLabel": "Codice autenticatore",
+      "emailCodeLabel": "Codice di verifica",
+      "emailCodeSent": "Abbiamo inviato un codice a 6 caratteri a {{email}}.",
+      "resend": "Reinvia codice",
+      "resent": "Codice inviato",
+      "verify": "Verifica",
+      "verifying": "Verifica…",
+      "invalid": "Non corrisponde. Riprova.",
+      "passwordRequired": "Questa azione richiede la password o un codice autenticatore."
+    }
+  },
+  "discard": {
+    "title": "Scartare le modifiche non salvate?",
+    "description": "Hai modifiche non salvate. Lasciare questa sezione le scarterà.",
+    "stay": "Continua a modificare",
+    "leave": "Scarta modifiche"
+  },
+  "panels": {
+    "members": {
+      "title": "Membri",
+      "description": "Persone in questa organizzazione.",
+      "loadFailed": "Impossibile caricare i membri. Riprova.",
+      "emptyTitle": "Nessun membro ancora",
+      "emptyDescription": "Invita colleghi a collaborare in questa organizzazione.",
+      "searchPlaceholder": "Cerca membri…",
+      "noResults": "Nessun membro corrisponde alla ricerca.",
+      "loadMore": "Carica altri",
+      "actionsAria": "Azioni per {{name}}",
+      "changeRole": "Cambia ruolo",
+      "suspend": "Sospendi",
+      "reactivate": "Riattiva",
+      "removeAction": "Rimuovi dall'organizzazione",
+      "removeAria": "Rimuovi {{name}}",
+      "removeTitle": "Rimuovere {{name}}?",
+      "removeDescription": "Perderà l'accesso a questa organizzazione. Potrai annullare per alcuni secondi dopo la conferma.",
+      "removeConfirm": "Rimuovi",
+      "removePending": "Rimozione di {{name}}…"
+    },
+    "roles": {
+      "title": "Ruoli",
+      "description": "Set di permessi che puoi assegnare ai membri.",
+      "loadFailed": "Impossibile caricare i ruoli. Riprova.",
+      "emptyTitle": "Nessun ruolo ancora",
+      "emptyDescription": "Crea un ruolo personalizzato per concedere un set di permessi su misura.",
+      "searchPlaceholder": "Cerca ruoli…",
+      "noResults": "Nessun ruolo corrisponde alla ricerca.",
+      "loadMore": "Carica altri",
+      "systemBadge": "Sistema",
+      "memberCount": "{{count}} membro",
+      "memberCount_other": "{{count}} membri",
+      "actionsAria": "Azioni per {{name}}",
+      "editAction": "Modifica ruolo",
+      "deleteAction": "Elimina ruolo",
+      "deleteAria": "Elimina {{name}}",
+      "deleteTitle": "Eliminare {{name}}?",
+      "deleteDescription": "I membri con questo ruolo dovranno riceverne uno nuovo. Potrai annullare per alcuni secondi dopo la conferma.",
+      "deleteConfirm": "Elimina",
+      "deletePending": "Eliminazione di {{name}}…"
+    },
+    "listSort": {
+      "label": "Ordina per",
+      "nameAsc": "Nome (A–Z)",
+      "nameDesc": "Nome (Z–A)",
+      "newest": "Più recenti prima",
+      "oldest": "Più vecchi prima"
+    },
+    "profile": {
+      "title": "Profilo",
+      "description": "Come appari nell'app. Visibile alle persone della tua organizzazione.",
+      "completeness": "Profilo completo al {{percent}}%",
+      "confirmTitle": "Salvare le modifiche al profilo?",
+      "confirmDescription": "Sei sicuro di voler aggiornare le informazioni del profilo?",
+      "confirmSave": "Salva modifiche",
+      "confirmCancel": "Annulla",
+      "saving": "Salvataggio…",
+      "save": "Salva modifiche"
+    },
+    "account": {
+      "deleteTitle": "Eliminare il tuo account?",
+      "deleteDescription": "Questa azione è permanente e non può essere annullata. Tutti i tuoi dati verranno rimossi.",
+      "deleteConfirm": "Elimina account",
+      "deleteCancel": "Annulla"
+    }
+  }
+}

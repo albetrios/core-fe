@@ -92,15 +92,23 @@ function seeded(index: number): number {
   return Math.abs(Math.sin(index * 12.9898) * 43_758.5453) % 1;
 }
 
-const ANALYTICS_AXIS_FORMAT = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-});
+/** Default axis label when the caller does not supply a locale-aware formatter. */
+function defaultAnalyticsAxisLabel(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
 
-/** Build a deterministic daily series for the analytics chart placeholder. */
+/**
+ * Build a deterministic daily series for the analytics chart placeholder.
+ * Pass `formatLabel` from {@link useLocaleFormat} so axis ticks follow the
+ * user's regional locale + timezone preferences.
+ */
 export function buildAnalyticsSeries(
   range: AnalyticsRange,
   reference: Date = new Date(),
+  formatLabel: (date: Date) => string = defaultAnalyticsAxisLabel,
 ): AnalyticsPoint[] {
   const days = ANALYTICS_RANGE_DAYS.get(range) ?? 30;
   const points: AnalyticsPoint[] = [];
@@ -109,7 +117,7 @@ export function buildAnalyticsSeries(
     date.setDate(date.getDate() - offset);
     const i = days - offset;
     points.push({
-      label: ANALYTICS_AXIS_FORMAT.format(date),
+      label: formatLabel(date),
       sessions: Math.round(140 + 70 * Math.sin(i / 6) + seeded(i) * 60),
       apiCalls: Math.round(320 + 150 * Math.sin(i / 4 + 1) + seeded(i * 2) * 140),
     });

@@ -68,7 +68,7 @@ export function LanguageDialog() {
             {t(LOCALE_KEYS.title)}
           </h2>
           <p className="text-muted-foreground text-xs">
-            {t(LOCALE_KEYS.languageDescription)}
+            Saved on this device — changes apply live.
           </p>
         </div>
         <button

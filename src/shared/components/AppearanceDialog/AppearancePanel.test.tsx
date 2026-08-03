@@ -50,10 +50,15 @@ describe('AppearancePanel', () => {
     expect(screen.getByTestId('toast-variant-swatches')).toBeInTheDocument();
   });
 
-  it('no longer renders locale controls (moved to the Language dialog)', () => {
+  it('renders language, text direction, and date & time controls', () => {
     render(<AppearancePanel />);
-    expect(screen.queryByTestId('language-panel')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('format-locale-select')).not.toBeInTheDocument();
+    expect(screen.getByTestId('language-prefs')).toBeInTheDocument();
+    expect(screen.getByTestId('language-en')).toBeInTheDocument();
+    expect(screen.getByTestId('text-direction-auto')).toBeInTheDocument();
+    expect(screen.getByTestId('text-direction-rtl')).toBeInTheDocument();
+    expect(screen.getByTestId('date-time-prefs')).toBeInTheDocument();
+    expect(screen.getByTestId('format-locale-select')).toBeInTheDocument();
+    expect(screen.getByTestId('time-zone-select')).toBeInTheDocument();
   });
 
   it('notification shuffle rolls the toast variant', async () => {

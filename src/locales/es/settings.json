@@ -16,7 +16,7 @@
     "sessions": "Sesiones",
     "general": "General",
     "members": "Miembros",
-    "roles": "Roles",
+    "roles": "Roles y permisos",
     "billing": "Facturación",
     "integrations": "Integraciones"
   },
@@ -129,7 +129,7 @@
       "removePending": "Eliminando a {{name}}…"
     },
     "roles": {
-      "title": "Roles",
+      "title": "Roles y permisos",
       "description": "Conjuntos de permisos que puedes asignar a los miembros.",
       "loadFailed": "No se pudieron cargar los roles. Inténtalo de nuevo.",
       "emptyTitle": "Aún no hay roles",

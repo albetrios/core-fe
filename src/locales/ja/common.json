@@ -20,6 +20,14 @@
     "heading": "地域フォーマット",
     "description": "Intl の日付・数値・通貨の出力（UI 言語とは独立）。"
   },
+  "dateTime": {
+    "heading": "日付と時刻",
+    "description": "このデバイスに保存されます — 変更はアプリ内のすべての日付にすぐ反映されます。"
+  },
+  "timeZone": {
+    "heading": "タイムゾーン",
+    "preview": "タイムゾーン：{{value}}"
+  },
   "dateFormat": {
     "heading": "日付と時刻の形式",
     "auto": "言語の既定（数値）",
@@ -61,16 +69,11 @@
   "currencyCode": {
     "heading": "プレビュー通貨"
   },
-  "localePreview": {
-    "heading": "リアルタイムプレビュー",
-    "currency": "通貨：{{value}}",
-    "direction": "文字方向：{{value}}",
-    "firstDay": "週の開始：{{value}}",
-    "measurement": "単位：{{value}}"
-  },
   "direction": {
     "ltr": "左から右",
-    "rtl": "右から左"
+    "rtl": "右から左",
+    "heading": "文字方向",
+    "auto": "言語に従う"
   },
   "firstDay": {
     "saturday": "土曜日",
@@ -80,6 +83,13 @@
   "measurement": {
     "metric": "メートル法",
     "imperial": "ヤード・ポンド法"
+  },
+  "localePreview": {
+    "heading": "リアルタイムプレビュー",
+    "currency": "通貨：{{value}}",
+    "direction": "文字方向：{{value}}",
+    "firstDay": "週の開始：{{value}}",
+    "measurement": "単位：{{value}}"
   },
   "versionUpdate": {
     "title": "アップデートがあります",

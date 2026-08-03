@@ -1,9 +1,9 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "Idioma e configurações regionais",
+    "title": "Idioma e região",
+    "heading": "Idioma",
+    "description": "Textos, datas, números e moeda seguem estas preferências.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -17,60 +17,63 @@
     "it": "Italiano"
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "Região de formato",
+    "description": "Saída Intl de datas, números e moeda — independente do idioma da interface."
+  },
+  "dateTime": {
+    "heading": "Data e hora",
+    "description": "Salvo neste dispositivo — as alterações se aplicam imediatamente a todas as datas do app."
+  },
+  "timeZone": {
+    "heading": "Fuso horário",
+    "preview": "Fuso horário: {{value}}"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "Formato de data e hora",
+    "auto": "Padrão do idioma (numérico)",
+    "short": "Curto",
+    "medium": "Médio",
+    "long": "Longo",
+    "full": "Completo",
+    "iso": "Estilo ISO (AAAA-MM-DD)",
+    "date": "Somente data",
+    "time": "Somente hora",
+    "datetime": "Data + hora",
+    "previewDate": "Data e hora: {{value}}",
+    "previewNumber": "Número: {{value}}",
+    "previewRelative": "Relativo: {{value}}",
+    "previewTime": "Somente hora: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "Formato do relógio",
+    "auto": "Padrão do idioma",
+    "h12": "12 horas (AM/PM)",
+    "h23": "24 horas"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "Formato numérico",
+    "auto": "Padrão do idioma",
+    "standard": "Agrupado",
+    "compact": "Compacto (1,2 M)",
+    "engineering": "Engenharia",
+    "scientific": "Científico"
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "Exibição da moeda",
+    "auto": "Padrão do idioma",
+    "symbol": "Símbolo",
+    "narrowSymbol": "Símbolo estreito",
+    "code": "Código ISO",
+    "name": "Nome da moeda"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "Direção do texto: {{value}}",
-    "firstDay": "A semana começa: {{value}}",
-    "measurement": "Unidades: {{value}}"
+    "heading": "Moeda de pré-visualização"
   },
   "direction": {
     "ltr": "Da esquerda para a direita",
-    "rtl": "Da direita para a esquerda"
+    "rtl": "Da direita para a esquerda",
+    "heading": "Direção do texto",
+    "auto": "Seguir o idioma"
   },
   "firstDay": {
     "saturday": "Sábado",
@@ -79,7 +82,14 @@
   },
   "measurement": {
     "metric": "Métrico",
-    "imperial": "Imperial"
+    "imperial": "Imperial (EUA)"
+  },
+  "localePreview": {
+    "heading": "Pré-visualização ao vivo",
+    "currency": "Moeda: {{value}}",
+    "direction": "Direção do texto: {{value}}",
+    "firstDay": "A semana começa: {{value}}",
+    "measurement": "Unidades: {{value}}"
   },
   "versionUpdate": {
     "title": "Atualização disponível",

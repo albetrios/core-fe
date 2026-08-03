@@ -13,6 +13,8 @@ import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
+import { DateTimePrefsCard } from '@/shared/components/DateTimePrefsCard/index.ts';
+import { LanguagePrefsCard } from '@/shared/components/LanguagePrefsCard/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   Card,
@@ -414,7 +416,7 @@ export function AppearancePanel() {
 
   if (platformConfig.themeLock) {
     return (
-      <div className="space-y-6" data-testid="appearance-panel">
+      <div className="flex flex-col gap-4" data-testid="appearance-panel">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Theme</CardTitle>
@@ -424,6 +426,8 @@ export function AppearancePanel() {
             </CardDescription>
           </CardHeader>
         </Card>
+        <LanguagePrefsCard />
+        <DateTimePrefsCard />
       </div>
     );
   }
@@ -438,6 +442,9 @@ export function AppearancePanel() {
 
   return (
     <div className="flex flex-col gap-4" data-testid="appearance-panel">
+      <LanguagePrefsCard />
+      <DateTimePrefsCard />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Theme</CardTitle>

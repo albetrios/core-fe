@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "Etwas ist schiefgelaufen",
+    "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte laden Sie die Seite neu.",
+    "reload": "Seite neu laden"
+  },
+  "route": {
+    "notFound": "Die gesuchte Seite existiert nicht.",
+    "generic": "Etwas ist schiefgelaufen.",
+    "pageTitle": "Diese Seite hat einen Fehler",
+    "pageMessage": "Beim Rendern dieser Seite ist etwas schiefgelaufen.",
+    "tryAgain": "Erneut versuchen",
+    "goHome": "Zur Startseite",
+    "refresh": "Seite aktualisieren"
+  },
+  "widget": {
+    "unavailable": "{{title}} nicht verfügbar",
+    "message": "Beim Laden dieses Abschnitts ist etwas schiefgelaufen. Erneut versuchen.",
+    "retry": "Erneut versuchen",
+    "pageContent": "Seiteninhalt",
+    "emailBanner": "E-Mail-Bestätigung",
+    "notifications": "Benachrichtigungen",
+    "organizationSwitcher": "Organisationswechsler"
+  },
+  "toast": {
+    "dismiss": "Benachrichtigung schließen",
+    "undo": "Rückgängig",
+    "undone": "Aktion abgebrochen",
+    "processing": "Wird verarbeitet…",
+    "preview": {
+      "successTitle": "Änderungen gespeichert",
+      "successDescription": "Ihre Einstellungen sind aktiv.",
+      "errorTitle": "Etwas ist schiefgelaufen",
+      "errorDescription": "Bitte erneut versuchen.",
+      "warningTitle": "Achtung",
+      "warningDescription": "Diese Aktion erfordert eine Prüfung.",
+      "infoTitle": "Wussten Sie schon?",
+      "infoDescription": "Mischen ändert auch dieses Design."
+    }
+  },
+  "api": {
+    "fallback": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten",
+    "http400": "Die Anfrage war ungültig. Prüfen Sie Ihre Eingaben und versuchen Sie es erneut.",
+    "http401": "Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.",
+    "http403": "Sie haben keine Berechtigung für diese Aktion.",
+    "http404": "Die angeforderte Ressource wurde nicht gefunden.",
+    "http409": "Es ist ein Konflikt aufgetreten. Die Ressource wurde möglicherweise von jemand anderem geändert.",
+    "http422": "Die übermittelten Daten sind ungültig. Bitte prüfen und erneut versuchen.",
+    "http429": "Zu viele Anfragen. Bitte kurz warten und erneut versuchen.",
+    "http500": "Ein interner Serverfehler ist aufgetreten. Bitte später erneut versuchen.",
+    "http502": "Der Server ist vorübergehend nicht verfügbar. Bitte später erneut versuchen.",
+    "http503": "Der Dienst ist vorübergehend nicht verfügbar. Bitte später erneut versuchen."
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "Daten konnten nicht geladen werden.",
+      "retry": "Erneut versuchen"
+    },
+    "organization": {
+      "roleRequired": "Zum Ändern der Mitgliedsrolle ist eine Rolle erforderlich.",
+      "updateFailed": "Organisation konnte nicht aktualisiert werden",
+      "logoInvalidType": "Bitte wählen Sie eine Bilddatei.",
+      "logoTooLarge": "Logo muss unter 1 MB sein.",
+      "logoReadFailed": "Datei konnte nicht gelesen werden.",
+      "formCheck": "Formular prüfen",
+      "updateSuccess": "Organisation aktualisiert",
+      "createSuccess": "{{name}} erstellt"
+    },
+    "account": {
+      "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
+      "themeCodeNumeric": "Geben Sie einen numerischen Theme-Code ein",
+      "copySuccess": "Konto-ID kopiert",
+      "themeLinkCopied": "Theme-Link kopiert",
+      "themeLinkCopiedDescription": "Teilen Sie diese URL, um das Erscheinungsbild zu reproduzieren.",
+      "notificationStylePreview": "Benachrichtigungsstil",
+      "notificationStylePreviewDescription": "{{variant}} — mit Ihrem Akzent und semantischen Farben.",
+      "accountDeletionPending": "Konto gelöscht. Abmeldung…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "Passkey konnte nicht hinzugefügt werden",
+        "removeFailed": "Passkey konnte nicht entfernt werden",
+        "addSuccess": "Passkey hinzugefügt",
+        "removeSuccess": "Passkey entfernt"
+      },
+      "mfa": {
+        "disableFailed": "Zwei-Faktor-Authentifizierung konnte nicht deaktiviert werden",
+        "enableSuccess": "Zwei-Faktor-Authentifizierung aktiviert",
+        "disableSuccess": "Zwei-Faktor-Authentifizierung deaktiviert"
+      },
+      "members": {
+        "updateRoleFailed": "Rolle konnte nicht aktualisiert werden",
+        "removeFailed": "Mitglied konnte nicht entfernt werden",
+        "updateFailed": "Mitglied konnte nicht aktualisiert werden",
+        "updateRoleSuccess": "Mitgliederrolle aktualisiert",
+        "removeSuccess": "Mitglied entfernt",
+        "suspendSuccess": "Mitglied gesperrt",
+        "reactivateSuccess": "Mitglied reaktiviert"
+      },
+      "roles": {
+        "createFailed": "Rolle konnte nicht erstellt werden",
+        "updateFailed": "Rolle konnte nicht aktualisiert werden",
+        "deleteFailed": "Rolle konnte nicht gelöscht werden",
+        "createSuccess": "Rolle \"{{name}}\" erstellt",
+        "updateSuccess": "Rolle \"{{name}}\" aktualisiert",
+        "deleteSuccess": "Rolle gelöscht"
+      },
+      "apiKeys": {
+        "createFailed": "API-Schlüssel konnte nicht erstellt werden",
+        "renameFailed": "API-Schlüssel konnte nicht umbenannt werden",
+        "revokeFailed": "API-Schlüssel konnte nicht widerrufen werden",
+        "createSuccess": "API-Schlüssel erstellt",
+        "renameSuccess": "API-Schlüssel umbenannt",
+        "revokeSuccess": "API-Schlüssel widerrufen"
+      },
+      "sessions": {
+        "signOutFailed": "Sitzung konnte nicht abgemeldet werden",
+        "signOutSuccess": "Von dieser Sitzung abgemeldet"
+      },
+      "notifications": {
+        "updateFailed": "Benachrichtigung konnte nicht aktualisiert werden",
+        "updateManyFailed": "Benachrichtigungen konnten nicht aktualisiert werden",
+        "savePreferencesFailed": "Einstellungen konnten nicht gespeichert werden",
+        "savePreferencesSuccess": "Benachrichtigungseinstellungen gespeichert"
+      },
+      "webhooks": {
+        "createFailed": "Webhook konnte nicht erstellt werden",
+        "deleteFailed": "Webhook konnte nicht gelöscht werden",
+        "createSuccess": "Webhook erstellt",
+        "deleteSuccess": "Webhook gelöscht"
+      },
+      "subscription": {
+        "changePlanFailed": "Plan konnte nicht geändert werden",
+        "changePlanSuccess": "Zum {{plan}}-Plan gewechselt"
+      },
+      "invitations": {
+        "sendFailed": "Einladung konnte nicht gesendet werden",
+        "sendSuccess": "Einladung an {{email}} gesendet"
+      }
+    },
+    "profileUpdated": "Profil aktualisiert"
+  }
+}

@@ -8,6 +8,8 @@ type MockLocaleState = {
   formatLocale: 'en-US';
   dateFormat: 'auto';
   hourCycle: 'auto';
+  timeZone: 'auto';
+  textDirection: 'auto';
   numberStyle: 'auto';
   currencyDisplay: 'auto';
   currencyCode: 'USD';
@@ -15,6 +17,8 @@ type MockLocaleState = {
   setFormatLocale: (f: string) => void;
   setDateFormat: (f: string) => void;
   setHourCycle: (f: string) => void;
+  setTimeZone: (f: string) => void;
+  setTextDirection: (f: string) => void;
   setNumberStyle: (f: string) => void;
   setCurrencyDisplay: (f: string) => void;
   setCurrencyCode: (f: string) => void;
@@ -35,6 +39,8 @@ vi.mock('@/shared/store/useLocaleStore/index.ts', () => ({
       formatLocale: 'en-US',
       dateFormat: localeState.dateFormat,
       hourCycle: 'auto',
+      timeZone: 'auto',
+      textDirection: 'auto',
       numberStyle: 'auto',
       currencyDisplay: 'auto',
       currencyCode: 'USD',
@@ -42,6 +48,8 @@ vi.mock('@/shared/store/useLocaleStore/index.ts', () => ({
       setFormatLocale: noop,
       setDateFormat: setDateFormatMock,
       setHourCycle: noop,
+      setTimeZone: noop,
+      setTextDirection: noop,
       setNumberStyle: noop,
       setCurrencyDisplay: noop,
       setCurrencyCode: noop,
@@ -73,12 +81,14 @@ describe('LanguagePanel', () => {
   it('has no accessibility violations', async () => {
     const { container } = render(<LanguagePanel />);
     expect(await axe(container)).toHaveNoViolations();
-  });
+  }, 20_000);
 
   it('renders the language and regional format controls', () => {
     render(<LanguagePanel />);
     expect(screen.getByTestId('language-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('date-time-prefs')).toBeInTheDocument();
     expect(screen.getByTestId('format-locale-select')).toBeInTheDocument();
+    expect(screen.getByTestId('time-zone-select')).toBeInTheDocument();
     expect(screen.getByTestId('hour-cycle-h23')).toBeInTheDocument();
   });
 

@@ -1,0 +1,177 @@
+{
+  "nav": {
+    "ariaSections": "설정 섹션",
+    "ariaSettings": "설정",
+    "searchPlaceholder": "검색",
+    "searchAria": "설정 검색",
+    "empty": "일치 항목 없음",
+    "groups": {
+      "account": "계정",
+      "organization": "조직"
+    },
+    "profile": "프로필",
+    "account": "계정",
+    "security": "보안",
+    "notifications": "알림",
+    "sessions": "세션",
+    "general": "일반",
+    "members": "멤버",
+    "roles": "역할",
+    "billing": "결제",
+    "integrations": "연동"
+  },
+  "security": {
+    "heading": "보안",
+    "description": "2단계 인증과 패스키.",
+    "mfa": {
+      "title": "2단계 인증",
+      "description": "로그인 시 인증 앱 코드를 요구합니다.",
+      "enabled": "사용",
+      "disabled": "사용 안 함",
+      "setup": "2단계 인증 설정",
+      "disable": "2단계 인증 사용 안 함",
+      "disableTitle": "2단계 인증을 사용하지 않으시겠습니까?",
+      "disableDescription": "계정 보호가 약해집니다. 언제든지 다시 켤 수 있습니다.",
+      "disableConfirm": "사용 안 함",
+      "setupTitle": "2단계 인증 설정",
+      "setupDescription": "인증 앱으로 QR 코드를 스캔하거나 시크릿을 수동으로 입력하세요.",
+      "recoveryTitle": "복구 코드 저장",
+      "recoveryDescription": "안전한 곳에 보관하세요. 기기를 잃어버리면 각 코드는 한 번만 사용할 수 있습니다.",
+      "done": "완료",
+      "cancel": "취소",
+      "verifyEnable": "확인하고 사용",
+      "codeLabel": "6자리 코드 입력",
+      "codeAria": "6자리 인증 코드",
+      "secretLabel": "수동 입력 키",
+      "copySecret": "시크릿 복사",
+      "copiedSecret": "복사됨",
+      "scanHint": "Google Authenticator, 1Password 또는 다른 TOTP 앱을 열고 이 코드를 스캔하세요.",
+      "errors": {
+        "setupFailed": "설정을 시작할 수 없습니다. 다시 시도해 주세요.",
+        "invalidCode": "코드가 일치하지 않습니다. 현재 6자리 코드를 입력하세요."
+      }
+    },
+    "passkeys": {
+      "title": "패스키",
+      "description": "기기를 사용해 비밀번호 없이 로그인하세요.",
+      "add": "패스키 추가",
+      "empty": "아직 패스키가 없습니다. 비밀번호 없이 로그인하려면 추가하세요.",
+      "removeAria": "{{name}} 제거",
+      "addTitle": "패스키 추가",
+      "addDescription": "나중에 알아볼 수 있도록 이름을 지정하세요. 기기에서 패스키 생성을 요청합니다.",
+      "nameLabel": "이름",
+      "namePlaceholder": "MacBook Touch ID",
+      "cancel": "취소",
+      "submit": "패스키 추가"
+    },
+    "overview": {
+      "title": "계정 보호",
+      "description": "로그인을 보호하는 항목의 빠른 보기.",
+      "score": "{{total}}개 중 {{score}}개 활성",
+      "mfaOn": "2단계 인증이 켜져 있습니다",
+      "mfaOff": "2단계 인증이 꺼져 있습니다",
+      "passkeysOn": "패스키 {{count}}개 등록됨",
+      "passkeysOn_other": "패스키 {{count}}개 등록됨",
+      "passkeysOff": "등록된 패스키 없음",
+      "idleProtection": "유휴 시 자동 로그아웃이 활성입니다"
+    },
+    "recoveryCodes": {
+      "reveal": "코드 표시",
+      "hide": "코드 숨기기",
+      "copyAll": "모두 복사",
+      "download": ".txt 다운로드",
+      "copySuccess": "복구 코드가 복사됨 — 1분 후 클립보드가 지워집니다",
+      "copyFailed": "클립보드에 복사할 수 없습니다",
+      "downloadStarted": "다운로드 시작됨",
+      "clipboardNotice": "복사된 시크릿은 1분 후 클립보드에서 지워집니다.",
+      "acknowledge": "이 복구 코드를 안전한 곳에 저장했습니다"
+    },
+    "stepUp": {
+      "title": "본인 확인",
+      "description": "보안을 위해 로그인 설정을 변경하기 전에 다시 확인하세요.",
+      "passwordLabel": "비밀번호",
+      "totpLabel": "인증 코드",
+      "emailCodeLabel": "인증 코드",
+      "emailCodeSent": "{{email}}(으)로 6자 코드를 이메일로 보냈습니다.",
+      "resend": "코드 다시 보내기",
+      "resent": "코드 전송됨",
+      "verify": "확인",
+      "verifying": "확인 중…",
+      "invalid": "일치하지 않습니다. 다시 시도해 주세요.",
+      "passwordRequired": "이 작업에는 비밀번호 또는 인증 코드가 필요합니다."
+    }
+  },
+  "discard": {
+    "title": "저장되지 않은 변경 사항을 버리시겠습니까?",
+    "description": "저장되지 않은 변경 사항이 있습니다. 이 섹션을 나가면 버려집니다.",
+    "stay": "편집 계속",
+    "leave": "변경 사항 버리기"
+  },
+  "panels": {
+    "members": {
+      "title": "멤버",
+      "description": "이 조직의 사람들.",
+      "loadFailed": "멤버를 불러올 수 없습니다. 다시 시도해 주세요.",
+      "emptyTitle": "아직 멤버가 없습니다",
+      "emptyDescription": "이 조직에서 협업할 동료를 초대하세요.",
+      "searchPlaceholder": "멤버 검색…",
+      "noResults": "검색과 일치하는 멤버가 없습니다.",
+      "loadMore": "더 불러오기",
+      "actionsAria": "{{name}}에 대한 작업",
+      "changeRole": "역할 변경",
+      "suspend": "정지",
+      "reactivate": "재활성화",
+      "removeAction": "조직에서 제거",
+      "removeAria": "{{name}} 제거",
+      "removeTitle": "{{name}}을(를) 제거하시겠습니까?",
+      "removeDescription": "이 조직에 대한 액세스 권한을 잃게 됩니다. 확인 후 몇 초 동안 취소할 수 있습니다.",
+      "removeConfirm": "제거",
+      "removePending": "{{name}} 제거 중…"
+    },
+    "roles": {
+      "title": "역할",
+      "description": "멤버에게 할당할 수 있는 권한 세트.",
+      "loadFailed": "역할을 불러올 수 없습니다. 다시 시도해 주세요.",
+      "emptyTitle": "아직 역할이 없습니다",
+      "emptyDescription": "맞춤 권한 세트를 부여할 사용자 지정 역할을 만드세요.",
+      "searchPlaceholder": "역할 검색…",
+      "noResults": "검색과 일치하는 역할이 없습니다.",
+      "loadMore": "더 불러오기",
+      "systemBadge": "시스템",
+      "memberCount": "멤버 {{count}}명",
+      "memberCount_other": "멤버 {{count}}명",
+      "actionsAria": "{{name}}에 대한 작업",
+      "editAction": "역할 편집",
+      "deleteAction": "역할 삭제",
+      "deleteAria": "{{name}} 삭제",
+      "deleteTitle": "{{name}}을(를) 삭제하시겠습니까?",
+      "deleteDescription": "이 역할의 멤버에게는 새 역할이 필요합니다. 확인 후 몇 초 동안 취소할 수 있습니다.",
+      "deleteConfirm": "삭제",
+      "deletePending": "{{name}} 삭제 중…"
+    },
+    "listSort": {
+      "label": "정렬 기준",
+      "nameAsc": "이름 (A–Z)",
+      "nameDesc": "이름 (Z–A)",
+      "newest": "최신순",
+      "oldest": "오래된순"
+    },
+    "profile": {
+      "title": "프로필",
+      "description": "앱에서 보이는 모습. 조직의 사람들에게 표시됩니다.",
+      "completeness": "프로필 {{percent}}% 완료",
+      "confirmTitle": "프로필 변경을 저장하시겠습니까?",
+      "confirmDescription": "프로필 정보를 업데이트하시겠습니까?",
+      "confirmSave": "변경 사항 저장",
+      "confirmCancel": "취소",
+      "saving": "저장 중…",
+      "save": "변경 사항 저장"
+    },
+    "account": {
+      "deleteTitle": "계정을 삭제하시겠습니까?",
+      "deleteDescription": "이 작업은 영구적이며 취소할 수 없습니다. 모든 데이터가 제거됩니다.",
+      "deleteConfirm": "계정 삭제",
+      "deleteCancel": "취소"
+    }
+  }
+}

@@ -3,7 +3,7 @@
     "openAria": "语言和区域设置",
     "title": "语言与区域",
     "heading": "语言",
-    "description": "界面文案、日期、数字和货币均遵循以下偏好。",
+    "description": "界面文案、日期、数字和货币均遵循这些偏好设置。",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -19,6 +19,14 @@
   "formatLocale": {
     "heading": "区域格式",
     "description": "Intl 日期、数字和货币格式，独立于界面语言。"
+  },
+  "dateTime": {
+    "heading": "日期与时间",
+    "description": "保存在此设备上 — 更改会立即应用到应用中的所有日期。"
+  },
+  "timeZone": {
+    "heading": "时区",
+    "preview": "时区：{{value}}"
   },
   "dateFormat": {
     "heading": "日期与时间格式",
@@ -61,16 +69,11 @@
   "currencyCode": {
     "heading": "预览货币"
   },
-  "localePreview": {
-    "heading": "实时预览",
-    "currency": "货币：{{value}}",
-    "direction": "文字方向：{{value}}",
-    "firstDay": "每周起始：{{value}}",
-    "measurement": "单位：{{value}}"
-  },
   "direction": {
     "ltr": "从左到右",
-    "rtl": "从右到左"
+    "rtl": "从右到左",
+    "heading": "文字方向",
+    "auto": "跟随语言"
   },
   "firstDay": {
     "saturday": "星期六",
@@ -80,6 +83,13 @@
   "measurement": {
     "metric": "公制",
     "imperial": "英制"
+  },
+  "localePreview": {
+    "heading": "实时预览",
+    "currency": "货币：{{value}}",
+    "direction": "文字方向：{{value}}",
+    "firstDay": "每周起始：{{value}}",
+    "measurement": "单位：{{value}}"
   },
   "versionUpdate": {
     "title": "有可用更新",

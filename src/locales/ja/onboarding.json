@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "オンボーディング"
+  },
+  "steps": {
+    "welcome": {
+      "title": "ようこそ",
+      "description": "数ステップでアカウントを設定しましょう。"
+    },
+    "profile": {
+      "title": "あなたについて",
+      "description": "少し自己紹介してください。"
+    },
+    "questions": {
+      "title": "簡単な質問",
+      "description": "任意 — ワークスペースのカスタマイズに役立ちます。"
+    },
+    "workspace": {
+      "title": "ワークスペース",
+      "description": "作成する組織の名前を入力してください。"
+    },
+    "invite": {
+      "title": "チームを招待",
+      "description": "今すぐ同僚を追加するか、後で行います。"
+    },
+    "done": {
+      "title": "準備完了",
+      "description": "確認してダッシュボードへ進みましょう。"
+    }
+  },
+  "welcome": {
+    "body": "プロフィールの設定、最初の組織の作成、チームの招待をお手伝いします。1分ほどで完了します。",
+    "bodyPersonal": "プロフィールの設定とワークスペースのパーソナライズをお手伝いします。1分ほどで完了します。"
+  },
+  "profile": {
+    "firstNameLabel": "名",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "姓",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "チームの規模は？",
+      "options": {
+        "justMe": "自分だけ",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "Core を主に何に使いますか？",
+      "options": {
+        "customerManagement": "顧客管理",
+        "teamCollaboration": "チームコラボレーション",
+        "analyticsReporting": "分析とレポート",
+        "internalTools": "社内ツール",
+        "somethingElse": "その他"
+      }
+    },
+    "referral": {
+      "label": "どこで知りましたか？",
+      "options": {
+        "search": "検索",
+        "socialMedia": "ソーシャルメディア",
+        "friendOrColleague": "友人や同僚",
+        "blogOrArticle": "ブログや記事",
+        "other": "その他"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "組織名",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "ワークスペース URL（任意）",
+    "slugPlaceholder": "acme",
+    "urlPreview": "ワークスペースは <1>core.app/{{slug}}</1> で利用できます",
+    "slugFallback": "your-workspace"
+  },
+  "invite": {
+    "emailLabel": "同僚のメール",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "追加",
+    "invalidEmail": "有効なメールアドレスを入力してください。",
+    "duplicateEmail": "その同僚はすでにリストにいます。",
+    "removeAriaLabel": "{{email}} を削除"
+  },
+  "done": {
+    "nameLabel": "名前",
+    "organizationLabel": "組織",
+    "invitesLabel": "招待",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}} 件保留",
+    "invitesPending_other": "{{count}} 件保留"
+  },
+  "actions": {
+    "back": "戻る",
+    "continue": "続行",
+    "enterDashboard": "ダッシュボードへ入る",
+    "settingUp": "設定中…"
+  },
+  "defaults": {
+    "organizationName": "マイ組織",
+    "memberRoleName": "メンバー",
+    "memberRoleDescription": "招待された同僚のデフォルトロール。"
+  },
+  "toast": {
+    "finishSuccess": "ようこそ！ワークスペースの準備ができました。",
+    "finishError": "セットアップの完了中に問題が発生しました。もう一度お試しください。",
+    "invitePartialFailure_one": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。",
+    "invitePartialFailure_other": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。"
+  },
+  "guard": {
+    "title": "オンボーディングを終了しますか？",
+    "description": "進捗はローカルに保存されていますが、今終了するとセットアップが中断される可能性があります。",
+    "discard": "終了",
+    "stay": "残る"
+  }
+}

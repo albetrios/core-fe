@@ -9,6 +9,8 @@ import {
   intlLocaleFor,
   numberFormatOptions,
   type NumberStylePreference,
+  resolvedTimeZone,
+  type TimeZonePreference,
 } from '@/lib/i18n/intl-config.ts';
 import type { I18nLocale } from '@/lib/i18n/locales.ts';
 
@@ -17,18 +19,29 @@ export type LocaleFormatInput = {
   formatLocale: FormatLocaleTag;
   dateFormat: DateFormatPreference;
   hourCycle: HourCyclePreference;
+  timeZone: TimeZonePreference;
   numberStyle: NumberStylePreference;
   currencyDisplay: CurrencyDisplayPreference;
   currencyCode: CurrencyCode;
 };
 
-export function formatDateValue(iso: string | Date, prefs: LocaleFormatInput): string {
+/**
+ * Format a date with the user's regional locale + timezone. Optional `options`
+ * replace the stored date-format style (still always honour formatLocale /
+ * timeZone) — use for one-off shapes like "weekday long" hero labels.
+ */
+export function formatDateValue(
+  iso: string | Date,
+  prefs: LocaleFormatInput,
+  options?: Intl.DateTimeFormatOptions,
+): string {
   const date = typeof iso === 'string' ? new Date(iso) : iso;
   if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat(
-    intlLocaleFor(prefs.formatLocale),
-    dateFormatOptions(prefs.dateFormat, prefs.hourCycle),
-  ).format(date);
+  const timeZone = resolvedTimeZone(prefs.timeZone);
+  return new Intl.DateTimeFormat(intlLocaleFor(prefs.formatLocale), {
+    ...(options ?? dateFormatOptions(prefs.dateFormat, prefs.hourCycle)),
+    ...(timeZone ? { timeZone } : {}),
+  }).format(date);
 }
 
 export function formatNumberValue(

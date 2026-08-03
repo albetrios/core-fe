@@ -1,0 +1,133 @@
+{
+  "greeting": "Bem-vindo de volta, {{name}}",
+  "greetingFallback": "olá",
+  "heroSubtitle": "Veja o que está acontecendo no seu espaço de trabalho hoje.",
+  "heroSubtitleSolo": "Veja o que está acontecendo hoje.",
+  "errorLoad": "Não foi possível carregar seu espaço de trabalho. Atualize para tentar novamente.",
+  "workspaceFallback": "Seu espaço de trabalho",
+  "workspaceNameFallback": "seu espaço de trabalho",
+  "orgType": {
+    "team": "Equipe",
+    "personal": "Pessoal"
+  },
+  "status": {
+    "active": "Ativo",
+    "suspended": "Suspenso",
+    "archived": "Arquivado"
+  },
+  "overview": {
+    "ariaLabel": "Visão geral"
+  },
+  "stats": {
+    "workspaces": "Espaços de trabalho",
+    "workspacesHintOne": "Só este",
+    "workspacesHintMany": "Você é membro",
+    "permissions": "Suas permissões",
+    "permissionsHint": "Neste espaço",
+    "type": "Tipo de espaço",
+    "typeHintTeam": "Compartilhado com sua equipe",
+    "typeHintPersonal": "Privado para você",
+    "billing": "Cobrança",
+    "billingManaged": "Gerenciada",
+    "billingNone": "—",
+    "billingHintTeam": "Plano de equipe",
+    "billingHintPersonal": "Pessoal — nenhum"
+  },
+  "nextSteps": {
+    "ariaLabel": "Próximos passos sugeridos",
+    "heading": "Próximos passos sugeridos"
+  },
+  "quickActions": {
+    "ariaLabel": "Ações rápidas",
+    "heading": "Ações rápidas",
+    "inviteTitle": "Convidar membros",
+    "inviteDescription": "Adicionar colegas a {{orgName}}",
+    "rolesTitle": "Gerenciar funções",
+    "rolesDescription": "Definir quem pode fazer o quê",
+    "billingTitle": "Cobrança e plano",
+    "billingDescription": "Assinatura e faturas",
+    "orgSettingsTitle": "Configurações da organização",
+    "orgSettingsDescription": "Nome, marca e mais",
+    "accountTitle": "Sua conta",
+    "accountDescription": "Perfil, segurança, sessões"
+  },
+  "organizations": {
+    "ariaLabel": "Suas organizações",
+    "heading": "Suas organizações",
+    "current": "Atual",
+    "openWorkspace": "Abrir espaço →"
+  },
+  "insights": {
+    "ariaLabel": "Insights do espaço",
+    "heading": "Insights do espaço"
+  },
+  "highlights": {
+    "ariaLabel": "Destaques do espaço",
+    "heading": "Destaques",
+    "description": "Formas selecionadas de aproveitar mais o seu espaço de trabalho",
+    "tabsLabel": "Tópicos em destaque",
+    "slideAnnouncement": "Slide {{current}} de {{total}}: {{title}}",
+    "previousSlide": "Destaque anterior",
+    "nextSlide": "Próximo destaque",
+    "goToSlide": "Ir para o destaque {{title}}",
+    "tabs": {
+      "appearance": "Aparência",
+      "invite": "Equipe",
+      "security": "Segurança"
+    },
+    "slides": {
+      "appearance": {
+        "title": "Deixe com a sua cara",
+        "description": "Ajuste tema, densidade e destaque para o espaço combinar com o jeito da sua equipe trabalhar.",
+        "action": "Abrir configurações de aparência"
+      },
+      "invite": {
+        "title": "Faça a equipe crescer",
+        "description": "Convide colegas e atribua funções para que todos tenham o acesso certo desde o primeiro dia.",
+        "action": "Convidar membros"
+      },
+      "security": {
+        "title": "Proteja tudo",
+        "description": "Revise MFA, sessões ativas e métodos de acesso para manter sua conta segura.",
+        "action": "Revisar configurações de segurança"
+      }
+    }
+  },
+  "analytics": {
+    "heading": "Atividade do espaço",
+    "description": "Sessões e chamadas de API ao longo do tempo",
+    "rangeLabel": "Selecionar período",
+    "seriesSessions": "Sessões",
+    "seriesApiCalls": "Chamadas de API",
+    "range": {
+      "7d": "Últimos 7 dias",
+      "30d": "Últimos 30 dias",
+      "90d": "Últimos 90 dias"
+    }
+  },
+  "members": {
+    "ariaLabel": "Membros da equipe",
+    "heading": "Membros da equipe",
+    "description_one": "{{count}} pessoa neste espaço",
+    "description_other": "{{count}} pessoas neste espaço",
+    "columnMember": "Membro",
+    "columnRole": "Função",
+    "columnStatus": "Status",
+    "columnJoined": "Entrou",
+    "status": {
+      "active": "Ativo",
+      "invited": "Convidado",
+      "suspended": "Suspenso"
+    },
+    "error": "Não foi possível carregar os membros."
+  },
+  "schedule": {
+    "ariaLabel": "Agenda",
+    "heading": "Agenda",
+    "description": "Renovações, revisões e eventos da equipe",
+    "upcoming": "Em breve",
+    "legendEvent": "Dia de evento",
+    "empty": "Nada agendado"
+  },
+  "sampleBadge": "Dados de exemplo"
+}

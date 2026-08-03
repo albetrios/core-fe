@@ -1,4 +1,4 @@
-import type { I18nLocale } from './locales.ts';
+import { type I18nLocale, localeDirection, type TextDirection } from './locales.ts';
 
 /** BCP 47 tags for UI languages — used as default format locale. */
 export const INTL_LOCALE: Record<I18nLocale, string> = {
@@ -309,6 +309,159 @@ export function normalizeCurrencyDisplayPreference(
 ): CurrencyDisplayPreference {
   if (value && isCurrencyDisplayPreference(value)) return value;
   return DEFAULT_CURRENCY_DISPLAY;
+}
+
+/**
+ * Layout/text direction override. `auto` follows the UI language
+ * ({@link localeDirection}); `ltr` / `rtl` force `<html dir>` regardless.
+ */
+export const TEXT_DIRECTION_PREFERENCES = ['auto', 'ltr', 'rtl'] as const;
+export type TextDirectionPreference = (typeof TEXT_DIRECTION_PREFERENCES)[number];
+export const DEFAULT_TEXT_DIRECTION: TextDirectionPreference = 'auto';
+
+export function isTextDirectionPreference(
+  value: string,
+): value is TextDirectionPreference {
+  return (TEXT_DIRECTION_PREFERENCES as readonly string[]).includes(value);
+}
+
+export function normalizeTextDirectionPreference(
+  value: string | undefined,
+): TextDirectionPreference {
+  if (value && isTextDirectionPreference(value)) return value;
+  return DEFAULT_TEXT_DIRECTION;
+}
+
+/** Resolve a direction preference to the concrete `ltr` / `rtl` for `<html dir>`. */
+export function resolvedTextDirection(
+  preference: TextDirectionPreference,
+  uiLocale: I18nLocale,
+): TextDirection {
+  if (preference === 'auto') return localeDirection(uiLocale);
+  return preference;
+}
+
+/**
+ * IANA time zones for display override. `auto` follows the device clock;
+ * everything else is passed to `Intl.DateTimeFormat` as `timeZone`.
+ */
+export const TIME_ZONE_TAGS = [
+  { id: 'auto', label: 'Device timezone' },
+  { id: 'UTC', label: 'UTC' },
+  { id: 'America/New_York', label: 'Eastern Time (US & Canada)' },
+  { id: 'America/Chicago', label: 'Central Time (US & Canada)' },
+  { id: 'America/Denver', label: 'Mountain Time (US & Canada)' },
+  { id: 'America/Los_Angeles', label: 'Pacific Time (US & Canada)' },
+  { id: 'America/Anchorage', label: 'Alaska' },
+  { id: 'Pacific/Honolulu', label: 'Hawaii' },
+  { id: 'America/Toronto', label: 'Toronto' },
+  { id: 'America/Vancouver', label: 'Vancouver' },
+  { id: 'America/Mexico_City', label: 'Mexico City' },
+  { id: 'America/Sao_Paulo', label: 'São Paulo' },
+  { id: 'America/Argentina/Buenos_Aires', label: 'Buenos Aires' },
+  { id: 'Europe/London', label: 'London' },
+  { id: 'Europe/Dublin', label: 'Dublin' },
+  { id: 'Europe/Paris', label: 'Paris / Central Europe' },
+  { id: 'Europe/Berlin', label: 'Berlin' },
+  { id: 'Europe/Amsterdam', label: 'Amsterdam' },
+  { id: 'Europe/Rome', label: 'Rome' },
+  { id: 'Europe/Madrid', label: 'Madrid' },
+  { id: 'Europe/Stockholm', label: 'Stockholm' },
+  { id: 'Europe/Oslo', label: 'Oslo' },
+  { id: 'Europe/Copenhagen', label: 'Copenhagen' },
+  { id: 'Europe/Helsinki', label: 'Helsinki' },
+  { id: 'Europe/Warsaw', label: 'Warsaw' },
+  { id: 'Europe/Moscow', label: 'Moscow' },
+  { id: 'Europe/Istanbul', label: 'Istanbul' },
+  { id: 'Africa/Cairo', label: 'Cairo' },
+  { id: 'Africa/Johannesburg', label: 'Johannesburg' },
+  { id: 'Asia/Dubai', label: 'Dubai' },
+  { id: 'Asia/Riyadh', label: 'Riyadh' },
+  { id: 'Asia/Jerusalem', label: 'Jerusalem' },
+  { id: 'Asia/Kolkata', label: 'India (Kolkata)' },
+  { id: 'Asia/Bangkok', label: 'Bangkok' },
+  { id: 'Asia/Singapore', label: 'Singapore' },
+  { id: 'Asia/Hong_Kong', label: 'Hong Kong' },
+  { id: 'Asia/Shanghai', label: 'China (Shanghai)' },
+  { id: 'Asia/Taipei', label: 'Taipei' },
+  { id: 'Asia/Tokyo', label: 'Tokyo' },
+  { id: 'Asia/Seoul', label: 'Seoul' },
+  { id: 'Asia/Jakarta', label: 'Jakarta' },
+  { id: 'Asia/Kuala_Lumpur', label: 'Kuala Lumpur' },
+  { id: 'Asia/Ho_Chi_Minh', label: 'Ho Chi Minh City' },
+  { id: 'Australia/Sydney', label: 'Sydney' },
+  { id: 'Australia/Melbourne', label: 'Melbourne' },
+  { id: 'Australia/Perth', label: 'Perth' },
+  { id: 'Pacific/Auckland', label: 'Auckland' },
+] as const;
+
+export type TimeZonePreference = (typeof TIME_ZONE_TAGS)[number]['id'];
+export const DEFAULT_TIME_ZONE: TimeZonePreference = 'auto';
+
+export function isTimeZonePreference(value: string): value is TimeZonePreference {
+  return TIME_ZONE_TAGS.some((entry) => entry.id === value);
+}
+
+export function normalizeTimeZonePreference(
+  value: string | undefined,
+): TimeZonePreference {
+  if (value && isTimeZonePreference(value)) return value;
+  return DEFAULT_TIME_ZONE;
+}
+
+/** Resolve a preference to an IANA zone for Intl (`undefined` = device local). */
+export function resolvedTimeZone(preference: TimeZonePreference): string | undefined {
+  return preference === 'auto' ? undefined : preference;
+}
+
+/**
+ * Representative IANA zone per country subtag — picking a region snaps the
+ * display timezone the same way it snaps currency.
+ */
+const REGION_TIME_ZONE = new Map<string, TimeZonePreference>([
+  ['US', 'America/New_York'],
+  ['CA', 'America/Toronto'],
+  ['MX', 'America/Mexico_City'],
+  ['BR', 'America/Sao_Paulo'],
+  ['AR', 'America/Argentina/Buenos_Aires'],
+  ['GB', 'Europe/London'],
+  ['IE', 'Europe/Dublin'],
+  ['FR', 'Europe/Paris'],
+  ['DE', 'Europe/Berlin'],
+  ['AT', 'Europe/Berlin'],
+  ['NL', 'Europe/Amsterdam'],
+  ['IT', 'Europe/Rome'],
+  ['ES', 'Europe/Madrid'],
+  ['SE', 'Europe/Stockholm'],
+  ['NO', 'Europe/Oslo'],
+  ['DK', 'Europe/Copenhagen'],
+  ['FI', 'Europe/Helsinki'],
+  ['PL', 'Europe/Warsaw'],
+  ['RU', 'Europe/Moscow'],
+  ['TR', 'Europe/Istanbul'],
+  ['EG', 'Africa/Cairo'],
+  ['ZA', 'Africa/Johannesburg'],
+  ['AE', 'Asia/Dubai'],
+  ['SA', 'Asia/Riyadh'],
+  ['IL', 'Asia/Jerusalem'],
+  ['IN', 'Asia/Kolkata'],
+  ['TH', 'Asia/Bangkok'],
+  ['SG', 'Asia/Singapore'],
+  ['HK', 'Asia/Hong_Kong'],
+  ['CN', 'Asia/Shanghai'],
+  ['TW', 'Asia/Taipei'],
+  ['JP', 'Asia/Tokyo'],
+  ['KR', 'Asia/Seoul'],
+  ['ID', 'Asia/Jakarta'],
+  ['MY', 'Asia/Kuala_Lumpur'],
+  ['VN', 'Asia/Ho_Chi_Minh'],
+  ['AU', 'Australia/Sydney'],
+  ['NZ', 'Pacific/Auckland'],
+]);
+
+/** Default display timezone for a regional format locale. */
+export function defaultTimeZoneForFormatLocale(formatLocale: string): TimeZonePreference {
+  return REGION_TIME_ZONE.get(regionOf(formatLocale)) ?? DEFAULT_TIME_ZONE;
 }
 
 export function intlLocaleFor(formatLocale: string): string {

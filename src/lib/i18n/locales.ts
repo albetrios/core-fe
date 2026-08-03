@@ -36,17 +36,12 @@ export const LOCALE_NATIVE_LABELS: Record<I18nLocale, string> = {
   it: 'Italiano',
 };
 
-/** Locales with only `common.json` — other namespaces fall back to English. */
-export const PARTIAL_UI_LOCALES: ReadonlySet<I18nLocale> = new Set([
-  'fr',
-  'de',
-  'ja',
-  'pt',
-  'ar',
-  'hi',
-  'ko',
-  'it',
-]);
+/**
+ * Locales that translate only `common.json` (other namespaces fall back to
+ * English). Empty — every {@link I18N_LOCALES} language now ships full
+ * namespace coverage.
+ */
+export const PARTIAL_UI_LOCALES: ReadonlySet<I18nLocale> = new Set([]);
 
 export type TextDirection = 'ltr' | 'rtl';
 

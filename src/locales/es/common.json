@@ -18,7 +18,15 @@
   },
   "formatLocale": {
     "heading": "Región de formato",
-    "description": "Formato Intl de fechas, números y moneda, independiente del idioma."
+    "description": "Formato Intl de fechas, números y moneda, independiente del idioma de la interfaz."
+  },
+  "dateTime": {
+    "heading": "Fecha y hora",
+    "description": "Se guarda en este dispositivo — los cambios se aplican al instante en todas las fechas."
+  },
+  "timeZone": {
+    "heading": "Zona horaria",
+    "preview": "Zona horaria: {{value}}"
   },
   "dateFormat": {
     "heading": "Formato de fecha y hora",
@@ -51,7 +59,7 @@
     "scientific": "Científico"
   },
   "currencyDisplay": {
-    "heading": "Moneda",
+    "heading": "Visualización de moneda",
     "auto": "Predeterminado del idioma",
     "symbol": "Símbolo",
     "narrowSymbol": "Símbolo estrecho",
@@ -61,16 +69,11 @@
   "currencyCode": {
     "heading": "Moneda de vista previa"
   },
-  "localePreview": {
-    "heading": "Vista previa",
-    "currency": "Moneda: {{value}}",
-    "direction": "Dirección del texto: {{value}}",
-    "firstDay": "La semana empieza: {{value}}",
-    "measurement": "Unidades: {{value}}"
-  },
   "direction": {
     "ltr": "De izquierda a derecha",
-    "rtl": "De derecha a izquierda"
+    "rtl": "De derecha a izquierda",
+    "heading": "Dirección del texto",
+    "auto": "Seguir el idioma"
   },
   "firstDay": {
     "saturday": "Sábado",
@@ -79,7 +82,14 @@
   },
   "measurement": {
     "metric": "Métrico",
-    "imperial": "Imperial"
+    "imperial": "Imperial (EE. UU.)"
+  },
+  "localePreview": {
+    "heading": "Vista previa en vivo",
+    "currency": "Moneda: {{value}}",
+    "direction": "Dirección del texto: {{value}}",
+    "firstDay": "La semana empieza: {{value}}",
+    "measurement": "Unidades: {{value}}"
   },
   "versionUpdate": {
     "title": "Actualización disponible",

@@ -27,11 +27,16 @@ const CONFIG = join(ROOT, 'src/lib/i18n/locales.ts');
 
 /** Pull a string-literal array/set body out of the locale config by name. */
 function readCodeList(source, declaration) {
-  const start = source.indexOf(declaration);
+  const start = source.indexOf(`export const ${declaration}`);
   if (start === -1) throw new Error(`could not find ${declaration} in locales.ts`);
-  const open = source.indexOf('[', start);
-  const close = source.indexOf(']', open);
-  return [...source.slice(open + 1, close).matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  // Bound the search to this declaration so an empty `new Set()` does not
+  // steal the next array (e.g. RTL_LOCALES).
+  const nextExport = source.indexOf('\nexport ', start + 1);
+  const slice = nextExport === -1 ? source.slice(start) : source.slice(start, nextExport);
+  const open = slice.indexOf('[');
+  if (open === -1) return [];
+  const close = slice.indexOf(']', open);
+  return [...slice.slice(open + 1, close).matchAll(/'([^']+)'/g)].map((m) => m[1]);
 }
 
 const config = readFileSync(CONFIG, 'utf8');

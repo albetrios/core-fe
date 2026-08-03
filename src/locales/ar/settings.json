@@ -1,0 +1,177 @@
+{
+  "nav": {
+    "ariaSections": "أقسام الإعدادات",
+    "ariaSettings": "الإعدادات",
+    "searchPlaceholder": "بحث",
+    "searchAria": "البحث في الإعدادات",
+    "empty": "لا نتائج",
+    "groups": {
+      "account": "الحساب",
+      "organization": "المؤسسة"
+    },
+    "profile": "الملف الشخصي",
+    "account": "الحساب",
+    "security": "الأمان",
+    "notifications": "الإشعارات",
+    "sessions": "الجلسات",
+    "general": "عام",
+    "members": "الأعضاء",
+    "roles": "الأدوار",
+    "billing": "الفوترة",
+    "integrations": "التكاملات"
+  },
+  "security": {
+    "heading": "الأمان",
+    "description": "المصادقة الثنائية ومفاتيح المرور.",
+    "mfa": {
+      "title": "المصادقة الثنائية",
+      "description": "اطلب رمز المصادقة عند تسجيل الدخول.",
+      "enabled": "مفعّلة",
+      "disabled": "معطّلة",
+      "setup": "إعداد المصادقة الثنائية",
+      "disable": "تعطيل المصادقة الثنائية",
+      "disableTitle": "تعطيل المصادقة الثنائية؟",
+      "disableDescription": "سيصبح حسابك أقل حماية. يمكنك إعادة تفعيلها في أي وقت.",
+      "disableConfirm": "تعطيل",
+      "setupTitle": "إعداد المصادقة الثنائية",
+      "setupDescription": "امسح رمز QR بتطبيق المصادقة، أو أدخل السر يدويًا.",
+      "recoveryTitle": "احفظ رموز الاسترداد",
+      "recoveryDescription": "خزّنها في مكان آمن. يعمل كل منها مرة واحدة إذا فقدت جهازك.",
+      "done": "تم",
+      "cancel": "إلغاء",
+      "verifyEnable": "تحقق وتفعيل",
+      "codeLabel": "أدخل الرمز المكون من 6 أرقام",
+      "codeAria": "رمز المصادقة المكون من ستة أرقام",
+      "secretLabel": "مفتاح الإدخال اليدوي",
+      "copySecret": "نسخ السر",
+      "copiedSecret": "تم النسخ",
+      "scanHint": "افتح Google Authenticator أو 1Password أو تطبيق TOTP آخر وامسح هذا الرمز.",
+      "errors": {
+        "setupFailed": "تعذّر بدء الإعداد. حاول مرة أخرى.",
+        "invalidCode": "لم يتطابق الرمز. أدخل الرمز الحالي المكون من 6 أرقام."
+      }
+    },
+    "passkeys": {
+      "title": "مفاتيح المرور",
+      "description": "سجّل الدخول دون كلمة مرور باستخدام جهازك.",
+      "add": "إضافة مفتاح مرور",
+      "empty": "لا مفاتيح مرور بعد. أضف واحدًا لتسجيل الدخول دون كلمة مرور.",
+      "removeAria": "إزالة {{name}}",
+      "addTitle": "إضافة مفتاح مرور",
+      "addDescription": "سمِّه لتتعرف عليه لاحقًا. سيطلب جهازك إنشاء مفتاح المرور.",
+      "nameLabel": "الاسم",
+      "namePlaceholder": "MacBook Touch ID",
+      "cancel": "إلغاء",
+      "submit": "إضافة مفتاح مرور"
+    },
+    "overview": {
+      "title": "حماية الحساب",
+      "description": "نظرة سريعة على ما يحمي تسجيل دخولك.",
+      "score": "{{score}} من {{total}} نشط",
+      "mfaOn": "المصادقة الثنائية مفعّلة",
+      "mfaOff": "المصادقة الثنائية معطّلة",
+      "passkeysOn": "مفتاح مرور واحد مسجّل ({{count}})",
+      "passkeysOn_other": "{{count}} مفاتيح مرور مسجّلة",
+      "passkeysOff": "لا مفاتيح مرور مسجّلة",
+      "idleProtection": "تسجيل الخروج التلقائي عند الخمول نشط"
+    },
+    "recoveryCodes": {
+      "reveal": "إظهار الرموز",
+      "hide": "إخفاء الرموز",
+      "copyAll": "نسخ الكل",
+      "download": "تنزيل .txt",
+      "copySuccess": "تم نسخ رموز الاسترداد — تُمسح الحافظة خلال دقيقة",
+      "copyFailed": "تعذّر النسخ إلى الحافظة",
+      "downloadStarted": "بدأ التنزيل",
+      "clipboardNotice": "تُمسح الأسرار المنسوخة من الحافظة بعد دقيقة.",
+      "acknowledge": "لقد حفظت رموز الاسترداد هذه في مكان آمن"
+    },
+    "stepUp": {
+      "title": "أكّد هويتك",
+      "description": "للأمان، أعد التحقق قبل تغيير إعدادات تسجيل الدخول.",
+      "passwordLabel": "كلمة المرور",
+      "totpLabel": "رمز المصادقة",
+      "emailCodeLabel": "رمز التحقق",
+      "emailCodeSent": "أرسلنا رمزًا من 6 أحرف إلى {{email}}.",
+      "resend": "إعادة إرسال الرمز",
+      "resent": "تم إرسال الرمز",
+      "verify": "تحقق",
+      "verifying": "جارٍ التحقق…",
+      "invalid": "لم يتطابق. حاول مرة أخرى.",
+      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة."
+    }
+  },
+  "discard": {
+    "title": "تجاهل التغييرات غير المحفوظة؟",
+    "description": "لديك تغييرات غير محفوظة. مغادرة هذا القسم ستتجاهلها.",
+    "stay": "متابعة التحرير",
+    "leave": "تجاهل التغييرات"
+  },
+  "panels": {
+    "members": {
+      "title": "الأعضاء",
+      "description": "الأشخاص في هذه المؤسسة.",
+      "loadFailed": "تعذّر تحميل الأعضاء. حاول مرة أخرى.",
+      "emptyTitle": "لا أعضاء بعد",
+      "emptyDescription": "ادعُ الزملاء للتعاون في هذه المؤسسة.",
+      "searchPlaceholder": "البحث عن أعضاء…",
+      "noResults": "لا أعضاء يطابقون بحثك.",
+      "loadMore": "تحميل المزيد",
+      "actionsAria": "إجراءات لـ {{name}}",
+      "changeRole": "تغيير الدور",
+      "suspend": "تعليق",
+      "reactivate": "إعادة تفعيل",
+      "removeAction": "إزالة من المؤسسة",
+      "removeAria": "إزالة {{name}}",
+      "removeTitle": "إزالة {{name}}؟",
+      "removeDescription": "سيفقدون الوصول إلى هذه المؤسسة. يمكنك التراجع لبضع ثوانٍ بعد التأكيد.",
+      "removeConfirm": "إزالة",
+      "removePending": "جارٍ إزالة {{name}}…"
+    },
+    "roles": {
+      "title": "الأدوار",
+      "description": "مجموعات صلاحيات يمكنك تعيينها للأعضاء.",
+      "loadFailed": "تعذّر تحميل الأدوار. حاول مرة أخرى.",
+      "emptyTitle": "لا أدوار بعد",
+      "emptyDescription": "أنشئ دورًا مخصصًا لمنح مجموعة صلاحيات ملائمة.",
+      "searchPlaceholder": "البحث عن أدوار…",
+      "noResults": "لا أدوار تطابق بحثك.",
+      "loadMore": "تحميل المزيد",
+      "systemBadge": "نظام",
+      "memberCount": "عضو {{count}}",
+      "memberCount_other": "{{count}} أعضاء",
+      "actionsAria": "إجراءات لـ {{name}}",
+      "editAction": "تعديل الدور",
+      "deleteAction": "حذف الدور",
+      "deleteAria": "حذف {{name}}",
+      "deleteTitle": "حذف {{name}}؟",
+      "deleteDescription": "سيحتاج الأعضاء بهذا الدور إلى تعيين دور جديد. يمكنك التراجع لبضع ثوانٍ بعد التأكيد.",
+      "deleteConfirm": "حذف",
+      "deletePending": "جارٍ حذف {{name}}…"
+    },
+    "listSort": {
+      "label": "ترتيب حسب",
+      "nameAsc": "الاسم (أ–ي)",
+      "nameDesc": "الاسم (ي–أ)",
+      "newest": "الأحدث أولًا",
+      "oldest": "الأقدم أولًا"
+    },
+    "profile": {
+      "title": "الملف الشخصي",
+      "description": "كيف تظهر في التطبيق. مرئي لأشخاص مؤسستك.",
+      "completeness": "الملف الشخصي مكتمل بنسبة {{percent}}%",
+      "confirmTitle": "حفظ تغييرات الملف الشخصي؟",
+      "confirmDescription": "هل أنت متأكد من تحديث معلومات ملفك الشخصي؟",
+      "confirmSave": "حفظ التغييرات",
+      "confirmCancel": "إلغاء",
+      "saving": "جارٍ الحفظ…",
+      "save": "حفظ التغييرات"
+    },
+    "account": {
+      "deleteTitle": "حذف حسابك؟",
+      "deleteDescription": "هذا الإجراء دائم ولا يمكن التراجع عنه. ستُزال جميع بياناتك.",
+      "deleteConfirm": "حذف الحساب",
+      "deleteCancel": "إلغاء"
+    }
+  }
+}

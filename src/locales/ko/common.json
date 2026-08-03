@@ -1,9 +1,9 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "언어 및 지역 설정",
+    "title": "언어 및 지역",
+    "heading": "언어",
+    "description": "UI 문구, 날짜, 숫자, 통화가 이 설정을 따릅니다.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -17,60 +17,63 @@
     "it": "Italiano"
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "지역 형식",
+    "description": "Intl 날짜·숫자·통화 출력 — UI 언어와 독립적입니다."
+  },
+  "dateTime": {
+    "heading": "날짜 및 시간",
+    "description": "이 기기에 저장됩니다 — 변경 사항이 앱의 모든 날짜에 즉시 적용됩니다."
+  },
+  "timeZone": {
+    "heading": "시간대",
+    "preview": "시간대: {{value}}"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "날짜 및 시간 형식",
+    "auto": "언어 기본값(숫자)",
+    "short": "짧게",
+    "medium": "보통",
+    "long": "길게",
+    "full": "전체",
+    "iso": "ISO 스타일(YYYY-MM-DD)",
+    "date": "날짜만",
+    "time": "시간만",
+    "datetime": "날짜 + 시간",
+    "previewDate": "날짜 및 시간: {{value}}",
+    "previewNumber": "숫자: {{value}}",
+    "previewRelative": "상대: {{value}}",
+    "previewTime": "시간만: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "시계 형식",
+    "auto": "언어 기본값",
+    "h12": "12시간제(오전/오후)",
+    "h23": "24시간제"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "숫자 형식",
+    "auto": "언어 기본값",
+    "standard": "그룹화",
+    "compact": "축약(1.2M)",
+    "engineering": "공학",
+    "scientific": "과학"
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "통화 표시",
+    "auto": "언어 기본값",
+    "symbol": "기호",
+    "narrowSymbol": "좁은 기호",
+    "code": "ISO 코드",
+    "name": "통화 이름"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "텍스트 방향: {{value}}",
-    "firstDay": "주 시작: {{value}}",
-    "measurement": "단위: {{value}}"
+    "heading": "미리보기 통화"
   },
   "direction": {
     "ltr": "왼쪽에서 오른쪽",
-    "rtl": "오른쪽에서 왼쪽"
+    "rtl": "오른쪽에서 왼쪽",
+    "heading": "텍스트 방향",
+    "auto": "언어 따르기"
   },
   "firstDay": {
     "saturday": "토요일",
@@ -80,6 +83,13 @@
   "measurement": {
     "metric": "미터법",
     "imperial": "야드파운드법"
+  },
+  "localePreview": {
+    "heading": "실시간 미리보기",
+    "currency": "통화: {{value}}",
+    "direction": "텍스트 방향: {{value}}",
+    "firstDay": "주 시작: {{value}}",
+    "measurement": "단위: {{value}}"
   },
   "versionUpdate": {
     "title": "업데이트 사용 가능",

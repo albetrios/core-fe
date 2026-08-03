@@ -1,0 +1,147 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "Vai al contenuto principale",
+    "mainNavigation": "Navigazione principale",
+    "sidebarNavigation": "Navigazione laterale",
+    "mobileNavigation": "Navigazione mobile"
+  },
+  "auth": {
+    "switchToRegister": "Crea un account",
+    "switchToSignIn": "Accedi",
+    "statusOperational": "Tutti i sistemi operativi",
+    "badge": "Operazioni, unificate",
+    "heroTitle": "Il sistema operativo della tua organizzazione.",
+    "heroSubtitle": "Membri, ruoli, fatturazione e sicurezza — uno spazio di lavoro veloce e pensato per la tastiera, per ogni team.",
+    "features": {
+      "multiOrg": {
+        "title": "Multi-organizzazione di progettazione",
+        "body": "Cambia team senza cambiare strumento."
+      },
+      "secure": {
+        "title": "Sicuro per impostazione predefinita",
+        "body": "RBAC, MFA, passkey e tracce di audit."
+      },
+      "fast": {
+        "title": "Veloce ovunque",
+        "body": "Progettato per il lavoro in tempo reale, tastiera prima."
+      }
+    },
+    "stats": {
+      "teams": "team",
+      "uptime": "uptime",
+      "compliant": "conforme"
+    }
+  },
+  "app": {
+    "search": "Cerca",
+    "searchPlaceholder": "Cerca...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "Menu utente",
+    "userFallback": "Utente",
+    "settings": "Impostazioni",
+    "logOut": "Esci",
+    "toggleSidebar": "Mostra/nascondi barra laterale",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "Dashboard"
+    },
+    "sidebar": {
+      "workspace": "Spazio di lavoro",
+      "menu": "Menu",
+      "shortcuts": "Scorciatoie"
+    },
+    "contextStrip": {
+      "label": "Accesso rapido",
+      "labelSolo": "Vai a",
+      "profile": "Profilo",
+      "security": "Sicurezza",
+      "billing": "Fatturazione",
+      "appearance": "Aspetto",
+      "shortcuts": "Scorciatoie"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "Seleziona organizzazione",
+      "triggerLabel": "Cambia organizzazione — attuale: {{name}}",
+      "personal": "Personale",
+      "yourOrganizations": "Le tue organizzazioni",
+      "organizations": "Organizzazioni",
+      "addOrganization": "Aggiungi organizzazione"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "ariaWithUnread": "Notifiche, {{count}} non lette",
+      "ariaDefault": "Notifiche",
+      "newBadge": "{{count}} nuove",
+      "markAllRead": "Segna tutte come lette",
+      "loadError": "Impossibile caricare le notifiche. Riprova.",
+      "retry": "Riprova",
+      "emptyTitle": "Nessuna notifica",
+      "emptyDescription": "Qui vedrai gli aggiornamenti sul tuo account e sulla tua organizzazione.",
+      "markRead": "Segna come letta",
+      "settingsLink": "Impostazioni notifiche"
+    },
+    "commandPalette": {
+      "ariaLabel": "Palette comandi",
+      "placeholder": "Digita un comando o cerca...",
+      "empty": "Nessun risultato trovato.",
+      "groups": {
+        "navigation": "Navigazione",
+        "theme": "Tema",
+        "account": "Account",
+        "organizations": "Organizzazioni",
+        "shortcuts": "Scorciatoie"
+      },
+      "dashboard": "Dashboard",
+      "userSettings": "Impostazioni utente",
+      "organizationSettings": "Impostazioni organizzazione",
+      "lightMode": "Modalità chiara",
+      "darkMode": "Modalità scura",
+      "systemTheme": "Tema di sistema",
+      "settings": "Impostazioni",
+      "logOut": "Esci",
+      "openShortcuts": "Scorciatoie da tastiera",
+      "switchOrganization": "Passa a {{name}}",
+      "currentOrganization": "{{name}} (attuale)"
+    },
+    "shortcuts": {
+      "title": "Scorciatoie da tastiera",
+      "description": "Riferimento rapido per navigazione e azioni.",
+      "commandPalette": "Apri palette comandi",
+      "showShortcuts": "Mostra scorciatoie da tastiera",
+      "showShortcutsAlt": "Mostra scorciatoie da tastiera (alternativa)",
+      "closeDialog": "Chiudi finestra di dialogo"
+    },
+    "emailVerify": {
+      "message": "Verifica la tua e-mail per proteggere l'account.",
+      "resend": "Reinvia e-mail",
+      "sending": "Invio…",
+      "sent": "Inviata",
+      "notifySuccess": "E-mail di verifica inviata — controlla la posta in arrivo.",
+      "notifyError": "Impossibile reinviare l'e-mail."
+    },
+    "sessionTimeout": {
+      "title": "Sessione in scadenza",
+      "description": "La sessione scadrà tra {{countdown}} per inattività. Fai clic su \"Resta connesso\" per continuare.",
+      "signOut": "Esci",
+      "staySignedIn": "Resta connesso"
+    },
+    "membersTable": {
+      "actionsAria": "Azioni per {{name}}",
+      "changeRole": "Cambia ruolo",
+      "suspend": "Sospendi membro",
+      "reactivate": "Riattiva membro",
+      "remove": "Rimuovi dall'organizzazione",
+      "removeTitle": "Rimuovere {{name}}?",
+      "removeDescription": "Perderà l'accesso a questa organizzazione. Questa azione non può essere annullata.",
+      "cancel": "Annulla",
+      "confirmRemove": "Rimuovi"
+    }
+  },
+  "public": {
+    "brandTagline": "Spazio di lavoro sicuro per il tuo team"
+  }
+}

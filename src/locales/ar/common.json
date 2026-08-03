@@ -1,9 +1,9 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "اللغة والإعدادات الإقليمية",
+    "title": "اللغة والمنطقة",
+    "heading": "اللغة",
+    "description": "تتبع النصوص والتواريخ والأرقام والعملة هذه التفضيلات.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -17,60 +17,63 @@
     "it": "Italiano"
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "منطقة التنسيق",
+    "description": "مخرجات Intl للتواريخ والأرقام والعملة — مستقلة عن لغة الواجهة."
+  },
+  "dateTime": {
+    "heading": "التاريخ والوقت",
+    "description": "يُحفظ على هذا الجهاز — تُطبَّق التغييرات فورًا على كل التواريخ في التطبيق."
+  },
+  "timeZone": {
+    "heading": "المنطقة الزمنية",
+    "preview": "المنطقة الزمنية: {{value}}"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "تنسيق التاريخ والوقت",
+    "auto": "افتراضي اللغة (رقمي)",
+    "short": "قصير",
+    "medium": "متوسط",
+    "long": "طويل",
+    "full": "كامل",
+    "iso": "نمط ISO (YYYY-MM-DD)",
+    "date": "التاريخ فقط",
+    "time": "الوقت فقط",
+    "datetime": "التاريخ + الوقت",
+    "previewDate": "التاريخ والوقت: {{value}}",
+    "previewNumber": "الرقم: {{value}}",
+    "previewRelative": "نسبي: {{value}}",
+    "previewTime": "الوقت فقط: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "تنسيق الساعة",
+    "auto": "افتراضي اللغة",
+    "h12": "12 ساعة (ص/م)",
+    "h23": "24 ساعة"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "تنسيق الأرقام",
+    "auto": "افتراضي اللغة",
+    "standard": "مُجمَّع",
+    "compact": "مضغوط (1.2M)",
+    "engineering": "هندسي",
+    "scientific": "علمي"
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "عرض العملة",
+    "auto": "افتراضي اللغة",
+    "symbol": "رمز",
+    "narrowSymbol": "رمز ضيق",
+    "code": "رمز ISO",
+    "name": "اسم العملة"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "اتجاه النص: {{value}}",
-    "firstDay": "يبدأ الأسبوع: {{value}}",
-    "measurement": "الوحدات: {{value}}"
+    "heading": "عملة المعاينة"
   },
   "direction": {
     "ltr": "من اليسار إلى اليمين",
-    "rtl": "من اليمين إلى اليسار"
+    "rtl": "من اليمين إلى اليسار",
+    "heading": "اتجاه النص",
+    "auto": "اتباع اللغة"
   },
   "firstDay": {
     "saturday": "السبت",
@@ -80,6 +83,13 @@
   "measurement": {
     "metric": "متري",
     "imperial": "إمبراطوري"
+  },
+  "localePreview": {
+    "heading": "معاينة مباشرة",
+    "currency": "العملة: {{value}}",
+    "direction": "اتجاه النص: {{value}}",
+    "firstDay": "يبدأ الأسبوع: {{value}}",
+    "measurement": "الوحدات: {{value}}"
   },
   "versionUpdate": {
     "title": "تحديث متوفّر",

@@ -17,8 +17,16 @@
     "it": "Italiano"
   },
   "formatLocale": {
-    "heading": "क्षेत्रीय प्रारूप लोकेल",
+    "heading": "क्षेत्रीय प्रारूप",
     "description": "Intl तिथि, संख्या और मुद्रा आउटपुट — UI भाषा से स्वतंत्र।"
+  },
+  "dateTime": {
+    "heading": "तिथि और समय",
+    "description": "इस डिवाइस पर सहेजा जाता है — बदलाव ऐप की सभी तिथियों पर तुरंत लागू होते हैं।"
+  },
+  "timeZone": {
+    "heading": "समय क्षेत्र",
+    "preview": "समय क्षेत्र: {{value}}"
   },
   "dateFormat": {
     "heading": "तिथि और समय प्रारूप",
@@ -61,16 +69,11 @@
   "currencyCode": {
     "heading": "पूर्वावलोकन मुद्रा"
   },
-  "localePreview": {
-    "heading": "लाइव पूर्वावलोकन",
-    "currency": "मुद्रा: {{value}}",
-    "direction": "पाठ दिशा: {{value}}",
-    "firstDay": "सप्ताह की शुरुआत: {{value}}",
-    "measurement": "इकाइयाँ: {{value}}"
-  },
   "direction": {
     "ltr": "बाएँ से दाएँ",
-    "rtl": "दाएँ से बाएँ"
+    "rtl": "दाएँ से बाएँ",
+    "heading": "पाठ दिशा",
+    "auto": "भाषा का पालन करें"
   },
   "firstDay": {
     "saturday": "शनिवार",
@@ -80,6 +83,13 @@
   "measurement": {
     "metric": "मीट्रिक",
     "imperial": "इंपीरियल"
+  },
+  "localePreview": {
+    "heading": "लाइव पूर्वावलोकन",
+    "currency": "मुद्रा: {{value}}",
+    "direction": "पाठ दिशा: {{value}}",
+    "firstDay": "सप्ताह की शुरुआत: {{value}}",
+    "measurement": "इकाइयाँ: {{value}}"
   },
   "versionUpdate": {
     "title": "अपडेट उपलब्ध है",

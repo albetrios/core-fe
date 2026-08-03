@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "Onboarding"
+  },
+  "steps": {
+    "welcome": {
+      "title": "Benvenuto a bordo",
+      "description": "Configuriamo il tuo account in pochi passaggi."
+    },
+    "profile": {
+      "title": "Su di te",
+      "description": "Raccontaci qualcosa di te."
+    },
+    "questions": {
+      "title": "Alcune domande rapide",
+      "description": "Facoltativo — ci aiuta a personalizzare il tuo spazio di lavoro."
+    },
+    "workspace": {
+      "title": "Il tuo spazio di lavoro",
+      "description": "Dai un nome all'organizzazione che vuoi creare."
+    },
+    "invite": {
+      "title": "Invita il tuo team",
+      "description": "Aggiungi colleghi ora oppure salta e fallo più tardi."
+    },
+    "done": {
+      "title": "Tutto pronto",
+      "description": "Controlla e vai alla dashboard."
+    }
+  },
+  "welcome": {
+    "body": "Ti aiuteremo a configurare il profilo, creare la prima organizzazione e invitare il team. Ci vuole solo un minuto.",
+    "bodyPersonal": "Ti aiuteremo a configurare il profilo e personalizzare lo spazio di lavoro. Ci vuole solo un minuto."
+  },
+  "profile": {
+    "firstNameLabel": "Nome",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "Cognome",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "Quanto è grande il tuo team?",
+      "options": {
+        "justMe": "Solo io",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "Per cosa userai principalmente Core?",
+      "options": {
+        "customerManagement": "Gestione clienti",
+        "teamCollaboration": "Collaborazione di team",
+        "analyticsReporting": "Analisi e report",
+        "internalTools": "Strumenti interni",
+        "somethingElse": "Altro"
+      }
+    },
+    "referral": {
+      "label": "Come hai saputo di noi?",
+      "options": {
+        "search": "Ricerca",
+        "socialMedia": "Social media",
+        "friendOrColleague": "Amico o collega",
+        "blogOrArticle": "Blog o articolo",
+        "other": "Altro"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "Nome organizzazione",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "URL dello spazio (facoltativo)",
+    "slugPlaceholder": "acme",
+    "urlPreview": "Il tuo spazio sarà disponibile su <1>core.app/{{slug}}</1>",
+    "slugFallback": "il-tuo-spazio"
+  },
+  "invite": {
+    "emailLabel": "E-mail del collega",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "Aggiungi",
+    "invalidEmail": "Inserisci un indirizzo e-mail valido.",
+    "duplicateEmail": "Questo collega è già nell'elenco.",
+    "removeAriaLabel": "Rimuovi {{email}}"
+  },
+  "done": {
+    "nameLabel": "Nome",
+    "organizationLabel": "Organizzazione",
+    "invitesLabel": "Inviti",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}} in sospeso",
+    "invitesPending_other": "{{count}} in sospeso"
+  },
+  "actions": {
+    "back": "Indietro",
+    "continue": "Continua",
+    "enterDashboard": "Entra nella dashboard",
+    "settingUp": "Configurazione…"
+  },
+  "defaults": {
+    "organizationName": "La mia organizzazione",
+    "memberRoleName": "Membro",
+    "memberRoleDescription": "Ruolo predefinito per i colleghi invitati."
+  },
+  "toast": {
+    "finishSuccess": "Benvenuto! Il tuo spazio di lavoro è pronto.",
+    "finishError": "Qualcosa è andato storto nel completare la configurazione. Riprova.",
+    "invitePartialFailure_one": "Spazio pronto — {{count}} invito non è stato inviato. Puoi reinviarlo da Membri.",
+    "invitePartialFailure_other": "Spazio pronto — {{count}} inviti non sono stati inviati. Puoi reinviarli da Membri."
+  },
+  "guard": {
+    "title": "Uscire dall'onboarding?",
+    "description": "I progressi sono salvati localmente, ma uscire ora potrebbe interrompere la configurazione.",
+    "discard": "Esci",
+    "stay": "Resta"
+  }
+}

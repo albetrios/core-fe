@@ -1,9 +1,9 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "Lingua e impostazioni regionali",
+    "title": "Lingua e regione",
+    "heading": "Lingua",
+    "description": "Testi, date, numeri e valuta seguono queste preferenze.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -17,60 +17,63 @@
     "it": "Italiano"
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "Formato regionale",
+    "description": "Output Intl di date, numeri e valuta — indipendente dalla lingua dell’interfaccia."
+  },
+  "dateTime": {
+    "heading": "Data e ora",
+    "description": "Salvato su questo dispositivo — le modifiche si applicano subito a tutte le date nell’app."
+  },
+  "timeZone": {
+    "heading": "Fuso orario",
+    "preview": "Fuso orario: {{value}}"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "Formato data e ora",
+    "auto": "Predefinito della lingua (numerico)",
+    "short": "Breve",
+    "medium": "Medio",
+    "long": "Lungo",
+    "full": "Completo",
+    "iso": "Stile ISO (AAAA-MM-GG)",
+    "date": "Solo data",
+    "time": "Solo ora",
+    "datetime": "Data + ora",
+    "previewDate": "Data e ora: {{value}}",
+    "previewNumber": "Numero: {{value}}",
+    "previewRelative": "Relativo: {{value}}",
+    "previewTime": "Solo ora: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "Formato orologio",
+    "auto": "Predefinito della lingua",
+    "h12": "12 ore (AM/PM)",
+    "h23": "24 ore"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "Formato numeri",
+    "auto": "Predefinito della lingua",
+    "standard": "Raggruppato",
+    "compact": "Compatto (1,2 M)",
+    "engineering": "Ingegneria",
+    "scientific": "Scientifico"
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "Visualizzazione valuta",
+    "auto": "Predefinito della lingua",
+    "symbol": "Simbolo",
+    "narrowSymbol": "Simbolo stretto",
+    "code": "Codice ISO",
+    "name": "Nome valuta"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "Direzione del testo: {{value}}",
-    "firstDay": "La settimana inizia: {{value}}",
-    "measurement": "Unità: {{value}}"
+    "heading": "Valuta di anteprima"
   },
   "direction": {
     "ltr": "Da sinistra a destra",
-    "rtl": "Da destra a sinistra"
+    "rtl": "Da destra a sinistra",
+    "heading": "Direzione del testo",
+    "auto": "Segui la lingua"
   },
   "firstDay": {
     "saturday": "Sabato",
@@ -80,6 +83,13 @@
   "measurement": {
     "metric": "Metrico",
     "imperial": "Imperiale"
+  },
+  "localePreview": {
+    "heading": "Anteprima live",
+    "currency": "Valuta: {{value}}",
+    "direction": "Direzione del testo: {{value}}",
+    "firstDay": "La settimana inizia: {{value}}",
+    "measurement": "Unità: {{value}}"
   },
   "versionUpdate": {
     "title": "Aggiornamento disponibile",

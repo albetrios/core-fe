@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "Onboarding"
+  },
+  "steps": {
+    "welcome": {
+      "title": "Bem-vindo a bordo",
+      "description": "Vamos configurar sua conta em alguns passos rápidos."
+    },
+    "profile": {
+      "title": "Sobre você",
+      "description": "Conte-nos um pouco sobre você."
+    },
+    "questions": {
+      "title": "Algumas perguntas rápidas",
+      "description": "Opcional — isso nos ajuda a adaptar seu espaço de trabalho."
+    },
+    "workspace": {
+      "title": "Seu espaço de trabalho",
+      "description": "Nomeie a organização que deseja criar."
+    },
+    "invite": {
+      "title": "Convide sua equipe",
+      "description": "Adicione colegas agora ou pule e faça depois."
+    },
+    "done": {
+      "title": "Tudo pronto",
+      "description": "Revise e entre no seu painel."
+    }
+  },
+  "welcome": {
+    "body": "Vamos ajudar você a configurar seu perfil, criar sua primeira organização e convidar sua equipe. Leva só um minuto.",
+    "bodyPersonal": "Vamos ajudar você a configurar seu perfil e personalizar seu espaço de trabalho. Leva só um minuto."
+  },
+  "profile": {
+    "firstNameLabel": "Nome",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "Sobrenome",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "Qual o tamanho da sua equipe?",
+      "options": {
+        "justMe": "Só eu",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "Para que você usará o Core principalmente?",
+      "options": {
+        "customerManagement": "Gestão de clientes",
+        "teamCollaboration": "Colaboração em equipe",
+        "analyticsReporting": "Análises e relatórios",
+        "internalTools": "Ferramentas internas",
+        "somethingElse": "Outra coisa"
+      }
+    },
+    "referral": {
+      "label": "Como você soube de nós?",
+      "options": {
+        "search": "Busca",
+        "socialMedia": "Redes sociais",
+        "friendOrColleague": "Amigo ou colega",
+        "blogOrArticle": "Blog ou artigo",
+        "other": "Outro"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "Nome da organização",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "URL do espaço (opcional)",
+    "slugPlaceholder": "acme",
+    "urlPreview": "Seu espaço ficará em <1>core.app/{{slug}}</1>",
+    "slugFallback": "seu-espaco"
+  },
+  "invite": {
+    "emailLabel": "E-mail do colega",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "Adicionar",
+    "invalidEmail": "Digite um endereço de e-mail válido.",
+    "duplicateEmail": "Esse colega já está na lista.",
+    "removeAriaLabel": "Remover {{email}}"
+  },
+  "done": {
+    "nameLabel": "Nome",
+    "organizationLabel": "Organização",
+    "invitesLabel": "Convites",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}} pendente",
+    "invitesPending_other": "{{count}} pendentes"
+  },
+  "actions": {
+    "back": "Voltar",
+    "continue": "Continuar",
+    "enterDashboard": "Entrar no painel",
+    "settingUp": "Configurando…"
+  },
+  "defaults": {
+    "organizationName": "Minha organização",
+    "memberRoleName": "Membro",
+    "memberRoleDescription": "Função padrão para colegas convidados."
+  },
+  "toast": {
+    "finishSuccess": "Bem-vindo! Seu espaço de trabalho está pronto.",
+    "finishError": "Algo deu errado ao concluir a configuração. Tente novamente.",
+    "invitePartialFailure_one": "Espaço pronto — {{count}} convite não pôde ser enviado. Você pode reenviar em Membros.",
+    "invitePartialFailure_other": "Espaço pronto — {{count}} convites não puderam ser enviados. Você pode reenviá-los em Membros."
+  },
+  "guard": {
+    "title": "Sair do onboarding?",
+    "description": "Seu progresso é salvo localmente, mas sair agora pode interromper a configuração.",
+    "discard": "Sair",
+    "stay": "Ficar"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "ऑनबोर्डिंग"
+  },
+  "steps": {
+    "welcome": {
+      "title": "स्वागत है",
+      "description": "कुछ तेज़ चरणों में अपना खाता सेट करें।"
+    },
+    "profile": {
+      "title": "आपके बारे में",
+      "description": "अपने बारे में थोड़ा बताएँ।"
+    },
+    "questions": {
+      "title": "कुछ त्वरित प्रश्न",
+      "description": "वैकल्पिक — इससे हम आपका वर्कस्पेस अनुकूलित कर सकते हैं।"
+    },
+    "workspace": {
+      "title": "आपका वर्कस्पेस",
+      "description": "जिस संगठन को बनाना चाहते हैं उसका नाम दें।"
+    },
+    "invite": {
+      "title": "अपनी टीम आमंत्रित करें",
+      "description": "अभी साथियों को जोड़ें या छोड़कर बाद में करें।"
+    },
+    "done": {
+      "title": "सब तैयार है",
+      "description": "समीक्षा करें और डैशबोर्ड पर जाएँ।"
+    }
+  },
+  "welcome": {
+    "body": "हम आपकी प्रोफ़ाइल सेट करने, पहला संगठन बनाने और टीम आमंत्रित करने में मदद करेंगे। इसमें बस एक मिनट लगता है।",
+    "bodyPersonal": "हम आपकी प्रोफ़ाइल सेट करने और वर्कस्पेस व्यक्तिगत बनाने में मदद करेंगे। इसमें बस एक मिनट लगता है।"
+  },
+  "profile": {
+    "firstNameLabel": "पहला नाम",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "अंतिम नाम",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "आपकी टीम कितनी बड़ी है?",
+      "options": {
+        "justMe": "केवल मैं",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "आप मुख्यतः Core का उपयोग किसके लिए करेंगे?",
+      "options": {
+        "customerManagement": "ग्राहक प्रबंधन",
+        "teamCollaboration": "टीम सहयोग",
+        "analyticsReporting": "एनालिटिक्स और रिपोर्टिंग",
+        "internalTools": "आंतरिक टूल",
+        "somethingElse": "कुछ और"
+      }
+    },
+    "referral": {
+      "label": "आपने हमारे बारे में कैसे सुना?",
+      "options": {
+        "search": "खोज",
+        "socialMedia": "सोशल मीडिया",
+        "friendOrColleague": "मित्र या सहयोगी",
+        "blogOrArticle": "ब्लॉग या लेख",
+        "other": "अन्य"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "संगठन का नाम",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "वर्कस्पेस URL (वैकल्पिक)",
+    "slugPlaceholder": "acme",
+    "urlPreview": "आपका वर्कस्पेस <1>core.app/{{slug}}</1> पर रहेगा",
+    "slugFallback": "your-workspace"
+  },
+  "invite": {
+    "emailLabel": "साथी का ईमेल",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "जोड़ें",
+    "invalidEmail": "एक मान्य ईमेल पता दर्ज करें।",
+    "duplicateEmail": "वह साथी पहले से सूची में है।",
+    "removeAriaLabel": "{{email}} हटाएँ"
+  },
+  "done": {
+    "nameLabel": "नाम",
+    "organizationLabel": "संगठन",
+    "invitesLabel": "निमंत्रण",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}} लंबित",
+    "invitesPending_other": "{{count}} लंबित"
+  },
+  "actions": {
+    "back": "वापस",
+    "continue": "जारी रखें",
+    "enterDashboard": "डैशबोर्ड में प्रवेश करें",
+    "settingUp": "सेटअप हो रहा है…"
+  },
+  "defaults": {
+    "organizationName": "मेरा संगठन",
+    "memberRoleName": "सदस्य",
+    "memberRoleDescription": "आमंत्रित साथियों के लिए डिफ़ॉल्ट भूमिका।"
+  },
+  "toast": {
+    "finishSuccess": "स्वागत है! आपका वर्कस्पेस तैयार है।",
+    "finishError": "सेटअप पूरा करते समय कुछ गलत हो गया। कृपया फिर कोशिश करें।",
+    "invitePartialFailure_one": "वर्कस्पेस तैयार — {{count}} निमंत्रण नहीं भेजा जा सका। आप सदस्यों से फिर भेज सकते हैं।",
+    "invitePartialFailure_other": "वर्कस्पेस तैयार — {{count}} निमंत्रण नहीं भेजे जा सके। आप सदस्यों से फिर भेज सकते हैं।"
+  },
+  "guard": {
+    "title": "ऑनबोर्डिंग छोड़ें?",
+    "description": "आपकी प्रगति स्थानीय रूप से सहेजी गई है, लेकिन अभी छोड़ने से सेटअप बाधित हो सकता है।",
+    "discard": "छोड़ें",
+    "stay": "रुकें"
+  }
+}

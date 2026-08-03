@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "حدث خطأ ما",
+    "message": "حدث خطأ غير متوقع. يُرجى إعادة تحميل الصفحة.",
+    "reload": "إعادة تحميل الصفحة"
+  },
+  "route": {
+    "notFound": "الصفحة التي تبحث عنها غير موجودة.",
+    "generic": "حدث خطأ ما.",
+    "pageTitle": "واجهت هذه الصفحة خطأً",
+    "pageMessage": "حدث خطأ أثناء عرض هذه الصفحة.",
+    "tryAgain": "حاول مرة أخرى",
+    "goHome": "الذهاب للرئيسية",
+    "refresh": "تحديث الصفحة"
+  },
+  "widget": {
+    "unavailable": "{{title}} غير متاح",
+    "message": "حدث خطأ أثناء تحميل هذا القسم. حاول مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "pageContent": "محتوى الصفحة",
+    "emailBanner": "التحقق من البريد",
+    "notifications": "الإشعارات",
+    "organizationSwitcher": "مبدّل المؤسسة"
+  },
+  "toast": {
+    "dismiss": "إغلاق الإشعار",
+    "undo": "تراجع",
+    "undone": "تم إلغاء الإجراء",
+    "processing": "جارٍ المعالجة…",
+    "preview": {
+      "successTitle": "تم حفظ التغييرات",
+      "successDescription": "إعداداتك نشطة.",
+      "errorTitle": "حدث خطأ ما",
+      "errorDescription": "يُرجى المحاولة مرة أخرى.",
+      "warningTitle": "تنبيه",
+      "warningDescription": "يحتاج هذا الإجراء إلى مراجعة.",
+      "infoTitle": "هل تعلم؟",
+      "infoDescription": "الخلط يغيّر هذا التصميم أيضًا."
+    }
+  },
+  "api": {
+    "fallback": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
+    "unexpected": "حدث خطأ غير متوقع",
+    "http400": "الطلب غير صالح. تحقق من إدخالك وحاول مرة أخرى.",
+    "http401": "انتهت جلستك. يُرجى تسجيل الدخول مرة أخرى.",
+    "http403": "ليس لديك إذن لتنفيذ هذا الإجراء.",
+    "http404": "المورد المطلوب غير موجود.",
+    "http409": "حدث تعارض. ربما عدّل شخص آخر المورد.",
+    "http422": "البيانات المرسلة غير صالحة. راجع وحاول مرة أخرى.",
+    "http429": "طلبات كثيرة جدًا. انتظر لحظة وحاول مرة أخرى.",
+    "http500": "حدث خطأ داخلي في الخادم. حاول لاحقًا.",
+    "http502": "الخادم غير متاح مؤقتًا. حاول لاحقًا.",
+    "http503": "الخدمة غير متاحة مؤقتًا. حاول لاحقًا."
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "تعذّر تحميل البيانات.",
+      "retry": "حاول مرة أخرى"
+    },
+    "organization": {
+      "roleRequired": "الدور مطلوب لتغيير دور العضو.",
+      "updateFailed": "تعذّر تحديث المؤسسة",
+      "logoInvalidType": "يُرجى اختيار ملف صورة.",
+      "logoTooLarge": "يجب أن يكون الشعار أقل من 1 ميجابايت.",
+      "logoReadFailed": "تعذّر قراءة ذلك الملف.",
+      "formCheck": "تحقق من النموذج",
+      "updateSuccess": "تم تحديث المؤسسة",
+      "createSuccess": "تم إنشاء {{name}}"
+    },
+    "account": {
+      "copyFailed": "تعذّر النسخ إلى الحافظة",
+      "themeCodeNumeric": "أدخل رمز مظهر رقميًا",
+      "copySuccess": "تم نسخ معرّف الحساب",
+      "themeLinkCopied": "تم نسخ رابط المظهر",
+      "themeLinkCopiedDescription": "شارك هذا الرابط لإعادة إنتاج المظهر.",
+      "notificationStylePreview": "نمط الإشعار",
+      "notificationStylePreviewDescription": "{{variant}} — مُنمَّط بألوانك المميزة والدلالية.",
+      "accountDeletionPending": "تم حذف الحساب. جارٍ تسجيل الخروج…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "تعذّر إضافة مفتاح المرور",
+        "removeFailed": "تعذّر إزالة مفتاح المرور",
+        "addSuccess": "تمت إضافة مفتاح المرور",
+        "removeSuccess": "تمت إزالة مفتاح المرور"
+      },
+      "mfa": {
+        "disableFailed": "تعذّر تعطيل المصادقة الثنائية",
+        "enableSuccess": "تم تفعيل المصادقة الثنائية",
+        "disableSuccess": "تم تعطيل المصادقة الثنائية"
+      },
+      "members": {
+        "updateRoleFailed": "تعذّر تحديث الدور",
+        "removeFailed": "تعذّر إزالة العضو",
+        "updateFailed": "تعذّر تحديث العضو",
+        "updateRoleSuccess": "تم تحديث دور العضو",
+        "removeSuccess": "تمت إزالة العضو",
+        "suspendSuccess": "تم تعليق العضو",
+        "reactivateSuccess": "تمت إعادة تفعيل العضو"
+      },
+      "roles": {
+        "createFailed": "تعذّر إنشاء الدور",
+        "updateFailed": "تعذّر تحديث الدور",
+        "deleteFailed": "تعذّر حذف الدور",
+        "createSuccess": "تم إنشاء الدور \"{{name}}\"",
+        "updateSuccess": "تم تحديث الدور \"{{name}}\"",
+        "deleteSuccess": "تم حذف الدور"
+      },
+      "apiKeys": {
+        "createFailed": "تعذّر إنشاء مفتاح API",
+        "renameFailed": "تعذّر إعادة تسمية مفتاح API",
+        "revokeFailed": "تعذّر إلغاء مفتاح API",
+        "createSuccess": "تم إنشاء مفتاح API",
+        "renameSuccess": "تمت إعادة تسمية مفتاح API",
+        "revokeSuccess": "تم إلغاء مفتاح API"
+      },
+      "sessions": {
+        "signOutFailed": "تعذّر تسجيل الخروج من تلك الجلسة",
+        "signOutSuccess": "تم تسجيل الخروج من تلك الجلسة"
+      },
+      "notifications": {
+        "updateFailed": "تعذّر تحديث الإشعار",
+        "updateManyFailed": "تعذّر تحديث الإشعارات",
+        "savePreferencesFailed": "تعذّر حفظ التفضيلات",
+        "savePreferencesSuccess": "تم حفظ تفضيلات الإشعارات"
+      },
+      "webhooks": {
+        "createFailed": "تعذّر إنشاء الويب هوك",
+        "deleteFailed": "تعذّر حذف الويب هوك",
+        "createSuccess": "تم إنشاء الويب هوك",
+        "deleteSuccess": "تم حذف الويب هوك"
+      },
+      "subscription": {
+        "changePlanFailed": "تعذّر تغيير الخطة",
+        "changePlanSuccess": "تم التبديل إلى خطة {{plan}}"
+      },
+      "invitations": {
+        "sendFailed": "تعذّر إرسال الدعوة",
+        "sendSuccess": "تم إرسال الدعوة إلى {{email}}"
+      }
+    },
+    "profileUpdated": "تم تحديث الملف الشخصي"
+  }
+}

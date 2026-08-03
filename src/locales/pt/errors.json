@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "Algo deu errado",
+    "message": "Ocorreu um erro inesperado. Tente recarregar a página.",
+    "reload": "Recarregar página"
+  },
+  "route": {
+    "notFound": "A página que você procura não existe.",
+    "generic": "Algo deu errado.",
+    "pageTitle": "Esta página encontrou um erro",
+    "pageMessage": "Algo deu errado ao renderizar esta página.",
+    "tryAgain": "Tentar novamente",
+    "goHome": "Ir para o início",
+    "refresh": "Atualizar página"
+  },
+  "widget": {
+    "unavailable": "{{title}} indisponível",
+    "message": "Algo deu errado ao carregar esta seção. Tente novamente.",
+    "retry": "Tentar novamente",
+    "pageContent": "Conteúdo da página",
+    "emailBanner": "Verificação de e-mail",
+    "notifications": "Notificações",
+    "organizationSwitcher": "Seletor de organização"
+  },
+  "toast": {
+    "dismiss": "Dispensar notificação",
+    "undo": "Desfazer",
+    "undone": "Ação cancelada",
+    "processing": "Processando…",
+    "preview": {
+      "successTitle": "Alterações salvas",
+      "successDescription": "Suas configurações estão ativas.",
+      "errorTitle": "Algo deu errado",
+      "errorDescription": "Tente novamente.",
+      "warningTitle": "Atenção",
+      "warningDescription": "Esta ação precisa de revisão.",
+      "infoTitle": "Você sabia?",
+      "infoDescription": "Embaralhar também muda este design."
+    }
+  },
+  "api": {
+    "fallback": "Algo deu errado. Tente novamente.",
+    "unexpected": "Ocorreu um erro inesperado",
+    "http400": "A solicitação foi inválida. Verifique os dados e tente novamente.",
+    "http401": "Sua sessão expirou. Entre novamente.",
+    "http403": "Você não tem permissão para realizar esta ação.",
+    "http404": "O recurso solicitado não foi encontrado.",
+    "http409": "Ocorreu um conflito. O recurso pode ter sido modificado por outra pessoa.",
+    "http422": "Os dados enviados são inválidos. Revise e tente novamente.",
+    "http429": "Muitas solicitações. Aguarde um momento e tente novamente.",
+    "http500": "Ocorreu um erro interno do servidor. Tente novamente mais tarde.",
+    "http502": "O servidor está temporariamente indisponível. Tente novamente mais tarde.",
+    "http503": "O serviço está temporariamente indisponível. Tente novamente mais tarde."
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "Não foi possível carregar os dados.",
+      "retry": "Tentar novamente"
+    },
+    "organization": {
+      "roleRequired": "É necessária uma função para alterar a função de um membro.",
+      "updateFailed": "Não foi possível atualizar a organização",
+      "logoInvalidType": "Escolha um arquivo de imagem.",
+      "logoTooLarge": "O logo deve ter menos de 1 MB.",
+      "logoReadFailed": "Não foi possível ler esse arquivo.",
+      "formCheck": "Verifique o formulário",
+      "updateSuccess": "Organização atualizada",
+      "createSuccess": "{{name}} criado"
+    },
+    "account": {
+      "copyFailed": "Não foi possível copiar para a área de transferência",
+      "themeCodeNumeric": "Digite um código de tema numérico",
+      "copySuccess": "ID da conta copiado",
+      "themeLinkCopied": "Link do tema copiado",
+      "themeLinkCopiedDescription": "Compartilhe esta URL para reproduzir a aparência.",
+      "notificationStylePreview": "Estilo de notificação",
+      "notificationStylePreviewDescription": "{{variant}} — tematizado com seu destaque e cores semânticas.",
+      "accountDeletionPending": "Conta excluída. Saindo…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "Não foi possível adicionar a passkey",
+        "removeFailed": "Não foi possível remover a passkey",
+        "addSuccess": "Passkey adicionada",
+        "removeSuccess": "Passkey removida"
+      },
+      "mfa": {
+        "disableFailed": "Não foi possível desativar a autenticação de dois fatores",
+        "enableSuccess": "Autenticação de dois fatores ativada",
+        "disableSuccess": "Autenticação de dois fatores desativada"
+      },
+      "members": {
+        "updateRoleFailed": "Não foi possível atualizar a função",
+        "removeFailed": "Não foi possível remover o membro",
+        "updateFailed": "Não foi possível atualizar o membro",
+        "updateRoleSuccess": "Função do membro atualizada",
+        "removeSuccess": "Membro removido",
+        "suspendSuccess": "Membro suspenso",
+        "reactivateSuccess": "Membro reativado"
+      },
+      "roles": {
+        "createFailed": "Não foi possível criar a função",
+        "updateFailed": "Não foi possível atualizar a função",
+        "deleteFailed": "Não foi possível excluir a função",
+        "createSuccess": "Função \"{{name}}\" criada",
+        "updateSuccess": "Função \"{{name}}\" atualizada",
+        "deleteSuccess": "Função excluída"
+      },
+      "apiKeys": {
+        "createFailed": "Não foi possível criar a chave de API",
+        "renameFailed": "Não foi possível renomear a chave de API",
+        "revokeFailed": "Não foi possível revogar a chave de API",
+        "createSuccess": "Chave de API criada",
+        "renameSuccess": "Chave de API renomeada",
+        "revokeSuccess": "Chave de API revogada"
+      },
+      "sessions": {
+        "signOutFailed": "Não foi possível encerrar essa sessão",
+        "signOutSuccess": "Saiu dessa sessão"
+      },
+      "notifications": {
+        "updateFailed": "Não foi possível atualizar a notificação",
+        "updateManyFailed": "Não foi possível atualizar as notificações",
+        "savePreferencesFailed": "Não foi possível salvar as preferências",
+        "savePreferencesSuccess": "Preferências de notificação salvas"
+      },
+      "webhooks": {
+        "createFailed": "Não foi possível criar o webhook",
+        "deleteFailed": "Não foi possível excluir o webhook",
+        "createSuccess": "Webhook criado",
+        "deleteSuccess": "Webhook excluído"
+      },
+      "subscription": {
+        "changePlanFailed": "Não foi possível alterar o plano",
+        "changePlanSuccess": "Mudou para o plano {{plan}}"
+      },
+      "invitations": {
+        "sendFailed": "Não foi possível enviar o convite",
+        "sendSuccess": "Convite enviado para {{email}}"
+      }
+    },
+    "profileUpdated": "Perfil atualizado"
+  }
+}

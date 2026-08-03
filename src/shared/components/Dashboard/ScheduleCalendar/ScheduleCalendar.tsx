@@ -28,9 +28,17 @@ import { CalendarDays } from '@/shared/icons/index.ts';
  * semantic-token modifiers and listed below, so the calendar exercises radius,
  * density, accent colour, and the selected/today states across theme axes.
  */
+function weekStartsOnFromPrefs(
+  firstDayOfWeek: 'saturday' | 'sunday' | 'monday',
+): 0 | 1 | 6 {
+  if (firstDayOfWeek === 'sunday') return 0;
+  if (firstDayOfWeek === 'saturday') return 6;
+  return 1;
+}
+
 export function ScheduleCalendar() {
   const { t } = useTranslation(DASHBOARD_NS);
-  const { formatDate } = useLocaleFormat();
+  const { formatDate, firstDayOfWeek } = useLocaleFormat();
   const events = useMemo(() => resolveDashboardEvents(), []);
   const [selected, setSelected] = useState<Date | undefined>(() => events[0]?.date);
 
@@ -68,6 +76,10 @@ export function ScheduleCalendar() {
             mode="single"
             selected={selected}
             onSelect={setSelected}
+            weekStartsOn={weekStartsOnFromPrefs(firstDayOfWeek)}
+            formatters={{
+              formatMonthDropdown: (date) => formatDate(date, { month: 'short' }),
+            }}
             modifiers={{ event: eventDays }}
             modifiersClassNames={{
               event:

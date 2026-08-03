@@ -1,0 +1,133 @@
+{
+  "greeting": "वापसी पर स्वागत है, {{name}}",
+  "greetingFallback": "वहाँ",
+  "heroSubtitle": "आज आपके वर्कस्पेस में यह हो रहा है।",
+  "heroSubtitleSolo": "आज यह हो रहा है।",
+  "errorLoad": "हम आपका वर्कस्पेस लोड नहीं कर सके। कृपया रीफ़्रेश करके फिर कोशिश करें।",
+  "workspaceFallback": "आपका वर्कस्पेस",
+  "workspaceNameFallback": "आपका वर्कस्पेस",
+  "orgType": {
+    "team": "टीम",
+    "personal": "व्यक्तिगत"
+  },
+  "status": {
+    "active": "सक्रिय",
+    "suspended": "निलंबित",
+    "archived": "संग्रहीत"
+  },
+  "overview": {
+    "ariaLabel": "अवलोकन"
+  },
+  "stats": {
+    "workspaces": "वर्कस्पेस",
+    "workspacesHintOne": "केवल यही",
+    "workspacesHintMany": "आप सदस्य हैं",
+    "permissions": "आपकी अनुमतियाँ",
+    "permissionsHint": "इस वर्कस्पेस में",
+    "type": "वर्कस्पेस प्रकार",
+    "typeHintTeam": "आपकी टीम के साथ साझा",
+    "typeHintPersonal": "केवल आपके लिए निजी",
+    "billing": "बिलिंग",
+    "billingManaged": "प्रबंधित",
+    "billingNone": "—",
+    "billingHintTeam": "टीम प्लान",
+    "billingHintPersonal": "व्यक्तिगत — कोई नहीं"
+  },
+  "nextSteps": {
+    "ariaLabel": "सुझाए गए अगले चरण",
+    "heading": "सुझाए गए अगले चरण"
+  },
+  "quickActions": {
+    "ariaLabel": "त्वरित क्रियाएँ",
+    "heading": "त्वरित क्रियाएँ",
+    "inviteTitle": "सदस्यों को आमंत्रित करें",
+    "inviteDescription": "{{orgName}} में साथी जोड़ें",
+    "rolesTitle": "भूमिकाएँ प्रबंधित करें",
+    "rolesDescription": "परिभाषित करें कि कौन क्या कर सकता है",
+    "billingTitle": "बिलिंग और प्लान",
+    "billingDescription": "सदस्यता और इनवॉइस",
+    "orgSettingsTitle": "संगठन सेटिंग्स",
+    "orgSettingsDescription": "नाम, ब्रांडिंग और अधिक",
+    "accountTitle": "आपका खाता",
+    "accountDescription": "प्रोफ़ाइल, सुरक्षा, सत्र"
+  },
+  "organizations": {
+    "ariaLabel": "आपके संगठन",
+    "heading": "आपके संगठन",
+    "current": "वर्तमान",
+    "openWorkspace": "वर्कस्पेस खोलें →"
+  },
+  "insights": {
+    "ariaLabel": "वर्कस्पेस इनसाइट्स",
+    "heading": "वर्कस्पेस इनसाइट्स"
+  },
+  "highlights": {
+    "ariaLabel": "वर्कस्पेस हाइलाइट्स",
+    "heading": "हाइलाइट्स",
+    "description": "अपने वर्कस्पेस से अधिक पाने के चुनिंदा तरीके",
+    "tabsLabel": "हाइलाइट विषय",
+    "slideAnnouncement": "स्लाइड {{current}} में से {{total}}: {{title}}",
+    "previousSlide": "पिछला हाइलाइट",
+    "nextSlide": "अगला हाइलाइट",
+    "goToSlide": "{{title}} हाइलाइट पर जाएँ",
+    "tabs": {
+      "appearance": "दिखावट",
+      "invite": "टीम",
+      "security": "सुरक्षा"
+    },
+    "slides": {
+      "appearance": {
+        "title": "इसे अपना बनाएँ",
+        "description": "थीम, घनत्व और एक्सेंट समायोजित करें ताकि वर्कस्पेस आपकी टीम के काम करने के तरीके से मेल खाए।",
+        "action": "दिखावट सेटिंग्स खोलें"
+      },
+      "invite": {
+        "title": "अपनी टीम बढ़ाएँ",
+        "description": "साथियों को आमंत्रित करें और भूमिकाएँ असाइन करें ताकि पहले दिन से सही पहुँच मिले।",
+        "action": "सदस्यों को आमंत्रित करें"
+      },
+      "security": {
+        "title": "सुरक्षित रखें",
+        "description": "अपने खाते को सुरक्षित रखने के लिए MFA, सक्रिय सत्र और साइन-इन विधियों की समीक्षा करें।",
+        "action": "सुरक्षा सेटिंग्स की समीक्षा करें"
+      }
+    }
+  },
+  "analytics": {
+    "heading": "वर्कस्पेस गतिविधि",
+    "description": "समय के साथ सत्र और API कॉल",
+    "rangeLabel": "समय सीमा चुनें",
+    "seriesSessions": "सत्र",
+    "seriesApiCalls": "API कॉल",
+    "range": {
+      "7d": "पिछले 7 दिन",
+      "30d": "पिछले 30 दिन",
+      "90d": "पिछले 90 दिन"
+    }
+  },
+  "members": {
+    "ariaLabel": "टीम सदस्य",
+    "heading": "टीम सदस्य",
+    "description_one": "इस वर्कस्पेस में {{count}} व्यक्ति",
+    "description_other": "इस वर्कस्पेस में {{count}} लोग",
+    "columnMember": "सदस्य",
+    "columnRole": "भूमिका",
+    "columnStatus": "स्थिति",
+    "columnJoined": "शामिल हुए",
+    "status": {
+      "active": "सक्रिय",
+      "invited": "आमंत्रित",
+      "suspended": "निलंबित"
+    },
+    "error": "सदस्य लोड नहीं हो सके।"
+  },
+  "schedule": {
+    "ariaLabel": "अनुसूची",
+    "heading": "अनुसूची",
+    "description": "नवीनीकरण, समीक्षाएँ और टीम इवेंट",
+    "upcoming": "आगामी",
+    "legendEvent": "इवेंट दिन",
+    "empty": "कुछ निर्धारित नहीं"
+  },
+  "sampleBadge": "नमूना डेटा"
+}

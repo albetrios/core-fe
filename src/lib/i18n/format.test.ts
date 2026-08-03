@@ -14,6 +14,7 @@ function prefs(overrides: Partial<LocaleFormatInput> = {}): LocaleFormatInput {
     formatLocale: 'en-US',
     dateFormat: 'auto',
     hourCycle: 'auto',
+    timeZone: 'auto',
     numberStyle: 'auto',
     currencyDisplay: 'auto',
     currencyCode: 'USD',
@@ -38,6 +39,30 @@ describe('formatDateValue', () => {
     expect(dateOnly).toMatch(/\d/);
     expect(timeOnly).toMatch(/\d/);
     expect(dateOnly).not.toContain(':');
+  });
+
+  it('overrides display timezone when an IANA zone is selected', () => {
+    const tokyo = formatDateValue(
+      sample,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'Asia/Tokyo' }),
+    );
+    const nyc = formatDateValue(
+      sample,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'America/New_York' }),
+    );
+    expect(tokyo).toMatch(/\d/);
+    expect(nyc).toMatch(/\d/);
+    expect(tokyo).not.toBe(nyc);
+  });
+
+  it('applies custom options while still honouring format locale + timezone', () => {
+    const label = formatDateValue(
+      sample,
+      prefs({ formatLocale: 'en-IN', timeZone: 'Asia/Kolkata' }),
+      { weekday: 'long', month: 'long', day: 'numeric' },
+    );
+    expect(label).toMatch(/\d/);
+    expect(label.length).toBeGreaterThan(5);
   });
 });
 

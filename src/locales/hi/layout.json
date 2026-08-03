@@ -1,0 +1,147 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "मुख्य सामग्री पर जाएँ",
+    "mainNavigation": "मुख्य नेविगेशन",
+    "sidebarNavigation": "साइडबार नेविगेशन",
+    "mobileNavigation": "मोबाइल नेविगेशन"
+  },
+  "auth": {
+    "switchToRegister": "खाता बनाएँ",
+    "switchToSignIn": "साइन इन",
+    "statusOperational": "सभी सिस्टम चालू हैं",
+    "badge": "ऑपरेशन, एक जगह",
+    "heroTitle": "आपके संगठन के लिए ऑपरेटिंग सिस्टम।",
+    "heroSubtitle": "सदस्य, भूमिकाएँ, बिलिंग और सुरक्षा — हर टीम के लिए तेज़, कीबोर्ड-फ़र्स्ट वर्कस्पेस।",
+    "features": {
+      "multiOrg": {
+        "title": "मल्टी-ऑर्ग डिज़ाइन",
+        "body": "टूल बदले बिना टीमें बदलें।"
+      },
+      "secure": {
+        "title": "डिफ़ॉल्ट रूप से सुरक्षित",
+        "body": "RBAC, MFA, पासकी और ऑडिट ट्रेल।"
+      },
+      "fast": {
+        "title": "हर जगह तेज़",
+        "body": "कीबोर्ड-फ़र्स्ट, रियल-टाइम काम के लिए बनाया गया।"
+      }
+    },
+    "stats": {
+      "teams": "टीमें",
+      "uptime": "अपटाइम",
+      "compliant": "अनुपालन"
+    }
+  },
+  "app": {
+    "search": "खोजें",
+    "searchPlaceholder": "खोजें...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "उपयोगकर्ता मेनू",
+    "userFallback": "उपयोगकर्ता",
+    "settings": "सेटिंग्स",
+    "logOut": "लॉग आउट",
+    "toggleSidebar": "साइडबार टॉगल करें",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "डैशबोर्ड"
+    },
+    "sidebar": {
+      "workspace": "वर्कस्पेस",
+      "menu": "मेनू",
+      "shortcuts": "शॉर्टकट"
+    },
+    "contextStrip": {
+      "label": "त्वरित पहुँच",
+      "labelSolo": "जाएँ",
+      "profile": "प्रोफ़ाइल",
+      "security": "सुरक्षा",
+      "billing": "बिलिंग",
+      "appearance": "दिखावट",
+      "shortcuts": "शॉर्टकट"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "संगठन चुनें",
+      "triggerLabel": "संगठन बदलें — वर्तमान: {{name}}",
+      "personal": "व्यक्तिगत",
+      "yourOrganizations": "आपके संगठन",
+      "organizations": "संगठन",
+      "addOrganization": "संगठन जोड़ें"
+    },
+    "notifications": {
+      "title": "सूचनाएँ",
+      "ariaWithUnread": "सूचनाएँ, {{count}} अपठित",
+      "ariaDefault": "सूचनाएँ",
+      "newBadge": "{{count}} नई",
+      "markAllRead": "सभी पढ़ी चिह्नित करें",
+      "loadError": "सूचनाएँ लोड नहीं हो सकीं। कृपया फिर कोशिश करें।",
+      "retry": "फिर कोशिश करें",
+      "emptyTitle": "कोई सूचना नहीं",
+      "emptyDescription": "आपके खाते और संगठन के अपडेट यहाँ दिखेंगे।",
+      "markRead": "पढ़ी चिह्नित करें",
+      "settingsLink": "सूचना सेटिंग्स"
+    },
+    "commandPalette": {
+      "ariaLabel": "कमांड पैलेट",
+      "placeholder": "कमांड टाइप करें या खोजें...",
+      "empty": "कोई परिणाम नहीं मिला।",
+      "groups": {
+        "navigation": "नेविगेशन",
+        "theme": "थीम",
+        "account": "खाता",
+        "organizations": "संगठन",
+        "shortcuts": "शॉर्टकट"
+      },
+      "dashboard": "डैशबोर्ड",
+      "userSettings": "उपयोगकर्ता सेटिंग्स",
+      "organizationSettings": "संगठन सेटिंग्स",
+      "lightMode": "लाइट मोड",
+      "darkMode": "डार्क मोड",
+      "systemTheme": "सिस्टम थीम",
+      "settings": "सेटिंग्स",
+      "logOut": "लॉग आउट",
+      "openShortcuts": "कीबोर्ड शॉर्टकट",
+      "switchOrganization": "{{name}} पर स्विच करें",
+      "currentOrganization": "{{name}} (वर्तमान)"
+    },
+    "shortcuts": {
+      "title": "कीबोर्ड शॉर्टकट",
+      "description": "नेविगेशन और क्रियाओं का त्वरित संदर्भ।",
+      "commandPalette": "कमांड पैलेट खोलें",
+      "showShortcuts": "कीबोर्ड शॉर्टकट दिखाएँ",
+      "showShortcutsAlt": "कीबोर्ड शॉर्टकट दिखाएँ (वैकल्पिक)",
+      "closeDialog": "डायलॉग बंद करें"
+    },
+    "emailVerify": {
+      "message": "अपने खाते को सुरक्षित करने के लिए ईमेल सत्यापित करें।",
+      "resend": "ईमेल फिर भेजें",
+      "sending": "भेजा जा रहा है…",
+      "sent": "भेजा गया",
+      "notifySuccess": "सत्यापन ईमेल भेजा गया — अपना इनबॉक्स देखें।",
+      "notifyError": "ईमेल फिर नहीं भेजा जा सका।"
+    },
+    "sessionTimeout": {
+      "title": "सत्र समाप्त हो रहा है",
+      "description": "निष्क्रियता के कारण आपका सत्र {{countdown}} में समाप्त हो जाएगा। जारी रखने के लिए \"साइन इन रहें\" पर क्लिक करें।",
+      "signOut": "साइन आउट",
+      "staySignedIn": "साइन इन रहें"
+    },
+    "membersTable": {
+      "actionsAria": "{{name}} के लिए क्रियाएँ",
+      "changeRole": "भूमिका बदलें",
+      "suspend": "सदस्य निलंबित करें",
+      "reactivate": "सदस्य पुनः सक्रिय करें",
+      "remove": "संगठन से हटाएँ",
+      "removeTitle": "{{name}} को हटाएँ?",
+      "removeDescription": "उन्हें इस संगठन की पहुँच खोनी पड़ेगी। यह क्रिया पूर्ववत नहीं की जा सकती।",
+      "cancel": "रद्द करें",
+      "confirmRemove": "हटाएँ"
+    }
+  },
+  "public": {
+    "brandTagline": "आपकी टीम के लिए सुरक्षित वर्कस्पेस"
+  }
+}
