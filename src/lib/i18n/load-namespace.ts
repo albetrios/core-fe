@@ -1,3 +1,4 @@
+import { readInjectedTestMode } from '@/lib/i18n/build-env.ts';
 import { isMultiLocaleBuild } from '@/lib/i18n/build-runtime.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import {
@@ -172,6 +173,8 @@ export async function ensureLocale(locale: I18nLocale): Promise<void> {
 /** Warm non-active locales during idle time (keeps initial bundle small). */
 export function preloadLocaleIdle(locale: I18nLocale): void {
   if (!isMultiLocaleBuild()) return;
+  // Idle preloads compete with Vitest's transform queue under the full suite.
+  if (readInjectedTestMode()) return;
   if (locale === I18N_BUILD_UI_LOCALE) return;
 
   if (typeof window === 'undefined') return;

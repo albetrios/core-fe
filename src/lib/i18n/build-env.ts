@@ -27,10 +27,16 @@ export function readInjectedAppVersion() {
   return raw === undefined || raw === '' ? undefined : raw;
 }
 
+/** True under the Vitest runner (`VITE_TEST_MODE` from plugins/test-env.ts). */
+export function readInjectedTestMode(): boolean {
+  return import.meta.env.VITE_TEST_MODE === 'true';
+}
+
 /** Snapshot at module load — use the `readInjected*` helpers when env may change (tests). */
 export const buildEnv = {
   i18nMode: readInjectedI18nMode(),
   i18nBcp47: readInjectedI18nBcp47(),
   appBuildId: readInjectedAppBuildId(),
   appVersion: readInjectedAppVersion(),
+  testMode: readInjectedTestMode(),
 } as const;
