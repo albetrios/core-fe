@@ -5,7 +5,7 @@
   "steps": {
     "welcome": {
       "title": "Welcome aboard",
-      "description": "Let's set up your account in a few quick steps."
+      "description": "Let's get your account ready in a few quick steps."
     },
     "profile": {
       "title": "About you",
