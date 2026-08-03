@@ -43,30 +43,33 @@ function OptionPills<T extends string>({
   testPrefix: string;
 }) {
   return (
-    <div role="group" aria-label={ariaLabel} className="flex flex-wrap gap-2">
-      {options.map((id) => {
-        const active = value === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            data-slot="button"
-            aria-pressed={active}
-            onClick={() => onPick(id)}
-            data-testid={`${testPrefix}-${id}`}
-            className={cn(
-              appearanceChoiceClassName,
-              'min-w-0 flex-1 text-center text-xs sm:flex-none',
-              active
-                ? 'border-primary bg-primary/10 text-foreground'
-                : 'border-border text-muted-foreground hover:border-primary/50',
-            )}
-          >
-            {labelFor(id)}
-          </button>
-        );
-      })}
-    </div>
+    <fieldset className="m-0 min-w-0 border-0 p-0">
+      <legend className="sr-only">{ariaLabel}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((id) => {
+          const active = value === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              data-slot="button"
+              aria-pressed={active}
+              onClick={() => onPick(id)}
+              data-testid={`${testPrefix}-${id}`}
+              className={cn(
+                appearanceChoiceClassName,
+                'min-w-0 flex-1 text-center text-xs sm:flex-none',
+                active
+                  ? 'border-primary bg-primary/10 text-foreground'
+                  : 'border-border text-muted-foreground hover:border-primary/50',
+              )}
+            >
+              {labelFor(id)}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 
@@ -95,39 +98,40 @@ export function LanguagePrefsCard() {
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         {multiLocale ? (
-          <div
-            className="grid gap-2 sm:grid-cols-2"
-            role="group"
-            aria-label={t(LOCALE_KEYS.languageHeading)}
-          >
-            {I18N_LOCALES.map((code) => {
-              const active = locale === code;
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  data-slot="button"
-                  aria-pressed={active}
-                  onClick={() => void setLocale(code)}
-                  data-testid={LOCALE_TEST_IDS.menuItem(code)}
-                  className={cn(
-                    appearanceRowTileClassName,
-                    active ? appearanceTileActiveClassName : appearanceTileIdleClassName,
-                  )}
-                >
-                  <span>
-                    {/* eslint-disable-next-line security/detect-object-injection -- fixed locale catalog */}
-                    {t(LOCALE_LABEL_KEYS[code], {
-                      defaultValue: LOCALE_NATIVE_LABELS[code],
-                    })}
-                  </span>
-                  {active ? (
-                    <Check className="text-primary size-4 shrink-0" aria-hidden />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
+          <fieldset className="m-0 min-w-0 border-0 p-0">
+            <legend className="sr-only">{t(LOCALE_KEYS.languageHeading)}</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {I18N_LOCALES.map((code) => {
+                const active = locale === code;
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    data-slot="button"
+                    aria-pressed={active}
+                    onClick={() => void setLocale(code)}
+                    data-testid={LOCALE_TEST_IDS.menuItem(code)}
+                    className={cn(
+                      appearanceRowTileClassName,
+                      active
+                        ? appearanceTileActiveClassName
+                        : appearanceTileIdleClassName,
+                    )}
+                  >
+                    <span>
+                      {/* eslint-disable-next-line security/detect-object-injection -- fixed locale catalog */}
+                      {t(LOCALE_LABEL_KEYS[code], {
+                        defaultValue: LOCALE_NATIVE_LABELS[code],
+                      })}
+                    </span>
+                    {active ? (
+                      <Check className="text-primary size-4 shrink-0" aria-hidden />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
         ) : null}
 
         <div className="flex flex-col gap-2">
