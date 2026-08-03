@@ -43,16 +43,15 @@ function OptionPills<T extends string>({
   testPrefix: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className="flex flex-wrap gap-2">
+    <div role="group" aria-label={ariaLabel} className="flex flex-wrap gap-2">
       {options.map((id) => {
         const active = value === id;
         return (
           <button
             key={id}
             type="button"
-            role="radio"
             data-slot="button"
-            aria-checked={active}
+            aria-pressed={active}
             onClick={() => onPick(id)}
             data-testid={`${testPrefix}-${id}`}
             className={cn(
@@ -98,7 +97,7 @@ export function LanguagePrefsCard() {
         {multiLocale ? (
           <div
             className="grid gap-2 sm:grid-cols-2"
-            role="radiogroup"
+            role="group"
             aria-label={t(LOCALE_KEYS.languageHeading)}
           >
             {I18N_LOCALES.map((code) => {
@@ -107,9 +106,8 @@ export function LanguagePrefsCard() {
                 <button
                   key={code}
                   type="button"
-                  role="radio"
                   data-slot="button"
-                  aria-checked={active}
+                  aria-pressed={active}
                   onClick={() => void setLocale(code)}
                   data-testid={LOCALE_TEST_IDS.menuItem(code)}
                   className={cn(

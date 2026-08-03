@@ -61,16 +61,15 @@ function OptionPills<T extends string>({
   testPrefix: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className="flex flex-wrap gap-2">
+    <div role="group" aria-label={ariaLabel} className="flex flex-wrap gap-2">
       {options.map((id) => {
         const active = value === id;
         return (
           <button
             key={id}
             type="button"
-            role="radio"
             data-slot="button"
-            aria-checked={active}
+            aria-pressed={active}
             onClick={() => onPick(id)}
             data-testid={`${testPrefix}-${id}`}
             className={cn(
