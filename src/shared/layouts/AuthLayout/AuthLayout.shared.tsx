@@ -8,12 +8,7 @@ import {
   LOCALE_LABEL_KEYS,
   LOCALE_NS,
 } from '@/lib/i18n/locale.constants.ts';
-import {
-  I18N_LOCALES,
-  type I18nLocale,
-  isI18nLocale,
-  LOCALE_NATIVE_LABELS,
-} from '@/lib/i18n/locales.ts';
+import { I18N_LOCALES, isI18nLocale, LOCALE_NATIVE_LABELS } from '@/lib/i18n/locales.ts';
 import { iconOnBrandSurface, iconOnPrimarySurface } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { ThemeModeToggle } from '@/shared/components/ThemeModeToggle/index.ts';
@@ -67,7 +62,7 @@ function AuthLocaleSelect() {
     <Select
       value={locale}
       onValueChange={(value) => {
-        if (isI18nLocale(value)) void setLocale(value as I18nLocale);
+        if (isI18nLocale(value)) void setLocale(value);
       }}
     >
       <SelectTrigger
