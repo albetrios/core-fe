@@ -55,6 +55,33 @@ describe('formatDateValue', () => {
     expect(tokyo).not.toBe(nyc);
   });
 
+  it('keeps the civil day for local Date inputs under a foreign display TZ', () => {
+    // Calendar/placeholder events use local-midnight Dates. A western TZ must
+    // not shift June 18 → June 17 (the bug that shipped with timeZone wiring).
+    const civil = new Date(2026, 5, 18);
+    const label = formatDateValue(
+      civil,
+      prefs({
+        formatLocale: 'en-US',
+        dateFormat: 'date',
+        timeZone: 'America/New_York',
+      }),
+    );
+    expect(label).toMatch(/06\/18\/2026|6\/18\/2026/);
+  });
+
+  it('still shifts absolute ISO instants across display timezones', () => {
+    const tokyo = formatDateValue(
+      '2026-06-18T00:30:00.000Z',
+      prefs({ dateFormat: 'date', timeZone: 'Asia/Tokyo' }),
+    );
+    const nyc = formatDateValue(
+      '2026-06-18T00:30:00.000Z',
+      prefs({ dateFormat: 'date', timeZone: 'America/New_York' }),
+    );
+    expect(tokyo).not.toBe(nyc);
+  });
+
   it('applies custom options while still honouring format locale + timezone', () => {
     const label = formatDateValue(
       sample,

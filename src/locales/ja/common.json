@@ -26,7 +26,8 @@
   },
   "timeZone": {
     "heading": "タイムゾーン",
-    "preview": "タイムゾーン：{{value}}"
+    "preview": "タイムゾーン：{{value}}",
+    "device": "デバイスのタイムゾーン"
   },
   "dateFormat": {
     "heading": "日付と時刻の形式",

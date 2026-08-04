@@ -26,7 +26,8 @@
   },
   "timeZone": {
     "heading": "Fuso orario",
-    "preview": "Fuso orario: {{value}}"
+    "preview": "Fuso orario: {{value}}",
+    "device": "Fuso orario del dispositivo"
   },
   "dateFormat": {
     "heading": "Formato data e ora",

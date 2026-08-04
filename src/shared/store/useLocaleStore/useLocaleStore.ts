@@ -101,20 +101,25 @@ function applyBuildUiLocaleLock(profile: LocaleBuildProfile): void {
   void applyDocumentLocale(profile.locale, textDirection);
 }
 
+/** Bumps on every `setLocale` so a slower earlier switch cannot win the race. */
+let localeApplyGeneration = 0;
+
 export const useLocaleStore = create<LocaleStore>()(
   persist(
     (set, get) => ({
       ...initialLocaleState(),
       setLocale: async (locale) => {
+        const generation = ++localeApplyGeneration;
         await applyDocumentLocale(locale, get().textDirection);
-        // Language carries a full regional experience: derive the region's format
-        // locale and snap currency + timezone to what that region uses.
+        if (generation !== localeApplyGeneration) return;
+        // Language carries regional format + currency. Timezone is left alone —
+        // clobbering `auto` or a user pick with a region default caused silent
+        // calendar day shifts once display TZ was wired into formatters.
         const formatLocale = defaultFormatLocaleForUi(locale);
         set({
           locale,
           formatLocale,
           currencyCode: defaultCurrencyForFormatLocale(formatLocale),
-          timeZone: defaultTimeZoneForFormatLocale(formatLocale),
         });
         preloadLocaleIdle(locale);
       },

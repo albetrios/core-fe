@@ -26,7 +26,8 @@
   },
   "timeZone": {
     "heading": "समय क्षेत्र",
-    "preview": "समय क्षेत्र: {{value}}"
+    "preview": "समय क्षेत्र: {{value}}",
+    "device": "डिवाइस समय क्षेत्र"
   },
   "dateFormat": {
     "heading": "तिथि और समय प्रारूप",

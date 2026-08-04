@@ -83,6 +83,20 @@ describe('useLocaleStore', () => {
     expect(useLocaleStore.getState().timeZone).toBe('Asia/Kolkata');
   });
 
+  it('does not clobber an explicit timezone when the UI language changes', async () => {
+    useLocaleStore.getState().setTimeZone('UTC');
+    await useLocaleStore.getState().setLocale('ja');
+    expect(useLocaleStore.getState().locale).toBe('ja');
+    expect(useLocaleStore.getState().formatLocale).toBe('ja-JP');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
+  });
+
+  it('keeps device timezone (auto) when the UI language changes', async () => {
+    useLocaleStore.setState({ timeZone: 'auto' });
+    await useLocaleStore.getState().setLocale('hi');
+    expect(useLocaleStore.getState().timeZone).toBe('auto');
+  });
+
   it('stores a currency code override independently', () => {
     useLocaleStore.getState().setCurrencyCode('EUR');
     expect(useLocaleStore.getState().currencyCode).toBe('EUR');

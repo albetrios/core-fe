@@ -26,7 +26,8 @@
   },
   "timeZone": {
     "heading": "Fuseau horaire",
-    "preview": "Fuseau horaire : {{value}}"
+    "preview": "Fuseau horaire : {{value}}",
+    "device": "Fuseau horaire de l’appareil"
   },
   "dateFormat": {
     "heading": "Format de date et d’heure",

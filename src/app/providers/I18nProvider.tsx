@@ -10,11 +10,24 @@ interface I18nProviderProps {
   children: ReactNode;
 }
 
+/** Apply document lang/dir from the store — only after persist has hydrated. */
+function syncDocumentLocale(): void {
+  const { locale, textDirection } = useLocaleStore.getState();
+  void applyDocumentLocale(locale, textDirection);
+}
+
 /** Client-side i18n — wraps react-i18next; init runs on `@/lib/i18n/i18n.ts` import. */
 export function I18nProvider({ children }: I18nProviderProps) {
   useEffect(() => {
-    const { locale, textDirection } = useLocaleStore.getState();
-    void applyDocumentLocale(locale, textDirection);
+    // Never apply defaults before rehydrate — that races persisted ar/rtl and
+    // can leave the document on en/ltr after reload.
+    if (useLocaleStore.persist.hasHydrated()) {
+      syncDocumentLocale();
+      return;
+    }
+    return useLocaleStore.persist.onFinishHydration(() => {
+      syncDocumentLocale();
+    });
   }, []);
 
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;

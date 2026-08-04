@@ -26,7 +26,8 @@
   },
   "timeZone": {
     "heading": "시간대",
-    "preview": "시간대: {{value}}"
+    "preview": "시간대: {{value}}",
+    "device": "기기 시간대"
   },
   "dateFormat": {
     "heading": "날짜 및 시간 형식",

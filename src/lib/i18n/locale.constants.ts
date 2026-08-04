@@ -44,6 +44,7 @@ export const LOCALE_KEYS = {
   dateTimeHeading: 'dateTime.heading',
   dateTimeDescription: 'dateTime.description',
   timeZoneHeading: 'timeZone.heading',
+  timeZoneDevice: 'timeZone.device',
   dateFormatHeading: 'dateFormat.heading',
   hourCycleHeading: 'hourCycle.heading',
   textDirectionHeading: 'direction.heading',

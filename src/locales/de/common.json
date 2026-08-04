@@ -26,7 +26,8 @@
   },
   "timeZone": {
     "heading": "Zeitzone",
-    "preview": "Zeitzone: {{value}}"
+    "preview": "Zeitzone: {{value}}",
+    "device": "Gerätezeitzone"
   },
   "dateFormat": {
     "heading": "Datums- und Zeitformat",

@@ -94,7 +94,7 @@ export function LanguagePrefsCard() {
             ? t(LOCALE_KEYS.languageHeading)
             : t(LOCALE_KEYS.textDirectionHeading)}
         </CardTitle>
-        <CardDescription>Saved on this device — changes apply live.</CardDescription>
+        <CardDescription>{t(LOCALE_KEYS.languageDescription)}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         {multiLocale ? (

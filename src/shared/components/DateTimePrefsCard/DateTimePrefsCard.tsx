@@ -128,9 +128,13 @@ export function DateTimePrefsCard() {
         ...prefs,
         dateFormat: 'time',
       }),
-      zoneLabel: TIME_ZONE_LIST.find((entry) => entry.id === timeZone)?.label ?? timeZone,
+      zoneLabel:
+        timeZone === 'auto'
+          ? t(LOCALE_KEYS.timeZoneDevice)
+          : (TIME_ZONE_LIST.find((entry) => entry.id === timeZone)?.label ?? timeZone),
     };
   }, [
+    t,
     locale,
     formatLocale,
     dateFormat,
@@ -195,7 +199,7 @@ export function DateTimePrefsCard() {
                   value={entry.id}
                   data-testid={timeZoneTestId(entry.id)}
                 >
-                  {entry.label}
+                  {entry.id === 'auto' ? t(LOCALE_KEYS.timeZoneDevice) : entry.label}
                 </SelectItem>
               ))}
             </SelectContent>

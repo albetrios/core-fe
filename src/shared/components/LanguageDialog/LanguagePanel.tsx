@@ -56,31 +56,33 @@ function OptionPills<T extends string>({
   testPrefix: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className="flex flex-wrap gap-2">
-      {options.map((id) => {
-        const active = value === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            role="radio"
-            data-slot="button"
-            aria-checked={active}
-            onClick={() => onPick(id)}
-            data-testid={`${testPrefix}-${id}`}
-            className={cn(
-              appearanceChoiceClassName,
-              'min-w-0 flex-1 text-center text-xs sm:flex-none',
-              active
-                ? 'border-primary bg-primary/10 text-foreground'
-                : 'border-border text-muted-foreground hover:border-primary/50',
-            )}
-          >
-            {labelFor(id)}
-          </button>
-        );
-      })}
-    </div>
+    <fieldset className="m-0 min-w-0 border-0 p-0">
+      <legend className="sr-only">{ariaLabel}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map((id) => {
+          const active = value === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              data-slot="button"
+              aria-pressed={active}
+              onClick={() => onPick(id)}
+              data-testid={`${testPrefix}-${id}`}
+              className={cn(
+                appearanceChoiceClassName,
+                'min-w-0 flex-1 text-center text-xs sm:flex-none',
+                active
+                  ? 'border-primary bg-primary/10 text-foreground'
+                  : 'border-border text-muted-foreground hover:border-primary/50',
+              )}
+            >
+              {labelFor(id)}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 

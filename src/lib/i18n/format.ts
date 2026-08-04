@@ -26,6 +26,22 @@ export type LocaleFormatInput = {
 };
 
 /**
+ * `Date` values from calendars/placeholders are civil days (local Y-M-D), not
+ * absolute instants. When an explicit display TZ is set, format noon-UTC on
+ * that civil day so the day number cannot shift across zones. ISO strings stay
+ * absolute instants and honour `timeZone` as usual.
+ */
+function resolveFormatInstant(iso: string | Date, timeZone: string | undefined): Date {
+  if (typeof iso === 'string') {
+    return new Date(iso);
+  }
+  if (!timeZone) {
+    return iso;
+  }
+  return new Date(Date.UTC(iso.getFullYear(), iso.getMonth(), iso.getDate(), 12, 0, 0));
+}
+
+/**
  * Format a date with the user's regional locale + timezone. Optional `options`
  * replace the stored date-format style (still always honour formatLocale /
  * timeZone) — use for one-off shapes like "weekday long" hero labels.
@@ -35,9 +51,9 @@ export function formatDateValue(
   prefs: LocaleFormatInput,
   options?: Intl.DateTimeFormatOptions,
 ): string {
-  const date = typeof iso === 'string' ? new Date(iso) : iso;
-  if (Number.isNaN(date.getTime())) return '—';
   const timeZone = resolvedTimeZone(prefs.timeZone);
+  const date = resolveFormatInstant(iso, timeZone);
+  if (Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat(intlLocaleFor(prefs.formatLocale), {
     ...(options ?? dateFormatOptions(prefs.dateFormat, prefs.hourCycle)),
     ...(timeZone ? { timeZone } : {}),
