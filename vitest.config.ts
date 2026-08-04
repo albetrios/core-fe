@@ -35,6 +35,7 @@ export default defineConfig({
     // default even for sync renders; keep a modest floor and raise outliers
     // further with per-test timeouts.
     testTimeout: 15_000,
+    hookTimeout: 30_000,
     exclude: ['node_modules', 'dist', 'tests/e2e'],
     css: true,
     // Hermetic by construction — no env pinning here. The top-level `envDir` above

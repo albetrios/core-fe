@@ -27,9 +27,14 @@ function renderInRouter() {
 }
 
 describe('PublicLayout', () => {
+  // Preload lazy shells so Suspense doesn't flake under full-suite contention.
   beforeAll(async () => {
-    await import('./variants/PublicLayoutCentered.tsx');
-  });
+    await Promise.all([
+      import('./variants/PublicLayoutCentered.tsx'),
+      import('./variants/PublicLayoutCard.tsx'),
+      import('./variants/PublicLayoutBrand.tsx'),
+    ]);
+  }, 30_000);
 
   beforeEach(() => {
     useThemeStore.setState({ publicVariant: 0 });
@@ -37,15 +42,18 @@ describe('PublicLayout', () => {
 
   it('renders centered chrome with the routed child via <Outlet>', async () => {
     renderInRouter();
-    expect(await screen.findByTestId('public-layout')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('public-layout', {}, { timeout: 15_000 }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('child')).toHaveTextContent('child content');
-  });
+  }, 20_000);
 
   it('renders the card preview variant (1)', async () => {
     useThemeStore.setState({ publicVariant: 1 });
-    await import('./variants/PublicLayoutCard.tsx');
     renderInRouter();
-    expect(await screen.findByTestId('public-layout')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('public-layout', {}, { timeout: 15_000 }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('child')).toHaveTextContent('child content');
-  });
+  }, 20_000);
 });

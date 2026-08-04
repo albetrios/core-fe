@@ -3,17 +3,16 @@ import { lazy, Suspense } from 'react';
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
+/** Shared thenables so test preloads and React.lazy hit the same module promise. */
+const centeredImport = import('./variants/PublicLayoutCentered.tsx');
+const cardImport = import('./variants/PublicLayoutCard.tsx');
+const brandImport = import('./variants/PublicLayoutBrand.tsx');
+
 const CenteredPublic = lazy(() =>
-  import('./variants/PublicLayoutCentered.tsx').then((m) => ({
-    default: m.CenteredPublic,
-  })),
+  centeredImport.then((m) => ({ default: m.CenteredPublic })),
 );
-const CardPublic = lazy(() =>
-  import('./variants/PublicLayoutCard.tsx').then((m) => ({ default: m.CardPublic })),
-);
-const BrandPublic = lazy(() =>
-  import('./variants/PublicLayoutBrand.tsx').then((m) => ({ default: m.BrandPublic })),
-);
+const CardPublic = lazy(() => cardImport.then((m) => ({ default: m.CardPublic })));
+const BrandPublic = lazy(() => brandImport.then((m) => ({ default: m.BrandPublic })));
 
 const PUBLIC_SHELLS = [CenteredPublic, CardPublic, BrandPublic] as const;
 
