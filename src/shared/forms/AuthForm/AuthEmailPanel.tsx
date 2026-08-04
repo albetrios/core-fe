@@ -352,7 +352,7 @@ export function AuthEmailPanel({
       data-testid={AUTH_FORM_TEST_IDS.emailVerifyPanel}
     >
       <FormError message={formError} data-testid={AUTH_FORM_TEST_IDS.emailErrorBanner} />
-      <div className="space-y-2 pt-2 text-left">
+      <div className="space-y-2 pt-2 text-start">
         <Label htmlFor="auth-email-code">{t(AUTH_KEYS.auth.email.codeLabel)}</Label>
         <TotpCodeInput
           value={verificationCode}
@@ -381,7 +381,7 @@ export function AuthEmailPanel({
         testId={AUTH_FORM_TEST_IDS.emailVerify}
       />
 
-      <footer className="flex flex-col gap-2.5 text-center text-sm lg:text-left">
+      <footer className="flex flex-col gap-2.5 text-center text-sm lg:text-start">
         <p className="text-muted-foreground text-pretty">
           {t(AUTH_KEYS.auth.email.resendHint)} {resendHint}
         </p>

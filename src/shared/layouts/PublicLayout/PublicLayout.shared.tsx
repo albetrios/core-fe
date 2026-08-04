@@ -19,7 +19,7 @@ export function PublicSkipLink() {
 
 export function PublicThemeToggle() {
   return (
-    <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+    <div className="absolute end-4 top-4 sm:end-6 sm:top-6">
       <ThemeModeToggle />
     </div>
   );

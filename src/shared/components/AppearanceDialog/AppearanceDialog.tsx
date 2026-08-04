@@ -67,7 +67,7 @@ export function AppearanceDialog() {
       aria-labelledby="appearance-popover-title"
       data-testid="appearance-dialog"
       data-slot="popover-content"
-      className="bg-popover text-popover-foreground border-border animate-in slide-in-from-right-2 fade-in pointer-events-auto fixed top-3 right-3 z-[80] flex max-h-[calc(100dvh-1.5rem)] w-[min(100vw-1.5rem,480px)] flex-col overflow-hidden rounded-md border transition"
+      className="bg-popover text-popover-foreground border-border animate-in slide-in-from-right-2 fade-in rtl:slide-in-from-left-2 pointer-events-auto fixed end-3 top-3 z-[80] flex max-h-[calc(100dvh-1.5rem)] w-[min(100vw-1.5rem,480px)] flex-col overflow-hidden rounded-md border transition"
     >
       <div className="border-border flex items-start justify-between gap-3 border-b px-5 py-3">
         <div className="space-y-0.5">

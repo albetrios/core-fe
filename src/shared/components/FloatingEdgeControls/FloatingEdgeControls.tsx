@@ -3,9 +3,9 @@ import { FloatingSettingsButton } from '@/shared/components/FloatingSettingsButt
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
 /**
- * Right-edge Appearance handle. Language / region / timezone live inside the
- * Appearance panel now — no separate language handle. Hidden while Appearance
- * (or the Language dialog, if opened elsewhere) is open.
+ * Inline-end Appearance handle (mirrors under RTL). Language / region / timezone
+ * live inside the Appearance panel — no separate language handle. Hidden while
+ * Appearance (or the Language dialog, if opened elsewhere) is open.
  */
 export function FloatingEdgeControls() {
   const appearanceOpen = useUIStore((s) => s.appearanceOpen);
@@ -16,7 +16,7 @@ export function FloatingEdgeControls() {
 
   return (
     <div
-      className="pointer-events-none fixed top-1/2 right-0 z-[70] hidden -translate-y-1/2 flex-col gap-2 sm:flex"
+      className="pointer-events-none fixed end-0 top-1/2 z-[70] hidden -translate-y-1/2 flex-col gap-2 sm:flex"
       data-testid="floating-edge-controls"
     >
       <FloatingSettingsButton />

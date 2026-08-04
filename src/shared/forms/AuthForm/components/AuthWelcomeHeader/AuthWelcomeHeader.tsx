@@ -21,7 +21,7 @@ export function AuthWelcomeHeader({
 
   if (variant === 'emailVerify') {
     return (
-      <header className={cn('space-y-2 text-center lg:text-left', className)}>
+      <header className={cn('space-y-2 text-center lg:text-start', className)}>
         <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-[1.75rem]">
           {t(AUTH_KEYS.auth.verify.heading)}
         </h1>
@@ -40,7 +40,7 @@ export function AuthWelcomeHeader({
   }
 
   return (
-    <header className={cn('space-y-2 text-center lg:text-left', className)}>
+    <header className={cn('space-y-2 text-center lg:text-start', className)}>
       <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-[1.75rem]">
         {t(AUTH_KEYS.auth.heading)}
       </h1>

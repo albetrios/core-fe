@@ -39,10 +39,10 @@ export function SplitAuth({ children }: AuthLayoutShellProps) {
           </defs>
           <rect width="100%" height="100%" fill="url(#auth-dots)" />
         </svg>
-        <div className="bg-primary/30 absolute -top-24 -left-24 h-80 w-80 rounded-full blur-3xl" />
-        <div className="bg-primary/20 absolute right-[-10%] bottom-[-15%] h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-primary/30 absolute -start-24 -top-24 h-80 w-80 rounded-full blur-3xl" />
+        <div className="bg-primary/20 absolute end-[-10%] bottom-[-15%] h-96 w-96 rounded-full blur-3xl" />
         <div
-          className="via-primary/40 absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent to-transparent"
+          className="via-primary/40 absolute inset-y-0 end-0 w-px bg-gradient-to-b from-transparent to-transparent"
           aria-hidden="true"
         />
 

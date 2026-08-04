@@ -13,8 +13,8 @@ interface I18nProviderProps {
 /** Client-side i18n — wraps react-i18next; init runs on `@/lib/i18n/i18n.ts` import. */
 export function I18nProvider({ children }: I18nProviderProps) {
   useEffect(() => {
-    const { locale } = useLocaleStore.getState();
-    void applyDocumentLocale(locale);
+    const { locale, textDirection } = useLocaleStore.getState();
+    void applyDocumentLocale(locale, textDirection);
   }, []);
 
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
