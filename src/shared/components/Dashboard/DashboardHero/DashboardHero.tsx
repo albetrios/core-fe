@@ -58,11 +58,11 @@ export function DashboardHero({
       className="border-border/60 from-muted/50 via-card to-card relative overflow-hidden rounded-2xl border bg-gradient-to-br px-5 py-6 sm:px-7 sm:py-8"
     >
       <div
-        className="bg-primary/10 pointer-events-none absolute -top-16 -right-8 size-56 rounded-full blur-3xl"
+        className="bg-primary/10 pointer-events-none absolute -end-8 -top-16 size-56 rounded-full blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="bg-brand/8 pointer-events-none absolute -bottom-20 left-1/3 size-40 rounded-full blur-3xl"
+        className="bg-brand/8 pointer-events-none absolute start-1/3 -bottom-20 size-40 rounded-full blur-3xl"
         aria-hidden="true"
       />
 

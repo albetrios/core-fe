@@ -12,8 +12,12 @@
 
 cd "$(dirname "$0")/../.."
 
+# The `-?(left|right)-[0-9]` alternative deliberately relies on the outer
+# separator group alone. An inner `(^|[^a-z-])` would demand a SECOND separator
+# character and silently match nothing — the bug that let `left-3`, `left-0`,
+# and `-right-8` survive this gate.
 VIOLATIONS=$(grep -rEn \
-  '(^|["'\''[:space:]:!])((-?m[lr]|-?p[lr])-|border-[lr]\b|rounded-[lr]\b|text-(left|right)\b|(^|[^a-z-])(left|right)-[0-9]|before:(left|right)-|after:(left|right)-)' \
+  '(^|["'\''[:space:]:!])((-?m[lr]|-?p[lr])-|border-[lr]\b|rounded-[lr]\b|text-(left|right)\b|-?(left|right)-[0-9]|before:(left|right)-|after:(left|right)-)' \
   src \
   --include='*.ts' --include='*.tsx' \
   | grep -v '^src/shared/components/ui/' \

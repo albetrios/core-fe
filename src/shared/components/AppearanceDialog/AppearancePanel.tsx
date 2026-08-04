@@ -152,7 +152,7 @@ function ToastVariantSwatches({
         >
           {variant === 'accent' ? (
             <span
-              className="bg-success absolute inset-y-1 left-0 w-1 rounded-full"
+              className="bg-success absolute inset-y-1 start-0 w-1 rounded-full"
               aria-hidden="true"
             />
           ) : null}

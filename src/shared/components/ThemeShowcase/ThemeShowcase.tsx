@@ -63,7 +63,7 @@ export function ThemeShowcase() {
       className="from-primary/15 via-card to-card border-primary/20 relative gap-0 overflow-hidden bg-gradient-to-br py-0"
     >
       <div
-        className="bg-primary/20 pointer-events-none absolute -top-12 -right-10 h-36 w-36 rounded-full blur-3xl"
+        className="bg-primary/20 pointer-events-none absolute -end-10 -top-12 h-36 w-36 rounded-full blur-3xl"
         aria-hidden="true"
       />
       <CardContent className="relative p-4 sm:p-5">
