@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~535 src files · ~296 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~541 src files · ~300 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -389,7 +389,7 @@ core-fe/
 │   │   │   ├── locales.ts
 │   │   │   ├── namespaces.ts
 │   │   │   ├── translate-form-message.ts
-│   │   │   └── [7 test files]
+│   │   │   └── [8 test files]
 │   │   ├── routes/
 │   │   │   ├── builders.ts
 │   │   │   ├── index.ts
@@ -799,10 +799,18 @@ core-fe/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── LanguagePrefsCard.tsx
 │   │   │   │   └── [1 test file]
+│   │   │   ├── LocalizedCalendar/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── LocalizedCalendar.tsx
+│   │   │   │   └── [1 test file]
 │   │   │   ├── MembersTable/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── members-table.constants.ts
 │   │   │   │   ├── MembersTable.tsx
+│   │   │   │   └── [1 test file]
+│   │   │   ├── MoneyPrefsCard/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── MoneyPrefsCard.tsx
 │   │   │   │   └── [1 test file]
 │   │   │   ├── NotificationCenter/
 │   │   │   │   ├── index.ts
@@ -815,6 +823,10 @@ core-fe/
 │   │   │   ├── OptimizedImage/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── OptimizedImage.tsx
+│   │   │   │   └── [1 test file]
+│   │   │   ├── OptionPills/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── OptionPills.tsx
 │   │   │   │   └── [1 test file]
 │   │   │   ├── OrganizationBadges/
 │   │   │   │   ├── index.ts
@@ -1342,6 +1354,8 @@ core-fe/
 │   │   ├── i18n-keys.mjs
 │   │   ├── i18n-locale-parity.mjs
 │   │   ├── lockfile-sync.sh
+│   │   ├── logical-css.sh
+│   │   ├── no-bare-intl.mjs
 │   │   ├── no-static-branch-name.ts
 │   │   ├── public-assets.sh
 │   │   ├── route-islands.sh
