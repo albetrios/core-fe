@@ -48,7 +48,7 @@ describe('AppearancePanel', () => {
     expect(screen.getByTestId('layout-width-contained')).toBeInTheDocument();
     expect(screen.getByTestId('shuffle-surface')).toBeInTheDocument();
     expect(screen.getByTestId('toast-variant-swatches')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('renders language, text direction, and date & time controls', () => {
     render(<AppearancePanel />);

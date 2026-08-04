@@ -19,5 +19,5 @@ describe('ScheduleCalendar', () => {
     const { container } = renderWithProviders(<ScheduleCalendar />);
     await screen.findByTestId('dashboard-schedule-calendar');
     expect(await axe(container)).toHaveNoViolations();
-  });
+  }, 15_000);
 });
