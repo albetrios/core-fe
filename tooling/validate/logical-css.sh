@@ -16,16 +16,19 @@ cd "$(dirname "$0")/../.."
 # separator group alone. An inner `(^|[^a-z-])` would demand a SECOND separator
 # character and silently match nothing — the bug that let `left-3`, `left-0`,
 # and `-right-8` survive this gate.
-VIOLATIONS=$(grep -rEn \
-  '(^|["'\''[:space:]:!])((-?m[lr]|-?p[lr])-|border-[lr]\b|rounded-[lr]\b|text-(left|right)\b|-?(left|right)-[0-9]|before:(left|right)-|after:(left|right)-)' \
+PATTERN='(^|["'\''[:space:]:!])((-?m[lr]|-?p[lr])-|border-[lr]\b|rounded-[lr]\b|text-(left|right)\b|-?(left|right)-[0-9]|before:(left|right)-|after:(left|right)-)'
+
+# Two stages so the allowed centering idiom is stripped from the LINE before it
+# is re-tested. Excluding whole lines that merely contain `left-1/2` would hide
+# any real violation that shares a line with it.
+VIOLATIONS=$(grep -rEn "$PATTERN" \
   src \
   --include='*.ts' --include='*.tsx' \
   | grep -v '^src/shared/components/ui/' \
   | grep -v '\.test\.' \
   | grep -v '\.fixtures\.ts' \
-  | grep -v 'left-1/2' \
-  | grep -v 'right-1/2' \
   | grep -v 'pl-PL' \
+  | perl -ne 's{-?\b(left|right)-1/2\b}{}g; print if /'"$PATTERN"'/' \
   || true)
 
 if [ -n "$VIOLATIONS" ]; then

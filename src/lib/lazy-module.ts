@@ -7,10 +7,21 @@
  * which defeats the code-split it was meant to preserve. This keeps the shared
  * promise while deferring the fetch to the first call.
  *
- * @param factory - Import thunk, called at most once.
- * @returns A loader returning the cached module promise.
+ * A rejection is NOT cached: a chunk fetch that fails on a flaky network would
+ * otherwise stay poisoned for the life of the page, leaving the layout
+ * permanently unrenderable until a full reload. Clearing it lets the next
+ * render — or a Suspense retry — fetch again.
+ *
+ * @param factory - Import thunk, called again only after a failed attempt.
+ * @returns A loader returning the shared in-flight or resolved module promise.
  */
 export function onceAsync<T>(factory: () => Promise<T>): () => Promise<T> {
   let promise: Promise<T> | undefined;
-  return () => (promise ??= factory());
+  return () => {
+    promise ??= factory().catch((error: unknown) => {
+      promise = undefined;
+      throw error;
+    });
+    return promise;
+  };
 }

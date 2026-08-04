@@ -48,6 +48,9 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 }
 
 /** Warms every variant chunk so tests can render any shell without a Suspense race. */
-// eslint-disable-next-line react-refresh/only-export-components -- test-facing preload hook
-export const preloadAuthLayoutVariants = () =>
+const preloadAuthLayoutVariants = () =>
   Promise.all([loadSplit(), loadSpotlight(), loadMinimal()]);
+
+/* eslint-disable react-refresh/only-export-components -- test-facing preload hook */
+export { preloadAuthLayoutVariants };
+/* eslint-enable react-refresh/only-export-components */

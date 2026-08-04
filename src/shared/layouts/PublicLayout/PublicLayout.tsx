@@ -36,6 +36,9 @@ export function PublicLayout() {
 }
 
 /** Warms every variant chunk so tests can render any shell without a Suspense race. */
-// eslint-disable-next-line react-refresh/only-export-components -- test-facing preload hook
-export const preloadPublicLayoutVariants = () =>
+const preloadPublicLayoutVariants = () =>
   Promise.all([loadCentered(), loadCard(), loadBrand()]);
+
+/* eslint-disable react-refresh/only-export-components -- test-facing preload hook */
+export { preloadPublicLayoutVariants };
+/* eslint-enable react-refresh/only-export-components */

@@ -23,14 +23,25 @@ describe('onceAsync', () => {
     expect(factory).toHaveBeenCalledTimes(1);
   });
 
-  it('caches a rejected promise rather than silently retrying', async () => {
-    const factory = vi.fn(async () => {
-      throw new Error('chunk load failed');
-    });
+  it('retries after a failure instead of caching the rejection', async () => {
+    const factory = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(new Error('chunk load failed'))
+      .mockResolvedValueOnce('module');
     const load = onceAsync(factory);
 
     await expect(load()).rejects.toThrow('chunk load failed');
-    await expect(load()).rejects.toThrow('chunk load failed');
+    // A poisoned cache here would leave the layout unrenderable until reload.
+    await expect(load()).resolves.toBe('module');
+    expect(factory).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares one in-flight promise across concurrent callers', async () => {
+    const factory = vi.fn(async () => 'module');
+    const load = onceAsync(factory);
+
+    await Promise.all([load(), load(), load()]);
+
     expect(factory).toHaveBeenCalledTimes(1);
   });
 });
