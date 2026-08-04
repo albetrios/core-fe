@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
@@ -7,10 +7,6 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 import { AuthLayout } from './AuthLayout.tsx';
 
 describe('AuthLayout', () => {
-  beforeAll(async () => {
-    await import('./variants/AuthLayoutSplit.tsx');
-  });
-
   beforeEach(() => {
     // Default to the split variant; the shuffle-driven previews are opt-in below.
     useThemeStore.setState({ authVariant: 0 });
