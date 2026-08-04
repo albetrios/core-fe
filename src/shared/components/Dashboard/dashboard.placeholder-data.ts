@@ -50,16 +50,16 @@ export const DASHBOARD_HIGHLIGHT_SLIDES: readonly DashboardHighlightSlide[] = [
 
 export type DashboardEvent = {
   id: string;
-  label: string;
+  labelKey: string;
   /** Day-of-month within the reference month. */
   day: number;
 };
 
 const DASHBOARD_EVENT_SEED: readonly DashboardEvent[] = [
-  { id: 'evt_1', label: 'Plan renewal', day: 4 },
-  { id: 'evt_2', label: 'Quarterly access review', day: 12 },
-  { id: 'evt_3', label: 'Team sync', day: 18 },
-  { id: 'evt_4', label: 'Invoice due', day: 26 },
+  { id: 'evt_1', labelKey: DASHBOARD_KEYS.schedule.events.planRenewal, day: 4 },
+  { id: 'evt_2', labelKey: DASHBOARD_KEYS.schedule.events.accessReview, day: 12 },
+  { id: 'evt_3', labelKey: DASHBOARD_KEYS.schedule.events.teamSync, day: 18 },
+  { id: 'evt_4', labelKey: DASHBOARD_KEYS.schedule.events.invoiceDue, day: 26 },
 ] as const;
 
 export type DashboardScheduledEvent = DashboardEvent & { date: Date };

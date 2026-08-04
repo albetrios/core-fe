@@ -29,7 +29,7 @@ export function RailShell({
       <aside
         aria-label={t(LAYOUT_KEYS.a11y.sidebarNavigation)}
         data-testid="sidebar"
-        className="bg-sidebar text-sidebar-foreground flex w-14 shrink-0 flex-col items-center gap-1 border-r py-3 sm:w-16"
+        className="bg-sidebar text-sidebar-foreground flex w-14 shrink-0 flex-col items-center gap-1 border-e py-3 sm:w-16"
       >
         <BrandLogo />
         <nav

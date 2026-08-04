@@ -127,7 +127,13 @@
     "description": "Verlängerungen, Reviews und Team-Events",
     "upcoming": "Bevorstehend",
     "legendEvent": "Ereignistag",
-    "empty": "Nichts geplant"
+    "empty": "Nichts geplant",
+    "events": {
+      "planRenewal": "Planverlängerung",
+      "accessReview": "Vierteljährliche Zugriffsprüfung",
+      "teamSync": "Team-Sync",
+      "invoiceDue": "Rechnung fällig"
+    }
   },
   "sampleBadge": "Beispieldaten"
 }

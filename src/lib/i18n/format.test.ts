@@ -66,8 +66,26 @@ describe('formatDateValue', () => {
         dateFormat: 'date',
         timeZone: 'America/New_York',
       }),
+      undefined,
+      { civilDay: true },
     );
     expect(label).toMatch(/06\/18\/2026|6\/18\/2026/);
+  });
+
+  it('does not pin noon for Date + time-bearing style without civilDay', () => {
+    const instant = new Date(2026, 5, 18, 3, 0, 0);
+    const withCivil = formatDateValue(
+      instant,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'UTC' }),
+      undefined,
+      { civilDay: true },
+    );
+    const absolute = formatDateValue(
+      instant,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'UTC' }),
+    );
+    // Civil noon UTC → 12:00; absolute 03:00 local may differ once TZ applied.
+    expect(withCivil).not.toBe(absolute);
   });
 
   it('still shifts absolute ISO instants across display timezones', () => {

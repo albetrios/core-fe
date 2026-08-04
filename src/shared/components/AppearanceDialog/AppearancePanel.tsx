@@ -11,10 +11,12 @@ import {
 } from '@/lib/appearance-surface.ts';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { DateTimePrefsCard } from '@/shared/components/DateTimePrefsCard/index.ts';
 import { LanguagePrefsCard } from '@/shared/components/LanguagePrefsCard/index.ts';
+import { MoneyPrefsCard } from '@/shared/components/MoneyPrefsCard/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   Card,
@@ -139,7 +141,7 @@ function ToastVariantSwatches({
             variant === 'outline' &&
               'bg-popover text-popover-foreground border-success/50',
             variant === 'accent' &&
-              'border-border bg-popover text-popover-foreground pl-3',
+              'border-border bg-popover text-popover-foreground ps-3',
             variant === 'minimal' &&
               'border-border/60 bg-background/80 text-foreground border-dashed',
             variant === 'glass' &&
@@ -339,6 +341,7 @@ function SectionShuffle({
  * in the dialog header. When `platformConfig.themeLock` is set the controls are hidden.
  */
 export function AppearancePanel() {
+  const { t: tCommon } = useTranslation(LOCALE_NS);
   const { t } = useTranslation(ERRORS_NS);
   const theme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
@@ -428,6 +431,7 @@ export function AppearancePanel() {
         </Card>
         <LanguagePrefsCard />
         <DateTimePrefsCard />
+        <MoneyPrefsCard />
       </div>
     );
   }
@@ -444,6 +448,7 @@ export function AppearancePanel() {
     <div className="flex flex-col gap-4" data-testid="appearance-panel">
       <LanguagePrefsCard />
       <DateTimePrefsCard />
+      <MoneyPrefsCard />
 
       <Card>
         <CardHeader>
@@ -490,7 +495,7 @@ export function AppearancePanel() {
                 value={seedInput}
                 onChange={(e) => setSeedInput(e.target.value)}
                 placeholder="Paste a theme code"
-                aria-label="Theme code"
+                aria-label={tCommon(LOCALE_KEYS.themeCode)}
                 data-testid="theme-seed-input"
                 className="w-44"
               />
@@ -514,7 +519,11 @@ export function AppearancePanel() {
           <CardDescription>Saved on this device.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Mode">
+          <div
+            className="grid gap-3 sm:grid-cols-3"
+            role="radiogroup"
+            aria-label={tCommon(LOCALE_KEYS.mode)}
+          >
             {THEMES.map((t) => {
               const active = theme === t.id;
               return (

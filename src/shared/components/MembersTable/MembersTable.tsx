@@ -13,6 +13,7 @@ import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { downloadCsv, toCsv } from '@/lib/csv.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import type { Member, OrgRole } from '@/shared/api/organization-contracts.ts';
 import { DataTable } from '@/shared/components/DataTable/index.ts';
 import { DataTableColumnHeader } from '@/shared/components/DataTableColumnHeader/index.ts';
@@ -172,7 +173,10 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
   );
 }
 
-function buildColumns(canManage: boolean): ColumnDef<Member>[] {
+function buildColumns(
+  canManage: boolean,
+  tCommon: (key: string) => string,
+): ColumnDef<Member>[] {
   return [
     {
       id: 'select',
@@ -183,7 +187,7 @@ function buildColumns(canManage: boolean): ColumnDef<Member>[] {
             (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label={tCommon(LOCALE_KEYS.selectAll)}
         />
       ),
       cell: ({ row }) => (
@@ -259,6 +263,7 @@ export function MembersTable({
   members: Member[];
   syncUrl?: boolean;
 }) {
+  const { t: tCommon } = useTranslation(LOCALE_NS);
   const canManage = useHasPermission('membership:manage');
   const url = useDataTableUrlState(syncUrl);
   const [sorting, setSorting] = useState<SortingState>(url.initialSorting);
@@ -272,7 +277,7 @@ export function MembersTable({
     pageSize: url.initialPageSize,
   });
 
-  const columns = useMemo(() => buildColumns(canManage), [canManage]);
+  const columns = useMemo(() => buildColumns(canManage, tCommon), [canManage, tCommon]);
 
   const onSortingChange: Dispatch<SetStateAction<SortingState>> = (updater) => {
     setSorting((prev) => {
@@ -373,7 +378,7 @@ export function MembersTable({
           onClick={handleExport}
           data-testid="members-export"
         >
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="me-2 h-4 w-4" />
           Export
         </Button>
         {canManage && <InviteMemberDialog />}

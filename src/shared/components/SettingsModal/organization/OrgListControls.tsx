@@ -60,7 +60,7 @@ export function OrgListControls({
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder={searchPlaceholder}
           aria-label={searchPlaceholder}
-          className="pl-9"
+          className="ps-9"
           data-testid={searchTestId}
         />
       </div>

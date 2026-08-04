@@ -74,13 +74,19 @@ describe('useLocaleStore', () => {
     expect(useLocaleStore.getState().currencyDisplay).toBe('code');
   });
 
-  it('stores timezone preference and snaps it when the region changes', () => {
+  it('stores timezone preference independently of region changes', () => {
     useLocaleStore.getState().setTimeZone('UTC');
     expect(useLocaleStore.getState().timeZone).toBe('UTC');
     useLocaleStore.getState().setFormatLocale('ja-JP');
-    expect(useLocaleStore.getState().timeZone).toBe('Asia/Tokyo');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
     useLocaleStore.getState().setFormatLocale('en-IN');
-    expect(useLocaleStore.getState().timeZone).toBe('Asia/Kolkata');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
+  });
+
+  it('keeps device timezone (auto) when the region changes', () => {
+    useLocaleStore.setState({ timeZone: 'auto' });
+    useLocaleStore.getState().setFormatLocale('ja-JP');
+    expect(useLocaleStore.getState().timeZone).toBe('auto');
   });
 
   it('does not clobber an explicit timezone when the UI language changes', async () => {

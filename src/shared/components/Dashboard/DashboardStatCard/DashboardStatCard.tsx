@@ -1,6 +1,7 @@
 import { useAnimeCountUp } from '@/lib/animations/useAnimeCountUp.ts';
 import { iconChipClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
+import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
 import type { LucideIcon } from '@/shared/icons/index.ts';
 
 type DashboardKpiTileProps = {
@@ -19,10 +20,10 @@ export function DashboardKpiTile({
   hint,
   testId,
 }: DashboardKpiTileProps) {
+  const { formatNumber } = useLocaleFormat();
   const numericValue = typeof value === 'number' ? value : null;
   const animated = useAnimeCountUp(numericValue ?? 0, 720);
-  const displayValue =
-    numericValue !== null ? Math.round(animated).toLocaleString() : value;
+  const displayValue = numericValue !== null ? formatNumber(Math.round(animated)) : value;
 
   return (
     <article

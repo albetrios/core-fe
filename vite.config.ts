@@ -75,7 +75,6 @@ export default defineConfig(({ mode }) => {
             '**/iconset-tabler-*.js',
             '**/CommandPalette-*.js',
             '**/AppearanceDialog-*.js',
-            '**/LanguageDialog-*.js',
           ],
         },
       }),

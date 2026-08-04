@@ -104,7 +104,7 @@ export function CreateOrganizationDialog({
         <DialogTrigger asChild>
           {trigger ?? (
             <Button size="sm" data-testid="create-organization-open">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="me-2 h-4 w-4" />
               New organization
             </Button>
           )}

@@ -3,7 +3,7 @@
     "openAria": "语言和区域设置",
     "title": "语言与区域",
     "heading": "语言",
-    "description": "界面文案、日期、数字和货币均遵循这些偏好设置。",
+    "description": "界面文案跟随你选择的语言。日期、数字和货币在下方各自的卡片中设置。",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,7 +14,8 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "在此设备上强制从左到右或从右到左布局。"
   },
   "formatLocale": {
     "heading": "区域格式",
@@ -57,7 +58,8 @@
     "standard": "分组",
     "compact": "紧凑（1.2M）",
     "engineering": "工程计数法",
-    "scientific": "科学计数法"
+    "scientific": "科学计数法",
+    "description": "数字与货币输出 — 独立于界面语言。"
   },
   "currencyDisplay": {
     "heading": "货币显示",
@@ -98,6 +100,21 @@
     "refresh": "立即刷新"
   },
   "a11y": {
-    "close": "关闭"
+    "close": "关闭",
+    "loading": "加载中",
+    "loadingPage": "正在加载页面",
+    "toggleTheme": "切换主题",
+    "openAppearance": "打开外观",
+    "cookieConsent": "Cookie 同意",
+    "rowsPerPage": "每页行数",
+    "goFirstPage": "第一页",
+    "goPreviousPage": "上一页",
+    "goNextPage": "下一页",
+    "goLastPage": "最后一页",
+    "selectAll": "全选",
+    "copyAccountId": "复制账户 ID",
+    "onboardingProgress": "入门进度",
+    "themeCode": "主题代码",
+    "mode": "模式"
   }
 }

@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
+
 import { platformConfig } from '@/core/config/env.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { useConsentStore } from '@/shared/store/useConsentStore/index.ts';
 
@@ -10,6 +13,7 @@ import { useConsentStore } from '@/shared/store/useConsentStore/index.ts';
  * runs under legitimate interest and is not gated here.
  */
 export function ConsentBanner() {
+  const { t } = useTranslation(LOCALE_NS);
   const decision = useConsentStore((s) => s.analyticsConsent);
   const setConsent = useConsentStore((s) => s.setAnalyticsConsent);
 
@@ -31,7 +35,7 @@ export function ConsentBanner() {
 
   return (
     <section
-      aria-label="Cookie consent"
+      aria-label={t(LOCALE_KEYS.cookieConsent)}
       data-testid="consent-banner"
       data-slot="card"
       className="bg-card text-card-foreground fixed inset-x-0 bottom-0 z-50 border-t"

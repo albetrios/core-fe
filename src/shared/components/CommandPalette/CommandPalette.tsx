@@ -143,7 +143,7 @@ export function CommandPalette() {
           }}
         >
           <div className="flex items-center border-b px-3">
-            <Search className="text-muted-foreground mr-2 h-4 w-4 shrink-0" />
+            <Search className="text-muted-foreground me-2 h-4 w-4 shrink-0" />
             {/* eslint-disable jsx-a11y/no-autofocus -- command palette focuses input on open */}
             <Command.Input
               data-slot="input"

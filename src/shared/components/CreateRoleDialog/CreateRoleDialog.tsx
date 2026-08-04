@@ -123,7 +123,7 @@ export function CreateRoleDialog({
       {isEdit ? null : (
         <DialogTrigger asChild>
           <Button size="sm" data-testid="role-create-open">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             New role
           </Button>
         </DialogTrigger>

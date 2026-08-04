@@ -44,7 +44,7 @@ import { Zap } from '@/shared/icons/index.ts';
  */
 export function AnalyticsChart() {
   const { t } = useTranslation(DASHBOARD_NS);
-  const { formatDate } = useLocaleFormat();
+  const { formatDate, formatNumber } = useLocaleFormat();
   const [range, setRange] = useState<AnalyticsRange>('30d');
   const data = useMemo(
     () =>
@@ -139,7 +139,10 @@ export function AnalyticsChart() {
               tickMargin={8}
               minTickGap={32}
             />
-            <ChartTooltip cursor content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor
+              content={<ChartTooltipContent valueFormatter={(v) => formatNumber(v)} />}
+            />
             <Area
               dataKey="apiCalls"
               type="natural"

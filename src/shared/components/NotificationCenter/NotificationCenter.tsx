@@ -196,7 +196,7 @@ export function NotificationCenter({
                       data-slot="menu-item"
                       onClick={() => handleItemClick(item)}
                       className={cn(
-                        'flex w-full min-w-0 items-start gap-3 px-4 py-3 text-left transition-colors',
+                        'flex w-full min-w-0 items-start gap-3 px-4 py-3 text-start transition-colors',
                         'hover:bg-muted/50 focus-visible:bg-muted/50 outline-none',
                         !item.isRead && 'bg-muted/30',
                       )}

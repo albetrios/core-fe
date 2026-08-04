@@ -9,8 +9,8 @@ import {
   DASHBOARD_TEST_IDS,
 } from '@/shared/components/Dashboard/dashboard.constants.ts';
 import { resolveDashboardEvents } from '@/shared/components/Dashboard/dashboard.placeholder-data.ts';
+import { LocalizedCalendar } from '@/shared/components/LocalizedCalendar/index.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
-import { Calendar } from '@/shared/components/ui/calendar.tsx';
 import {
   Card,
   CardContent,
@@ -24,21 +24,12 @@ import { CalendarDays } from '@/shared/icons/index.ts';
 
 /**
  * Schedule widget — a real "what's coming up" surface (renewals, reviews, team
- * events) built on the shadcn `Calendar`. Event days are highlighted with
- * semantic-token modifiers and listed below, so the calendar exercises radius,
- * density, accent colour, and the selected/today states across theme axes.
+ * events) built on the locale-aware Calendar. Event days are highlighted with
+ * semantic-token modifiers and listed below.
  */
-function weekStartsOnFromPrefs(
-  firstDayOfWeek: 'saturday' | 'sunday' | 'monday',
-): 0 | 1 | 6 {
-  if (firstDayOfWeek === 'sunday') return 0;
-  if (firstDayOfWeek === 'saturday') return 6;
-  return 1;
-}
-
 export function ScheduleCalendar() {
   const { t } = useTranslation(DASHBOARD_NS);
-  const { formatDate, firstDayOfWeek } = useLocaleFormat();
+  const { formatDate } = useLocaleFormat();
   const events = useMemo(() => resolveDashboardEvents(), []);
   const [selected, setSelected] = useState<Date | undefined>(() => events[0]?.date);
 
@@ -60,8 +51,6 @@ export function ScheduleCalendar() {
               <CardTitle className="text-base">
                 {t(DASHBOARD_KEYS.schedule.heading)}
               </CardTitle>
-              {/* Seeded events — no calendar/events endpoint exists yet. Mark
-                  them on screen so they don't read as the org's real agenda. */}
               <Badge variant="outline" data-testid="dashboard-schedule-sample">
                 {t(DASHBOARD_KEYS.sampleBadge)}
               </Badge>
@@ -72,14 +61,10 @@ export function ScheduleCalendar() {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex justify-center">
-          <Calendar
+          <LocalizedCalendar
             mode="single"
             selected={selected}
             onSelect={setSelected}
-            weekStartsOn={weekStartsOnFromPrefs(firstDayOfWeek)}
-            formatters={{
-              formatMonthDropdown: (date) => formatDate(date, { month: 'short' }),
-            }}
             modifiers={{ event: eventDays }}
             modifiersClassNames={{
               event:
@@ -101,9 +86,13 @@ export function ScheduleCalendar() {
                   aria-hidden="true"
                 />
                 <span className="text-muted-foreground tabular-nums">
-                  {formatDate(event.date)}
+                  {formatDate(
+                    event.date,
+                    { year: 'numeric', month: 'short', day: 'numeric' },
+                    { civilDay: true },
+                  )}
                 </span>
-                <span className="truncate font-medium">{event.label}</span>
+                <span className="truncate font-medium">{t(event.labelKey)}</span>
               </li>
             ))}
           </ul>

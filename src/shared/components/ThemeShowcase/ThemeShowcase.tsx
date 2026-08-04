@@ -104,7 +104,7 @@ export function ThemeShowcase() {
               onClick={handleShuffle}
               data-testid="dashboard-theme-shuffle"
             >
-              <Sparkles className="mr-2 size-4" aria-hidden="true" /> Shuffle
+              <Sparkles className="me-2 size-4" aria-hidden="true" /> Shuffle
             </Button>
           )}
           <button

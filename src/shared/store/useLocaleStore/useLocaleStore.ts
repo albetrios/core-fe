@@ -21,7 +21,6 @@ import {
   DEFAULT_TIME_ZONE,
   defaultCurrencyForFormatLocale,
   defaultFormatLocaleForUi,
-  defaultTimeZoneForFormatLocale,
   type FormatLocaleTag,
   type HourCyclePreference,
   normalizeCurrencyCode,
@@ -110,7 +109,11 @@ export const useLocaleStore = create<LocaleStore>()(
       ...initialLocaleState(),
       setLocale: async (locale) => {
         const generation = ++localeApplyGeneration;
-        await applyDocumentLocale(locale, get().textDirection);
+        await applyDocumentLocale(
+          locale,
+          get().textDirection,
+          () => generation !== localeApplyGeneration,
+        );
         if (generation !== localeApplyGeneration) return;
         // Language carries regional format + currency. Timezone is left alone —
         // clobbering `auto` or a user pick with a region default caused silent
@@ -123,12 +126,11 @@ export const useLocaleStore = create<LocaleStore>()(
         });
         preloadLocaleIdle(locale);
       },
-      // Changing the region snaps money + timezone to that region too.
+      // Region snaps currency. Timezone is never clobbered — same posture as setLocale.
       setFormatLocale: (formatLocale) =>
         set({
           formatLocale,
           currencyCode: defaultCurrencyForFormatLocale(formatLocale),
-          timeZone: defaultTimeZoneForFormatLocale(formatLocale),
         }),
       setDateFormat: (dateFormat) => set({ dateFormat }),
       setHourCycle: (hourCycle) => set({ hourCycle }),

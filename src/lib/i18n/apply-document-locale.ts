@@ -18,12 +18,17 @@ export function applyDocumentDirection(dir: TextDirection): void {
  * Load bundles, switch i18next language, and reflect the locale on the document:
  * `lang` for assistive tech + `dir` so the layout mirrors (honours an optional
  * text-direction preference — Auto follows the language, LTR/RTL force it).
+ *
+ * Pass `isStale` from a generation counter so a slower earlier switch cannot
+ * overwrite document/i18next after a newer pick already won.
  */
 export async function applyDocumentLocale(
   locale: I18nLocale,
   textDirectionPreference: TextDirectionPreference = DEFAULT_TEXT_DIRECTION,
+  isStale?: () => boolean,
 ): Promise<void> {
   await ensureLocale(locale);
+  if (isStale?.()) return;
   if (typeof document !== 'undefined') {
     document.documentElement.lang = locale;
     applyDocumentDirection(resolvedTextDirection(textDirectionPreference, locale));

@@ -58,8 +58,8 @@ export function SidebarShell({
         aria-label={t(LAYOUT_KEYS.a11y.sidebarNavigation)}
         data-testid="sidebar"
         className={cn(
-          'bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-50 flex w-[17.5rem] flex-col border-r transition-transform md:relative md:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          'bg-sidebar text-sidebar-foreground fixed inset-y-0 start-0 z-50 flex w-[17.5rem] flex-col border-e transition-transform md:relative md:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
         )}
       >
         <div

@@ -52,7 +52,7 @@ export function DataTableToolbar<TData>({
               placeholder={searchPlaceholder}
               value={searchValue}
               onChange={(e) => searchColumn.setFilterValue(e.target.value)}
-              className="h-8 pl-9"
+              className="h-8 ps-9"
             />
           </div>
         )}
@@ -77,8 +77,8 @@ export function DataTableToolbar<TData>({
       {/* Column visibility toggle */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="ml-auto hidden h-8 lg:flex">
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" className="ms-auto hidden h-8 lg:flex">
+            <SlidersHorizontal className="me-2 h-4 w-4" />
             View
           </Button>
         </DropdownMenuTrigger>

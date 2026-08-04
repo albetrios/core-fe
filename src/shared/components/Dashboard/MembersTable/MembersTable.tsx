@@ -99,7 +99,7 @@ export function MembersTable() {
                 <TableHead>{t(DASHBOARD_KEYS.members.columnMember)}</TableHead>
                 <TableHead>{t(DASHBOARD_KEYS.members.columnRole)}</TableHead>
                 <TableHead>{t(DASHBOARD_KEYS.members.columnStatus)}</TableHead>
-                <TableHead className="text-right">
+                <TableHead className="text-end">
                   {t(DASHBOARD_KEYS.members.columnJoined)}
                 </TableHead>
               </TableRow>
@@ -128,7 +128,7 @@ export function MembersTable() {
                     <TableCell>
                       <Badge variant={status.variant}>{t(status.key)}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-right tabular-nums">
+                    <TableCell className="text-muted-foreground text-end tabular-nums">
                       {member.joinedAt ? formatDate(member.joinedAt) : '—'}
                     </TableCell>
                   </TableRow>

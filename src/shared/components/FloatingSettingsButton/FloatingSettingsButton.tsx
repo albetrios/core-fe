@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next';
+
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { iconOnPrimarySurface } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { floatingEdgeButtonClassName } from '@/shared/components/FloatingEdgeControls/floating-edge-button.ts';
@@ -12,13 +15,14 @@ import { useUIStore } from '@/shared/store/useUIStore/index.ts';
  * the parent stack.
  */
 export function FloatingSettingsButton() {
+  const { t } = useTranslation(LOCALE_NS);
   const setAppearanceOpen = useUIStore((s) => s.setAppearanceOpen);
 
   return (
     <button
       type="button"
       onClick={() => setAppearanceOpen(true)}
-      aria-label="Open appearance"
+      aria-label={t(LOCALE_KEYS.openAppearance)}
       title="Appearance"
       data-testid="floating-settings"
       data-slot="floating-edge"

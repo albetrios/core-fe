@@ -3,7 +3,7 @@
     "openAria": "भाषा और क्षेत्रीय सेटिंग",
     "title": "भाषा और क्षेत्र",
     "heading": "भाषा",
-    "description": "UI टेक्स्ट, तिथियाँ, संख्याएँ और मुद्रा इन प्राथमिकताओं का पालन करती हैं।",
+    "description": "UI पाठ आपके चुने हुए भाषा का अनुसरण करता है। तिथि, संख्या और मुद्रा के कार्ड नीचे हैं।",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,7 +14,8 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "इस डिवाइस पर बाएँ-से-दाएँ या दाएँ-से-बाएँ लेआउट बाध्य करें।"
   },
   "formatLocale": {
     "heading": "क्षेत्रीय प्रारूप",
@@ -57,7 +58,8 @@
     "standard": "समूहित",
     "compact": "संक्षिप्त (1.2M)",
     "engineering": "इंजीनियरिंग",
-    "scientific": "वैज्ञानिक"
+    "scientific": "वैज्ञानिक",
+    "description": "संख्या और मुद्रा आउटपुट — UI भाषा से स्वतंत्र।"
   },
   "currencyDisplay": {
     "heading": "मुद्रा प्रदर्शन",
@@ -98,6 +100,21 @@
     "refresh": "अभी रीफ़्रेश करें"
   },
   "a11y": {
-    "close": "बंद करें"
+    "close": "बंद करें",
+    "loading": "लोड हो रहा है",
+    "loadingPage": "पेज लोड हो रहा है",
+    "toggleTheme": "थीम बदलें",
+    "openAppearance": "दिखावट खोलें",
+    "cookieConsent": "कुकी सहमति",
+    "rowsPerPage": "प्रति पृष्ठ पंक्तियाँ",
+    "goFirstPage": "पहला पृष्ठ",
+    "goPreviousPage": "पिछला पृष्ठ",
+    "goNextPage": "अगला पृष्ठ",
+    "goLastPage": "अंतिम पृष्ठ",
+    "selectAll": "सभी चुनें",
+    "copyAccountId": "खाता ID कॉपी करें",
+    "onboardingProgress": "ऑनबोर्डिंग प्रगति",
+    "themeCode": "थीम कोड",
+    "mode": "मोड"
   }
 }

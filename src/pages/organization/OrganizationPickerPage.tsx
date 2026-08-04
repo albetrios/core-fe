@@ -95,7 +95,7 @@ export function OrganizationPickerPage() {
                     >
                       <Building2 className="h-5 w-5" />
                     </div>
-                    <div className="min-w-0 flex-1 text-left">
+                    <div className="min-w-0 flex-1 text-start">
                       <p className="truncate text-sm font-medium">{organization.name}</p>
                       <p className="text-muted-foreground truncate text-xs">
                         {organization.slug}
@@ -114,7 +114,7 @@ export function OrganizationPickerPage() {
           onClick={() => setCreateOpen(true)}
           data-testid="organization-picker-create"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           Create organization
         </Button>
       </div>

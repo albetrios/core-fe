@@ -3,7 +3,7 @@
     "openAria": "언어 및 지역 설정",
     "title": "언어 및 지역",
     "heading": "언어",
-    "description": "UI 문구, 날짜, 숫자, 통화가 이 설정을 따릅니다.",
+    "description": "UI 문구는 선택한 언어를 따릅니다. 날짜·숫자·통화는 아래 각 카드에서 설정합니다.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,7 +14,8 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "이 기기에서 왼쪽→오른쪽 또는 오른쪽→왼쪽 레이아웃을 강제합니다."
   },
   "formatLocale": {
     "heading": "지역 형식",
@@ -57,7 +58,8 @@
     "standard": "그룹화",
     "compact": "축약(1.2M)",
     "engineering": "공학",
-    "scientific": "과학"
+    "scientific": "과학",
+    "description": "숫자 및 통화 출력 — UI 언어와 무관."
   },
   "currencyDisplay": {
     "heading": "통화 표시",
@@ -98,6 +100,21 @@
     "refresh": "지금 새로 고침"
   },
   "a11y": {
-    "close": "닫기"
+    "close": "닫기",
+    "loading": "로딩 중",
+    "loadingPage": "페이지 로딩 중",
+    "toggleTheme": "테마 전환",
+    "openAppearance": "모양 열기",
+    "cookieConsent": "쿠키 동의",
+    "rowsPerPage": "페이지당 행 수",
+    "goFirstPage": "첫 페이지로",
+    "goPreviousPage": "이전 페이지로",
+    "goNextPage": "다음 페이지로",
+    "goLastPage": "마지막 페이지로",
+    "selectAll": "모두 선택",
+    "copyAccountId": "계정 ID 복사",
+    "onboardingProgress": "온보딩 진행률",
+    "themeCode": "테마 코드",
+    "mode": "모드"
   }
 }

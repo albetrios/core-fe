@@ -45,7 +45,7 @@ export function DashboardHero({
   const isTeam = orgType === 'TEAM';
   const personalOnly = useDeploymentMode() === 'personal-only';
   const showOrgContext = !personalOnly;
-  // Honour Appearance → regional locale + timezone (live when prefs change).
+  // Regional locale for the label; "today" is the device local calendar day.
   const todayLabel = formatDate(new Date(), {
     weekday: 'long',
     month: 'long',

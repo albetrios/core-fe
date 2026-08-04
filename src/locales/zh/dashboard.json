@@ -126,7 +126,13 @@
     "description": "续订、评审与团队活动",
     "upcoming": "即将到来",
     "legendEvent": "活动日",
-    "empty": "暂无安排"
+    "empty": "暂无安排",
+    "events": {
+      "planRenewal": "套餐续订",
+      "accessReview": "季度访问审查",
+      "teamSync": "团队同步",
+      "invoiceDue": "发票到期"
+    }
   },
   "sampleBadge": "示例数据"
 }

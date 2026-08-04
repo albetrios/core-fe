@@ -127,7 +127,13 @@
     "description": "Renouvellements, revues et événements d'équipe",
     "upcoming": "À venir",
     "legendEvent": "Jour d'événement",
-    "empty": "Rien de prévu"
+    "empty": "Rien de prévu",
+    "events": {
+      "planRenewal": "Renouvellement du forfait",
+      "accessReview": "Revue d’accès trimestrielle",
+      "teamSync": "Sync d’équipe",
+      "invoiceDue": "Facture due"
+    }
   },
   "sampleBadge": "Données d'exemple"
 }

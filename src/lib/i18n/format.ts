@@ -25,17 +25,28 @@ export type LocaleFormatInput = {
   currencyCode: CurrencyCode;
 };
 
+export type FormatDateMeta = {
+  /**
+   * Treat a `Date` input as a civil calendar day (local Y-M-D). When an
+   * explicit display TZ is set, format noon-UTC on that day so the day number
+   * cannot shift. Opt-in — absolute instants must not use this.
+   */
+  civilDay?: boolean;
+};
+
 /**
  * `Date` values from calendars/placeholders are civil days (local Y-M-D), not
- * absolute instants. When an explicit display TZ is set, format noon-UTC on
- * that civil day so the day number cannot shift across zones. ISO strings stay
- * absolute instants and honour `timeZone` as usual.
+ * absolute instants. Opt in via {@link FormatDateMeta.civilDay}.
  */
-function resolveFormatInstant(iso: string | Date, timeZone: string | undefined): Date {
+function resolveFormatInstant(
+  iso: string | Date,
+  timeZone: string | undefined,
+  civilDay: boolean,
+): Date {
   if (typeof iso === 'string') {
     return new Date(iso);
   }
-  if (!timeZone) {
+  if (!civilDay || !timeZone) {
     return iso;
   }
   return new Date(Date.UTC(iso.getFullYear(), iso.getMonth(), iso.getDate(), 12, 0, 0));
@@ -45,14 +56,16 @@ function resolveFormatInstant(iso: string | Date, timeZone: string | undefined):
  * Format a date with the user's regional locale + timezone. Optional `options`
  * replace the stored date-format style (still always honour formatLocale /
  * timeZone) — use for one-off shapes like "weekday long" hero labels.
+ * Pass `{ civilDay: true }` for calendar/placeholder day-of-month Dates.
  */
 export function formatDateValue(
   iso: string | Date,
   prefs: LocaleFormatInput,
   options?: Intl.DateTimeFormatOptions,
+  meta?: FormatDateMeta,
 ): string {
   const timeZone = resolvedTimeZone(prefs.timeZone);
-  const date = resolveFormatInstant(iso, timeZone);
+  const date = resolveFormatInstant(iso, timeZone, meta?.civilDay === true);
   if (Number.isNaN(date.getTime())) return '—';
   const locale = intlLocaleFor(prefs.formatLocale);
   const baseOptions = options ?? dateFormatOptions(prefs.dateFormat, prefs.hourCycle);

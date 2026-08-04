@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
+
 import { platformConfig } from '@/core/config/env.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { iconOnBrandSurface, iconOnSidebarSurface } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -34,6 +37,7 @@ export function ThemeModeToggle({
   menuSide?: 'top' | 'right' | 'bottom' | 'left';
   menuAlign?: 'start' | 'center' | 'end';
 }) {
+  const { t } = useTranslation(LOCALE_NS);
   const theme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
   const shuffleTheme = useThemeStore((s) => s.shuffleTheme);
@@ -65,7 +69,7 @@ export function ThemeModeToggle({
           variant="ghost"
           size="icon"
           className={surfaceTriggerClass}
-          aria-label="Toggle theme"
+          aria-label={t(LOCALE_KEYS.toggleTheme)}
           data-testid="theme-toggle"
         >
           <ThemeIcon className={cn('h-4 w-4', surfaceIconClass)} />
@@ -73,20 +77,20 @@ export function ThemeModeToggle({
       </DropdownMenuTrigger>
       <DropdownMenuContent align={menuAlign} side={menuSide}>
         <DropdownMenuItem onClick={() => setTheme('light')} data-testid="theme-light">
-          <Sun className="mr-2 h-4 w-4" /> Light
+          <Sun className="me-2 h-4 w-4" /> Light
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')} data-testid="theme-dark">
-          <Moon className="mr-2 h-4 w-4" /> Dark
+          <Moon className="me-2 h-4 w-4" /> Dark
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')} data-testid="theme-system">
-          <Monitor className="mr-2 h-4 w-4" /> System
+          <Monitor className="me-2 h-4 w-4" /> System
         </DropdownMenuItem>
         {/* DEV-only testing shortcut — canonical shuffle lives in Settings → Appearance. */}
         {platformConfig.devtools && !platformConfig.themeLock ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={shuffleTheme} data-testid="theme-shuffle-menu">
-              <Sparkles className="mr-2 h-4 w-4" /> Shuffle theme
+              <Sparkles className="me-2 h-4 w-4" /> Shuffle theme
             </DropdownMenuItem>
           </>
         ) : null}

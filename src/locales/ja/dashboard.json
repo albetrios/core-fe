@@ -127,7 +127,13 @@
     "description": "更新、レビュー、チームイベント",
     "upcoming": "今後",
     "legendEvent": "イベント日",
-    "empty": "予定なし"
+    "empty": "予定なし",
+    "events": {
+      "planRenewal": "プラン更新",
+      "accessReview": "四半期アクセスレビュー",
+      "teamSync": "チーム同期",
+      "invoiceDue": "請求書期限"
+    }
   },
   "sampleBadge": "サンプルデータ"
 }

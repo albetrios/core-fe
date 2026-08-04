@@ -57,7 +57,7 @@ export function EmailVerificationBanner() {
       <Button
         variant="outline"
         size="sm"
-        className="ml-auto h-7"
+        className="ms-auto h-7"
         disabled={sending || sent || !turnstileReady}
         isLoading={sending || !turnstileReady}
         onClick={resend}

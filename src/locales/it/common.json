@@ -3,7 +3,7 @@
     "openAria": "Lingua e impostazioni regionali",
     "title": "Lingua e regione",
     "heading": "Lingua",
-    "description": "Testi, date, numeri e valuta seguono queste preferenze.",
+    "description": "Il testo dell’interfaccia segue la lingua scelta. Date, numeri e valuta hanno le proprie card sotto.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,7 +14,8 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "Forza il layout da sinistra a destra o da destra a sinistra su questo dispositivo."
   },
   "formatLocale": {
     "heading": "Formato regionale",
@@ -57,7 +58,8 @@
     "standard": "Raggruppato",
     "compact": "Compatto (1,2 M)",
     "engineering": "Ingegneria",
-    "scientific": "Scientifico"
+    "scientific": "Scientifico",
+    "description": "Output di numeri e valuta — indipendente dalla lingua dell’interfaccia."
   },
   "currencyDisplay": {
     "heading": "Visualizzazione valuta",
@@ -98,6 +100,21 @@
     "refresh": "Aggiorna ora"
   },
   "a11y": {
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "loading": "Caricamento",
+    "loadingPage": "Caricamento pagina",
+    "toggleTheme": "Cambia tema",
+    "openAppearance": "Apri aspetto",
+    "cookieConsent": "Consenso cookie",
+    "rowsPerPage": "Righe per pagina",
+    "goFirstPage": "Vai alla prima pagina",
+    "goPreviousPage": "Vai alla pagina precedente",
+    "goNextPage": "Vai alla pagina successiva",
+    "goLastPage": "Vai all’ultima pagina",
+    "selectAll": "Seleziona tutto",
+    "copyAccountId": "Copia ID account",
+    "onboardingProgress": "Avanzamento onboarding",
+    "themeCode": "Codice tema",
+    "mode": "Modalità"
   }
 }

@@ -1,12 +1,28 @@
 {
   "a11y": {
-    "close": "Close"
+    "close": "Close",
+    "loading": "Loading",
+    "loadingPage": "Loading page",
+    "toggleTheme": "Toggle theme",
+    "openAppearance": "Open appearance",
+    "cookieConsent": "Cookie consent",
+    "rowsPerPage": "Rows per page",
+    "goFirstPage": "Go to first page",
+    "goPreviousPage": "Go to previous page",
+    "goNextPage": "Go to next page",
+    "goLastPage": "Go to last page",
+    "selectAll": "Select all",
+    "copyAccountId": "Copy account ID",
+    "onboardingProgress": "Onboarding progress",
+    "themeCode": "Theme code",
+    "mode": "Mode"
   },
   "language": {
     "openAria": "Language & regional settings",
     "title": "Language & region",
     "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "description": "UI copy follows the language you pick. Dates, numbers, and currency have their own cards below.",
+    "directionDescription": "Force left-to-right or right-to-left layout on this device.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -56,6 +72,7 @@
   },
   "numberStyle": {
     "heading": "Number format",
+    "description": "Number and currency output — independent of UI language.",
     "auto": "Locale default",
     "standard": "Grouped",
     "compact": "Compact (1.2M)",

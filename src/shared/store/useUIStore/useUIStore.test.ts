@@ -60,23 +60,4 @@ describe('useUIStore', () => {
     useUIStore.getState().setShortcutsOpen(false);
     expect(useUIStore.getState().shortcutsOpen).toBe(false);
   });
-
-  it('language dialog: defaults closed, toggles + sets', () => {
-    expect(useUIStore.getState().languageOpen).toBe(false);
-    useUIStore.getState().toggleLanguage();
-    expect(useUIStore.getState().languageOpen).toBe(true);
-    useUIStore.getState().setLanguageOpen(false);
-    expect(useUIStore.getState().languageOpen).toBe(false);
-  });
-
-  it('appearance and language side panels are mutually exclusive', () => {
-    useUIStore.getState().setAppearanceOpen(true);
-    expect(useUIStore.getState().appearanceOpen).toBe(true);
-    useUIStore.getState().setLanguageOpen(true);
-    expect(useUIStore.getState().languageOpen).toBe(true);
-    expect(useUIStore.getState().appearanceOpen).toBe(false);
-    useUIStore.getState().setAppearanceOpen(true);
-    expect(useUIStore.getState().appearanceOpen).toBe(true);
-    expect(useUIStore.getState().languageOpen).toBe(false);
-  });
 });

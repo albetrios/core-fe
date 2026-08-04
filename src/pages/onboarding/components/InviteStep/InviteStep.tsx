@@ -71,7 +71,7 @@ export function InviteStep() {
           onClick={add}
           data-testid={ONBOARDING_TEST_IDS.inviteAdd}
         >
-          <Plus className="mr-1 h-4 w-4" />
+          <Plus className="me-1 h-4 w-4" />
           {t(ONBOARDING_KEYS.invite.addButton)}
         </Button>
       </div>

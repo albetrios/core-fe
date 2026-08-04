@@ -127,6 +127,12 @@ export const DASHBOARD_KEYS = {
     upcoming: 'schedule.upcoming',
     legendEvent: 'schedule.legendEvent',
     empty: 'schedule.empty',
+    events: {
+      planRenewal: 'schedule.events.planRenewal',
+      accessReview: 'schedule.events.accessReview',
+      teamSync: 'schedule.events.teamSync',
+      invoiceDue: 'schedule.events.invoiceDue',
+    },
   },
 } as const;
 

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import {
   formatCurrencyValue,
+  type FormatDateMeta,
   formatDateValue,
   formatNumberValue,
   formatRelativeTimeValue,
@@ -29,7 +30,11 @@ export function useLocaleFormat(): {
   direction: TextDirection;
   firstDayOfWeek: FirstDayOfWeek;
   measurementSystem: MeasurementSystem;
-  formatDate: (iso: string | Date, options?: Intl.DateTimeFormatOptions) => string;
+  formatDate: (
+    iso: string | Date,
+    options?: Intl.DateTimeFormatOptions,
+    meta?: FormatDateMeta,
+  ) => string;
   formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
   formatCurrency: (cents: number, currency?: string) => string;
   formatRelativeTime: (iso: string | Date, base?: Date) => string;
@@ -68,8 +73,8 @@ export function useLocaleFormat(): {
   );
 
   const formatDate = useCallback(
-    (iso: string | Date, options?: Intl.DateTimeFormatOptions) =>
-      formatDateValue(iso, prefs, options),
+    (iso: string | Date, options?: Intl.DateTimeFormatOptions, meta?: FormatDateMeta) =>
+      formatDateValue(iso, prefs, options, meta),
     [prefs],
   );
   const formatNumber = useCallback(

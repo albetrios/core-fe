@@ -3,7 +3,7 @@
     "openAria": "اللغة والإعدادات الإقليمية",
     "title": "اللغة والمنطقة",
     "heading": "اللغة",
-    "description": "تتبع النصوص والتواريخ والأرقام والعملة هذه التفضيلات.",
+    "description": "يتبع نص الواجهة اللغة التي تختارها. للتواريخ والأرقام والعملة بطاقات خاصة أدناه.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,7 +14,8 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "افرض تخطيطًا من اليسار لليمين أو من اليمين لليسار على هذا الجهاز."
   },
   "formatLocale": {
     "heading": "منطقة التنسيق",
@@ -57,7 +58,8 @@
     "standard": "مُجمَّع",
     "compact": "مضغوط (1.2M)",
     "engineering": "هندسي",
-    "scientific": "علمي"
+    "scientific": "علمي",
+    "description": "إخراج الأرقام والعملة — مستقل عن لغة الواجهة."
   },
   "currencyDisplay": {
     "heading": "عرض العملة",
@@ -98,6 +100,21 @@
     "refresh": "التحديث الآن"
   },
   "a11y": {
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "loading": "جارٍ التحميل",
+    "loadingPage": "جارٍ تحميل الصفحة",
+    "toggleTheme": "تبديل السمة",
+    "openAppearance": "فتح المظهر",
+    "cookieConsent": "موافقة ملفات تعريف الارتباط",
+    "rowsPerPage": "صفوف لكل صفحة",
+    "goFirstPage": "الذهاب إلى الصفحة الأولى",
+    "goPreviousPage": "الذهاب إلى الصفحة السابقة",
+    "goNextPage": "الذهاب إلى الصفحة التالية",
+    "goLastPage": "الذهاب إلى الصفحة الأخيرة",
+    "selectAll": "تحديد الكل",
+    "copyAccountId": "نسخ معرّف الحساب",
+    "onboardingProgress": "تقدّم الإعداد",
+    "themeCode": "رمز السمة",
+    "mode": "الوضع"
   }
 }

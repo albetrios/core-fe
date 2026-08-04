@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
 import {
-  appearanceChoiceClassName,
   appearanceRowTileClassName,
   appearanceTileActiveClassName,
   appearanceTileIdleClassName,
@@ -17,6 +16,7 @@ import {
 } from '@/lib/i18n/locale.constants.ts';
 import { I18N_LOCALES, LOCALE_NATIVE_LABELS } from '@/lib/i18n/locales.ts';
 import { cn } from '@/lib/utils.ts';
+import { OptionPills } from '@/shared/components/OptionPills/index.ts';
 import {
   Card,
   CardContent,
@@ -27,56 +27,10 @@ import {
 import { Check } from '@/shared/icons/index.ts';
 import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 
-function OptionPills<T extends string>({
-  ariaLabel,
-  value,
-  options,
-  labelFor,
-  onPick,
-  testPrefix,
-}: {
-  ariaLabel: string;
-  value: T;
-  options: readonly T[];
-  labelFor: (id: T) => string;
-  onPick: (id: T) => void;
-  testPrefix: string;
-}) {
-  return (
-    <fieldset className="m-0 min-w-0 border-0 p-0">
-      <legend className="sr-only">{ariaLabel}</legend>
-      <div className="flex flex-wrap gap-2">
-        {options.map((id) => {
-          const active = value === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              data-slot="button"
-              aria-pressed={active}
-              onClick={() => onPick(id)}
-              data-testid={`${testPrefix}-${id}`}
-              className={cn(
-                appearanceChoiceClassName,
-                'min-w-0 flex-1 text-center text-xs sm:flex-none',
-                active
-                  ? 'border-primary bg-primary/10 text-foreground'
-                  : 'border-border text-muted-foreground hover:border-primary/50',
-              )}
-            >
-              {labelFor(id)}
-            </button>
-          );
-        })}
-      </div>
-    </fieldset>
-  );
-}
-
 /**
  * UI language + text-direction controls — persisted via {@link useLocaleStore}.
- * Surfaced in Appearance (and Language & region). Language tiles hide on
- * single-locale builds; direction pills always show so RTL can be forced live.
+ * Surfaced in Appearance. Language tiles hide on single-locale builds;
+ * direction pills always show so RTL can be forced live.
  */
 export function LanguagePrefsCard() {
   const { t } = useTranslation(LOCALE_NS);
@@ -94,7 +48,11 @@ export function LanguagePrefsCard() {
             ? t(LOCALE_KEYS.languageHeading)
             : t(LOCALE_KEYS.textDirectionHeading)}
         </CardTitle>
-        <CardDescription>{t(LOCALE_KEYS.languageDescription)}</CardDescription>
+        <CardDescription>
+          {multiLocale
+            ? t(LOCALE_KEYS.languageDescription)
+            : t(LOCALE_KEYS.languageDirectionDescription)}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         {multiLocale ? (

@@ -68,7 +68,7 @@ export function AccountSessionsPanel() {
                     onClick={() => setToRevoke(session)}
                     data-testid={`session-revoke-${session.id}`}
                   >
-                    <LogOut className="mr-1.5 size-4" aria-hidden />
+                    <LogOut className="me-1.5 size-4" aria-hidden />
                     Sign out
                   </Button>
                 )}

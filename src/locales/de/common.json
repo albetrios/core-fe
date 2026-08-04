@@ -3,7 +3,7 @@
     "openAria": "Sprache und regionale Einstellungen",
     "title": "Sprache und Region",
     "heading": "Sprache",
-    "description": "Texte, Daten, Zahlen und Währung folgen diesen Einstellungen.",
+    "description": "UI-Texte folgen der gewählten Sprache. Datum, Zahlen und Währung haben eigene Karten darunter.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,7 +14,8 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "Erzwingt Links-nach-rechts- oder Rechts-nach-links-Layout auf diesem Gerät."
   },
   "formatLocale": {
     "heading": "Regionales Format",
@@ -57,7 +58,8 @@
     "standard": "Gruppiert",
     "compact": "Kompakt (1,2 Mio.)",
     "engineering": "Technisch",
-    "scientific": "Wissenschaftlich"
+    "scientific": "Wissenschaftlich",
+    "description": "Zahlen- und Währungsausgabe — unabhängig von der UI-Sprache."
   },
   "currencyDisplay": {
     "heading": "Währungsanzeige",
@@ -98,6 +100,21 @@
     "refresh": "Jetzt aktualisieren"
   },
   "a11y": {
-    "close": "Schließen"
+    "close": "Schließen",
+    "loading": "Wird geladen",
+    "loadingPage": "Seite wird geladen",
+    "toggleTheme": "Design umschalten",
+    "openAppearance": "Darstellung öffnen",
+    "cookieConsent": "Cookie-Einwilligung",
+    "rowsPerPage": "Zeilen pro Seite",
+    "goFirstPage": "Zur ersten Seite",
+    "goPreviousPage": "Zur vorherigen Seite",
+    "goNextPage": "Zur nächsten Seite",
+    "goLastPage": "Zur letzten Seite",
+    "selectAll": "Alle auswählen",
+    "copyAccountId": "Konto-ID kopieren",
+    "onboardingProgress": "Onboarding-Fortschritt",
+    "themeCode": "Theme-Code",
+    "mode": "Modus"
   }
 }

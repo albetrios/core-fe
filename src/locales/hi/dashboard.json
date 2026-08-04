@@ -127,7 +127,13 @@
     "description": "नवीनीकरण, समीक्षाएँ और टीम इवेंट",
     "upcoming": "आगामी",
     "legendEvent": "इवेंट दिन",
-    "empty": "कुछ निर्धारित नहीं"
+    "empty": "कुछ निर्धारित नहीं",
+    "events": {
+      "planRenewal": "प्लान नवीनीकरण",
+      "accessReview": "त्रैमासिक पहुँच समीक्षा",
+      "teamSync": "टीम सिंक",
+      "invoiceDue": "इनवॉइस देय"
+    }
   },
   "sampleBadge": "नमूना डेटा"
 }

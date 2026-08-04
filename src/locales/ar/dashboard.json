@@ -127,7 +127,13 @@
     "description": "التجديدات والمراجعات وفعاليات الفريق",
     "upcoming": "القادمة",
     "legendEvent": "يوم فعالية",
-    "empty": "لا شيء مجدول"
+    "empty": "لا شيء مجدول",
+    "events": {
+      "planRenewal": "تجديد الخطة",
+      "accessReview": "مراجعة وصول ربع سنوية",
+      "teamSync": "مزامنة الفريق",
+      "invoiceDue": "فاتورة مستحقة"
+    }
   },
   "sampleBadge": "بيانات نموذجية"
 }

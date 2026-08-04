@@ -201,7 +201,7 @@ function WebhooksSection() {
             onClick={() => setAddOpen(true)}
             data-testid="webhook-add"
           >
-            <Plus className="mr-1.5 size-4" />
+            <Plus className="me-1.5 size-4" />
             Add webhook
           </Button>
         ) : null}

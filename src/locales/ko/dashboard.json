@@ -127,7 +127,13 @@
     "description": "갱신, 검토, 팀 이벤트",
     "upcoming": "예정",
     "legendEvent": "이벤트 날",
-    "empty": "예정된 항목 없음"
+    "empty": "예정된 항목 없음",
+    "events": {
+      "planRenewal": "플랜 갱신",
+      "accessReview": "분기 액세스 검토",
+      "teamSync": "팀 동기화",
+      "invoiceDue": "청구서 기한"
+    }
   },
   "sampleBadge": "샘플 데이터"
 }

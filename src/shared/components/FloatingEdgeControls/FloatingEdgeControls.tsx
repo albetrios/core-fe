@@ -3,15 +3,13 @@ import { FloatingSettingsButton } from '@/shared/components/FloatingSettingsButt
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
 /**
- * Inline-end Appearance handle (mirrors under RTL). Language / region / timezone
- * live inside the Appearance panel — no separate language handle. Hidden while
- * Appearance (or the Language dialog, if opened elsewhere) is open.
+ * Inline-end Appearance handle (mirrors under RTL). Language / region / timezone /
+ * money prefs live inside the Appearance panel. Hidden while Appearance is open.
  */
 export function FloatingEdgeControls() {
   const appearanceOpen = useUIStore((s) => s.appearanceOpen);
-  const languageOpen = useUIStore((s) => s.languageOpen);
 
-  if (appearanceOpen || languageOpen) return null;
+  if (appearanceOpen) return null;
   if (platformConfig.themeLock) return null;
 
   return (

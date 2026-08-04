@@ -50,7 +50,7 @@ describe('AppearancePanel', () => {
     expect(screen.getByTestId('toast-variant-swatches')).toBeInTheDocument();
   }, 15_000);
 
-  it('renders language, text direction, and date & time controls', () => {
+  it('renders language, text direction, date & time, and money controls', () => {
     render(<AppearancePanel />);
     expect(screen.getByTestId('language-prefs')).toBeInTheDocument();
     expect(screen.getByTestId('language-en')).toBeInTheDocument();
@@ -59,6 +59,9 @@ describe('AppearancePanel', () => {
     expect(screen.getByTestId('date-time-prefs')).toBeInTheDocument();
     expect(screen.getByTestId('format-locale-select')).toBeInTheDocument();
     expect(screen.getByTestId('time-zone-select')).toBeInTheDocument();
+    expect(screen.getByTestId('money-prefs')).toBeInTheDocument();
+    expect(screen.getByTestId('number-style-compact')).toBeInTheDocument();
+    expect(screen.getByTestId('currency-code-select')).toBeInTheDocument();
   });
 
   it('notification shuffle rolls the toast variant', async () => {

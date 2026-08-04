@@ -127,7 +127,13 @@
     "description": "Rinnovi, revisioni ed eventi di team",
     "upcoming": "In arrivo",
     "legendEvent": "Giorno evento",
-    "empty": "Niente in programma"
+    "empty": "Niente in programma",
+    "events": {
+      "planRenewal": "Rinnovo piano",
+      "accessReview": "Revisione accessi trimestrale",
+      "teamSync": "Sync del team",
+      "invoiceDue": "Fattura in scadenza"
+    }
   },
   "sampleBadge": "Dati di esempio"
 }

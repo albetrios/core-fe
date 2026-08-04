@@ -87,6 +87,8 @@
     "validate:public": "./tooling/validate/public-assets.sh",
     "validate:structure": "./tooling/validate/route-islands.sh",
     "validate:tokens": "./tooling/validate/design-tokens.sh",
+    "validate:logical": "./tooling/validate/logical-css.sh",
+    "validate:no-bare-intl": "node tooling/validate/no-bare-intl.mjs",
     "validate:theme-axis": "./tooling/validate/theme-axis.sh",
     "validate:theme-catalog": "node --import tsx tooling/validate/theme-catalog.mjs",
     "validate:testids": "node tooling/validate/test-ids.mjs",

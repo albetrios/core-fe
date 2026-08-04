@@ -32,12 +32,12 @@ export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
     <aside
       aria-label={t(SETTINGS_KEYS.nav.ariaSections)}
       data-testid="settings-nav"
-      className="bg-muted/30 hidden h-full flex-col border-r sm:flex"
+      className="bg-muted/30 hidden h-full flex-col border-e sm:flex"
     >
       <div className="p-3">
         <div className="relative">
           <Search
-            className="text-muted-foreground absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+            className="text-muted-foreground absolute start-2.5 top-1/2 size-4 -translate-y-1/2"
             aria-hidden
           />
           <Input
@@ -45,7 +45,7 @@ export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
             placeholder={t(SETTINGS_KEYS.nav.searchPlaceholder)}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="bg-background h-9 pl-8"
+            className="bg-background h-9 ps-8"
             aria-label={t(SETTINGS_KEYS.nav.searchAria)}
             data-testid="settings-search"
           />
@@ -82,7 +82,7 @@ export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
                       aria-current={isActive ? 'page' : undefined}
                       data-testid={`settings-nav-${item.scope}-${item.section}`}
                       className={cn(
-                        'flex w-full items-center gap-2 px-2 py-2 text-left text-sm transition-colors',
+                        'flex w-full items-center gap-2 px-2 py-2 text-start text-sm transition-colors',
                         isActive
                           ? 'bg-accent text-accent-foreground font-medium'
                           : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',

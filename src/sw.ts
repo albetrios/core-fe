@@ -8,7 +8,7 @@ declare const self: ServiceWorkerGlobalScope;
 
 /** Heavy deferred chunks — precache shell only; fetch at runtime when needed. */
 const DEFERRED_PRECACH_PATTERN =
-  /\/(sentry|posthog|SettingsModal|dashboard\.route|iconset-phosphor|iconset-tabler|CommandPalette|AppearanceDialog|LanguageDialog)-/;
+  /\/(sentry|posthog|SettingsModal|dashboard\.route|iconset-phosphor|iconset-tabler|CommandPalette|AppearanceDialog)-/;
 
 function shouldPrecache(entry: string | { url: string }): boolean {
   const url = typeof entry === 'string' ? entry : entry.url;
