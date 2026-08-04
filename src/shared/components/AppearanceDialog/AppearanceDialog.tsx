@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -19,6 +21,7 @@ import { AppearancePanel } from './AppearancePanel.tsx';
  * the close button, or a click outside dismisses it.
  */
 export function AppearanceDialog() {
+  const { t } = useTranslation(LOCALE_NS);
   const open = useUIStore((s) => s.appearanceOpen);
   const setOpen = useUIStore((s) => s.setAppearanceOpen);
   const shuffleTheme = useThemeStore((s) => s.shuffleTheme);
@@ -92,7 +95,7 @@ export function AppearanceDialog() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Close"
+            aria-label={t(LOCALE_KEYS.closeAria)}
             data-testid="appearance-close"
             data-slot="button"
             className={cn(closeControlClassName, '-mr-1')}

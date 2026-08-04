@@ -96,5 +96,8 @@
     "title": "Atualização disponível",
     "description": "Uma nova versão do aplicativo está pronta.",
     "refresh": "Atualizar agora"
+  },
+  "a11y": {
+    "close": "Fechar"
   }
 }

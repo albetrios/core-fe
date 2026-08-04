@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
@@ -8,6 +8,15 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 import { AuthLayout } from './AuthLayout.tsx';
 
 describe('AuthLayout', () => {
+  // Preload lazy shells so Suspense doesn't flake under full-suite contention.
+  beforeAll(async () => {
+    await Promise.all([
+      import('./variants/AuthLayoutSplit.tsx'),
+      import('./variants/AuthLayoutSpotlight.tsx'),
+      import('./variants/AuthLayoutMinimal.tsx'),
+    ]);
+  });
+
   beforeEach(() => {
     // Default to the split variant; the shuffle-driven previews are opt-in below.
     useThemeStore.setState({ authVariant: 0 });

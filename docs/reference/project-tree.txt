@@ -266,6 +266,7 @@ core-fe/
 │   ├── _headers
 │   ├── app-icon.svg
 │   ├── config.js
+│   ├── locale-init.js
 │   ├── manifest.webmanifest
 │   ├── offline.html
 │   ├── pwa-192x192.png

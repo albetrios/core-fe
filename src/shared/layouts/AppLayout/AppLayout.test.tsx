@@ -15,6 +15,16 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 import { Component as AppLayout } from './AppLayout.tsx';
 
 describe('AppLayout', () => {
+  // Preload lazy shells so Suspense doesn't flake under full-suite contention.
+  beforeAll(async () => {
+    await Promise.all([
+      import('./variants/AppLayoutSidebar.tsx'),
+      import('./variants/AppLayoutTopNav.tsx'),
+      import('./variants/AppLayoutRail.tsx'),
+      import('./variants/AppLayoutFocus.tsx'),
+    ]);
+  });
+
   beforeEach(() => {
     useThemeStore.setState({ appVariant: 0 });
     useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });

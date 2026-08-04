@@ -54,10 +54,22 @@ export function formatDateValue(
   const timeZone = resolvedTimeZone(prefs.timeZone);
   const date = resolveFormatInstant(iso, timeZone);
   if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat(intlLocaleFor(prefs.formatLocale), {
-    ...(options ?? dateFormatOptions(prefs.dateFormat, prefs.hourCycle)),
-    ...(timeZone ? { timeZone } : {}),
-  }).format(date);
+  const locale = intlLocaleFor(prefs.formatLocale);
+  const baseOptions = options ?? dateFormatOptions(prefs.dateFormat, prefs.hourCycle);
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      ...baseOptions,
+      ...(timeZone ? { timeZone } : {}),
+    }).format(date);
+  } catch {
+    // Same posture as formatCurrencyValue: never let a bad locale/TZ crash UI.
+    // Retry without timeZone (covers migrated-away IANA ids still in storage).
+    try {
+      return new Intl.DateTimeFormat(locale, baseOptions).format(date);
+    } catch {
+      return '—';
+    }
+  }
 }
 
 export function formatNumberValue(

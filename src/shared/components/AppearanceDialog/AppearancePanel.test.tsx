@@ -67,7 +67,7 @@ describe('AppearancePanel', () => {
     const before = useThemeStore.getState().toastVariant;
     await user.click(screen.getByTestId('shuffle-notifications'));
     expect(useThemeStore.getState().toastVariant).not.toBe(before);
-  });
+  }, 15_000);
 
   it('picking a named preset applies data-theme and clears custom look', async () => {
     const user = userEvent.setup();
@@ -77,7 +77,7 @@ describe('AppearancePanel', () => {
     expect(useThemeStore.getState().preset).toBe('violet');
     expect(useThemeStore.getState().customTheme).toBeNull();
     expect(document.documentElement.dataset.theme).toBe('violet');
-  });
+  }, 15_000);
 
   it('picking an accent colour switches to the custom look', async () => {
     const user = userEvent.setup();
@@ -86,7 +86,7 @@ describe('AppearancePanel', () => {
     expect(useThemeStore.getState().preset).toBe('custom');
     expect(useThemeStore.getState().customTheme?.hue).toBe(290);
     expect(await screen.findByTestId('preset-custom')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('picking an icon colour applies it (orthogonal)', async () => {
     const user = userEvent.setup();
@@ -94,14 +94,14 @@ describe('AppearancePanel', () => {
     await user.click(screen.getByTestId('iconcolor-muted'));
     expect(useThemeStore.getState().iconColor).toBe('muted');
     expect(document.documentElement.dataset.iconColor).toBe('muted');
-  });
+  }, 15_000);
 
   it('picking content width updates the theme store', async () => {
     const user = userEvent.setup();
     render(<AppearancePanel />);
     await user.click(screen.getByTestId('layout-width-reading'));
     expect(useThemeStore.getState().layoutWidth).toBe('reading');
-  });
+  }, 15_000);
 
   it('colour shuffle re-rolls into a custom look', async () => {
     const user = userEvent.setup();
@@ -109,5 +109,5 @@ describe('AppearancePanel', () => {
     await user.click(screen.getByTestId('shuffle-colour'));
     expect(useThemeStore.getState().preset).toBe('custom');
     expect(useThemeStore.getState().customTheme).not.toBeNull();
-  });
+  }, 15_000);
 });

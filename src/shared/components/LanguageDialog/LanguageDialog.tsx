@@ -68,13 +68,13 @@ export function LanguageDialog() {
             {t(LOCALE_KEYS.title)}
           </h2>
           <p className="text-muted-foreground text-xs">
-            Saved on this device — changes apply live.
+            {t(LOCALE_KEYS.languageDescription)}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          aria-label="Close"
+          aria-label={t(LOCALE_KEYS.closeAria)}
           data-testid="language-close"
           data-slot="button"
           className={cn(closeControlClassName, '-mr-1')}

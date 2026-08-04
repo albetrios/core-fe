@@ -26,6 +26,7 @@ export const LOCALE_NS = I18N_NAMESPACES.common;
 export const LOCALE_KEYS = {
   openAria: 'language.openAria',
   title: 'language.title',
+  closeAria: 'a11y.close',
   en: 'language.en',
   es: 'language.es',
   zh: 'language.zh',

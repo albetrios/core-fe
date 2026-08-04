@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
@@ -53,6 +53,8 @@
     <script src="/config.js" defer></script>
     <!-- Prevent theme FOUC: apply dark class + saved accent/radius before React hydrates -->
     <script src="/theme-init.js"></script>
+    <!-- Prevent locale/dir FOUC: apply lang + dir from locale-preference before paint -->
+    <script src="/locale-init.js"></script>
     <!-- Branded boot loader: mirrors the React FullPageSpinner so the HTML→React
          handoff is ONE continuous screen. theme-init.js sets `.dark` first, so the
          bg + colours are theme-correct (no white flash). A breathing pulse (not a

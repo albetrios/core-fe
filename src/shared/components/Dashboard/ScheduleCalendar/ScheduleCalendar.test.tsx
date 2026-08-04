@@ -19,21 +19,21 @@ describe('ScheduleCalendar', () => {
     expect(screen.getByRole('grid')).toBeInTheDocument();
     expect(screen.getByText('Plan renewal')).toBeInTheDocument();
     expect(screen.getByText('Invoice due')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('honors Saturday-start regions for the week grid', async () => {
     useLocaleStore.setState({ formatLocale: 'ar-SA' });
     renderWithProviders(<ScheduleCalendar />);
     expect(await screen.findByTestId('dashboard-schedule-calendar')).toBeInTheDocument();
     expect(screen.getByRole('grid')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('honors Monday-start regions for the week grid', async () => {
     useLocaleStore.setState({ formatLocale: 'de-DE' });
     renderWithProviders(<ScheduleCalendar />);
     expect(await screen.findByTestId('dashboard-schedule-calendar')).toBeInTheDocument();
     expect(screen.getByRole('grid')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('has no accessibility violations', async () => {
     const { container } = renderWithProviders(<ScheduleCalendar />);

@@ -1,4 +1,5 @@
 import { useParams } from '@tanstack/react-router';
+import { lazy, Suspense } from 'react';
 
 import { CommandPaletteLazy } from '@/shared/components/CommandPalette/index.ts';
 import { KeyboardShortcutsLazy } from '@/shared/components/KeyboardShortcutsDialog/KeyboardShortcutsLazy.tsx';
@@ -12,13 +13,22 @@ import {
   type AppShellVariant,
   resolveAppShellVariant,
 } from '@/shared/layouts/AppLayout/resolve-app-shell.ts';
-import { FocusShell } from '@/shared/layouts/AppLayout/variants/AppLayoutFocus.tsx';
-import { RailShell } from '@/shared/layouts/AppLayout/variants/AppLayoutRail.tsx';
-import { SidebarShell } from '@/shared/layouts/AppLayout/variants/AppLayoutSidebar.tsx';
-import { TopNavShell } from '@/shared/layouts/AppLayout/variants/AppLayoutTopNav.tsx';
+import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-/** Eager shells — lazy+Suspense flaked under the full Vitest suite (stuck fallback). */
+const SidebarShell = lazy(() =>
+  import('./variants/AppLayoutSidebar.tsx').then((m) => ({ default: m.SidebarShell })),
+);
+const TopNavShell = lazy(() =>
+  import('./variants/AppLayoutTopNav.tsx').then((m) => ({ default: m.TopNavShell })),
+);
+const RailShell = lazy(() =>
+  import('./variants/AppLayoutRail.tsx').then((m) => ({ default: m.RailShell })),
+);
+const FocusShell = lazy(() =>
+  import('./variants/AppLayoutFocus.tsx').then((m) => ({ default: m.FocusShell })),
+);
+
 const APP_SHELLS = [SidebarShell, TopNavShell, RailShell, FocusShell] as const;
 
 function AppLayoutShell({
@@ -32,7 +42,11 @@ function AppLayoutShell({
 }) {
   const props = { navItems, organizationSlug };
   const Shell = APP_SHELLS[variant] ?? FocusShell;
-  return <Shell {...props} />;
+  return (
+    <Suspense fallback={<LayoutVariantFallback />}>
+      <Shell {...props} />
+    </Suspense>
+  );
 }
 
 /**

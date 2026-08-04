@@ -91,6 +91,26 @@ describe('formatDateValue', () => {
     expect(label).toMatch(/\d/);
     expect(label.length).toBeGreaterThan(5);
   });
+
+  it('does not throw on an unsupported timeZone (retries without it)', () => {
+    // Preferenced/migrated-away IANA ids must not crash date cells.
+    expect(() =>
+      formatDateValue(
+        sample,
+        prefs({
+          timeZone: 'Not/A_Real_Zone' as LocaleFormatInput['timeZone'],
+        }),
+      ),
+    ).not.toThrow();
+    expect(
+      formatDateValue(
+        sample,
+        prefs({
+          timeZone: 'Not/A_Real_Zone' as LocaleFormatInput['timeZone'],
+        }),
+      ),
+    ).toMatch(/\d/);
+  });
 });
 
 describe('formatCurrencyValue', () => {

@@ -96,5 +96,8 @@
     "title": "Aggiornamento disponibile",
     "description": "Una nuova versione dell’app è pronta.",
     "refresh": "Aggiorna ora"
+  },
+  "a11y": {
+    "close": "Chiudi"
   }
 }

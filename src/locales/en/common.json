@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "close": "Close"
+  },
   "language": {
     "openAria": "Language & regional settings",
     "title": "Language & region",
