@@ -1,18 +1,21 @@
 import { lazy, Suspense } from 'react';
 
+import { onceAsync } from '@/lib/lazy-module.ts';
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-/** Shared thenables so test preloads and React.lazy hit the same module promise. */
-const centeredImport = import('./variants/PublicLayoutCentered.tsx');
-const cardImport = import('./variants/PublicLayoutCard.tsx');
-const brandImport = import('./variants/PublicLayoutBrand.tsx');
+// Each variant is fetched on first render (or preload) and shared from then on.
+// A module-scope `import()` would instead fetch all three the moment this
+// module evaluates, which defeats the split.
+const loadCentered = onceAsync(() => import('./variants/PublicLayoutCentered.tsx'));
+const loadCard = onceAsync(() => import('./variants/PublicLayoutCard.tsx'));
+const loadBrand = onceAsync(() => import('./variants/PublicLayoutBrand.tsx'));
 
 const CenteredPublic = lazy(() =>
-  centeredImport.then((m) => ({ default: m.CenteredPublic })),
+  loadCentered().then((m) => ({ default: m.CenteredPublic })),
 );
-const CardPublic = lazy(() => cardImport.then((m) => ({ default: m.CardPublic })));
-const BrandPublic = lazy(() => brandImport.then((m) => ({ default: m.BrandPublic })));
+const CardPublic = lazy(() => loadCard().then((m) => ({ default: m.CardPublic })));
+const BrandPublic = lazy(() => loadBrand().then((m) => ({ default: m.BrandPublic })));
 
 const PUBLIC_SHELLS = [CenteredPublic, CardPublic, BrandPublic] as const;
 
@@ -31,3 +34,8 @@ export function PublicLayout() {
     </Suspense>
   );
 }
+
+/** Warms every variant chunk so tests can render any shell without a Suspense race. */
+// eslint-disable-next-line react-refresh/only-export-components -- test-facing preload hook
+export const preloadPublicLayoutVariants = () =>
+  Promise.all([loadCentered(), loadCard(), loadBrand()]);

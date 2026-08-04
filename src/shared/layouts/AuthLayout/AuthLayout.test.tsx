@@ -5,16 +5,12 @@ import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
-import { AuthLayout } from './AuthLayout.tsx';
+import { AuthLayout, preloadAuthLayoutVariants } from './AuthLayout.tsx';
 
 describe('AuthLayout', () => {
   // Preload lazy shells so Suspense doesn't flake under full-suite contention.
   beforeAll(async () => {
-    await Promise.all([
-      import('./variants/AuthLayoutSplit.tsx'),
-      import('./variants/AuthLayoutSpotlight.tsx'),
-      import('./variants/AuthLayoutMinimal.tsx'),
-    ]);
+    await preloadAuthLayoutVariants();
   });
 
   beforeEach(() => {

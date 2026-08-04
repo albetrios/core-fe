@@ -10,7 +10,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-import { PublicLayout } from './PublicLayout.tsx';
+import { preloadPublicLayoutVariants, PublicLayout } from './PublicLayout.tsx';
 
 function renderInRouter() {
   const rootRoute = createRootRoute({ component: PublicLayout });
@@ -29,11 +29,7 @@ function renderInRouter() {
 describe('PublicLayout', () => {
   // Preload lazy shells so Suspense doesn't flake under full-suite contention.
   beforeAll(async () => {
-    await Promise.all([
-      import('./variants/PublicLayoutCentered.tsx'),
-      import('./variants/PublicLayoutCard.tsx'),
-      import('./variants/PublicLayoutBrand.tsx'),
-    ]);
+    await preloadPublicLayoutVariants();
   }, 30_000);
 
   beforeEach(() => {
