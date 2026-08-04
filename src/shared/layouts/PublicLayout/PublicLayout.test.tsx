@@ -46,7 +46,7 @@ describe('PublicLayout', () => {
       await screen.findByTestId('public-layout', {}, { timeout: 15_000 }),
     ).toBeInTheDocument();
     expect(screen.getByTestId('child')).toHaveTextContent('child content');
-  }, 20_000);
+  });
 
   it('renders the card preview variant (1)', async () => {
     useThemeStore.setState({ publicVariant: 1 });
@@ -55,5 +55,5 @@ describe('PublicLayout', () => {
       await screen.findByTestId('public-layout', {}, { timeout: 15_000 }),
     ).toBeInTheDocument();
     expect(screen.getByTestId('child')).toHaveTextContent('child content');
-  }, 20_000);
+  });
 });

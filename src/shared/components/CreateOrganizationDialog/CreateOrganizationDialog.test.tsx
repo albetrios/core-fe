@@ -61,5 +61,5 @@ describe('CreateOrganizationDialog', () => {
         }),
       );
     });
-  }, 15_000);
+  });
 });

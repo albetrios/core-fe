@@ -33,5 +33,5 @@ describe('icon barrel', () => {
       },
       { timeout: 12_000 },
     );
-  }, 15_000);
+  });
 });

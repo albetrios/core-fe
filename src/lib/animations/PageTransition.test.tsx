@@ -19,5 +19,5 @@ describe('PageTransition', () => {
     expect(wrapper).toHaveClass('text-foreground');
     expect(wrapper).toHaveClass('animate-fade-in-up');
     expect(wrapper).not.toHaveClass('opacity-0');
-  }, 15_000);
+  });
 });

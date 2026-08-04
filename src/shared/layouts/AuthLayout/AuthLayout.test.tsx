@@ -35,7 +35,7 @@ describe('AuthLayout', () => {
     ).toBeInTheDocument();
     expect(await findByTestId('auth-form-container')).toBeInTheDocument();
     expect(getByText('Form content')).toBeInTheDocument();
-  }, 20_000);
+  });
 
   it('shows the brand value props', async () => {
     const { findByText } = renderWithProviders(

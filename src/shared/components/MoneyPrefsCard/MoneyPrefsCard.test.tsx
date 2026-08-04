@@ -53,7 +53,7 @@ describe('MoneyPrefsCard', () => {
   it('has no accessibility violations', async () => {
     const { container } = render(<MoneyPrefsCard />);
     expect(await axe(container)).toHaveNoViolations();
-  }, 20_000);
+  });
 
   it('updates number style and currency display', async () => {
     const user = userEvent.setup();

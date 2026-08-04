@@ -46,5 +46,5 @@ describe('DateTimePrefsCard', () => {
     await user.click(screen.getByTestId('time-zone-select'));
     await user.click(await screen.findByTestId('time-zone-UTC'));
     expect(useLocaleStore.getState().timeZone).toBe('UTC');
-  }, 15_000);
+  });
 });
