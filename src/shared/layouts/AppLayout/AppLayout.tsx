@@ -16,18 +16,16 @@ import {
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-const SidebarShell = lazy(() =>
-  import('./variants/AppLayoutSidebar.tsx').then((m) => ({ default: m.SidebarShell })),
-);
-const TopNavShell = lazy(() =>
-  import('./variants/AppLayoutTopNav.tsx').then((m) => ({ default: m.TopNavShell })),
-);
-const RailShell = lazy(() =>
-  import('./variants/AppLayoutRail.tsx').then((m) => ({ default: m.RailShell })),
-);
-const FocusShell = lazy(() =>
-  import('./variants/AppLayoutFocus.tsx').then((m) => ({ default: m.FocusShell })),
-);
+/** Shared thenables so test preloads and React.lazy hit the same module promise. */
+const sidebarImport = import('./variants/AppLayoutSidebar.tsx');
+const topNavImport = import('./variants/AppLayoutTopNav.tsx');
+const railImport = import('./variants/AppLayoutRail.tsx');
+const focusImport = import('./variants/AppLayoutFocus.tsx');
+
+const SidebarShell = lazy(() => sidebarImport.then((m) => ({ default: m.SidebarShell })));
+const TopNavShell = lazy(() => topNavImport.then((m) => ({ default: m.TopNavShell })));
+const RailShell = lazy(() => railImport.then((m) => ({ default: m.RailShell })));
+const FocusShell = lazy(() => focusImport.then((m) => ({ default: m.FocusShell })));
 
 const APP_SHELLS = [SidebarShell, TopNavShell, RailShell, FocusShell] as const;
 
