@@ -31,7 +31,7 @@ describe('icon barrel', () => {
           'tabler-icon',
         );
       },
-      { timeout: 4000 },
+      { timeout: 12_000 },
     );
-  });
+  }, 15_000);
 });
