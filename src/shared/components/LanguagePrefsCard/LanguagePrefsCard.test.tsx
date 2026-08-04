@@ -27,4 +27,11 @@ describe('LanguagePrefsCard', () => {
     expect(useLocaleStore.getState().textDirection).toBe('rtl');
     expect(document.documentElement.dir).toBe('rtl');
   });
+
+  it('switches UI language from a language tile', async () => {
+    const user = userEvent.setup();
+    render(<LanguagePrefsCard />);
+    await user.click(screen.getByTestId('language-es'));
+    expect(useLocaleStore.getState().locale).toBe('es');
+  });
 });

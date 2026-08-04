@@ -316,15 +316,19 @@ export function normalizeCurrencyDisplayPreference(
  * ({@link localeDirection}); `ltr` / `rtl` force `<html dir>` regardless.
  */
 export const TEXT_DIRECTION_PREFERENCES = ['auto', 'ltr', 'rtl'] as const;
+/** Preference for forcing or following the UI language direction. */
 export type TextDirectionPreference = (typeof TEXT_DIRECTION_PREFERENCES)[number];
+/** Default text-direction preference (`auto`). */
 export const DEFAULT_TEXT_DIRECTION: TextDirectionPreference = 'auto';
 
+/** Type guard for {@link TextDirectionPreference}. */
 export function isTextDirectionPreference(
   value: string,
 ): value is TextDirectionPreference {
   return (TEXT_DIRECTION_PREFERENCES as readonly string[]).includes(value);
 }
 
+/** Coerce unknown input to a valid text-direction preference. */
 export function normalizeTextDirectionPreference(
   value: string | undefined,
 ): TextDirectionPreference {
@@ -395,13 +399,17 @@ export const TIME_ZONE_TAGS = [
   { id: 'Pacific/Auckland', label: 'Auckland' },
 ] as const;
 
+/** Preference id for display timezone override (`auto` or an IANA zone). */
 export type TimeZonePreference = (typeof TIME_ZONE_TAGS)[number]['id'];
+/** Default timezone preference (`auto` = device clock). */
 export const DEFAULT_TIME_ZONE: TimeZonePreference = 'auto';
 
+/** Type guard for {@link TimeZonePreference}. */
 export function isTimeZonePreference(value: string): value is TimeZonePreference {
   return TIME_ZONE_TAGS.some((entry) => entry.id === value);
 }
 
+/** Coerce unknown input to a valid timezone preference. */
 export function normalizeTimeZonePreference(
   value: string | undefined,
 ): TimeZonePreference {

@@ -24,9 +24,17 @@ type MockLocaleState = {
   setCurrencyCode: (f: string) => void;
 };
 
-const { setLocaleMock, setDateFormatMock, localeState } = vi.hoisted(() => ({
+const {
+  setLocaleMock,
+  setDateFormatMock,
+  setNumberStyleMock,
+  setCurrencyDisplayMock,
+  localeState,
+} = vi.hoisted(() => ({
   setLocaleMock: vi.fn(),
   setDateFormatMock: vi.fn(),
+  setNumberStyleMock: vi.fn(),
+  setCurrencyDisplayMock: vi.fn(),
   localeState: { locale: 'en' as 'en' | 'es' | 'zh', dateFormat: 'auto' as const },
 }));
 
@@ -50,8 +58,8 @@ vi.mock('@/shared/store/useLocaleStore/index.ts', () => ({
       setHourCycle: noop,
       setTimeZone: noop,
       setTextDirection: noop,
-      setNumberStyle: noop,
-      setCurrencyDisplay: noop,
+      setNumberStyle: setNumberStyleMock,
+      setCurrencyDisplay: setCurrencyDisplayMock,
       setCurrencyCode: noop,
     }),
   localeFormatPrefs: (s: MockLocaleState) => s,
@@ -75,6 +83,8 @@ describe('LanguagePanel', () => {
   beforeEach(() => {
     setLocaleMock.mockClear();
     setDateFormatMock.mockClear();
+    setNumberStyleMock.mockClear();
+    setCurrencyDisplayMock.mockClear();
     localeState.locale = 'en';
   });
 
@@ -104,6 +114,15 @@ describe('LanguagePanel', () => {
     render(<LanguagePanel />);
     await user.click(screen.getByTestId('date-format-date'));
     expect(setDateFormatMock).toHaveBeenCalledWith('date');
+  });
+
+  it('updates number style and currency display', async () => {
+    const user = userEvent.setup();
+    render(<LanguagePanel />);
+    await user.click(screen.getByTestId('number-style-compact'));
+    expect(setNumberStyleMock).toHaveBeenCalledWith('compact');
+    await user.click(screen.getByTestId('currency-display-code'));
+    expect(setCurrencyDisplayMock).toHaveBeenCalledWith('code');
   });
 
   it('surfaces the derived locale experience (direction, week start, units)', () => {

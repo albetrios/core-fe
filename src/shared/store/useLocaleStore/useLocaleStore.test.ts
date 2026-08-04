@@ -82,4 +82,9 @@ describe('useLocaleStore', () => {
     useLocaleStore.getState().setFormatLocale('en-IN');
     expect(useLocaleStore.getState().timeZone).toBe('Asia/Kolkata');
   });
+
+  it('stores a currency code override independently', () => {
+    useLocaleStore.getState().setCurrencyCode('EUR');
+    expect(useLocaleStore.getState().currencyCode).toBe('EUR');
+  });
 });

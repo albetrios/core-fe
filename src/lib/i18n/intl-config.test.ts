@@ -3,11 +3,17 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_TEXT_DIRECTION,
+  DEFAULT_TIME_ZONE,
+  defaultTimeZoneForFormatLocale,
   isDateFormatPreference,
+  isTimeZonePreference,
   normalizeDateFormatPreference,
   normalizeTextDirectionPreference,
+  normalizeTimeZonePreference,
   resolvedTextDirection,
+  resolvedTimeZone,
 } from './intl-config.ts';
+import { formatLocaleTestId, timeZoneTestId } from './locale.constants.ts';
 
 describe('isDateFormatPreference', () => {
   it('accepts a known preference', () => {
@@ -58,5 +64,37 @@ describe('normalizeTextDirectionPreference', () => {
   it('falls back to auto for unknown values', () => {
     expect(normalizeTextDirectionPreference('sideways')).toBe(DEFAULT_TEXT_DIRECTION);
     expect(normalizeTextDirectionPreference(undefined)).toBe(DEFAULT_TEXT_DIRECTION);
+  });
+});
+
+describe('timezone preferences', () => {
+  it('accepts known IANA zones and rejects unknowns', () => {
+    expect(isTimeZonePreference('UTC')).toBe(true);
+    expect(isTimeZonePreference('Asia/Tokyo')).toBe(true);
+    expect(isTimeZonePreference('Not/A/Zone')).toBe(false);
+  });
+
+  it('normalizes unknown values to auto', () => {
+    expect(normalizeTimeZonePreference('UTC')).toBe('UTC');
+    expect(normalizeTimeZonePreference('bogus')).toBe(DEFAULT_TIME_ZONE);
+    expect(normalizeTimeZonePreference(undefined)).toBe(DEFAULT_TIME_ZONE);
+  });
+
+  it('resolves auto to undefined for Intl', () => {
+    expect(resolvedTimeZone('auto')).toBeUndefined();
+    expect(resolvedTimeZone('Europe/London')).toBe('Europe/London');
+  });
+
+  it('snaps a region to a representative timezone', () => {
+    expect(defaultTimeZoneForFormatLocale('ja-JP')).toBe('Asia/Tokyo');
+    expect(defaultTimeZoneForFormatLocale('xx-ZZ')).toBe(DEFAULT_TIME_ZONE);
+  });
+
+  it('builds stable timezone test ids', () => {
+    expect(timeZoneTestId('America/New_York')).toBe('time-zone-America_New_York');
+  });
+
+  it('builds stable format-locale test ids', () => {
+    expect(formatLocaleTestId('ja-JP')).toBe('format-locale-ja_JP');
   });
 });

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { axe } from 'vitest-axe';
 
+import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
@@ -10,6 +11,7 @@ describe('AuthLayout', () => {
   beforeEach(() => {
     // Default to the split variant; the shuffle-driven previews are opt-in below.
     useThemeStore.setState({ authVariant: 0 });
+    useLocaleStore.setState({ locale: 'en', textDirection: 'auto' });
   });
 
   it('renders the layout shell and its children', async () => {
@@ -57,6 +59,16 @@ describe('AuthLayout', () => {
     );
     expect(await findByTestId('auth-layout')).toBeInTheDocument();
     expect(await findByTestId('auth-form-container')).toBeInTheDocument();
+  });
+
+  it('shows the auth locale select in multi-locale builds', async () => {
+    const { findByTestId } = renderWithProviders(
+      <AuthLayout>
+        <div>child</div>
+      </AuthLayout>,
+    );
+    expect(await findByTestId('auth-layout')).toBeInTheDocument();
+    expect(await findByTestId('auth-locale-select')).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {

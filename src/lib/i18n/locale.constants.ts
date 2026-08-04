@@ -138,9 +138,11 @@ export const DATE_FORMAT_PREFERENCE_LIST = DATE_FORMAT_PREFERENCES;
 export const HOUR_CYCLE_PREFERENCE_LIST = HOUR_CYCLE_PREFERENCES;
 export const NUMBER_STYLE_PREFERENCE_LIST = NUMBER_STYLE_PREFERENCES;
 export const CURRENCY_DISPLAY_PREFERENCE_LIST = CURRENCY_DISPLAY_PREFERENCES;
+/** Ordered list of text-direction preference ids for the prefs UI. */
 export const TEXT_DIRECTION_PREFERENCE_LIST = TEXT_DIRECTION_PREFERENCES;
 export const FORMAT_LOCALE_LIST = FORMAT_LOCALE_TAGS;
 export const CURRENCY_CODE_LIST = CURRENCY_CODES;
+/** Catalog of selectable IANA timezone tags (plus `auto`). */
 export const TIME_ZONE_LIST = TIME_ZONE_TAGS;
 
 export const LOCALE_TEST_IDS = {
@@ -160,6 +162,7 @@ export const LOCALE_TEST_IDS = {
   currencyCodeItem: (code: string) => `currency-code-${code.toLowerCase()}`,
 } as const;
 
+/** Stable test id for a timezone option in the prefs select. */
 export function timeZoneTestId(zone: TimeZonePreference): string {
   return LOCALE_TEST_IDS.timeZoneItem(zone);
 }

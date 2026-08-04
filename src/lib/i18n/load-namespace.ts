@@ -165,6 +165,18 @@ export async function ensureNamespace(
   loadedBundles.add(bundleKey(locale, ns));
 }
 
+/**
+ * Invoke a locale JSON loader directly (bypasses bootstrap cache).
+ * Kept for tests so every explicit import path stays covered.
+ */
+export async function loadNamespaceModule(
+  locale: I18nLocale,
+  ns: I18nNamespace,
+): Promise<Record<string, unknown>> {
+  const mod = await NAMESPACE_LOADERS[locale][ns]();
+  return mod.default;
+}
+
 /** Load every registered namespace for a locale (parallel). */
 export async function ensureLocale(locale: I18nLocale): Promise<void> {
   await Promise.all(ALL_NAMESPACES.map((ns) => ensureNamespace(locale, ns)));
