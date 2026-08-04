@@ -4,9 +4,10 @@ import { axe } from 'vitest-axe';
 import { LayoutVariantFallback } from './LayoutVariantFallback.tsx';
 
 describe('LayoutVariantFallback', () => {
-  it('renders the full-page spinner while a layout variant chunk loads', () => {
+  it('renders a lightweight busy placeholder while a layout variant chunk loads', () => {
     render(<LayoutVariantFallback />);
-    expect(screen.getByTestId('full-page-spinner')).toBeInTheDocument();
+    expect(screen.getByTestId('layout-variant-fallback')).toBeInTheDocument();
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {
