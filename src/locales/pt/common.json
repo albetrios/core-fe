@@ -1,7 +1,6 @@
 {
   "language": {
     "openAria": "Idioma e configurações regionais",
-    "title": "Idioma e região",
     "heading": "Idioma",
     "description": "O texto da interface segue o idioma escolhido. Datas, números e moeda têm os próprios cartões abaixo.",
     "en": "English",

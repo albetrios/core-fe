@@ -1,7 +1,6 @@
 {
   "language": {
     "openAria": "Langue et paramètres régionaux",
-    "title": "Langue et région",
     "heading": "Langue",
     "description": "Les libellés de l’interface suivent la langue choisie. Dates, nombres et devise ont leurs propres cartes ci-dessous.",
     "en": "English",

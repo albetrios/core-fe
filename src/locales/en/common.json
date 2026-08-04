@@ -19,7 +19,6 @@
   },
   "language": {
     "openAria": "Language & regional settings",
-    "title": "Language & region",
     "heading": "Language",
     "description": "UI copy follows the language you pick. Dates, numbers, and currency have their own cards below.",
     "directionDescription": "Force left-to-right or right-to-left layout on this device.",

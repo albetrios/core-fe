@@ -7,7 +7,8 @@ describe('LayoutVariantFallback', () => {
   it('renders a lightweight busy placeholder while a layout variant chunk loads', () => {
     render(<LayoutVariantFallback />);
     expect(screen.getByTestId('layout-variant-fallback')).toBeInTheDocument();
-    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    // Translated via a11y.loading — asserting the key's English value, not a literal.
+    expect(screen.getByText('Loading')).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {

@@ -25,7 +25,6 @@ export const LOCALE_NS = I18N_NAMESPACES.common;
 
 export const LOCALE_KEYS = {
   openAria: 'language.openAria',
-  title: 'language.title',
   closeAria: 'a11y.close',
   loading: 'a11y.loading',
   loadingPage: 'a11y.loadingPage',
@@ -165,9 +164,6 @@ export const CURRENCY_CODE_LIST = CURRENCY_CODES;
 export const TIME_ZONE_LIST = TIME_ZONE_TAGS;
 
 export const LOCALE_TEST_IDS = {
-  floatingLanguage: 'floating-language',
-  /** The Language & region side-panel body (mirrors the Appearance panel). */
-  panel: 'language-panel',
   languageCard: 'language-prefs',
   dateTimeCard: 'date-time-prefs',
   moneyCard: 'money-prefs',

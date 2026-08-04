@@ -422,56 +422,6 @@ export function resolvedTimeZone(preference: TimeZonePreference): string | undef
   return preference === 'auto' ? undefined : preference;
 }
 
-/**
- * Representative IANA zone per country subtag — picking a region snaps the
- * display timezone the same way it snaps currency.
- */
-const REGION_TIME_ZONE = new Map<string, TimeZonePreference>([
-  ['US', 'America/New_York'],
-  ['CA', 'America/Toronto'],
-  ['MX', 'America/Mexico_City'],
-  ['BR', 'America/Sao_Paulo'],
-  ['AR', 'America/Argentina/Buenos_Aires'],
-  ['GB', 'Europe/London'],
-  ['IE', 'Europe/Dublin'],
-  ['FR', 'Europe/Paris'],
-  ['DE', 'Europe/Berlin'],
-  ['AT', 'Europe/Berlin'],
-  ['NL', 'Europe/Amsterdam'],
-  ['IT', 'Europe/Rome'],
-  ['ES', 'Europe/Madrid'],
-  ['SE', 'Europe/Stockholm'],
-  ['NO', 'Europe/Oslo'],
-  ['DK', 'Europe/Copenhagen'],
-  ['FI', 'Europe/Helsinki'],
-  ['PL', 'Europe/Warsaw'],
-  ['RU', 'Europe/Moscow'],
-  ['TR', 'Europe/Istanbul'],
-  ['EG', 'Africa/Cairo'],
-  ['ZA', 'Africa/Johannesburg'],
-  ['AE', 'Asia/Dubai'],
-  ['SA', 'Asia/Riyadh'],
-  ['IL', 'Asia/Jerusalem'],
-  ['IN', 'Asia/Kolkata'],
-  ['TH', 'Asia/Bangkok'],
-  ['SG', 'Asia/Singapore'],
-  ['HK', 'Asia/Hong_Kong'],
-  ['CN', 'Asia/Shanghai'],
-  ['TW', 'Asia/Taipei'],
-  ['JP', 'Asia/Tokyo'],
-  ['KR', 'Asia/Seoul'],
-  ['ID', 'Asia/Jakarta'],
-  ['MY', 'Asia/Kuala_Lumpur'],
-  ['VN', 'Asia/Ho_Chi_Minh'],
-  ['AU', 'Australia/Sydney'],
-  ['NZ', 'Pacific/Auckland'],
-]);
-
-/** Default display timezone for a regional format locale. */
-export function defaultTimeZoneForFormatLocale(formatLocale: string): TimeZonePreference {
-  return REGION_TIME_ZONE.get(regionOf(formatLocale)) ?? DEFAULT_TIME_ZONE;
-}
-
 export function intlLocaleFor(formatLocale: string): string {
   return formatLocale;
 }

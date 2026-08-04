@@ -1,7 +1,6 @@
 {
   "language": {
     "openAria": "Idioma y configuración regional",
-    "title": "Idioma y región",
     "heading": "Idioma",
     "description": "El texto de la IU sigue el idioma que elijas. Fechas, números y moneda tienen sus propias tarjetas debajo.",
     "en": "English",

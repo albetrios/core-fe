@@ -4,7 +4,6 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_TEXT_DIRECTION,
   DEFAULT_TIME_ZONE,
-  defaultTimeZoneForFormatLocale,
   isDateFormatPreference,
   isTimeZonePreference,
   normalizeDateFormatPreference,
@@ -83,11 +82,6 @@ describe('timezone preferences', () => {
   it('resolves auto to undefined for Intl', () => {
     expect(resolvedTimeZone('auto')).toBeUndefined();
     expect(resolvedTimeZone('Europe/London')).toBe('Europe/London');
-  });
-
-  it('snaps a region to a representative timezone', () => {
-    expect(defaultTimeZoneForFormatLocale('ja-JP')).toBe('Asia/Tokyo');
-    expect(defaultTimeZoneForFormatLocale('xx-ZZ')).toBe(DEFAULT_TIME_ZONE);
   });
 
   it('builds stable timezone test ids', () => {

@@ -1,7 +1,6 @@
 {
   "language": {
     "openAria": "言語と地域の設定",
-    "title": "言語と地域",
     "heading": "言語",
     "description": "UIの文言は選んだ言語に従います。日付・数値・通貨は下の各カードで設定します。",
     "en": "English",

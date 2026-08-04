@@ -23,7 +23,7 @@ export function FloatingSettingsButton() {
       type="button"
       onClick={() => setAppearanceOpen(true)}
       aria-label={t(LOCALE_KEYS.openAppearance)}
-      title="Appearance"
+      title={t(LOCALE_KEYS.openAppearance)}
       data-testid="floating-settings"
       data-slot="floating-edge"
       className={floatingEdgeButtonClassName}

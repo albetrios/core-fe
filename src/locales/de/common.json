@@ -1,7 +1,6 @@
 {
   "language": {
     "openAria": "Sprache und regionale Einstellungen",
-    "title": "Sprache und Region",
     "heading": "Sprache",
     "description": "UI-Texte folgen der gewählten Sprache. Datum, Zahlen und Währung haben eigene Karten darunter.",
     "en": "English",
