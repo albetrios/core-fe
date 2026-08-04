@@ -24,7 +24,10 @@ export function LocalizedCalendar({ weekStartsOn, formatters, ...props }: Calend
     <Calendar
       weekStartsOn={weekStartsOn ?? weekStartsOnFromPrefs(firstDayOfWeek)}
       formatters={{
-        formatMonthDropdown: (date) => formatDate(date, { month: 'short' }),
+        // react-day-picker hands us local-midnight Dates: civilDay keeps a
+        // display timezone west of the device from labelling March as Feb.
+        formatMonthDropdown: (date) =>
+          formatDate(date, { month: 'short' }, { civilDay: true }),
         ...formatters,
       }}
       {...props}

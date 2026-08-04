@@ -61,7 +61,11 @@ describe('LocalizedCalendar', () => {
       formatMonthDropdown: (date: Date) => string;
     };
     const label = formatters.formatMonthDropdown(new Date('2026-03-15T00:00:00.000Z'));
-    expect(h.formatDate).toHaveBeenCalledWith(expect.any(Date), { month: 'short' });
+    expect(h.formatDate).toHaveBeenCalledWith(
+      expect.any(Date),
+      { month: 'short' },
+      { civilDay: true },
+    );
     expect(label).toBe('MONTH');
   });
 

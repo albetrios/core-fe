@@ -93,28 +93,34 @@ function initialLocaleState(): Pick<
   };
 }
 
+/**
+ * Bumps on every locale apply — boot rehydrate, build-lock, and `setLocale`
+ * alike — so a slower earlier apply cannot win the race and flip `<html>` +
+ * i18next back after a newer one has landed.
+ */
+let localeApplyGeneration = 0;
+
+/** Claims the current apply generation; the returned predicate reports staleness. */
+function beginLocaleApply(): () => boolean {
+  const generation = ++localeApplyGeneration;
+  return () => generation !== localeApplyGeneration;
+}
+
 /** Single-locale builds lock UI language only — regional date/time prefs stay user-owned. */
 function applyBuildUiLocaleLock(profile: LocaleBuildProfile): void {
   const textDirection = useLocaleStore.getState().textDirection;
   useLocaleStore.setState({ locale: profile.locale });
-  void applyDocumentLocale(profile.locale, textDirection);
+  void applyDocumentLocale(profile.locale, textDirection, beginLocaleApply());
 }
-
-/** Bumps on every `setLocale` so a slower earlier switch cannot win the race. */
-let localeApplyGeneration = 0;
 
 export const useLocaleStore = create<LocaleStore>()(
   persist(
     (set, get) => ({
       ...initialLocaleState(),
       setLocale: async (locale) => {
-        const generation = ++localeApplyGeneration;
-        await applyDocumentLocale(
-          locale,
-          get().textDirection,
-          () => generation !== localeApplyGeneration,
-        );
-        if (generation !== localeApplyGeneration) return;
+        const isStale = beginLocaleApply();
+        await applyDocumentLocale(locale, get().textDirection, isStale);
+        if (isStale()) return;
         // Language carries regional format + currency. Timezone is left alone —
         // clobbering `auto` or a user pick with a region default caused silent
         // calendar day shifts once display TZ was wired into formatters.
@@ -194,9 +200,12 @@ export const useLocaleStore = create<LocaleStore>()(
           return;
         }
         if (state?.locale) {
+          // Gated like setLocale: on a slow boot the user can pick a different
+          // language before this resolves, and the stale apply must not win.
           void applyDocumentLocale(
             state.locale,
             state.textDirection ?? DEFAULT_TEXT_DIRECTION,
+            beginLocaleApply(),
           );
           preloadLocaleIdle(state.locale);
         }
