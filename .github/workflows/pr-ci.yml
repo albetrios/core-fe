@@ -223,6 +223,12 @@ jobs:
       - name: i18n locale parity
         run: pnpm validate:i18n-parity
 
+      - name: Logical CSS direction contract
+        run: pnpm validate:logical
+
+      - name: No bare Intl / toLocaleString in app code
+        run: pnpm validate:no-bare-intl
+
       - name: Theme catalog docs
         run: pnpm validate:theme-catalog
 

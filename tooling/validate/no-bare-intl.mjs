@@ -2,43 +2,41 @@
 /**
  * Ban bare Intl / toLocale* formatters outside the i18n kernel + vendored ui.
  * App code must use useLocaleFormat / format*Value so Appearance prefs apply.
+ *
+ * Scans in pure Node rather than shelling out to ripgrep: a spawn failure in
+ * the previous `rg` implementation was indistinguishable from "no matches", so
+ * the gate reported green on any machine without rg installed. No external
+ * binary means no such silent pass — and no CI-runner tooling assumption.
  */
-import { execFileSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const srcDir = join(root, 'src');
 
-let out = '';
-try {
-  out = execFileSync(
-    'rg',
-    [
-      '-n',
-      '--glob',
-      '*.ts',
-      '--glob',
-      '*.tsx',
-      '-e',
-      '\\.toLocaleString\\(',
-      '-e',
-      '\\.toLocaleDateString\\(',
-      '-e',
-      '\\.toLocaleTimeString\\(',
-      '-e',
-      'new Intl\\.(DateTimeFormat|NumberFormat|RelativeTimeFormat)\\(',
-      'src',
-    ],
-    { encoding: 'utf8', cwd: root },
-  );
-} catch (err) {
-  // rg exits 1 when no matches
-  out = typeof err === 'object' && err && 'stdout' in err ? String(err.stdout ?? '') : '';
+const BANNED = [
+  /\.toLocaleString\(/,
+  /\.toLocaleDateString\(/,
+  /\.toLocaleTimeString\(/,
+  /new Intl\.(DateTimeFormat|NumberFormat|RelativeTimeFormat)\(/,
+];
+
+const files = readdirSync(srcDir, { recursive: true, encoding: 'utf8' })
+  .map((entry) => entry.split(sep).join('/'))
+  .filter((entry) => entry.endsWith('.ts') || entry.endsWith('.tsx'));
+
+const matches = [];
+for (const relative of files) {
+  const text = readFileSync(join(srcDir, relative), 'utf8');
+  text.split('\n').forEach((line, index) => {
+    if (BANNED.some((pattern) => pattern.test(line))) {
+      matches.push(`src/${relative}:${index + 1}:${line.trim()}`);
+    }
+  });
 }
 
-const lines = out
-  .split('\n')
-  .filter(Boolean)
+const lines = matches
   .filter((line) => !line.startsWith('src/lib/i18n/'))
   .filter((line) => !line.startsWith('src/shared/components/ui/'))
   .filter((line) => !line.includes('.test.'))
@@ -55,4 +53,6 @@ if (lines.length) {
   process.exit(1);
 }
 
-console.log('Bare Intl gate OK — formatters stay in lib/i18n (and vendored ui fallbacks).');
+console.log(
+  'Bare Intl gate OK — formatters stay in lib/i18n (and vendored ui fallbacks).',
+);
