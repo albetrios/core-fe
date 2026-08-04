@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 
@@ -32,6 +32,8 @@ describe('LanguagePrefsCard', () => {
     const user = userEvent.setup();
     render(<LanguagePrefsCard />);
     await user.click(screen.getByTestId('language-es'));
-    expect(useLocaleStore.getState().locale).toBe('es');
+    await vi.waitFor(() => {
+      expect(useLocaleStore.getState().locale).toBe('es');
+    });
   });
 });
