@@ -1,0 +1,23 @@
+# identity-allowlist — paths exempt from the hardcoded-brand-literal scan
+# (`pnpm validate:identity`). One repo-relative path per line, each with a
+# reason. Never add a path to silence a real finding: app code reads the product
+# name from `@/lib/product-identity.ts`, and index.html uses {{PRODUCT_*}}
+# tokens substituted by plugins/product-identity-html.ts.
+#
+# Derived surfaces (locales, manifest.webmanifest, app-icon.svg, package.json …)
+# are NOT listed here — they legitimately contain the name and are verified by
+# the drift half of the same validator instead.
+
+# The generated single source of truth itself — every other file derives from it.
+src/lib/product-identity.ts
+
+# WebAuthn relying-party name asserted in a fixture. The real value is minted by
+# core-be, not the frontend, so it tracks the backend's configured RP name and
+# must not be rewritten by `pnpm rebrand`. See docs/getting-started/new-project.md
+# ("what a rebrand does not cover").
+src/shared/api/passkeys-api.test.ts
+
+# TOTP `otpauth://` issuer in a mocked MFA-enrolment response. Same reason as
+# above: the issuer is set by core-be when it mints the URI, so the fixture
+# mirrors the backend's value rather than this repo's product name.
+src/shared/components/SettingsModal/account/AccountSecurityPanel.test.tsx

@@ -54,6 +54,7 @@ run "test-id contracts         (validate:testids)"   pnpm validate:testids
 run "i18n key contracts        (validate:i18n)"      pnpm validate:i18n
 run "i18n locale parity        (validate:i18n-parity)" pnpm validate:i18n-parity
 run "theme catalog docs        (validate:theme-catalog)" pnpm validate:theme-catalog
+run "product identity          (validate:identity)"  pnpm validate:identity
 run "project-tree docs         (tool:project-structure-tree:check)" pnpm tool:project-structure-tree:check
 run "agent-os integrity        (agent-os:check)"     pnpm agent-os:check
 run "agent-os trigger routing  (agent-os:triggers:strict)" pnpm agent-os:triggers:strict

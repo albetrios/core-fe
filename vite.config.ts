@@ -11,6 +11,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 import { cspApiOrigin } from './plugins/csp-api-origin.ts';
 import { i18nBuild } from './plugins/i18n-build.ts';
+import { productIdentityHtml } from './plugins/product-identity-html.ts';
 import { versionJson } from './plugins/version-json.ts';
 
 export default defineConfig(({ mode }) => {
@@ -45,6 +46,9 @@ export default defineConfig(({ mode }) => {
         localeFlag: env.BUILD_I18N_LOCALE,
       }),
       versionJson(buildId),
+      // Substitutes {{PRODUCT_*}} in index.html; runs `pre` so the CSP pass below
+      // sees final markup. Keeps branding out of the rebrand surface entirely.
+      productIdentityHtml(),
       cspApiOrigin(env.VITE_API_BASE_URL, env.VITE_CSP_REPORT_URI),
 
       // PWA — injectManifest mode avoids workbox-build/terser race condition in Vite 7

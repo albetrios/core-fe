@@ -5,9 +5,9 @@ metadata:
   title: Core Frontend
   description: Enterprise multi-tenant admin dashboard (React + TypeScript + Vite)
   annotations:
-    github.com/project-slug: core/core-fe
+    github.com/project-slug: nikunjmavani/core-fe
     backstage.io/techdocs-ref: dir:.
-    backstage.io/source-location: url:https://github.com/core/core-fe
+    backstage.io/source-location: url:https://github.com/nikunjmavani/core-fe
     sentry.io/project-slug: core-fe
     lighthouse.com/website-url: https://app.example.com
   tags:
@@ -23,7 +23,7 @@ metadata:
     - url: https://staging.app.example.com
       title: Staging
       icon: web
-    - url: https://github.com/core/core-fe/actions
+    - url: https://github.com/nikunjmavani/core-fe/actions
       title: CI/CD
       icon: github
 spec:

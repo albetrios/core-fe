@@ -232,6 +232,9 @@ jobs:
       - name: Theme catalog docs
         run: pnpm validate:theme-catalog
 
+      - name: Product identity (single source of truth + no hardcoded brand)
+        run: pnpm validate:identity
+
       - name: TSDoc coverage budget
         run: node tooling/tsdoc-coverage/check-coverage.mjs
 

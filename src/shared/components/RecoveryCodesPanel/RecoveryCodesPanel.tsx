@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PRODUCT_NAME } from '@/lib/product-identity.ts';
 import { copySensitiveText } from '@/lib/sensitive-clipboard.ts';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -21,7 +22,7 @@ export interface RecoveryCodesPanelProps {
 
 function buildDownloadBlob(codes: string[]): Blob {
   const body = [
-    'Core — two-factor recovery codes',
+    `${PRODUCT_NAME} — two-factor recovery codes`,
     'Each code works once. Store offline in a password manager or safe.',
     '',
     ...codes,

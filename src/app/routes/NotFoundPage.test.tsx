@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { APP_TITLE } from '@/lib/routes/page-head.ts';
+
 // Link needs a router context; the page only needs an anchor here.
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
@@ -12,7 +14,7 @@ import { Component as NotFoundPage } from './NotFoundPage.tsx';
 
 describe('NotFoundPage', () => {
   beforeEach(() => {
-    document.title = 'Dashboard · Core'; // simulate a stale previous title
+    document.title = `Dashboard · ${APP_TITLE}`; // simulate a stale previous title
   });
 
   it('renders the 404 content with a way home', () => {
@@ -25,6 +27,6 @@ describe('NotFoundPage', () => {
   it('replaces a stale document title (guard-thrown notFound path)', () => {
     render(<NotFoundPage />);
 
-    expect(document.title).toBe('Page not found · Core');
+    expect(document.title).toBe(`Page not found · ${APP_TITLE}`);
   });
 });
