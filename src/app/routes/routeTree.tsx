@@ -44,7 +44,6 @@ import { AppearanceDialogLazy } from '@/shared/components/AppearanceDialog/index
 import { ConsentBanner } from '@/shared/components/ConsentBanner/index.ts';
 import { FloatingEdgeControls } from '@/shared/components/FloatingEdgeControls/index.ts';
 import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
-import { LanguageDialogLazy } from '@/shared/components/LanguageDialog/index.ts';
 import { OfflineIndicator } from '@/shared/components/OfflineIndicator/index.ts';
 import { RouteAnnouncer } from '@/shared/components/RouteAnnouncer/index.ts';
 import { RouteErrorBoundary } from '@/shared/components/RouteErrorBoundary/index.ts';
@@ -140,7 +139,6 @@ const rootRoute = createRootRoute({
       {/* Dedicated Appearance dialog — its own surface, opened via useUIStore. */}
       <AppearanceDialogLazy />
       {/* Dedicated Language & region dialog — mirrors Appearance, opened via useUIStore. */}
-      <LanguageDialogLazy />
       <OfflineIndicator />
       {/* aria-live announcer: reads the new document.title on navigation. */}
       <RouteAnnouncer />

@@ -118,7 +118,7 @@ export function NotificationCenter({
           <Bell className="h-4 w-4" />
           {unread > 0 ? (
             <span
-              className="bg-primary text-primary-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
+              className="bg-primary text-primary-foreground absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
               data-testid="notification-badge"
             >
               {unread > 9 ? '9+' : unread}
@@ -196,7 +196,7 @@ export function NotificationCenter({
                       data-slot="menu-item"
                       onClick={() => handleItemClick(item)}
                       className={cn(
-                        'flex w-full min-w-0 items-start gap-3 px-4 py-3 text-left transition-colors',
+                        'flex w-full min-w-0 items-start gap-3 px-4 py-3 text-start transition-colors',
                         'hover:bg-muted/50 focus-visible:bg-muted/50 outline-none',
                         !item.isRead && 'bg-muted/30',
                       )}

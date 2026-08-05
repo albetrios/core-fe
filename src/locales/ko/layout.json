@@ -1,0 +1,153 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "본문으로 건너뛰기",
+    "mainNavigation": "주 탐색",
+    "sidebarNavigation": "사이드바 탐색",
+    "mobileNavigation": "모바일 탐색"
+  },
+  "auth": {
+    "switchToRegister": "계정 만들기",
+    "switchToSignIn": "로그인",
+    "statusOperational": "모든 시스템 정상",
+    "badge": "운영, 하나로",
+    "heroTitle": "조직을 위한 운영 체제.",
+    "heroSubtitle": "멤버, 역할, 결제, 보안 — 모든 팀을 위한 빠르고 키보드 우선의 워크스페이스.",
+    "features": {
+      "multiOrg": {
+        "title": "멀티 조직 설계",
+        "body": "도구를 바꾸지 않고 팀을 전환하세요."
+      },
+      "secure": {
+        "title": "기본부터 안전",
+        "body": "RBAC, MFA, 패스키, 감사 추적."
+      },
+      "fast": {
+        "title": "어디서나 빠르게",
+        "body": "키보드 우선의 실시간 작업을 위해 설계되었습니다."
+      }
+    },
+    "stats": {
+      "teams": "팀",
+      "uptime": "가동률",
+      "compliant": "준수"
+    }
+  },
+  "app": {
+    "search": "검색",
+    "searchPlaceholder": "검색...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "사용자 메뉴",
+    "userFallback": "사용자",
+    "settings": "설정",
+    "logOut": "로그아웃",
+    "toggleSidebar": "사이드바 전환",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "대시보드"
+    },
+    "sidebar": {
+      "workspace": "워크스페이스",
+      "menu": "메뉴",
+      "shortcuts": "단축키"
+    },
+    "contextStrip": {
+      "label": "빠른 이동",
+      "labelSolo": "이동",
+      "profile": "프로필",
+      "security": "보안",
+      "billing": "결제",
+      "appearance": "모양",
+      "shortcuts": "단축키"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "조직 선택",
+      "triggerLabel": "조직 전환 — 현재: {{name}}",
+      "personal": "개인",
+      "yourOrganizations": "내 조직",
+      "organizations": "조직",
+      "addOrganization": "조직 추가"
+    },
+    "notifications": {
+      "title": "알림",
+      "ariaWithUnread": "알림, 읽지 않음 {{count}}개",
+      "ariaDefault": "알림",
+      "newBadge": "새 알림 {{count}}개",
+      "markAllRead": "모두 읽음으로 표시",
+      "loadError": "알림을 불러올 수 없습니다. 다시 시도해 주세요.",
+      "retry": "다시 시도",
+      "emptyTitle": "알림 없음",
+      "emptyDescription": "계정과 조직에 대한 업데이트가 여기에 표시됩니다.",
+      "markRead": "읽음으로 표시",
+      "settingsLink": "알림 설정"
+    },
+    "commandPalette": {
+      "ariaLabel": "명령 팔레트",
+      "placeholder": "명령을 입력하거나 검색...",
+      "empty": "결과가 없습니다.",
+      "groups": {
+        "navigation": "탐색",
+        "theme": "테마",
+        "account": "계정",
+        "organizations": "조직",
+        "shortcuts": "단축키"
+      },
+      "dashboard": "대시보드",
+      "userSettings": "사용자 설정",
+      "organizationSettings": "조직 설정",
+      "lightMode": "라이트 모드",
+      "darkMode": "다크 모드",
+      "systemTheme": "시스템 테마",
+      "settings": "설정",
+      "logOut": "로그아웃",
+      "openShortcuts": "키보드 단축키",
+      "switchOrganization": "{{name}}(으)로 전환",
+      "currentOrganization": "{{name}} (현재)"
+    },
+    "shortcuts": {
+      "title": "키보드 단축키",
+      "description": "탐색과 작업을 위한 빠른 참조.",
+      "commandPalette": "명령 팔레트 열기",
+      "showShortcuts": "키보드 단축키 표시",
+      "showShortcutsAlt": "키보드 단축키 표시 (대체)",
+      "closeDialog": "대화상자 닫기"
+    },
+    "emailVerify": {
+      "message": "계정을 보호하려면 이메일을 확인하세요.",
+      "resend": "이메일 다시 보내기",
+      "sending": "보내는 중…",
+      "sent": "보냄",
+      "notifySuccess": "확인 이메일을 보냈습니다 — 받은편지함을 확인하세요.",
+      "notifyError": "이메일을 다시 보낼 수 없습니다."
+    },
+    "sessionTimeout": {
+      "title": "세션 만료 예정",
+      "description": "비활성으로 인해 {{countdown}} 후 세션이 만료됩니다. 계속하려면 \"로그인 유지\"를 클릭하세요.",
+      "signOut": "로그아웃",
+      "staySignedIn": "로그인 유지"
+    },
+    "membersTable": {
+      "actionsAria": "{{name}}에 대한 작업",
+      "changeRole": "역할 변경",
+      "suspend": "멤버 정지",
+      "reactivate": "멤버 재활성화",
+      "remove": "조직에서 제거",
+      "removeTitle": "{{name}}을(를) 제거하시겠습니까?",
+      "removeDescription": "이 조직에 대한 액세스 권한을 잃게 됩니다. 이 작업은 취소할 수 없습니다.",
+      "cancel": "취소",
+      "confirmRemove": "제거",
+      "rolePlaceholder": "역할",
+      "searchPlaceholder": "멤버 검색…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
+    }
+  },
+  "public": {
+    "brandTagline": "팀을 위한 안전한 워크스페이스"
+  }
+}

@@ -1,9 +1,12 @@
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { logout } from '@/shared/auth/service.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 
 export function Component() {
+  const { t } = useTranslation(ERRORS_NS);
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center sm:p-8"
@@ -19,7 +22,7 @@ export function Component() {
           landing surface). */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
         <Button asChild>
-          <Link to="/">Go Home</Link>
+          <Link to="/">{t(ERRORS_KEYS.route.goHome)}</Link>
         </Button>
         <Button
           variant="outline"

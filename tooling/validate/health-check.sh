@@ -169,6 +169,20 @@ else
   TOTAL_FAILS=$((TOTAL_FAILS + 1))
 fi
 
+if pnpm validate:logical >/dev/null 2>&1; then
+  echo "  $PASS  pnpm validate:logical"
+else
+  echo "  $FAIL  pnpm validate:logical"
+  TOTAL_FAILS=$((TOTAL_FAILS + 1))
+fi
+
+if pnpm validate:no-bare-intl >/dev/null 2>&1; then
+  echo "  $PASS  pnpm validate:no-bare-intl"
+else
+  echo "  $FAIL  pnpm validate:no-bare-intl"
+  TOTAL_FAILS=$((TOTAL_FAILS + 1))
+fi
+
 if pnpm validate:theme-axis >/dev/null 2>&1; then
   echo "  $PASS  pnpm validate:theme-axis"
 else

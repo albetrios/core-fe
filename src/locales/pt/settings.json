@@ -1,0 +1,190 @@
+{
+  "nav": {
+    "ariaSections": "Seções de configurações",
+    "ariaSettings": "Configurações",
+    "searchPlaceholder": "Pesquisar",
+    "searchAria": "Pesquisar configurações",
+    "empty": "Nenhuma correspondência",
+    "groups": {
+      "account": "Conta",
+      "organization": "Organização"
+    },
+    "profile": "Perfil",
+    "account": "Conta",
+    "security": "Segurança",
+    "notifications": "Notificações",
+    "sessions": "Sessões",
+    "general": "Geral",
+    "members": "Membros",
+    "roles": "Funções",
+    "billing": "Cobrança",
+    "integrations": "Integrações"
+  },
+  "security": {
+    "heading": "Segurança",
+    "description": "Autenticação de dois fatores e passkeys.",
+    "mfa": {
+      "title": "Autenticação de dois fatores",
+      "description": "Exigir um código do autenticador ao entrar.",
+      "enabled": "Ativada",
+      "disabled": "Desativada",
+      "setup": "Configurar autenticação de dois fatores",
+      "disable": "Desativar autenticação de dois fatores",
+      "disableTitle": "Desativar a autenticação de dois fatores?",
+      "disableDescription": "Sua conta ficará menos protegida. Você pode reativá-la a qualquer momento.",
+      "disableConfirm": "Desativar",
+      "setupTitle": "Configurar autenticação de dois fatores",
+      "setupDescription": "Escaneie o QR code com seu aplicativo autenticador ou digite o segredo manualmente.",
+      "recoveryTitle": "Salve seus códigos de recuperação",
+      "recoveryDescription": "Guarde-os em um lugar seguro. Cada um funciona uma vez se você perder o dispositivo.",
+      "done": "Concluído",
+      "cancel": "Cancelar",
+      "verifyEnable": "Verificar e ativar",
+      "codeLabel": "Digite o código de 6 dígitos",
+      "codeAria": "Código do autenticador de seis dígitos",
+      "secretLabel": "Chave de entrada manual",
+      "copySecret": "Copiar segredo",
+      "copiedSecret": "Copiado",
+      "scanHint": "Abra o Google Authenticator, 1Password ou outro app TOTP e escaneie este código.",
+      "errors": {
+        "setupFailed": "Não foi possível iniciar a configuração. Tente novamente.",
+        "invalidCode": "Esse código não correspondeu. Digite o código atual de 6 dígitos."
+      }
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "description": "Entre sem senha usando seu dispositivo.",
+      "add": "Adicionar passkey",
+      "empty": "Ainda não há passkeys. Adicione uma para entrar sem senha.",
+      "removeAria": "Remover {{name}}",
+      "addTitle": "Adicionar uma passkey",
+      "addDescription": "Dê um nome para reconhecê-la depois. Seu dispositivo pedirá para criar a passkey.",
+      "nameLabel": "Nome",
+      "namePlaceholder": "MacBook Touch ID",
+      "cancel": "Cancelar",
+      "submit": "Adicionar passkey"
+    },
+    "overview": {
+      "title": "Proteção da conta",
+      "description": "Visão rápida do que protege seu acesso.",
+      "score": "{{score}} de {{total}} ativos",
+      "mfaOn": "A autenticação de dois fatores está ativada",
+      "mfaOff": "A autenticação de dois fatores está desativada",
+      "passkeysOn": "{{count}} passkey registrada",
+      "passkeysOn_other": "{{count}} passkeys registradas",
+      "passkeysOff": "Nenhuma passkey registrada",
+      "idleProtection": "Saída automática por inatividade está ativa"
+    },
+    "recoveryCodes": {
+      "reveal": "Mostrar códigos",
+      "hide": "Ocultar códigos",
+      "copyAll": "Copiar todos",
+      "download": "Baixar .txt",
+      "copySuccess": "Códigos de recuperação copiados — a área de transferência limpa em 1 minuto",
+      "copyFailed": "Não foi possível copiar para a área de transferência",
+      "downloadStarted": "Download iniciado",
+      "clipboardNotice": "Segredos copiados são limpos da área de transferência após um minuto.",
+      "acknowledge": "Salvei estes códigos de recuperação em um lugar seguro"
+    },
+    "stepUp": {
+      "title": "Confirme que é você",
+      "description": "Por segurança, verifique novamente antes de alterar as configurações de acesso.",
+      "passwordLabel": "Senha",
+      "totpLabel": "Código do autenticador",
+      "emailCodeLabel": "Código de verificação",
+      "emailCodeSent": "Enviamos um código de 6 caracteres para {{email}}.",
+      "resend": "Reenviar código",
+      "resent": "Código enviado",
+      "verify": "Verificar",
+      "verifying": "Verificando…",
+      "invalid": "Isso não correspondeu. Tente novamente.",
+      "passwordRequired": "Esta ação precisa da sua senha ou de um código do autenticador."
+    }
+  },
+  "discard": {
+    "title": "Descartar alterações não salvas?",
+    "description": "Você tem alterações não salvas. Sair desta seção as descartará.",
+    "stay": "Continuar editando",
+    "leave": "Descartar alterações"
+  },
+  "panels": {
+    "members": {
+      "title": "Membros",
+      "description": "Pessoas nesta organização.",
+      "loadFailed": "Não foi possível carregar os membros. Tente novamente.",
+      "emptyTitle": "Ainda não há membros",
+      "emptyDescription": "Convide colegas para colaborar nesta organização.",
+      "searchPlaceholder": "Pesquisar membros…",
+      "noResults": "Nenhum membro corresponde à sua pesquisa.",
+      "loadMore": "Carregar mais",
+      "actionsAria": "Ações para {{name}}",
+      "changeRole": "Alterar função",
+      "suspend": "Suspender",
+      "reactivate": "Reativar",
+      "removeAction": "Remover da organização",
+      "removeAria": "Remover {{name}}",
+      "removeTitle": "Remover {{name}}?",
+      "removeDescription": "Essa pessoa perderá o acesso a esta organização. Você pode desfazer por alguns segundos após confirmar.",
+      "removeConfirm": "Remover",
+      "removePending": "Removendo {{name}}…",
+      "emailPlaceholder": "colega@empresa.com",
+      "rolePlaceholder": "Selecione uma função"
+    },
+    "roles": {
+      "title": "Funções",
+      "description": "Conjuntos de permissões que você pode atribuir aos membros.",
+      "loadFailed": "Não foi possível carregar as funções. Tente novamente.",
+      "emptyTitle": "Ainda não há funções",
+      "emptyDescription": "Crie uma função personalizada para conceder um conjunto sob medida de permissões.",
+      "searchPlaceholder": "Pesquisar funções…",
+      "noResults": "Nenhuma função corresponde à sua pesquisa.",
+      "loadMore": "Carregar mais",
+      "systemBadge": "Sistema",
+      "memberCount": "{{count}} membro",
+      "memberCount_other": "{{count}} membros",
+      "actionsAria": "Ações para {{name}}",
+      "editAction": "Editar função",
+      "deleteAction": "Excluir função",
+      "deleteAria": "Excluir {{name}}",
+      "deleteTitle": "Excluir {{name}}?",
+      "deleteDescription": "Membros com esta função precisarão de uma nova. Você pode desfazer por alguns segundos após confirmar.",
+      "deleteConfirm": "Excluir",
+      "deletePending": "Excluindo {{name}}…",
+      "namePlaceholder": "ex.: Membro",
+      "descriptionPlaceholder": "O que esta função pode fazer?"
+    },
+    "listSort": {
+      "label": "Ordenar por",
+      "nameAsc": "Nome (A–Z)",
+      "nameDesc": "Nome (Z–A)",
+      "newest": "Mais recentes primeiro",
+      "oldest": "Mais antigos primeiro"
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Como você aparece no app. Visível para pessoas da sua organização.",
+      "completeness": "Perfil {{percent}}% completo",
+      "confirmTitle": "Salvar alterações do perfil?",
+      "confirmDescription": "Tem certeza de que deseja atualizar suas informações de perfil?",
+      "confirmSave": "Salvar alterações",
+      "confirmCancel": "Cancelar",
+      "saving": "Salvando…",
+      "save": "Salvar alterações",
+      "namePlaceholder": "O seu nome",
+      "jobTitlePlaceholder": "ex.: Engenheiro de produto"
+    },
+    "account": {
+      "deleteTitle": "Excluir sua conta?",
+      "deleteDescription": "Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão removidos.",
+      "deleteConfirm": "Excluir conta",
+      "deleteCancel": "Cancelar"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "Pesquisar chaves de API…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
+    }
+  }
+}

@@ -112,12 +112,15 @@ function ChartTooltipContent({
   label,
   hideLabel = false,
   className,
+  valueFormatter,
 }: {
   active?: boolean;
   payload?: TooltipItem[];
   label?: React.ReactNode;
   hideLabel?: boolean;
   className?: string;
+  /** Locale-aware number formatter (prefer {@link useLocaleFormat}). */
+  valueFormatter?: (value: number) => string;
 }) {
   const { config } = useChart();
 
@@ -140,6 +143,11 @@ function ChartTooltipContent({
             ? // eslint-disable-next-line security/detect-object-injection -- guarded by hasOwnProperty
               config[key]
             : undefined;
+          const formatted =
+            item.value != null
+              ? (valueFormatter?.(Number(item.value)) ??
+                Number(item.value).toLocaleString())
+              : null;
           return (
             <div
               key={key}
@@ -154,9 +162,9 @@ function ChartTooltipContent({
                   {itemConfig?.label ?? item.name}
                 </span>
               </div>
-              {item.value != null ? (
+              {formatted != null ? (
                 <span className="text-foreground font-mono font-medium tabular-nums">
-                  {item.value.toLocaleString()}
+                  {formatted}
                 </span>
               ) : null}
             </div>

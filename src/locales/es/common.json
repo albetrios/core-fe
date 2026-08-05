@@ -1,9 +1,8 @@
 {
   "language": {
     "openAria": "Idioma y configuración regional",
-    "title": "Idioma y región",
     "heading": "Idioma",
-    "description": "Textos, fechas, números y moneda siguen estas preferencias.",
+    "description": "El texto de la IU sigue el idioma que elijas. Fechas, números y moneda tienen sus propias tarjetas debajo.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,11 +13,21 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "Fuerza el diseño de izquierda a derecha o de derecha a izquierda en este dispositivo."
   },
   "formatLocale": {
     "heading": "Región de formato",
-    "description": "Formato Intl de fechas, números y moneda, independiente del idioma."
+    "description": "Formato Intl de fechas, números y moneda, independiente del idioma de la interfaz."
+  },
+  "dateTime": {
+    "heading": "Fecha y hora",
+    "description": "Se guarda en este dispositivo — los cambios se aplican al instante en todas las fechas."
+  },
+  "timeZone": {
+    "heading": "Zona horaria",
+    "preview": "Zona horaria: {{value}}",
+    "device": "Zona horaria del dispositivo"
   },
   "dateFormat": {
     "heading": "Formato de fecha y hora",
@@ -48,10 +57,11 @@
     "standard": "Agrupado",
     "compact": "Compacto (1,2 M)",
     "engineering": "Ingeniería",
-    "scientific": "Científico"
+    "scientific": "Científico",
+    "description": "Salida de números y moneda — independiente del idioma de la IU."
   },
   "currencyDisplay": {
-    "heading": "Moneda",
+    "heading": "Visualización de moneda",
     "auto": "Predeterminado del idioma",
     "symbol": "Símbolo",
     "narrowSymbol": "Símbolo estrecho",
@@ -61,16 +71,11 @@
   "currencyCode": {
     "heading": "Moneda de vista previa"
   },
-  "localePreview": {
-    "heading": "Vista previa",
-    "currency": "Moneda: {{value}}",
-    "direction": "Dirección del texto: {{value}}",
-    "firstDay": "La semana empieza: {{value}}",
-    "measurement": "Unidades: {{value}}"
-  },
   "direction": {
     "ltr": "De izquierda a derecha",
-    "rtl": "De derecha a izquierda"
+    "rtl": "De derecha a izquierda",
+    "heading": "Dirección del texto",
+    "auto": "Seguir el idioma"
   },
   "firstDay": {
     "saturday": "Sábado",
@@ -79,11 +84,103 @@
   },
   "measurement": {
     "metric": "Métrico",
-    "imperial": "Imperial"
+    "imperial": "Imperial (EE. UU.)"
+  },
+  "localePreview": {
+    "heading": "Vista previa en vivo",
+    "currency": "Moneda: {{value}}",
+    "direction": "Dirección del texto: {{value}}",
+    "firstDay": "La semana empieza: {{value}}",
+    "measurement": "Unidades: {{value}}"
   },
   "versionUpdate": {
     "title": "Actualización disponible",
     "description": "Ya está lista una nueva versión de la aplicación.",
     "refresh": "Actualizar ahora"
+  },
+  "a11y": {
+    "close": "Cerrar",
+    "loading": "Cargando",
+    "loadingPage": "Cargando página",
+    "toggleTheme": "Cambiar tema",
+    "openAppearance": "Abrir apariencia",
+    "cookieConsent": "Consentimiento de cookies",
+    "rowsPerPage": "Filas por página",
+    "goFirstPage": "Ir a la primera página",
+    "goPreviousPage": "Ir a la página anterior",
+    "goNextPage": "Ir a la página siguiente",
+    "goLastPage": "Ir a la última página",
+    "selectAll": "Seleccionar todo",
+    "copyAccountId": "Copiar ID de cuenta",
+    "onboardingProgress": "Progreso de incorporación",
+    "themeCode": "Código de tema",
+    "mode": "Modo"
+  },
+  "appearance": {
+    "themeTitle": "Tema",
+    "themeLocked": "El tema lo gestiona la configuración de tu organización y no se puede cambiar aquí.",
+    "themeDescription": "Ajustes preestablecidos con nombre, o copia un enlace / pega un código de tema para reproducir un aspecto exacto.",
+    "presetAria": "Ajuste de acento con nombre",
+    "copyLink": "Copiar enlace",
+    "shuffleHint": "Usa Aleatorio para generar un código.",
+    "codeLabel": "Código: {{seed}}",
+    "codePlaceholder": "Pega un código de tema",
+    "apply": "Aplicar",
+    "pickAnyColour": "Elige cualquier color",
+    "modeTitle": "Modo",
+    "modeDescription": "Guardado en este dispositivo.",
+    "colourTitle": "Color",
+    "colourDescription": "Acento, gráficos y la base neutra.",
+    "accentColour": "Color de acento",
+    "chartColour": "Color de gráficos",
+    "baseColour": "Color base",
+    "harmony": "Armonía",
+    "harmonyAria": "Armonía de color",
+    "accentIntensity": "Intensidad del acento",
+    "typeTitle": "Tipografía y forma",
+    "typeDescription": "Fuentes, radio de esquinas y superficie de menú.",
+    "bodyFont": "Fuente del cuerpo",
+    "headingFont": "Fuente de títulos",
+    "radius": "Radio",
+    "shapeLanguage": "Lenguaje de formas",
+    "typeScale": "Escala tipográfica",
+    "menu": "Menú",
+    "menuAria": "Estilo de menú",
+    "iconsTitle": "Iconos",
+    "iconsDescription": "Grosor de trazo, color y conjunto de iconos.",
+    "iconWeight": "Grosor de icono",
+    "iconColour": "Color de icono",
+    "iconLibrary": "Biblioteca de iconos",
+    "layoutTitle": "Diseño",
+    "layoutDescription": "Ancho del área de trabajo principal: estándar para paneles, lectura para texto enfocado.",
+    "contentWidth": "Ancho del contenido",
+    "surfaceTitle": "Superficie y movimiento",
+    "surfaceDescription": "Espaciado, profundidad, contraste y cómo se mueve.",
+    "density": "Densidad",
+    "contrast": "Contraste",
+    "elevation": "Elevación",
+    "separation": "Separación",
+    "separationAria": "Separación de superficies",
+    "motion": "Movimiento",
+    "focusRing": "Anillo de foco",
+    "notificationsTitle": "Notificaciones",
+    "notificationsDescription": "Elige o aleatoriza un diseño de notificación: las vistas previas usan tus tokens de tema en vivo.",
+    "toastDesign": "Diseño de notificación",
+    "position": "Posición",
+    "positionAria": "Posición de la notificación",
+    "previewSuccess": "Éxito",
+    "previewError": "Error",
+    "previewWarning": "Advertencia",
+    "previewInfo": "Información",
+    "shuffleSection": "Aleatorizar {{section}}",
+    "sectionColour": "color",
+    "sectionType": "tipografía y forma",
+    "sectionSurface": "superficie y movimiento",
+    "sectionNotifications": "estilo de notificación",
+    "custom": "Personalizado",
+    "customWith": "Personalizado — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "Buscar..."
   }
 }

@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "온보딩"
+  },
+  "steps": {
+    "welcome": {
+      "title": "환영합니다",
+      "description": "몇 단계로 계정을 설정해 보세요."
+    },
+    "profile": {
+      "title": "자기소개",
+      "description": "자신에 대해 간단히 알려 주세요."
+    },
+    "questions": {
+      "title": "간단한 질문",
+      "description": "선택 사항 — 워크스페이스 맞춤에 도움이 됩니다."
+    },
+    "workspace": {
+      "title": "워크스페이스",
+      "description": "만들 조직의 이름을 입력하세요."
+    },
+    "invite": {
+      "title": "팀 초대",
+      "description": "지금 동료를 추가하거나 나중에 하세요."
+    },
+    "done": {
+      "title": "준비 완료",
+      "description": "확인하고 대시보드로 이동하세요."
+    }
+  },
+  "welcome": {
+    "body": "프로필 설정, 첫 조직 만들기, 팀 초대를 도와드립니다. 1분이면 됩니다.",
+    "bodyPersonal": "프로필 설정과 워크스페이스 개인화를 도와드립니다. 1분이면 됩니다."
+  },
+  "profile": {
+    "firstNameLabel": "이름",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "성",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "팀 규모는 어떻게 되나요?",
+      "options": {
+        "justMe": "혼자",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "Core를 주로 어디에 사용하시나요?",
+      "options": {
+        "customerManagement": "고객 관리",
+        "teamCollaboration": "팀 협업",
+        "analyticsReporting": "분석 및 보고",
+        "internalTools": "내부 도구",
+        "somethingElse": "기타"
+      }
+    },
+    "referral": {
+      "label": "어떻게 알게 되셨나요?",
+      "options": {
+        "search": "검색",
+        "socialMedia": "소셜 미디어",
+        "friendOrColleague": "친구 또는 동료",
+        "blogOrArticle": "블로그 또는 기사",
+        "other": "기타"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "조직 이름",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "워크스페이스 URL(선택)",
+    "slugPlaceholder": "acme",
+    "urlPreview": "워크스페이스 주소: <1>core.app/{{slug}}</1>",
+    "slugFallback": "your-workspace"
+  },
+  "invite": {
+    "emailLabel": "동료 이메일",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "추가",
+    "invalidEmail": "유효한 이메일 주소를 입력하세요.",
+    "duplicateEmail": "해당 동료가 이미 목록에 있습니다.",
+    "removeAriaLabel": "{{email}} 제거"
+  },
+  "done": {
+    "nameLabel": "이름",
+    "organizationLabel": "조직",
+    "invitesLabel": "초대",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}}건 대기",
+    "invitesPending_other": "{{count}}건 대기"
+  },
+  "actions": {
+    "back": "뒤로",
+    "continue": "계속",
+    "enterDashboard": "대시보드 들어가기",
+    "settingUp": "설정 중…"
+  },
+  "defaults": {
+    "organizationName": "내 조직",
+    "memberRoleName": "멤버",
+    "memberRoleDescription": "초대된 동료의 기본 역할."
+  },
+  "toast": {
+    "finishSuccess": "환영합니다! 워크스페이스가 준비되었습니다.",
+    "finishError": "설정을 완료하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+    "invitePartialFailure_one": "워크스페이스 준비 완료 — 초대 {{count}}건을 보내지 못했습니다. 멤버에서 다시 보낼 수 있습니다.",
+    "invitePartialFailure_other": "워크스페이스 준비 완료 — 초대 {{count}}건을 보내지 못했습니다. 멤버에서 다시 보낼 수 있습니다."
+  },
+  "guard": {
+    "title": "온보딩을 나가시겠습니까?",
+    "description": "진행 상황은 로컬에 저장되지만, 지금 나가면 설정이 중단될 수 있습니다.",
+    "discard": "나가기",
+    "stay": "머물기"
+  }
+}

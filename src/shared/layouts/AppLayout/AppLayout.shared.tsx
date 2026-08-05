@@ -187,7 +187,7 @@ export function SearchTrigger({
     >
       <Search className="h-4 w-4 shrink-0" />
       <span className="text-sm">{t(LAYOUT_KEYS.app.searchPlaceholder)}</span>
-      <kbd className="bg-background text-foreground/70 ml-auto hidden rounded border px-1.5 text-[10px] font-medium sm:inline">
+      <kbd className="bg-background text-foreground/70 ms-auto hidden rounded border px-1.5 text-[10px] font-medium sm:inline">
         {isMac
           ? t(LAYOUT_KEYS.app.searchShortcutMac)
           : t(LAYOUT_KEYS.app.searchShortcutWindows)}
@@ -258,7 +258,7 @@ export function UserMenu({
           }
           data-testid="user-menu-settings"
         >
-          <Settings className="mr-2 h-4 w-4" />
+          <Settings className="me-2 h-4 w-4" />
           {t(LAYOUT_KEYS.app.settings)}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -267,7 +267,7 @@ export function UserMenu({
           className="text-destructive focus:text-destructive"
           data-testid="logout-button"
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="me-2 h-4 w-4" />
           {t(LAYOUT_KEYS.app.logOut)}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -281,7 +281,7 @@ const sidebarNavBase =
 // eslint-disable-next-line react-refresh/only-export-components -- static class map colocated with the layout shell
 export const NAV_STYLES = {
   sidebar: {
-    active: `${sidebarNavBase} bg-sidebar-accent text-sidebar-accent-foreground before:absolute before:top-1/2 before:left-0 before:h-5 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-sidebar-primary [&_svg]:text-sidebar-accent-foreground`,
+    active: `${sidebarNavBase} bg-sidebar-accent text-sidebar-accent-foreground before:absolute before:top-1/2 before:start-0 before:h-5 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-sidebar-primary [&_svg]:text-sidebar-accent-foreground`,
     inactive: `${sidebarNavBase} text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground [&_svg]:${iconOnSidebarSurface}`,
   },
   top: {
@@ -354,7 +354,7 @@ export function MobileNav({
   return (
     <nav
       aria-label={t(LAYOUT_KEYS.a11y.mobileNavigation)}
-      className="bg-background fixed right-0 bottom-0 left-0 z-40 flex border-t md:hidden"
+      className="bg-background fixed start-0 end-0 bottom-0 z-40 flex border-t md:hidden"
       data-testid="mobile-bottom-bar"
     >
       {navItems.map((item) => (

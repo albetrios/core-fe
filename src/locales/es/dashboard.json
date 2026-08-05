@@ -127,7 +127,23 @@
     "description": "Renovaciones, revisiones y eventos del equipo",
     "upcoming": "Próximos",
     "legendEvent": "Día con evento",
-    "empty": "Nada programado"
+    "empty": "Nada programado",
+    "events": {
+      "planRenewal": "Renovación del plan",
+      "accessReview": "Revisión trimestral de acceso",
+      "teamSync": "Sincronización del equipo",
+      "invoiceDue": "Factura pendiente"
+    }
   },
-  "sampleBadge": "Datos de ejemplo"
+  "sampleBadge": "Datos de ejemplo",
+  "themeShowcase": {
+    "ariaLabel": "Tema del espacio de trabajo",
+    "heading": "Tema del espacio de trabajo",
+    "shuffle": "Aleatorio",
+    "customize": "Personalizar",
+    "custom": "Personalizado",
+    "default": "Predeterminado",
+    "shuffledTitle": "Tema aleatorizado",
+    "shuffledDescription": "Nuevo color de acento, fuentes y radio — y estilo de notificación."
+  }
 }

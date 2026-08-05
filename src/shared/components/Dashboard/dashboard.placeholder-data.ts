@@ -50,16 +50,16 @@ export const DASHBOARD_HIGHLIGHT_SLIDES: readonly DashboardHighlightSlide[] = [
 
 export type DashboardEvent = {
   id: string;
-  label: string;
+  labelKey: string;
   /** Day-of-month within the reference month. */
   day: number;
 };
 
 const DASHBOARD_EVENT_SEED: readonly DashboardEvent[] = [
-  { id: 'evt_1', label: 'Plan renewal', day: 4 },
-  { id: 'evt_2', label: 'Quarterly access review', day: 12 },
-  { id: 'evt_3', label: 'Team sync', day: 18 },
-  { id: 'evt_4', label: 'Invoice due', day: 26 },
+  { id: 'evt_1', labelKey: DASHBOARD_KEYS.schedule.events.planRenewal, day: 4 },
+  { id: 'evt_2', labelKey: DASHBOARD_KEYS.schedule.events.accessReview, day: 12 },
+  { id: 'evt_3', labelKey: DASHBOARD_KEYS.schedule.events.teamSync, day: 18 },
+  { id: 'evt_4', labelKey: DASHBOARD_KEYS.schedule.events.invoiceDue, day: 26 },
 ] as const;
 
 export type DashboardScheduledEvent = DashboardEvent & { date: Date };
@@ -92,15 +92,23 @@ function seeded(index: number): number {
   return Math.abs(Math.sin(index * 12.9898) * 43_758.5453) % 1;
 }
 
-const ANALYTICS_AXIS_FORMAT = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-});
+/** Default axis label when the caller does not supply a locale-aware formatter. */
+function defaultAnalyticsAxisLabel(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
 
-/** Build a deterministic daily series for the analytics chart placeholder. */
+/**
+ * Build a deterministic daily series for the analytics chart placeholder.
+ * Pass `formatLabel` from {@link useLocaleFormat} so axis ticks follow the
+ * user's regional locale + timezone preferences.
+ */
 export function buildAnalyticsSeries(
   range: AnalyticsRange,
   reference: Date = new Date(),
+  formatLabel: (date: Date) => string = defaultAnalyticsAxisLabel,
 ): AnalyticsPoint[] {
   const days = ANALYTICS_RANGE_DAYS.get(range) ?? 30;
   const points: AnalyticsPoint[] = [];
@@ -109,7 +117,7 @@ export function buildAnalyticsSeries(
     date.setDate(date.getDate() - offset);
     const i = days - offset;
     points.push({
-      label: ANALYTICS_AXIS_FORMAT.format(date),
+      label: formatLabel(date),
       sessions: Math.round(140 + 70 * Math.sin(i / 6) + seeded(i) * 60),
       apiCalls: Math.round(320 + 150 * Math.sin(i / 4 + 1) + seeded(i * 2) * 140),
     });

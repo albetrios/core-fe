@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "कुछ गलत हो गया",
+    "message": "एक अप्रत्याशित त्रुटि हुई। कृपया पृष्ठ रीलोड करें।",
+    "reload": "पृष्ठ रीलोड करें"
+  },
+  "route": {
+    "notFound": "आप जिस पृष्ठ की तलाश कर रहे हैं वह मौजूद नहीं है।",
+    "generic": "कुछ गलत हो गया।",
+    "pageTitle": "इस पृष्ठ पर त्रुटि हुई",
+    "pageMessage": "इस पृष्ठ को रेंडर करते समय कुछ गलत हो गया।",
+    "tryAgain": "फिर कोशिश करें",
+    "goHome": "होम पर जाएँ",
+    "refresh": "पृष्ठ रीफ़्रेश करें"
+  },
+  "widget": {
+    "unavailable": "{{title}} अनुपलब्ध",
+    "message": "यह अनुभाग लोड करते समय कुछ गलत हो गया। फिर कोशिश करें।",
+    "retry": "फिर कोशिश करें",
+    "pageContent": "पृष्ठ सामग्री",
+    "emailBanner": "ईमेल सत्यापन",
+    "notifications": "सूचनाएँ",
+    "organizationSwitcher": "संगठन स्विचर"
+  },
+  "toast": {
+    "dismiss": "सूचना खारिज करें",
+    "undo": "पूर्ववत",
+    "undone": "क्रिया रद्द",
+    "processing": "प्रसंस्करण…",
+    "preview": {
+      "successTitle": "परिवर्तन सहेजे गए",
+      "successDescription": "आपकी सेटिंग्स लाइव हैं।",
+      "errorTitle": "कुछ गलत हो गया",
+      "errorDescription": "कृपया फिर कोशिश करें।",
+      "warningTitle": "ध्यान दें",
+      "warningDescription": "इस क्रिया की समीक्षा आवश्यक है।",
+      "infoTitle": "क्या आप जानते हैं?",
+      "infoDescription": "शफ़ल भी इस डिज़ाइन को बदलता है।"
+    }
+  },
+  "api": {
+    "fallback": "कुछ गलत हो गया। कृपया फिर कोशिश करें।",
+    "unexpected": "एक अप्रत्याशित त्रुटि हुई",
+    "http400": "अनुरोध अमान्य था। अपना इनपुट जाँचें और फिर कोशिश करें।",
+    "http401": "आपका सत्र समाप्त हो गया। कृपया फिर साइन इन करें।",
+    "http403": "आपके पास यह क्रिया करने की अनुमति नहीं है।",
+    "http404": "अनुरोधित संसाधन नहीं मिला।",
+    "http409": "संघर्ष हुआ। संसाधन किसी और द्वारा संशोधित किया गया हो सकता है।",
+    "http422": "सबमिट किया गया डेटा अमान्य है। समीक्षा करें और फिर कोशिश करें।",
+    "http429": "बहुत अधिक अनुरोध। कृपया थोड़ी प्रतीक्षा करें और फिर कोशिश करें।",
+    "http500": "एक आंतरिक सर्वर त्रुटि हुई। कृपया बाद में फिर कोशिश करें।",
+    "http502": "सर्वर अस्थायी रूप से अनुपलब्ध है। कृपया बाद में फिर कोशिश करें।",
+    "http503": "सेवा अस्थायी रूप से अनुपलब्ध है। कृपया बाद में फिर कोशिश करें।"
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "डेटा लोड नहीं हो सका।",
+      "retry": "फिर कोशिश करें"
+    },
+    "organization": {
+      "roleRequired": "सदस्य भूमिका बदलने के लिए एक भूमिका आवश्यक है।",
+      "updateFailed": "संगठन अपडेट नहीं हो सका",
+      "logoInvalidType": "कृपया एक छवि फ़ाइल चुनें।",
+      "logoTooLarge": "लोगो 1 MB से कम होना चाहिए।",
+      "logoReadFailed": "वह फ़ाइल पढ़ी नहीं जा सकी।",
+      "formCheck": "फ़ॉर्म जाँचें",
+      "updateSuccess": "संगठन अपडेट किया गया",
+      "createSuccess": "{{name}} बनाया गया"
+    },
+    "account": {
+      "copyFailed": "क्लिपबोर्ड पर कॉपी नहीं हो सका",
+      "themeCodeNumeric": "एक संख्यात्मक थीम कोड दर्ज करें",
+      "copySuccess": "खाता ID कॉपी किया गया",
+      "themeLinkCopied": "थीम लिंक कॉपी किया गया",
+      "themeLinkCopiedDescription": "दिखावट दोहराने के लिए यह URL साझा करें।",
+      "notificationStylePreview": "सूचना शैली",
+      "notificationStylePreviewDescription": "{{variant}} — आपके एक्सेंट और सिमेंटिक रंगों के साथ।",
+      "accountDeletionPending": "खाता हटाया गया। साइन आउट हो रहा है…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "पासकी जोड़ी नहीं जा सकी",
+        "removeFailed": "पासकी हटाई नहीं जा सकी",
+        "addSuccess": "पासकी जोड़ी गई",
+        "removeSuccess": "पासकी हटाई गई"
+      },
+      "mfa": {
+        "disableFailed": "दो-कारक प्रमाणीकरण अक्षम नहीं हो सका",
+        "enableSuccess": "दो-कारक प्रमाणीकरण सक्षम",
+        "disableSuccess": "दो-कारक प्रमाणीकरण अक्षम"
+      },
+      "members": {
+        "updateRoleFailed": "भूमिका अपडेट नहीं हो सकी",
+        "removeFailed": "सदस्य हटाया नहीं जा सका",
+        "updateFailed": "सदस्य अपडेट नहीं हो सका",
+        "updateRoleSuccess": "सदस्य भूमिका अपडेट की गई",
+        "removeSuccess": "सदस्य हटाया गया",
+        "suspendSuccess": "सदस्य निलंबित",
+        "reactivateSuccess": "सदस्य पुनः सक्रिय"
+      },
+      "roles": {
+        "createFailed": "भूमिका बनाई नहीं जा सकी",
+        "updateFailed": "भूमिका अपडेट नहीं हो सकी",
+        "deleteFailed": "भूमिका हटाई नहीं जा सकी",
+        "createSuccess": "भूमिका \"{{name}}\" बनाई गई",
+        "updateSuccess": "भूमिका \"{{name}}\" अपडेट की गई",
+        "deleteSuccess": "भूमिका हटाई गई"
+      },
+      "apiKeys": {
+        "createFailed": "API कुंजी बनाई नहीं जा सकी",
+        "renameFailed": "API कुंजी का नाम नहीं बदला जा सका",
+        "revokeFailed": "API कुंजी रद्द नहीं की जा सकी",
+        "createSuccess": "API कुंजी बनाई गई",
+        "renameSuccess": "API कुंजी का नाम बदला गया",
+        "revokeSuccess": "API कुंजी रद्द की गई"
+      },
+      "sessions": {
+        "signOutFailed": "उस सत्र से साइन आउट नहीं हो सका",
+        "signOutSuccess": "उस सत्र से साइन आउट हो गए"
+      },
+      "notifications": {
+        "updateFailed": "सूचना अपडेट नहीं हो सकी",
+        "updateManyFailed": "सूचनाएँ अपडेट नहीं हो सकीं",
+        "savePreferencesFailed": "प्राथमिकताएँ सहेजी नहीं जा सकीं",
+        "savePreferencesSuccess": "सूचना प्राथमिकताएँ सहेजी गईं"
+      },
+      "webhooks": {
+        "createFailed": "वेबहुक बनाया नहीं जा सका",
+        "deleteFailed": "वेबहुक हटाया नहीं जा सका",
+        "createSuccess": "वेबहुक बनाया गया",
+        "deleteSuccess": "वेबहुक हटाया गया"
+      },
+      "subscription": {
+        "changePlanFailed": "प्लान नहीं बदला जा सका",
+        "changePlanSuccess": "{{plan}} प्लान पर स्विच किया गया"
+      },
+      "invitations": {
+        "sendFailed": "निमंत्रण नहीं भेजा जा सका",
+        "sendSuccess": "{{email}} को निमंत्रण भेजा गया"
+      }
+    },
+    "profileUpdated": "प्रोफ़ाइल अपडेट की गई"
+  }
+}

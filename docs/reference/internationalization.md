@@ -24,22 +24,24 @@ flowchart LR
 
 - **Stack:** `i18next` + `react-i18next` — bootstrap in `src/lib/i18n/i18n.ts`, provider in `AppProviders`.
 - **Build modes (`BUILD_I18N_MODE`, build-time only):**
-  - **`single`** (default) — Vite plugin inlines one locale (UI copy + regional profile: date/number/currency defaults) into JS; no separate JSON chunks in `dist`. Default locale: `BUILD_I18N_LOCALE=en-US`. Language/regional pickers hide at runtime.
-  - **`multi`** — runtime loader in `load-namespace.ts`; English in the initial bundle, other locales lazy-load `src/locales/<lang>/*.json`.
-- **Locales:** `src/locales/en/`, `es/`, `zh/` — namespaces: `common`, `layout` (shared shells), `auth`, `onboarding`, …
-- **Layout chrome:** `AuthLayout`, `AppLayout`, and `PublicLayout` use `layout.constants.ts` + `useTranslation(LAYOUT_NS)` — nav labels, skip links, auth marketing copy, footer.
-- **Regional prefs:** `useLocaleStore` — language, date/time format, hour cycle (12h/24h), number style, and currency display (`locale-preference` v5).
-- **Formatting:** `useLocaleFormat()` / `<FormattedDate />` — locale-ordered datetime (day/month/year + hour:minute:second), date-only, time-only, relative time, numbers, currency.
-- **Language picker:** right-edge floating handle via `FloatingEdgeControls` (multi builds only).
+  - **`single`** — Vite plugin inlines one locale (UI copy + regional profile: date/number/currency defaults) into JS; no separate JSON chunks in `dist`. Default locale: `BUILD_I18N_LOCALE=en-US`. Language picker hides (date/timezone still available in Appearance). Schema/prod default is `single`; local gets `multi` via `envProfiles.local.defaults`.
+  - **`multi`** — runtime loader in `load-namespace.ts`; English in the initial bundle, other locales lazy-load `src/locales/<lang>/*.json`. Set `BUILD_I18N_MODE=multi` in `.env.local` (or rely on local profile defaults) so Appearance → Language works.
+- **Locales:** `src/locales/<lang>/` for every UI language (`en`, `es`, `zh`, `fr`, `de`, `ja`, `pt`, `ar`, `hi`, `ko`, `it`) — namespaces: `common`, `layout`, `auth`, `dashboard`, `settings`, `errors`, `onboarding`.
+- **Layout chrome:** `AuthLayout`, `AppLayout`, and `PublicLayout` use `layout.constants.ts` + `useTranslation(LAYOUT_NS)` — nav labels, skip links, auth marketing copy, footer. Prefer **logical CSS** (`ms`/`me`/`ps`/`pe`/`start`/`end`) so RTL mirrors; gated by `pnpm validate:logical`.
+- **Regional prefs:** `useLocaleStore` — language, text direction (auto/LTR/RTL), regional format locale (country), timezone, date/time format, hour cycle (12h/24h), number style, and currency display (`locale-preference` v7).
+- **Formatting:** `useLocaleFormat()` / `<FormattedDate />` — locale-ordered datetime in the chosen IANA timezone, date-only, time-only, relative time, numbers, currency. Prefer these over `toLocaleDateString` / bare `Intl.DateTimeFormat` so Appearance prefs apply app-wide (`pnpm validate:no-bare-intl`). Civil calendar days (placeholder/event `Date`s) pass `{ civilDay: true }`.
+- **Language + date/time + money:** Appearance side panel (`LanguagePrefsCard` + `DateTimePrefsCard` + `MoneyPrefsCard`). Language tiles are multi-locale only; text direction + date/timezone + number/currency always available.
+- **Appearance handle:** inline-end floating palette via `FloatingEdgeControls` (theme unlocked only).
+- **RTL FOUC:** `public/locale-init.js` sets `lang`/`dir` from `locale-preference` before paint (mirrors `theme-init.js`). Static HTML keeps `lang="en" dir="ltr"` as a no-JS fallback.
 
 ---
 
 ## Locale switching
 
-1. User picks **language** and **date format** from the floating **Languages** handle.
-2. `setLocale()` lazy-loads that locale's JSON chunks, then `i18n.changeLanguage()`.
-3. `setDateFormat()` updates Intl output immediately (no extra fetch).
-4. Preferences persist in `localStorage` (`locale-preference`).
+1. User picks **language**, **text direction**, **timezone**, **regional format locale** (country), **date format**, and **number/currency** from Appearance.
+2. `setLocale()` (multi builds) lazy-loads that locale's JSON chunks, then `i18n.changeLanguage()`, and snaps region/currency (timezone is left alone — explicit picks and `auto` stay put). Document `dir` follows text-direction preference (Auto → language; LTR/RTL forced). A generation/`isStale` guard prevents a slower earlier switch from overwriting document/i18next.
+3. `setTextDirection()` / `setFormatLocale()` / `setTimeZone()` / `setDateFormat()` / money setters update immediately (no extra fetch). `setFormatLocale` snaps currency only — never timezone.
+4. Preferences persist in `localStorage` (`locale-preference`). Pre-paint: `locale-init.js` applies `lang`/`dir`.
 
 To add another language:
 
@@ -83,13 +85,13 @@ build locale) because constants files reference key paths, not inline copy.
 Fix by adding the key to locale JSON before merging.
 
 `pnpm validate:i18n-parity` complements it on the cross-locale axis: English is
-the source of truth, **full** locales (`I18N_LOCALES` − `PARTIAL_UI_LOCALES` −
-`en`) must carry every English key in every namespace, **partial** locales
-(`PARTIAL_UI_LOCALES`) must carry every English `common` key (other namespaces
-fall back to English by design), and no locale may hold a key English has
-dropped. The locale sets are read from `src/lib/i18n/locales.ts`, so the gate
-can't drift from the app config. Both run in PR CI (`static-sync` job) and in
-the weekly `sync-drift-canary` via `pnpm sync:check`.
+the source of truth and every other locale in `I18N_LOCALES` must carry every
+English key in every namespace (and must not hold keys English has dropped).
+`PARTIAL_UI_LOCALES` is reserved for languages that temporarily ship only
+`common.json`; it is empty when all languages have full coverage. The locale
+sets are read from `src/lib/i18n/locales.ts`, so the gate can't drift from the
+app config. Both run in PR CI (`static-sync` job) and in the weekly
+`sync-drift-canary` via `pnpm sync:check`.
 
 ---
 

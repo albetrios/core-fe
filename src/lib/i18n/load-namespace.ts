@@ -1,86 +1,122 @@
+import { readInjectedTestMode } from '@/lib/i18n/build-env.ts';
 import { isMultiLocaleBuild } from '@/lib/i18n/build-runtime.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import {
   getBootstrapResources,
   I18N_BUILD_UI_LOCALE,
 } from '@/lib/i18n/i18n-resources.ts';
-import { I18N_LOCALES, type I18nLocale, PARTIAL_UI_LOCALES } from '@/lib/i18n/locales.ts';
+import type { I18nLocale } from '@/lib/i18n/locales.ts';
 import { I18N_NAMESPACES, type I18nNamespace } from '@/lib/i18n/namespaces.ts';
 
 type NamespaceModule = { default: Record<string, unknown> };
+type NamespaceLoaders = Record<I18nNamespace, () => Promise<NamespaceModule>>;
 
-const EN_LOADERS: Record<I18nNamespace, () => Promise<NamespaceModule>> = {
-  common: () => import('@/locales/en/common.json'),
-  layout: () => import('@/locales/en/layout.json'),
-  dashboard: () => import('@/locales/en/dashboard.json'),
-  settings: () => import('@/locales/en/settings.json'),
-  errors: () => import('@/locales/en/errors.json'),
-  auth: () => import('@/locales/en/auth.json'),
-  onboarding: () => import('@/locales/en/onboarding.json'),
+/**
+ * Explicit per-locale loaders (not `import(\`…${locale}…\`)`).
+ * Template globs can overwhelm Vitest's transform queue under the full suite
+ * and starve unrelated lazy chunks (e.g. AppLayout sidebar Suspense).
+ */
+const NAMESPACE_LOADERS: Record<I18nLocale, NamespaceLoaders> = {
+  en: {
+    common: () => import('@/locales/en/common.json'),
+    layout: () => import('@/locales/en/layout.json'),
+    dashboard: () => import('@/locales/en/dashboard.json'),
+    settings: () => import('@/locales/en/settings.json'),
+    errors: () => import('@/locales/en/errors.json'),
+    auth: () => import('@/locales/en/auth.json'),
+    onboarding: () => import('@/locales/en/onboarding.json'),
+  },
+  es: {
+    common: () => import('@/locales/es/common.json'),
+    layout: () => import('@/locales/es/layout.json'),
+    dashboard: () => import('@/locales/es/dashboard.json'),
+    settings: () => import('@/locales/es/settings.json'),
+    errors: () => import('@/locales/es/errors.json'),
+    auth: () => import('@/locales/es/auth.json'),
+    onboarding: () => import('@/locales/es/onboarding.json'),
+  },
+  zh: {
+    common: () => import('@/locales/zh/common.json'),
+    layout: () => import('@/locales/zh/layout.json'),
+    dashboard: () => import('@/locales/zh/dashboard.json'),
+    settings: () => import('@/locales/zh/settings.json'),
+    errors: () => import('@/locales/zh/errors.json'),
+    auth: () => import('@/locales/zh/auth.json'),
+    onboarding: () => import('@/locales/zh/onboarding.json'),
+  },
+  fr: {
+    common: () => import('@/locales/fr/common.json'),
+    layout: () => import('@/locales/fr/layout.json'),
+    dashboard: () => import('@/locales/fr/dashboard.json'),
+    settings: () => import('@/locales/fr/settings.json'),
+    errors: () => import('@/locales/fr/errors.json'),
+    auth: () => import('@/locales/fr/auth.json'),
+    onboarding: () => import('@/locales/fr/onboarding.json'),
+  },
+  de: {
+    common: () => import('@/locales/de/common.json'),
+    layout: () => import('@/locales/de/layout.json'),
+    dashboard: () => import('@/locales/de/dashboard.json'),
+    settings: () => import('@/locales/de/settings.json'),
+    errors: () => import('@/locales/de/errors.json'),
+    auth: () => import('@/locales/de/auth.json'),
+    onboarding: () => import('@/locales/de/onboarding.json'),
+  },
+  ja: {
+    common: () => import('@/locales/ja/common.json'),
+    layout: () => import('@/locales/ja/layout.json'),
+    dashboard: () => import('@/locales/ja/dashboard.json'),
+    settings: () => import('@/locales/ja/settings.json'),
+    errors: () => import('@/locales/ja/errors.json'),
+    auth: () => import('@/locales/ja/auth.json'),
+    onboarding: () => import('@/locales/ja/onboarding.json'),
+  },
+  pt: {
+    common: () => import('@/locales/pt/common.json'),
+    layout: () => import('@/locales/pt/layout.json'),
+    dashboard: () => import('@/locales/pt/dashboard.json'),
+    settings: () => import('@/locales/pt/settings.json'),
+    errors: () => import('@/locales/pt/errors.json'),
+    auth: () => import('@/locales/pt/auth.json'),
+    onboarding: () => import('@/locales/pt/onboarding.json'),
+  },
+  ar: {
+    common: () => import('@/locales/ar/common.json'),
+    layout: () => import('@/locales/ar/layout.json'),
+    dashboard: () => import('@/locales/ar/dashboard.json'),
+    settings: () => import('@/locales/ar/settings.json'),
+    errors: () => import('@/locales/ar/errors.json'),
+    auth: () => import('@/locales/ar/auth.json'),
+    onboarding: () => import('@/locales/ar/onboarding.json'),
+  },
+  hi: {
+    common: () => import('@/locales/hi/common.json'),
+    layout: () => import('@/locales/hi/layout.json'),
+    dashboard: () => import('@/locales/hi/dashboard.json'),
+    settings: () => import('@/locales/hi/settings.json'),
+    errors: () => import('@/locales/hi/errors.json'),
+    auth: () => import('@/locales/hi/auth.json'),
+    onboarding: () => import('@/locales/hi/onboarding.json'),
+  },
+  ko: {
+    common: () => import('@/locales/ko/common.json'),
+    layout: () => import('@/locales/ko/layout.json'),
+    dashboard: () => import('@/locales/ko/dashboard.json'),
+    settings: () => import('@/locales/ko/settings.json'),
+    errors: () => import('@/locales/ko/errors.json'),
+    auth: () => import('@/locales/ko/auth.json'),
+    onboarding: () => import('@/locales/ko/onboarding.json'),
+  },
+  it: {
+    common: () => import('@/locales/it/common.json'),
+    layout: () => import('@/locales/it/layout.json'),
+    dashboard: () => import('@/locales/it/dashboard.json'),
+    settings: () => import('@/locales/it/settings.json'),
+    errors: () => import('@/locales/it/errors.json'),
+    auth: () => import('@/locales/it/auth.json'),
+    onboarding: () => import('@/locales/it/onboarding.json'),
+  },
 };
-
-const PARTIAL_COMMON_LOADERS: Partial<
-  Record<I18nLocale, () => Promise<NamespaceModule>>
-> = {
-  fr: () => import('@/locales/fr/common.json'),
-  de: () => import('@/locales/de/common.json'),
-  ja: () => import('@/locales/ja/common.json'),
-  pt: () => import('@/locales/pt/common.json'),
-  ar: () => import('@/locales/ar/common.json'),
-  hi: () => import('@/locales/hi/common.json'),
-  ko: () => import('@/locales/ko/common.json'),
-  it: () => import('@/locales/it/common.json'),
-};
-
-function loadersFor(
-  locale: I18nLocale,
-): Record<I18nNamespace, () => Promise<NamespaceModule>> {
-  const commonLoader =
-    PARTIAL_COMMON_LOADERS[locale] ??
-    (locale === 'en' || locale === 'es' || locale === 'zh'
-      ? () => import(`@/locales/${locale}/common.json`)
-      : EN_LOADERS.common);
-
-  if (
-    !PARTIAL_UI_LOCALES.has(locale) &&
-    locale !== 'en' &&
-    locale !== 'es' &&
-    locale !== 'zh'
-  ) {
-    return EN_LOADERS;
-  }
-
-  if (locale === 'en') return EN_LOADERS;
-
-  if (locale === 'es' || locale === 'zh') {
-    return {
-      common: () => import(`@/locales/${locale}/common.json`),
-      layout: () => import(`@/locales/${locale}/layout.json`),
-      dashboard: () => import(`@/locales/${locale}/dashboard.json`),
-      settings: () => import(`@/locales/${locale}/settings.json`),
-      errors: () => import(`@/locales/${locale}/errors.json`),
-      auth: () => import(`@/locales/${locale}/auth.json`),
-      onboarding: () => import(`@/locales/${locale}/onboarding.json`),
-    };
-  }
-
-  return {
-    common: commonLoader,
-    layout: EN_LOADERS.layout,
-    dashboard: EN_LOADERS.dashboard,
-    settings: EN_LOADERS.settings,
-    errors: EN_LOADERS.errors,
-    auth: EN_LOADERS.auth,
-    onboarding: EN_LOADERS.onboarding,
-  };
-}
-
-const NAMESPACE_LOADERS: Record<
-  I18nLocale,
-  Record<I18nNamespace, () => Promise<NamespaceModule>>
-> = Object.fromEntries(
-  I18N_LOCALES.map((locale) => [locale, loadersFor(locale)]),
-) as Record<I18nLocale, Record<I18nNamespace, () => Promise<NamespaceModule>>>;
 
 const ALL_NAMESPACES = Object.values(I18N_NAMESPACES);
 
@@ -129,6 +165,18 @@ export async function ensureNamespace(
   loadedBundles.add(bundleKey(locale, ns));
 }
 
+/**
+ * Invoke a locale JSON loader directly (bypasses bootstrap cache).
+ * Kept for tests so every explicit import path stays covered.
+ */
+export async function loadNamespaceModule(
+  locale: I18nLocale,
+  ns: I18nNamespace,
+): Promise<Record<string, unknown>> {
+  const mod = await NAMESPACE_LOADERS[locale][ns]();
+  return mod.default;
+}
+
 /** Load every registered namespace for a locale (parallel). */
 export async function ensureLocale(locale: I18nLocale): Promise<void> {
   await Promise.all(ALL_NAMESPACES.map((ns) => ensureNamespace(locale, ns)));
@@ -137,6 +185,8 @@ export async function ensureLocale(locale: I18nLocale): Promise<void> {
 /** Warm non-active locales during idle time (keeps initial bundle small). */
 export function preloadLocaleIdle(locale: I18nLocale): void {
   if (!isMultiLocaleBuild()) return;
+  // Idle preloads compete with Vitest's transform queue under the full suite.
+  if (readInjectedTestMode()) return;
   if (locale === I18N_BUILD_UI_LOCALE) return;
 
   if (typeof window === 'undefined') return;

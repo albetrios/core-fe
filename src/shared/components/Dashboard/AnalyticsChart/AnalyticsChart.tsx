@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select.tsx';
+import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
 import { Zap } from '@/shared/icons/index.ts';
 
 /**
@@ -43,8 +44,15 @@ import { Zap } from '@/shared/icons/index.ts';
  */
 export function AnalyticsChart() {
   const { t } = useTranslation(DASHBOARD_NS);
+  const { formatDate, formatNumber } = useLocaleFormat();
   const [range, setRange] = useState<AnalyticsRange>('30d');
-  const data = useMemo(() => buildAnalyticsSeries(range), [range]);
+  const data = useMemo(
+    () =>
+      buildAnalyticsSeries(range, new Date(), (date) =>
+        formatDate(date, { month: 'short', day: 'numeric' }),
+      ),
+    [range, formatDate],
+  );
 
   const chartConfig = useMemo<ChartConfig>(
     () => ({
@@ -131,7 +139,10 @@ export function AnalyticsChart() {
               tickMargin={8}
               minTickGap={32}
             />
-            <ChartTooltip cursor content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor
+              content={<ChartTooltipContent valueFormatter={(v) => formatNumber(v)} />}
+            />
             <Area
               dataKey="apiCalls"
               type="natural"

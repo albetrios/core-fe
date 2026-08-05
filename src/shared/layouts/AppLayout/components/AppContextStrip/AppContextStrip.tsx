@@ -97,7 +97,7 @@ export function AppContextStrip({ className }: { className?: string }) {
         className,
       )}
     >
-      <p className="text-muted-foreground mr-1 hidden shrink-0 text-[11px] font-medium tracking-wide uppercase sm:block">
+      <p className="text-muted-foreground me-1 hidden shrink-0 text-[11px] font-medium tracking-wide uppercase sm:block">
         {personalOnly
           ? t(LAYOUT_KEYS.app.contextStrip.labelSolo)
           : t(LAYOUT_KEYS.app.contextStrip.label)}

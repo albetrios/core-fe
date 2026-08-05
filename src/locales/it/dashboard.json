@@ -1,0 +1,149 @@
+{
+  "greeting": "Bentornato, {{name}}",
+  "greetingFallback": "ciao",
+  "heroSubtitle": "Ecco cosa sta succedendo oggi nel tuo spazio di lavoro.",
+  "heroSubtitleSolo": "Ecco cosa sta succedendo oggi.",
+  "errorLoad": "Non siamo riusciti a caricare il tuo spazio di lavoro. Aggiorna per riprovare.",
+  "workspaceFallback": "Il tuo spazio di lavoro",
+  "workspaceNameFallback": "il tuo spazio di lavoro",
+  "orgType": {
+    "team": "Team",
+    "personal": "Personale"
+  },
+  "status": {
+    "active": "Attivo",
+    "suspended": "Sospeso",
+    "archived": "Archiviato"
+  },
+  "overview": {
+    "ariaLabel": "Panoramica"
+  },
+  "stats": {
+    "workspaces": "Spazi di lavoro",
+    "workspacesHintOne": "Solo questo",
+    "workspacesHintMany": "Sei un membro",
+    "permissions": "I tuoi permessi",
+    "permissionsHint": "In questo spazio",
+    "type": "Tipo di spazio",
+    "typeHintTeam": "Condiviso con il tuo team",
+    "typeHintPersonal": "Privato per te",
+    "billing": "Fatturazione",
+    "billingManaged": "Gestita",
+    "billingNone": "—",
+    "billingHintTeam": "Piano team",
+    "billingHintPersonal": "Personale — nessuno"
+  },
+  "nextSteps": {
+    "ariaLabel": "Prossimi passi suggeriti",
+    "heading": "Prossimi passi suggeriti"
+  },
+  "quickActions": {
+    "ariaLabel": "Azioni rapide",
+    "heading": "Azioni rapide",
+    "inviteTitle": "Invita membri",
+    "inviteDescription": "Aggiungi colleghi a {{orgName}}",
+    "rolesTitle": "Gestisci ruoli",
+    "rolesDescription": "Definisci chi può fare cosa",
+    "billingTitle": "Fatturazione e piano",
+    "billingDescription": "Abbonamento e fatture",
+    "orgSettingsTitle": "Impostazioni organizzazione",
+    "orgSettingsDescription": "Nome, branding e altro",
+    "accountTitle": "Il tuo account",
+    "accountDescription": "Profilo, sicurezza, sessioni"
+  },
+  "organizations": {
+    "ariaLabel": "Le tue organizzazioni",
+    "heading": "Le tue organizzazioni",
+    "current": "Attuale",
+    "openWorkspace": "Apri spazio →"
+  },
+  "insights": {
+    "ariaLabel": "Approfondimenti dello spazio",
+    "heading": "Approfondimenti dello spazio"
+  },
+  "highlights": {
+    "ariaLabel": "Punti salienti dello spazio",
+    "heading": "Punti salienti",
+    "description": "Modi selezionati per ottenere di più dal tuo spazio di lavoro",
+    "tabsLabel": "Argomenti in evidenza",
+    "slideAnnouncement": "Diapositiva {{current}} di {{total}}: {{title}}",
+    "previousSlide": "Punto saliente precedente",
+    "nextSlide": "Punto saliente successivo",
+    "goToSlide": "Vai al punto saliente {{title}}",
+    "tabs": {
+      "appearance": "Aspetto",
+      "invite": "Team",
+      "security": "Sicurezza"
+    },
+    "slides": {
+      "appearance": {
+        "title": "Rendilo tuo",
+        "description": "Regola tema, densità e accento così lo spazio corrisponde al modo di lavorare del tuo team.",
+        "action": "Apri impostazioni aspetto"
+      },
+      "invite": {
+        "title": "Fai crescere il team",
+        "description": "Invita colleghi e assegna ruoli così tutti abbiano l'accesso giusto dal primo giorno.",
+        "action": "Invita membri"
+      },
+      "security": {
+        "title": "Mettilo in sicurezza",
+        "description": "Controlla MFA, sessioni attive e metodi di accesso per proteggere il tuo account.",
+        "action": "Rivedi impostazioni di sicurezza"
+      }
+    }
+  },
+  "analytics": {
+    "heading": "Attività dello spazio",
+    "description": "Sessioni e chiamate API nel tempo",
+    "rangeLabel": "Seleziona intervallo di tempo",
+    "seriesSessions": "Sessioni",
+    "seriesApiCalls": "Chiamate API",
+    "range": {
+      "7d": "Ultimi 7 giorni",
+      "30d": "Ultimi 30 giorni",
+      "90d": "Ultimi 90 giorni"
+    }
+  },
+  "members": {
+    "ariaLabel": "Membri del team",
+    "heading": "Membri del team",
+    "description_one": "{{count}} persona in questo spazio",
+    "description_other": "{{count}} persone in questo spazio",
+    "columnMember": "Membro",
+    "columnRole": "Ruolo",
+    "columnStatus": "Stato",
+    "columnJoined": "Entrato",
+    "status": {
+      "active": "Attivo",
+      "invited": "Invitato",
+      "suspended": "Sospeso"
+    },
+    "error": "Impossibile caricare i membri."
+  },
+  "schedule": {
+    "ariaLabel": "Calendario",
+    "heading": "Calendario",
+    "description": "Rinnovi, revisioni ed eventi di team",
+    "upcoming": "In arrivo",
+    "legendEvent": "Giorno evento",
+    "empty": "Niente in programma",
+    "events": {
+      "planRenewal": "Rinnovo piano",
+      "accessReview": "Revisione accessi trimestrale",
+      "teamSync": "Sync del team",
+      "invoiceDue": "Fattura in scadenza"
+    }
+  },
+  "sampleBadge": "Dati di esempio",
+  "themeShowcase": {
+    "ariaLabel": "Tema dell'area di lavoro",
+    "heading": "Tema dell'area di lavoro",
+    "shuffle": "Casuale",
+    "customize": "Personalizza",
+    "custom": "Personalizzato",
+    "default": "Predefinito",
+    "shuffledTitle": "Tema mescolato",
+    "shuffledDescription": "Nuovo colore d'accento, caratteri e raggio — e stile di notifica."
+  }
+}

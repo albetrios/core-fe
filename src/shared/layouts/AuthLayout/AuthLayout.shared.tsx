@@ -2,15 +2,30 @@ import { Link, useLocation } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { isMultiLocaleBuild } from '@/lib/i18n/build-runtime.ts';
+import {
+  LOCALE_KEYS,
+  LOCALE_LABEL_KEYS,
+  LOCALE_NS,
+} from '@/lib/i18n/locale.constants.ts';
+import { I18N_LOCALES, isI18nLocale, LOCALE_NATIVE_LABELS } from '@/lib/i18n/locales.ts';
 import { iconOnBrandSurface, iconOnPrimarySurface } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { ThemeModeToggle } from '@/shared/components/ThemeModeToggle/index.ts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select.tsx';
 import { Boxes, ShieldCheck, Sparkles, Users, Zap } from '@/shared/icons/index.ts';
 import {
   AUTH_LAYOUT_STAT_KEYS,
   LAYOUT_KEYS,
   LAYOUT_NS,
 } from '@/shared/layouts/layout.constants.ts';
+import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 
 // eslint-disable-next-line react-refresh/only-export-components -- static config colocated with the layout shell
 export const AUTH_MARKETING_FEATURES = [
@@ -35,12 +50,48 @@ export function SkipLink() {
   );
 }
 
-/** Theme toggle for auth shell variants (no login/register switch — single auth screen). */
+/** Compact language switcher — sets UI locale (and auto RTL for Arabic) on auth. */
+function AuthLocaleSelect() {
+  const { t } = useTranslation(LOCALE_NS);
+  const locale = useLocaleStore((s) => s.locale);
+  const setLocale = useLocaleStore((s) => s.setLocale);
+
+  if (!isMultiLocaleBuild()) return null;
+
+  return (
+    <Select
+      value={locale}
+      onValueChange={(value) => {
+        if (isI18nLocale(value)) void setLocale(value);
+      }}
+    >
+      <SelectTrigger
+        size="sm"
+        className="min-w-[9.5rem]"
+        aria-label={t(LOCALE_KEYS.openAria)}
+        data-testid="auth-locale-select"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end">
+        {I18N_LOCALES.map((code) => (
+          <SelectItem key={code} value={code}>
+            {/* eslint-disable-next-line security/detect-object-injection -- fixed locale catalog */}
+            {t(LOCALE_LABEL_KEYS[code], { defaultValue: LOCALE_NATIVE_LABELS[code] })}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+/** Theme + language controls for auth shell variants (single auth screen). */
 export function AuthControls({ surface = 'default' }: { surface?: 'default' | 'brand' }) {
   // Subscribe to the layout namespace so the control re-renders on locale change.
   useTranslation(LAYOUT_NS);
   return (
     <div className="flex items-center gap-3">
+      <AuthLocaleSelect />
       <ThemeModeToggle surface={surface === 'brand' ? 'brand' : 'default'} />
     </div>
   );

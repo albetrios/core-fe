@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~537 src files · ~297 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~544 src files · ~301 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -266,6 +266,7 @@ core-fe/
 │   ├── _headers
 │   ├── app-icon.svg
 │   ├── config.js
+│   ├── locale-init.js
 │   ├── manifest.webmanifest
 │   ├── offline.html
 │   ├── pwa-192x192.png
@@ -388,7 +389,7 @@ core-fe/
 │   │   │   ├── locales.ts
 │   │   │   ├── namespaces.ts
 │   │   │   ├── translate-form-message.ts
-│   │   │   └── [7 test files]
+│   │   │   └── [8 test files]
 │   │   ├── routes/
 │   │   │   ├── builders.ts
 │   │   │   ├── index.ts
@@ -403,6 +404,7 @@ core-fe/
 │   │   ├── css-safe.ts
 │   │   ├── csv.ts
 │   │   ├── icon-surface.ts
+│   │   ├── lazy-module.ts
 │   │   ├── onboarding-defaults.ts
 │   │   ├── parse-list-tolerant.ts
 │   │   ├── password-breach.ts
@@ -411,12 +413,24 @@ core-fe/
 │   │   ├── sensitive-clipboard.ts
 │   │   ├── telemetry-scrub.ts
 │   │   ├── utils.ts
-│   │   └── [16 test files]
+│   │   └── [17 test files]
 │   ├── locales/
 │   │   ├── ar/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── de/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── en/
 │   │   │   ├── auth.json
 │   │   │   ├── common.json
@@ -434,17 +448,53 @@ core-fe/
 │   │   │   ├── onboarding.json
 │   │   │   └── settings.json
 │   │   ├── fr/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── hi/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── it/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── ja/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── ko/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   ├── pt/
-│   │   │   └── common.json
+│   │   │   ├── auth.json
+│   │   │   ├── common.json
+│   │   │   ├── dashboard.json
+│   │   │   ├── errors.json
+│   │   │   ├── layout.json
+│   │   │   ├── onboarding.json
+│   │   │   └── settings.json
 │   │   └── zh/
 │   │       ├── auth.json
 │   │       ├── common.json
@@ -619,6 +669,7 @@ core-fe/
 │   │   ├── components/
 │   │   │   ├── AppearanceDialog/
 │   │   │   │   ├── appearance-look.ts
+│   │   │   │   ├── appearance.constants.ts
 │   │   │   │   ├── AppearanceDialog.tsx
 │   │   │   │   ├── AppearanceDialogLazy.tsx
 │   │   │   │   ├── AppearancePanel.tsx
@@ -687,7 +738,7 @@ core-fe/
 │   │   │   │   ├── dashboard.placeholder-data.ts
 │   │   │   │   ├── Dashboard.tsx
 │   │   │   │   ├── index.ts
-│   │   │   │   └── [3 test files]
+│   │   │   │   └── [4 test files]
 │   │   │   ├── DataTable/
 │   │   │   │   ├── DataTable.tsx
 │   │   │   │   ├── index.ts
@@ -701,7 +752,12 @@ core-fe/
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── DataTableToolbar/
+│   │   │   │   ├── data-table.constants.ts
 │   │   │   │   ├── DataTableToolbar.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── [1 test file]
+│   │   │   ├── DateTimePrefsCard/
+│   │   │   │   ├── DateTimePrefsCard.tsx
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── EmailVerificationBanner/
@@ -715,10 +771,6 @@ core-fe/
 │   │   │   ├── FloatingEdgeControls/
 │   │   │   │   ├── floating-edge-button.ts
 │   │   │   │   ├── FloatingEdgeControls.tsx
-│   │   │   │   ├── index.ts
-│   │   │   │   └── [1 test file]
-│   │   │   ├── FloatingLanguageButton/
-│   │   │   │   ├── FloatingLanguageButton.tsx
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── FloatingSettingsButton/
@@ -746,16 +798,22 @@ core-fe/
 │   │   │   │   ├── KeyboardShortcutsDialog.tsx
 │   │   │   │   ├── KeyboardShortcutsLazy.tsx
 │   │   │   │   └── [1 test file]
-│   │   │   ├── LanguageDialog/
+│   │   │   ├── LanguagePrefsCard/
 │   │   │   │   ├── index.ts
-│   │   │   │   ├── LanguageDialog.tsx
-│   │   │   │   ├── LanguageDialogLazy.tsx
-│   │   │   │   ├── LanguagePanel.tsx
-│   │   │   │   └── [3 test files]
+│   │   │   │   ├── LanguagePrefsCard.tsx
+│   │   │   │   └── [1 test file]
+│   │   │   ├── LocalizedCalendar/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── LocalizedCalendar.tsx
+│   │   │   │   └── [1 test file]
 │   │   │   ├── MembersTable/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── members-table.constants.ts
 │   │   │   │   ├── MembersTable.tsx
+│   │   │   │   └── [1 test file]
+│   │   │   ├── MoneyPrefsCard/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── MoneyPrefsCard.tsx
 │   │   │   │   └── [1 test file]
 │   │   │   ├── NotificationCenter/
 │   │   │   │   ├── index.ts
@@ -768,6 +826,10 @@ core-fe/
 │   │   │   ├── OptimizedImage/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── OptimizedImage.tsx
+│   │   │   │   └── [1 test file]
+│   │   │   ├── OptionPills/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── OptionPills.tsx
 │   │   │   │   └── [1 test file]
 │   │   │   ├── OrganizationBadges/
 │   │   │   │   ├── index.ts
@@ -1295,6 +1357,8 @@ core-fe/
 │   │   ├── i18n-keys.mjs
 │   │   ├── i18n-locale-parity.mjs
 │   │   ├── lockfile-sync.sh
+│   │   ├── logical-css.sh
+│   │   ├── no-bare-intl.mjs
 │   │   ├── no-static-branch-name.ts
 │   │   ├── public-assets.sh
 │   │   ├── route-islands.sh

@@ -12,9 +12,14 @@ import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { DEFAULT_DEPLOYMENT_FLAGS } from '@/shared/tenancy/deployment-mode.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
-import { Component as AppLayout } from './AppLayout.tsx';
+import { Component as AppLayout, preloadAppLayoutVariants } from './AppLayout.tsx';
 
 describe('AppLayout', () => {
+  // Preload lazy shells so Suspense doesn't flake under full-suite contention.
+  beforeAll(async () => {
+    await preloadAppLayoutVariants();
+  });
+
   beforeEach(() => {
     useThemeStore.setState({ appVariant: 0 });
     useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });

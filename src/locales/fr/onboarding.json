@@ -1,0 +1,120 @@
+{
+  "manifest": {
+    "title": "Onboarding"
+  },
+  "steps": {
+    "welcome": {
+      "title": "Bienvenue à bord",
+      "description": "Configurons votre compte en quelques étapes rapides."
+    },
+    "profile": {
+      "title": "À propos de vous",
+      "description": "Parlez-nous un peu de vous."
+    },
+    "questions": {
+      "title": "Quelques questions rapides",
+      "description": "Facultatif — cela nous aide à adapter votre espace de travail."
+    },
+    "workspace": {
+      "title": "Votre espace de travail",
+      "description": "Nommez l'organisation que vous souhaitez créer."
+    },
+    "invite": {
+      "title": "Invitez votre équipe",
+      "description": "Ajoutez des coéquipiers maintenant ou passez et faites-le plus tard."
+    },
+    "done": {
+      "title": "Tout est prêt",
+      "description": "Vérifiez et accédez à votre tableau de bord."
+    }
+  },
+  "welcome": {
+    "body": "Nous vous aiderons à configurer votre profil, créer votre première organisation et inviter votre équipe. Cela ne prend qu'une minute.",
+    "bodyPersonal": "Nous vous aiderons à configurer votre profil et personnaliser votre espace de travail. Cela ne prend qu'une minute."
+  },
+  "profile": {
+    "firstNameLabel": "Prénom",
+    "firstNamePlaceholder": "Ada",
+    "lastNameLabel": "Nom",
+    "lastNamePlaceholder": "Lovelace"
+  },
+  "questions": {
+    "teamSize": {
+      "label": "Quelle est la taille de votre équipe ?",
+      "options": {
+        "justMe": "Juste moi",
+        "twoToTen": "2–10",
+        "elevenToFifty": "11–50",
+        "fiftyOneToTwoHundred": "51–200",
+        "twoHundredPlus": "200+"
+      }
+    },
+    "useCase": {
+      "label": "Pour quoi utiliserez-vous principalement Core ?",
+      "options": {
+        "customerManagement": "Gestion des clients",
+        "teamCollaboration": "Collaboration d'équipe",
+        "analyticsReporting": "Analytique et rapports",
+        "internalTools": "Outils internes",
+        "somethingElse": "Autre chose"
+      }
+    },
+    "referral": {
+      "label": "Comment avez-vous entendu parler de nous ?",
+      "options": {
+        "search": "Recherche",
+        "socialMedia": "Réseaux sociaux",
+        "friendOrColleague": "Ami ou collègue",
+        "blogOrArticle": "Blog ou article",
+        "other": "Autre"
+      }
+    }
+  },
+  "workspace": {
+    "organizationNameLabel": "Nom de l'organisation",
+    "organizationNamePlaceholder": "Acme Inc.",
+    "slugLabel": "URL de l'espace (facultatif)",
+    "slugPlaceholder": "acme",
+    "urlPreview": "Votre espace sera accessible à <1>core.app/{{slug}}</1>",
+    "slugFallback": "votre-espace"
+  },
+  "invite": {
+    "emailLabel": "E-mail du coéquipier",
+    "emailPlaceholder": "teammate@company.com",
+    "addButton": "Ajouter",
+    "invalidEmail": "Entrez une adresse e-mail valide.",
+    "duplicateEmail": "Ce coéquipier est déjà dans la liste.",
+    "removeAriaLabel": "Retirer {{email}}"
+  },
+  "done": {
+    "nameLabel": "Nom",
+    "organizationLabel": "Organisation",
+    "invitesLabel": "Invitations",
+    "emptyValue": "—",
+    "invitesPending_one": "{{count}} en attente",
+    "invitesPending_other": "{{count}} en attente"
+  },
+  "actions": {
+    "back": "Retour",
+    "continue": "Continuer",
+    "enterDashboard": "Entrer dans le tableau de bord",
+    "settingUp": "Configuration…"
+  },
+  "defaults": {
+    "organizationName": "Mon organisation",
+    "memberRoleName": "Membre",
+    "memberRoleDescription": "Rôle par défaut pour les coéquipiers invités."
+  },
+  "toast": {
+    "finishSuccess": "Bienvenue ! Votre espace de travail est prêt.",
+    "finishError": "Une erreur s'est produite lors de la finalisation. Veuillez réessayer.",
+    "invitePartialFailure_one": "Espace prêt — {{count}} invitation n'a pas pu être envoyée. Vous pouvez la renvoyer depuis Membres.",
+    "invitePartialFailure_other": "Espace prêt — {{count}} invitations n'ont pas pu être envoyées. Vous pouvez les renvoyer depuis Membres."
+  },
+  "guard": {
+    "title": "Quitter l'onboarding ?",
+    "description": "Votre progression est enregistrée localement, mais partir maintenant peut interrompre la configuration.",
+    "discard": "Quitter",
+    "stay": "Rester"
+  }
+}

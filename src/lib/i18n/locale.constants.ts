@@ -13,6 +13,10 @@ import {
   type MeasurementSystem,
   NUMBER_STYLE_PREFERENCES,
   type NumberStylePreference,
+  TEXT_DIRECTION_PREFERENCES,
+  type TextDirectionPreference,
+  TIME_ZONE_TAGS,
+  type TimeZonePreference,
 } from './intl-config.ts';
 import type { I18nLocale, TextDirection } from './locales.ts';
 import { I18N_NAMESPACES } from './namespaces.ts';
@@ -21,7 +25,22 @@ export const LOCALE_NS = I18N_NAMESPACES.common;
 
 export const LOCALE_KEYS = {
   openAria: 'language.openAria',
-  title: 'language.title',
+  closeAria: 'a11y.close',
+  loading: 'a11y.loading',
+  loadingPage: 'a11y.loadingPage',
+  toggleTheme: 'a11y.toggleTheme',
+  openAppearance: 'a11y.openAppearance',
+  cookieConsent: 'a11y.cookieConsent',
+  rowsPerPage: 'a11y.rowsPerPage',
+  goFirstPage: 'a11y.goFirstPage',
+  goPreviousPage: 'a11y.goPreviousPage',
+  goNextPage: 'a11y.goNextPage',
+  goLastPage: 'a11y.goLastPage',
+  selectAll: 'a11y.selectAll',
+  copyAccountId: 'a11y.copyAccountId',
+  onboardingProgress: 'a11y.onboardingProgress',
+  themeCode: 'a11y.themeCode',
+  mode: 'a11y.mode',
   en: 'language.en',
   es: 'language.es',
   zh: 'language.zh',
@@ -35,11 +54,18 @@ export const LOCALE_KEYS = {
   it: 'language.it',
   languageHeading: 'language.heading',
   languageDescription: 'language.description',
+  languageDirectionDescription: 'language.directionDescription',
   formatLocaleHeading: 'formatLocale.heading',
   formatLocaleDescription: 'formatLocale.description',
+  dateTimeHeading: 'dateTime.heading',
+  dateTimeDescription: 'dateTime.description',
+  timeZoneHeading: 'timeZone.heading',
+  timeZoneDevice: 'timeZone.device',
   dateFormatHeading: 'dateFormat.heading',
   hourCycleHeading: 'hourCycle.heading',
+  textDirectionHeading: 'direction.heading',
   numberStyleHeading: 'numberStyle.heading',
+  numberStyleDescription: 'numberStyle.description',
   currencyDisplayHeading: 'currencyDisplay.heading',
   currencyCodeHeading: 'currencyCode.heading',
   previewHeading: 'localePreview.heading',
@@ -47,13 +73,22 @@ export const LOCALE_KEYS = {
   previewNumber: 'dateFormat.previewNumber',
   previewRelative: 'dateFormat.previewRelative',
   previewTime: 'dateFormat.previewTime',
+  previewTimeZone: 'timeZone.preview',
   previewCurrency: 'localePreview.currency',
   previewDirection: 'localePreview.direction',
   previewFirstDay: 'localePreview.firstDay',
   previewMeasurement: 'localePreview.measurement',
 } as const;
 
+/** Resolved direction labels (preview of concrete ltr/rtl). */
 export const DIRECTION_LABEL_KEYS: Record<TextDirection, string> = {
+  ltr: 'direction.ltr',
+  rtl: 'direction.rtl',
+};
+
+/** Preference picker labels including Auto. */
+export const TEXT_DIRECTION_LABEL_KEYS: Record<TextDirectionPreference, string> = {
+  auto: 'direction.auto',
   ltr: 'direction.ltr',
   rtl: 'direction.rtl',
 };
@@ -121,21 +156,32 @@ export const DATE_FORMAT_PREFERENCE_LIST = DATE_FORMAT_PREFERENCES;
 export const HOUR_CYCLE_PREFERENCE_LIST = HOUR_CYCLE_PREFERENCES;
 export const NUMBER_STYLE_PREFERENCE_LIST = NUMBER_STYLE_PREFERENCES;
 export const CURRENCY_DISPLAY_PREFERENCE_LIST = CURRENCY_DISPLAY_PREFERENCES;
+/** Ordered list of text-direction preference ids for the prefs UI. */
+export const TEXT_DIRECTION_PREFERENCE_LIST = TEXT_DIRECTION_PREFERENCES;
 export const FORMAT_LOCALE_LIST = FORMAT_LOCALE_TAGS;
 export const CURRENCY_CODE_LIST = CURRENCY_CODES;
+/** Catalog of selectable IANA timezone tags (plus `auto`). */
+export const TIME_ZONE_LIST = TIME_ZONE_TAGS;
 
 export const LOCALE_TEST_IDS = {
-  floatingLanguage: 'floating-language',
-  /** The Language & region side-panel body (mirrors the Appearance panel). */
-  panel: 'language-panel',
+  languageCard: 'language-prefs',
+  dateTimeCard: 'date-time-prefs',
+  moneyCard: 'money-prefs',
   menuItem: (code: string) => `language-${code}`,
   formatLocaleItem: (tag: string) => `format-locale-${tag.replace(/-/g, '_')}`,
+  timeZoneItem: (zone: string) => `time-zone-${zone.replace(/\//g, '_')}`,
   dateFormatItem: (style: string) => `date-format-${style}`,
   hourCycleItem: (style: string) => `hour-cycle-${style}`,
+  textDirectionItem: (style: string) => `text-direction-${style}`,
   numberStyleItem: (style: string) => `number-style-${style}`,
   currencyDisplayItem: (style: string) => `currency-display-${style}`,
   currencyCodeItem: (code: string) => `currency-code-${code.toLowerCase()}`,
 } as const;
+
+/** Stable test id for a timezone option in the prefs select. */
+export function timeZoneTestId(zone: TimeZonePreference): string {
+  return LOCALE_TEST_IDS.timeZoneItem(zone);
+}
 
 export function formatLocaleTestId(tag: FormatLocaleTag): string {
   return LOCALE_TEST_IDS.formatLocaleItem(tag);

@@ -1,0 +1,153 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "Zum Hauptinhalt springen",
+    "mainNavigation": "Hauptnavigation",
+    "sidebarNavigation": "Seitennavigation",
+    "mobileNavigation": "Mobilnavigation"
+  },
+  "auth": {
+    "switchToRegister": "Konto erstellen",
+    "switchToSignIn": "Anmelden",
+    "statusOperational": "Alle Systeme betriebsbereit",
+    "badge": "Betrieb, vereint",
+    "heroTitle": "Das Betriebssystem für Ihre Organisation.",
+    "heroSubtitle": "Mitglieder, Rollen, Abrechnung und Sicherheit — ein schneller, tastaturorientierter Arbeitsbereich für jedes Team.",
+    "features": {
+      "multiOrg": {
+        "title": "Multi-Org by Design",
+        "body": "Teams wechseln, ohne das Tool zu wechseln."
+      },
+      "secure": {
+        "title": "Standardmäßig sicher",
+        "body": "RBAC, MFA, Passkeys und Audit-Trails."
+      },
+      "fast": {
+        "title": "Überall schnell",
+        "body": "Für tastaturorientierte Echtzeitarbeit gebaut."
+      }
+    },
+    "stats": {
+      "teams": "Teams",
+      "uptime": "Verfügbarkeit",
+      "compliant": "konform"
+    }
+  },
+  "app": {
+    "search": "Suchen",
+    "searchPlaceholder": "Suchen...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "Benutzermenü",
+    "userFallback": "Benutzer",
+    "settings": "Einstellungen",
+    "logOut": "Abmelden",
+    "toggleSidebar": "Seitenleiste umschalten",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "Dashboard"
+    },
+    "sidebar": {
+      "workspace": "Arbeitsbereich",
+      "menu": "Menü",
+      "shortcuts": "Tastenkürzel"
+    },
+    "contextStrip": {
+      "label": "Schnellzugriff",
+      "labelSolo": "Gehe zu",
+      "profile": "Profil",
+      "security": "Sicherheit",
+      "billing": "Abrechnung",
+      "appearance": "Darstellung",
+      "shortcuts": "Tastenkürzel"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "Organisation auswählen",
+      "triggerLabel": "Organisation wechseln — aktuell: {{name}}",
+      "personal": "Persönlich",
+      "yourOrganizations": "Ihre Organisationen",
+      "organizations": "Organisationen",
+      "addOrganization": "Organisation hinzufügen"
+    },
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "ariaWithUnread": "Benachrichtigungen, {{count}} ungelesen",
+      "ariaDefault": "Benachrichtigungen",
+      "newBadge": "{{count}} neu",
+      "markAllRead": "Alle als gelesen markieren",
+      "loadError": "Benachrichtigungen konnten nicht geladen werden. Bitte erneut versuchen.",
+      "retry": "Erneut versuchen",
+      "emptyTitle": "Keine Benachrichtigungen",
+      "emptyDescription": "Hier sehen Sie Updates zu Ihrem Konto und Ihrer Organisation.",
+      "markRead": "Als gelesen markieren",
+      "settingsLink": "Benachrichtigungseinstellungen"
+    },
+    "commandPalette": {
+      "ariaLabel": "Befehlspalette",
+      "placeholder": "Befehl eingeben oder suchen...",
+      "empty": "Keine Ergebnisse gefunden.",
+      "groups": {
+        "navigation": "Navigation",
+        "theme": "Design",
+        "account": "Konto",
+        "organizations": "Organisationen",
+        "shortcuts": "Tastenkürzel"
+      },
+      "dashboard": "Dashboard",
+      "userSettings": "Benutzereinstellungen",
+      "organizationSettings": "Organisationseinstellungen",
+      "lightMode": "Heller Modus",
+      "darkMode": "Dunkler Modus",
+      "systemTheme": "Systemdesign",
+      "settings": "Einstellungen",
+      "logOut": "Abmelden",
+      "openShortcuts": "Tastenkürzel",
+      "switchOrganization": "Zu {{name}} wechseln",
+      "currentOrganization": "{{name}} (aktuell)"
+    },
+    "shortcuts": {
+      "title": "Tastenkürzel",
+      "description": "Schnellreferenz für Navigation und Aktionen.",
+      "commandPalette": "Befehlspalette öffnen",
+      "showShortcuts": "Tastenkürzel anzeigen",
+      "showShortcutsAlt": "Tastenkürzel anzeigen (Alternative)",
+      "closeDialog": "Dialog schließen"
+    },
+    "emailVerify": {
+      "message": "Bestätigen Sie Ihre E-Mail, um Ihr Konto zu sichern.",
+      "resend": "E-Mail erneut senden",
+      "sending": "Wird gesendet…",
+      "sent": "Gesendet",
+      "notifySuccess": "Bestätigungs-E-Mail gesendet — prüfen Sie Ihren Posteingang.",
+      "notifyError": "E-Mail konnte nicht erneut gesendet werden."
+    },
+    "sessionTimeout": {
+      "title": "Sitzung läuft ab",
+      "description": "Ihre Sitzung läuft in {{countdown}} wegen Inaktivität ab. Klicken Sie auf „Angemeldet bleiben“, um fortzufahren.",
+      "signOut": "Abmelden",
+      "staySignedIn": "Angemeldet bleiben"
+    },
+    "membersTable": {
+      "actionsAria": "Aktionen für {{name}}",
+      "changeRole": "Rolle ändern",
+      "suspend": "Mitglied sperren",
+      "reactivate": "Mitglied reaktivieren",
+      "remove": "Aus Organisation entfernen",
+      "removeTitle": "{{name}} entfernen?",
+      "removeDescription": "Die Person verliert den Zugriff auf diese Organisation. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "confirmRemove": "Entfernen",
+      "rolePlaceholder": "Rolle",
+      "searchPlaceholder": "Mitglieder suchen…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
+    }
+  },
+  "public": {
+    "brandTagline": "Sicherer Arbeitsbereich für Ihr Team"
+  }
+}

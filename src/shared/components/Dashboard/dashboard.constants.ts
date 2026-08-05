@@ -120,6 +120,16 @@ export const DASHBOARD_KEYS = {
     },
   },
   sampleBadge: 'sampleBadge',
+  themeShowcase: {
+    ariaLabel: 'themeShowcase.ariaLabel',
+    heading: 'themeShowcase.heading',
+    shuffle: 'themeShowcase.shuffle',
+    customize: 'themeShowcase.customize',
+    custom: 'themeShowcase.custom',
+    default: 'themeShowcase.default',
+    shuffledTitle: 'themeShowcase.shuffledTitle',
+    shuffledDescription: 'themeShowcase.shuffledDescription',
+  },
   schedule: {
     ariaLabel: 'schedule.ariaLabel',
     heading: 'schedule.heading',
@@ -127,6 +137,12 @@ export const DASHBOARD_KEYS = {
     upcoming: 'schedule.upcoming',
     legendEvent: 'schedule.legendEvent',
     empty: 'schedule.empty',
+    events: {
+      planRenewal: 'schedule.events.planRenewal',
+      accessReview: 'schedule.events.accessReview',
+      teamSync: 'schedule.events.teamSync',
+      invoiceDue: 'schedule.events.invoiceDue',
+    },
   },
 } as const;
 

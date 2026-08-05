@@ -31,6 +31,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/utils/setup.ts'],
+    // Full-suite contention (jsdom + transform) routinely exceeds Vitest's 5s
+    // default even for sync renders. Cap workers so parallel jsdom does not
+    // starve the suite, and keep a higher floor for outliers.
+    maxWorkers: 4,
+    testTimeout: 30_000,
+    hookTimeout: 60_000,
     exclude: ['node_modules', 'dist', 'tests/e2e'],
     css: true,
     // Hermetic by construction — no env pinning here. The top-level `envDir` above

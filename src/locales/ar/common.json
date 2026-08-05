@@ -1,9 +1,8 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "اللغة والإعدادات الإقليمية",
+    "heading": "اللغة",
+    "description": "يتبع نص الواجهة اللغة التي تختارها. للتواريخ والأرقام والعملة بطاقات خاصة أدناه.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,63 +13,69 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "افرض تخطيطًا من اليسار لليمين أو من اليمين لليسار على هذا الجهاز."
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "منطقة التنسيق",
+    "description": "مخرجات Intl للتواريخ والأرقام والعملة — مستقلة عن لغة الواجهة."
+  },
+  "dateTime": {
+    "heading": "التاريخ والوقت",
+    "description": "يُحفظ على هذا الجهاز — تُطبَّق التغييرات فورًا على كل التواريخ في التطبيق."
+  },
+  "timeZone": {
+    "heading": "المنطقة الزمنية",
+    "preview": "المنطقة الزمنية: {{value}}",
+    "device": "المنطقة الزمنية للجهاز"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "تنسيق التاريخ والوقت",
+    "auto": "افتراضي اللغة (رقمي)",
+    "short": "قصير",
+    "medium": "متوسط",
+    "long": "طويل",
+    "full": "كامل",
+    "iso": "نمط ISO (YYYY-MM-DD)",
+    "date": "التاريخ فقط",
+    "time": "الوقت فقط",
+    "datetime": "التاريخ + الوقت",
+    "previewDate": "التاريخ والوقت: {{value}}",
+    "previewNumber": "الرقم: {{value}}",
+    "previewRelative": "نسبي: {{value}}",
+    "previewTime": "الوقت فقط: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "تنسيق الساعة",
+    "auto": "افتراضي اللغة",
+    "h12": "12 ساعة (ص/م)",
+    "h23": "24 ساعة"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "تنسيق الأرقام",
+    "auto": "افتراضي اللغة",
+    "standard": "مُجمَّع",
+    "compact": "مضغوط (1.2M)",
+    "engineering": "هندسي",
+    "scientific": "علمي",
+    "description": "إخراج الأرقام والعملة — مستقل عن لغة الواجهة."
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "عرض العملة",
+    "auto": "افتراضي اللغة",
+    "symbol": "رمز",
+    "narrowSymbol": "رمز ضيق",
+    "code": "رمز ISO",
+    "name": "اسم العملة"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "اتجاه النص: {{value}}",
-    "firstDay": "يبدأ الأسبوع: {{value}}",
-    "measurement": "الوحدات: {{value}}"
+    "heading": "عملة المعاينة"
   },
   "direction": {
     "ltr": "من اليسار إلى اليمين",
-    "rtl": "من اليمين إلى اليسار"
+    "rtl": "من اليمين إلى اليسار",
+    "heading": "اتجاه النص",
+    "auto": "اتباع اللغة"
   },
   "firstDay": {
     "saturday": "السبت",
@@ -81,9 +86,101 @@
     "metric": "متري",
     "imperial": "إمبراطوري"
   },
+  "localePreview": {
+    "heading": "معاينة مباشرة",
+    "currency": "العملة: {{value}}",
+    "direction": "اتجاه النص: {{value}}",
+    "firstDay": "يبدأ الأسبوع: {{value}}",
+    "measurement": "الوحدات: {{value}}"
+  },
   "versionUpdate": {
     "title": "تحديث متوفّر",
     "description": "إصدار جديد من التطبيق جاهز.",
     "refresh": "التحديث الآن"
+  },
+  "a11y": {
+    "close": "إغلاق",
+    "loading": "جارٍ التحميل",
+    "loadingPage": "جارٍ تحميل الصفحة",
+    "toggleTheme": "تبديل السمة",
+    "openAppearance": "فتح المظهر",
+    "cookieConsent": "موافقة ملفات تعريف الارتباط",
+    "rowsPerPage": "صفوف لكل صفحة",
+    "goFirstPage": "الذهاب إلى الصفحة الأولى",
+    "goPreviousPage": "الذهاب إلى الصفحة السابقة",
+    "goNextPage": "الذهاب إلى الصفحة التالية",
+    "goLastPage": "الذهاب إلى الصفحة الأخيرة",
+    "selectAll": "تحديد الكل",
+    "copyAccountId": "نسخ معرّف الحساب",
+    "onboardingProgress": "تقدّم الإعداد",
+    "themeCode": "رمز السمة",
+    "mode": "الوضع"
+  },
+  "appearance": {
+    "themeTitle": "السمة",
+    "themeLocked": "تتم إدارة السمة من خلال إعدادات مؤسستك ولا يمكن تغييرها هنا.",
+    "themeDescription": "إعدادات مسبقة للون المميّز — أو انسخ رابطًا / الصق رمز سمة لإعادة إنتاج المظهر نفسه بدقة.",
+    "presetAria": "إعداد مسبق للون المميّز",
+    "copyLink": "نسخ الرابط",
+    "shuffleHint": "استخدم الخلط لتوليد رمز.",
+    "codeLabel": "الرمز: {{seed}}",
+    "codePlaceholder": "الصق رمز السمة",
+    "apply": "تطبيق",
+    "pickAnyColour": "اختر أي لون",
+    "modeTitle": "الوضع",
+    "modeDescription": "محفوظ على هذا الجهاز.",
+    "colourTitle": "اللون",
+    "colourDescription": "اللون المميّز والمخططات والأساس المحايد.",
+    "accentColour": "اللون المميّز",
+    "chartColour": "لون المخططات",
+    "baseColour": "اللون الأساسي",
+    "harmony": "التناغم",
+    "harmonyAria": "تناغم الألوان",
+    "accentIntensity": "شدة اللون المميّز",
+    "typeTitle": "الخطوط والأشكال",
+    "typeDescription": "الخطوط ونصف قطر الزوايا وسطح القائمة.",
+    "bodyFont": "خط المتن",
+    "headingFont": "خط العناوين",
+    "radius": "نصف القطر",
+    "shapeLanguage": "لغة الأشكال",
+    "typeScale": "مقياس الخط",
+    "menu": "القائمة",
+    "menuAria": "نمط القائمة",
+    "iconsTitle": "الأيقونات",
+    "iconsDescription": "سماكة الخط واللون ومجموعة الأيقونات.",
+    "iconWeight": "سماكة الأيقونات",
+    "iconColour": "لون الأيقونات",
+    "iconLibrary": "مكتبة الأيقونات",
+    "layoutTitle": "التخطيط",
+    "layoutDescription": "عرض مساحة العمل الرئيسية — القياسي للوحات المعلومات، وعرض القراءة للنصوص المركّزة.",
+    "contentWidth": "عرض المحتوى",
+    "surfaceTitle": "السطح والحركة",
+    "surfaceDescription": "التباعد والعمق والتباين وطريقة الحركة.",
+    "density": "الكثافة",
+    "contrast": "التباين",
+    "elevation": "الارتفاع",
+    "separation": "الفصل",
+    "separationAria": "الفصل بين الأسطح",
+    "motion": "الحركة",
+    "focusRing": "حلقة التركيز",
+    "notificationsTitle": "الإشعارات",
+    "notificationsDescription": "اختر أو اخلط تصميم التنبيه — تستخدم المعاينات رموز السمة الحالية.",
+    "toastDesign": "تصميم التنبيه",
+    "position": "الموضع",
+    "positionAria": "موضع التنبيه",
+    "previewSuccess": "نجاح",
+    "previewError": "خطأ",
+    "previewWarning": "تحذير",
+    "previewInfo": "معلومات",
+    "shuffleSection": "خلط {{section}}",
+    "sectionColour": "اللون",
+    "sectionType": "الخطوط والأشكال",
+    "sectionSurface": "السطح والحركة",
+    "sectionNotifications": "نمط الإشعارات",
+    "custom": "مخصص",
+    "customWith": "مخصص — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "بحث..."
   }
 }

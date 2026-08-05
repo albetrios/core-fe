@@ -1,0 +1,153 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "تخطَّ إلى المحتوى الرئيسي",
+    "mainNavigation": "التنقل الرئيسي",
+    "sidebarNavigation": "تنقل الشريط الجانبي",
+    "mobileNavigation": "تنقل الجوال"
+  },
+  "auth": {
+    "switchToRegister": "إنشاء حساب",
+    "switchToSignIn": "تسجيل الدخول",
+    "statusOperational": "جميع الأنظمة تعمل",
+    "badge": "العمليات، موحّدة",
+    "heroTitle": "نظام التشغيل لمؤسستك.",
+    "heroSubtitle": "الأعضاء والأدوار والفوترة والأمان — مساحة عمل سريعة ومُصمَّمة للوحة المفاتيح لكل فريق تديره.",
+    "features": {
+      "multiOrg": {
+        "title": "متعدد المؤسسات بالتصميم",
+        "body": "بدّل الفرق دون تبديل الأدوات."
+      },
+      "secure": {
+        "title": "آمن افتراضيًا",
+        "body": "RBAC وMFA ومفاتيح المرور وسجلات التدقيق."
+      },
+      "fast": {
+        "title": "سريع في كل مكان",
+        "body": "مبني للعمل الفوري بأولوية لوحة المفاتيح."
+      }
+    },
+    "stats": {
+      "teams": "فرق",
+      "uptime": "وقت التشغيل",
+      "compliant": "متوافق"
+    }
+  },
+  "app": {
+    "search": "بحث",
+    "searchPlaceholder": "بحث...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "قائمة المستخدم",
+    "userFallback": "مستخدم",
+    "settings": "الإعدادات",
+    "logOut": "تسجيل الخروج",
+    "toggleSidebar": "تبديل الشريط الجانبي",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "لوحة التحكم"
+    },
+    "sidebar": {
+      "workspace": "مساحة العمل",
+      "menu": "القائمة",
+      "shortcuts": "الاختصارات"
+    },
+    "contextStrip": {
+      "label": "وصول سريع",
+      "labelSolo": "الانتقال إلى",
+      "profile": "الملف الشخصي",
+      "security": "الأمان",
+      "billing": "الفوترة",
+      "appearance": "المظهر",
+      "shortcuts": "الاختصارات"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "اختر المؤسسة",
+      "triggerLabel": "تبديل المؤسسة — الحالية: {{name}}",
+      "personal": "شخصي",
+      "yourOrganizations": "مؤسساتك",
+      "organizations": "المؤسسات",
+      "addOrganization": "إضافة مؤسسة"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "ariaWithUnread": "الإشعارات، {{count}} غير مقروءة",
+      "ariaDefault": "الإشعارات",
+      "newBadge": "{{count}} جديدة",
+      "markAllRead": "تعليم الكل كمقروء",
+      "loadError": "تعذّر تحميل الإشعارات. يُرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة",
+      "emptyTitle": "لا إشعارات",
+      "emptyDescription": "ستظهر هنا التحديثات حول حسابك ومؤسستك.",
+      "markRead": "تعليم كمقروء",
+      "settingsLink": "إعدادات الإشعارات"
+    },
+    "commandPalette": {
+      "ariaLabel": "لوحة الأوامر",
+      "placeholder": "اكتب أمرًا أو ابحث...",
+      "empty": "لم يتم العثور على نتائج.",
+      "groups": {
+        "navigation": "التنقل",
+        "theme": "المظهر",
+        "account": "الحساب",
+        "organizations": "المؤسسات",
+        "shortcuts": "الاختصارات"
+      },
+      "dashboard": "لوحة التحكم",
+      "userSettings": "إعدادات المستخدم",
+      "organizationSettings": "إعدادات المؤسسة",
+      "lightMode": "الوضع الفاتح",
+      "darkMode": "الوضع الداكن",
+      "systemTheme": "مظهر النظام",
+      "settings": "الإعدادات",
+      "logOut": "تسجيل الخروج",
+      "openShortcuts": "اختصارات لوحة المفاتيح",
+      "switchOrganization": "التبديل إلى {{name}}",
+      "currentOrganization": "{{name}} (الحالية)"
+    },
+    "shortcuts": {
+      "title": "اختصارات لوحة المفاتيح",
+      "description": "مرجع سريع للتنقل والإجراءات.",
+      "commandPalette": "فتح لوحة الأوامر",
+      "showShortcuts": "إظهار اختصارات لوحة المفاتيح",
+      "showShortcutsAlt": "إظهار اختصارات لوحة المفاتيح (بديل)",
+      "closeDialog": "إغلاق الحوار"
+    },
+    "emailVerify": {
+      "message": "تحقق من بريدك الإلكتروني لتأمين حسابك.",
+      "resend": "إعادة إرسال البريد",
+      "sending": "جارٍ الإرسال…",
+      "sent": "تم الإرسال",
+      "notifySuccess": "تم إرسال بريد التحقق — تحقق من صندوق الوارد.",
+      "notifyError": "تعذّر إعادة إرسال البريد."
+    },
+    "sessionTimeout": {
+      "title": "الجلسة على وشك الانتهاء",
+      "description": "ستنتهي جلستك خلال {{countdown}} بسبب عدم النشاط. انقر على \"البقاء مسجّل الدخول\" للمتابعة.",
+      "signOut": "تسجيل الخروج",
+      "staySignedIn": "البقاء مسجّل الدخول"
+    },
+    "membersTable": {
+      "actionsAria": "إجراءات لـ {{name}}",
+      "changeRole": "تغيير الدور",
+      "suspend": "تعليق العضو",
+      "reactivate": "إعادة تفعيل العضو",
+      "remove": "إزالة من المؤسسة",
+      "removeTitle": "إزالة {{name}}؟",
+      "removeDescription": "سيفقدون الوصول إلى هذه المؤسسة. لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirmRemove": "إزالة",
+      "rolePlaceholder": "الدور",
+      "searchPlaceholder": "ابحث عن الأعضاء…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
+    }
+  },
+  "public": {
+    "brandTagline": "مساحة عمل آمنة لفريقك"
+  }
+}

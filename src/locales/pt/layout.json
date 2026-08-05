@@ -1,0 +1,153 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "Ir para o conteúdo principal",
+    "mainNavigation": "Navegação principal",
+    "sidebarNavigation": "Navegação lateral",
+    "mobileNavigation": "Navegação móvel"
+  },
+  "auth": {
+    "switchToRegister": "Criar uma conta",
+    "switchToSignIn": "Entrar",
+    "statusOperational": "Todos os sistemas operacionais",
+    "badge": "Operações, unificadas",
+    "heroTitle": "O sistema operacional da sua organização.",
+    "heroSubtitle": "Membros, funções, cobrança e segurança — um espaço de trabalho rápido e focado no teclado para cada equipe.",
+    "features": {
+      "multiOrg": {
+        "title": "Multi-organização por design",
+        "body": "Troque de equipe sem trocar de ferramenta."
+      },
+      "secure": {
+        "title": "Seguro por padrão",
+        "body": "RBAC, MFA, passkeys e trilhas de auditoria."
+      },
+      "fast": {
+        "title": "Rápido em todo lugar",
+        "body": "Feito para trabalho em tempo real com o teclado."
+      }
+    },
+    "stats": {
+      "teams": "equipes",
+      "uptime": "disponibilidade",
+      "compliant": "conforme"
+    }
+  },
+  "app": {
+    "search": "Pesquisar",
+    "searchPlaceholder": "Pesquisar...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "Menu do usuário",
+    "userFallback": "Usuário",
+    "settings": "Configurações",
+    "logOut": "Sair",
+    "toggleSidebar": "Alternar barra lateral",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "Painel"
+    },
+    "sidebar": {
+      "workspace": "Espaço de trabalho",
+      "menu": "Menu",
+      "shortcuts": "Atalhos"
+    },
+    "contextStrip": {
+      "label": "Acesso rápido",
+      "labelSolo": "Ir para",
+      "profile": "Perfil",
+      "security": "Segurança",
+      "billing": "Cobrança",
+      "appearance": "Aparência",
+      "shortcuts": "Atalhos"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "Selecionar organização",
+      "triggerLabel": "Trocar organização — atual: {{name}}",
+      "personal": "Pessoal",
+      "yourOrganizations": "Suas organizações",
+      "organizations": "Organizações",
+      "addOrganization": "Adicionar organização"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "ariaWithUnread": "Notificações, {{count}} não lidas",
+      "ariaDefault": "Notificações",
+      "newBadge": "{{count}} novas",
+      "markAllRead": "Marcar todas como lidas",
+      "loadError": "Não foi possível carregar as notificações. Tente novamente.",
+      "retry": "Tentar novamente",
+      "emptyTitle": "Nenhuma notificação",
+      "emptyDescription": "Você verá atualizações da sua conta e organização aqui.",
+      "markRead": "Marcar como lida",
+      "settingsLink": "Configurações de notificação"
+    },
+    "commandPalette": {
+      "ariaLabel": "Paleta de comandos",
+      "placeholder": "Digite um comando ou pesquise...",
+      "empty": "Nenhum resultado encontrado.",
+      "groups": {
+        "navigation": "Navegação",
+        "theme": "Tema",
+        "account": "Conta",
+        "organizations": "Organizações",
+        "shortcuts": "Atalhos"
+      },
+      "dashboard": "Painel",
+      "userSettings": "Configurações do usuário",
+      "organizationSettings": "Configurações da organização",
+      "lightMode": "Modo claro",
+      "darkMode": "Modo escuro",
+      "systemTheme": "Tema do sistema",
+      "settings": "Configurações",
+      "logOut": "Sair",
+      "openShortcuts": "Atalhos de teclado",
+      "switchOrganization": "Mudar para {{name}}",
+      "currentOrganization": "{{name}} (atual)"
+    },
+    "shortcuts": {
+      "title": "Atalhos de teclado",
+      "description": "Referência rápida para navegação e ações.",
+      "commandPalette": "Abrir paleta de comandos",
+      "showShortcuts": "Mostrar atalhos de teclado",
+      "showShortcutsAlt": "Mostrar atalhos de teclado (alternativo)",
+      "closeDialog": "Fechar diálogo"
+    },
+    "emailVerify": {
+      "message": "Verifique seu e-mail para proteger sua conta.",
+      "resend": "Reenviar e-mail",
+      "sending": "Enviando…",
+      "sent": "Enviado",
+      "notifySuccess": "E-mail de verificação enviado — confira sua caixa de entrada.",
+      "notifyError": "Não foi possível reenviar o e-mail."
+    },
+    "sessionTimeout": {
+      "title": "Sessão expirando",
+      "description": "Sua sessão expirará em {{countdown}} por inatividade. Clique em \"Continuar conectado\" para continuar.",
+      "signOut": "Sair",
+      "staySignedIn": "Continuar conectado"
+    },
+    "membersTable": {
+      "actionsAria": "Ações para {{name}}",
+      "changeRole": "Alterar função",
+      "suspend": "Suspender membro",
+      "reactivate": "Reativar membro",
+      "remove": "Remover da organização",
+      "removeTitle": "Remover {{name}}?",
+      "removeDescription": "Essa pessoa perderá o acesso a esta organização. Esta ação não pode ser desfeita.",
+      "cancel": "Cancelar",
+      "confirmRemove": "Remover",
+      "rolePlaceholder": "Função",
+      "searchPlaceholder": "Pesquisar membros…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
+    }
+  },
+  "public": {
+    "brandTagline": "Espaço de trabalho seguro para sua equipe"
+  }
+}

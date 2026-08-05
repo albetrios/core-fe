@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { translateFormMessage } from '@/lib/i18n/translate-form-message.ts';
 import {
@@ -9,6 +10,10 @@ import {
   roleInputSchema,
   type RoleSummary,
 } from '@/shared/api/organization-contracts.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Checkbox } from '@/shared/components/ui/checkbox.tsx';
 import {
@@ -69,6 +74,7 @@ export function CreateRoleDialog({
   open: controlledOpen,
   onOpenChange,
 }: CreateRoleDialogProps = {}) {
+  const { t } = useTranslation(SETTINGS_NS);
   const isEdit = role !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -123,7 +129,7 @@ export function CreateRoleDialog({
       {isEdit ? null : (
         <DialogTrigger asChild>
           <Button size="sm" data-testid="role-create-open">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             New role
           </Button>
         </DialogTrigger>
@@ -146,7 +152,7 @@ export function CreateRoleDialog({
             <Label htmlFor="role-name">Name</Label>
             <Input
               id="role-name"
-              placeholder="e.g. Member"
+              placeholder={t(SETTINGS_KEYS.panels.roles.namePlaceholder)}
               aria-invalid={!!errors.name}
               data-testid="role-create-name"
               {...register('name')}
@@ -162,7 +168,7 @@ export function CreateRoleDialog({
             <Label htmlFor="role-description">Description</Label>
             <Textarea
               id="role-description"
-              placeholder="What can this role do?"
+              placeholder={t(SETTINGS_KEYS.panels.roles.descriptionPlaceholder)}
               aria-invalid={!!errors.description}
               data-testid="role-create-description"
               {...register('description')}

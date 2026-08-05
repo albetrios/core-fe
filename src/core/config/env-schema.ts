@@ -408,6 +408,8 @@ export const envProfiles: Readonly<Record<AppEnvironment, EnvProfile>> = {
       VITE_DEVTOOLS: 'true',
       VITE_E2E_HOOKS: 'true',
       VITE_VERSION_CHECK: 'false',
+      // Multi-locale so Appearance → Language works locally; prod defaults single.
+      BUILD_I18N_MODE: 'multi',
     },
   },
   development: {

@@ -1,0 +1,153 @@
+{
+  "brand": {
+    "name": "Core"
+  },
+  "a11y": {
+    "skipToMain": "メインコンテンツへスキップ",
+    "mainNavigation": "メインナビゲーション",
+    "sidebarNavigation": "サイドバーナビゲーション",
+    "mobileNavigation": "モバイルナビゲーション"
+  },
+  "auth": {
+    "switchToRegister": "アカウントを作成",
+    "switchToSignIn": "サインイン",
+    "statusOperational": "すべてのシステムが稼働中",
+    "badge": "オペレーションをひとつに",
+    "heroTitle": "組織のためのオペレーティングシステム。",
+    "heroSubtitle": "メンバー、ロール、請求、セキュリティ — すべてのチーム向けの高速でキーボードファーストなワークスペース。",
+    "features": {
+      "multiOrg": {
+        "title": "マルチ組織対応",
+        "body": "ツールを切り替えずにチームを切り替え。"
+      },
+      "secure": {
+        "title": "デフォルトで安全",
+        "body": "RBAC、MFA、パスキー、監査証跡。"
+      },
+      "fast": {
+        "title": "どこでも高速",
+        "body": "キーボードファーストのリアルタイム作業向けに構築。"
+      }
+    },
+    "stats": {
+      "teams": "チーム",
+      "uptime": "稼働率",
+      "compliant": "準拠"
+    }
+  },
+  "app": {
+    "search": "検索",
+    "searchPlaceholder": "検索...",
+    "searchShortcutMac": "⌘K",
+    "searchShortcutWindows": "Ctrl+K",
+    "userMenu": "ユーザーメニュー",
+    "userFallback": "ユーザー",
+    "settings": "設定",
+    "logOut": "ログアウト",
+    "toggleSidebar": "サイドバーを切り替え",
+    "footerCopyright": "© {{year}} Core Platform",
+    "nav": {
+      "dashboard": "ダッシュボード"
+    },
+    "sidebar": {
+      "workspace": "ワークスペース",
+      "menu": "メニュー",
+      "shortcuts": "ショートカット"
+    },
+    "contextStrip": {
+      "label": "クイックアクセス",
+      "labelSolo": "移動",
+      "profile": "プロフィール",
+      "security": "セキュリティ",
+      "billing": "請求",
+      "appearance": "外観",
+      "shortcuts": "ショートカット"
+    },
+    "orgSwitcher": {
+      "selectPlaceholder": "組織を選択",
+      "triggerLabel": "組織を切り替え — 現在: {{name}}",
+      "personal": "個人",
+      "yourOrganizations": "あなたの組織",
+      "organizations": "組織",
+      "addOrganization": "組織を追加"
+    },
+    "notifications": {
+      "title": "通知",
+      "ariaWithUnread": "通知、未読 {{count}} 件",
+      "ariaDefault": "通知",
+      "newBadge": "新着 {{count}} 件",
+      "markAllRead": "すべて既読にする",
+      "loadError": "通知を読み込めませんでした。もう一度お試しください。",
+      "retry": "再試行",
+      "emptyTitle": "通知はありません",
+      "emptyDescription": "アカウントと組織に関する更新がここに表示されます。",
+      "markRead": "既読にする",
+      "settingsLink": "通知設定"
+    },
+    "commandPalette": {
+      "ariaLabel": "コマンドパレット",
+      "placeholder": "コマンドを入力するか検索...",
+      "empty": "結果が見つかりません。",
+      "groups": {
+        "navigation": "ナビゲーション",
+        "theme": "テーマ",
+        "account": "アカウント",
+        "organizations": "組織",
+        "shortcuts": "ショートカット"
+      },
+      "dashboard": "ダッシュボード",
+      "userSettings": "ユーザー設定",
+      "organizationSettings": "組織設定",
+      "lightMode": "ライトモード",
+      "darkMode": "ダークモード",
+      "systemTheme": "システムテーマ",
+      "settings": "設定",
+      "logOut": "ログアウト",
+      "openShortcuts": "キーボードショートカット",
+      "switchOrganization": "{{name}} に切り替え",
+      "currentOrganization": "{{name}}（現在）"
+    },
+    "shortcuts": {
+      "title": "キーボードショートカット",
+      "description": "ナビゲーションと操作のクイックリファレンス。",
+      "commandPalette": "コマンドパレットを開く",
+      "showShortcuts": "キーボードショートカットを表示",
+      "showShortcutsAlt": "キーボードショートカットを表示（代替）",
+      "closeDialog": "ダイアログを閉じる"
+    },
+    "emailVerify": {
+      "message": "アカウントを保護するため、メールを確認してください。",
+      "resend": "メールを再送信",
+      "sending": "送信中…",
+      "sent": "送信済み",
+      "notifySuccess": "確認メールを送信しました — 受信トレイを確認してください。",
+      "notifyError": "メールを再送信できませんでした。"
+    },
+    "sessionTimeout": {
+      "title": "セッションの期限切れが近づいています",
+      "description": "非アクティブのため、セッションは {{countdown}} 後に期限切れになります。「サインインを維持」をクリックして続行してください。",
+      "signOut": "サインアウト",
+      "staySignedIn": "サインインを維持"
+    },
+    "membersTable": {
+      "actionsAria": "{{name}} のアクション",
+      "changeRole": "ロールを変更",
+      "suspend": "メンバーを停止",
+      "reactivate": "メンバーを再有効化",
+      "remove": "組織から削除",
+      "removeTitle": "{{name}} を削除しますか？",
+      "removeDescription": "この組織へのアクセスが失われます。この操作は元に戻せません。",
+      "cancel": "キャンセル",
+      "confirmRemove": "削除",
+      "rolePlaceholder": "ロール",
+      "searchPlaceholder": "メンバーを検索…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
+    }
+  },
+  "public": {
+    "brandTagline": "チームのための安全なワークスペース"
+  }
+}

@@ -111,7 +111,6 @@ Every custom event includes **shared context** from `getAnalyticsContext()`:
 | `settings_section_viewed`  | Settings hash changes | `scope`, `section`                                                  |
 | `command_palette_opened`   | Cmd+K / palette open  | —                                                                   |
 | `appearance_dialog_opened` | Appearance panel      | —                                                                   |
-| `language_dialog_opened`   | Language panel        | —                                                                   |
 
 ### Deploy / version
 

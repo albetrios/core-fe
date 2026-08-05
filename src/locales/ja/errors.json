@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "問題が発生しました",
+    "message": "予期しないエラーが発生しました。ページを再読み込みしてください。",
+    "reload": "ページを再読み込み"
+  },
+  "route": {
+    "notFound": "お探しのページは存在しません。",
+    "generic": "問題が発生しました。",
+    "pageTitle": "このページでエラーが発生しました",
+    "pageMessage": "このページの表示中に問題が発生しました。",
+    "tryAgain": "再試行",
+    "goHome": "ホームへ",
+    "refresh": "ページを更新"
+  },
+  "widget": {
+    "unavailable": "{{title}} は利用できません",
+    "message": "このセクションの読み込み中に問題が発生しました。再試行してください。",
+    "retry": "再試行",
+    "pageContent": "ページコンテンツ",
+    "emailBanner": "メール確認",
+    "notifications": "通知",
+    "organizationSwitcher": "組織スイッチャー"
+  },
+  "toast": {
+    "dismiss": "通知を閉じる",
+    "undo": "元に戻す",
+    "undone": "操作をキャンセルしました",
+    "processing": "処理中…",
+    "preview": {
+      "successTitle": "変更を保存しました",
+      "successDescription": "設定が反映されています。",
+      "errorTitle": "問題が発生しました",
+      "errorDescription": "もう一度お試しください。",
+      "warningTitle": "ご注意",
+      "warningDescription": "この操作には確認が必要です。",
+      "infoTitle": "ご存じですか？",
+      "infoDescription": "シャッフルでもこのデザインが変わります。"
+    }
+  },
+  "api": {
+    "fallback": "問題が発生しました。もう一度お試しください。",
+    "unexpected": "予期しないエラーが発生しました",
+    "http400": "リクエストが無効です。入力内容を確認して再試行してください。",
+    "http401": "セッションの期限が切れました。再度サインインしてください。",
+    "http403": "この操作を実行する権限がありません。",
+    "http404": "要求されたリソースが見つかりません。",
+    "http409": "競合が発生しました。リソースが他の人によって変更された可能性があります。",
+    "http422": "送信データが無効です。確認して再試行してください。",
+    "http429": "リクエストが多すぎます。しばらく待ってから再試行してください。",
+    "http500": "内部サーバーエラーが発生しました。後でもう一度お試しください。",
+    "http502": "サーバーは一時的に利用できません。後でもう一度お試しください。",
+    "http503": "サービスは一時的に利用できません。後でもう一度お試しください。"
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "データを読み込めませんでした。",
+      "retry": "再試行"
+    },
+    "organization": {
+      "roleRequired": "メンバーのロールを変更するにはロールが必要です。",
+      "updateFailed": "組織を更新できませんでした",
+      "logoInvalidType": "画像ファイルを選択してください。",
+      "logoTooLarge": "ロゴは 1 MB 未満である必要があります。",
+      "logoReadFailed": "そのファイルを読み取れませんでした。",
+      "formCheck": "フォームを確認",
+      "updateSuccess": "組織を更新しました",
+      "createSuccess": "{{name}} を作成しました"
+    },
+    "account": {
+      "copyFailed": "クリップボードにコピーできませんでした",
+      "themeCodeNumeric": "数値のテーマコードを入力してください",
+      "copySuccess": "アカウント ID をコピーしました",
+      "themeLinkCopied": "テーマリンクをコピーしました",
+      "themeLinkCopiedDescription": "この URL を共有して見た目を再現できます。",
+      "notificationStylePreview": "通知スタイル",
+      "notificationStylePreviewDescription": "{{variant}} — アクセントとセマンティックカラーでテーマ化。",
+      "accountDeletionPending": "アカウントを削除しました。サインアウト中…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "パスキーを追加できませんでした",
+        "removeFailed": "パスキーを削除できませんでした",
+        "addSuccess": "パスキーを追加しました",
+        "removeSuccess": "パスキーを削除しました"
+      },
+      "mfa": {
+        "disableFailed": "二要素認証を無効にできませんでした",
+        "enableSuccess": "二要素認証を有効にしました",
+        "disableSuccess": "二要素認証を無効にしました"
+      },
+      "members": {
+        "updateRoleFailed": "ロールを更新できませんでした",
+        "removeFailed": "メンバーを削除できませんでした",
+        "updateFailed": "メンバーを更新できませんでした",
+        "updateRoleSuccess": "メンバーのロールを更新しました",
+        "removeSuccess": "メンバーを削除しました",
+        "suspendSuccess": "メンバーを停止しました",
+        "reactivateSuccess": "メンバーを再有効化しました"
+      },
+      "roles": {
+        "createFailed": "ロールを作成できませんでした",
+        "updateFailed": "ロールを更新できませんでした",
+        "deleteFailed": "ロールを削除できませんでした",
+        "createSuccess": "ロール「{{name}}」を作成しました",
+        "updateSuccess": "ロール「{{name}}」を更新しました",
+        "deleteSuccess": "ロールを削除しました"
+      },
+      "apiKeys": {
+        "createFailed": "API キーを作成できませんでした",
+        "renameFailed": "API キーの名前を変更できませんでした",
+        "revokeFailed": "API キーを取り消せませんでした",
+        "createSuccess": "API キーを作成しました",
+        "renameSuccess": "API キーの名前を変更しました",
+        "revokeSuccess": "API キーを取り消しました"
+      },
+      "sessions": {
+        "signOutFailed": "そのセッションからサインアウトできませんでした",
+        "signOutSuccess": "そのセッションからサインアウトしました"
+      },
+      "notifications": {
+        "updateFailed": "通知を更新できませんでした",
+        "updateManyFailed": "通知を更新できませんでした",
+        "savePreferencesFailed": "設定を保存できませんでした",
+        "savePreferencesSuccess": "通知設定を保存しました"
+      },
+      "webhooks": {
+        "createFailed": "Webhook を作成できませんでした",
+        "deleteFailed": "Webhook を削除できませんでした",
+        "createSuccess": "Webhook を作成しました",
+        "deleteSuccess": "Webhook を削除しました"
+      },
+      "subscription": {
+        "changePlanFailed": "プランを変更できませんでした",
+        "changePlanSuccess": "{{plan}} プランに切り替えました"
+      },
+      "invitations": {
+        "sendFailed": "招待を送信できませんでした",
+        "sendSuccess": "{{email}} に招待を送信しました"
+      }
+    },
+    "profileUpdated": "プロフィールを更新しました"
+  }
+}

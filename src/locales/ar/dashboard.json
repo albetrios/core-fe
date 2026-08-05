@@ -1,0 +1,149 @@
+{
+  "greeting": "مرحبًا بعودتك، {{name}}",
+  "greetingFallback": "هناك",
+  "heroSubtitle": "إليك ما يحدث في مساحة عملك اليوم.",
+  "heroSubtitleSolo": "إليك ما يحدث اليوم.",
+  "errorLoad": "تعذّر تحميل مساحة عملك. يُرجى التحديث والمحاولة مرة أخرى.",
+  "workspaceFallback": "مساحة عملك",
+  "workspaceNameFallback": "مساحة عملك",
+  "orgType": {
+    "team": "فريق",
+    "personal": "شخصي"
+  },
+  "status": {
+    "active": "نشط",
+    "suspended": "معلّق",
+    "archived": "مؤرشف"
+  },
+  "overview": {
+    "ariaLabel": "نظرة عامة"
+  },
+  "stats": {
+    "workspaces": "مساحات العمل",
+    "workspacesHintOne": "هذه فقط",
+    "workspacesHintMany": "أنت عضو",
+    "permissions": "صلاحياتك",
+    "permissionsHint": "في هذه المساحة",
+    "type": "نوع مساحة العمل",
+    "typeHintTeam": "مشتركة مع فريقك",
+    "typeHintPersonal": "خاصة بك",
+    "billing": "الفوترة",
+    "billingManaged": "مُدارة",
+    "billingNone": "—",
+    "billingHintTeam": "خطة الفريق",
+    "billingHintPersonal": "شخصي — لا يوجد"
+  },
+  "nextSteps": {
+    "ariaLabel": "الخطوات التالية المقترحة",
+    "heading": "الخطوات التالية المقترحة"
+  },
+  "quickActions": {
+    "ariaLabel": "إجراءات سريعة",
+    "heading": "إجراءات سريعة",
+    "inviteTitle": "دعوة أعضاء",
+    "inviteDescription": "أضف زملاء إلى {{orgName}}",
+    "rolesTitle": "إدارة الأدوار",
+    "rolesDescription": "حدّد من يمكنه فعل ماذا",
+    "billingTitle": "الفوترة والخطة",
+    "billingDescription": "الاشتراك والفواتير",
+    "orgSettingsTitle": "إعدادات المؤسسة",
+    "orgSettingsDescription": "الاسم والعلامة والمزيد",
+    "accountTitle": "حسابك",
+    "accountDescription": "الملف الشخصي والأمان والجلسات"
+  },
+  "organizations": {
+    "ariaLabel": "مؤسساتك",
+    "heading": "مؤسساتك",
+    "current": "الحالية",
+    "openWorkspace": "فتح مساحة العمل →"
+  },
+  "insights": {
+    "ariaLabel": "رؤى مساحة العمل",
+    "heading": "رؤى مساحة العمل"
+  },
+  "highlights": {
+    "ariaLabel": "أبرز مساحة العمل",
+    "heading": "أبرز النقاط",
+    "description": "طرق مختارة للاستفادة أكثر من مساحة عملك",
+    "tabsLabel": "مواضيع الأبرز",
+    "slideAnnouncement": "الشريحة {{current}} من {{total}}: {{title}}",
+    "previousSlide": "الأبرز السابق",
+    "nextSlide": "الأبرز التالي",
+    "goToSlide": "الانتقال إلى أبرز {{title}}",
+    "tabs": {
+      "appearance": "المظهر",
+      "invite": "الفريق",
+      "security": "الأمان"
+    },
+    "slides": {
+      "appearance": {
+        "title": "اجعلها لك",
+        "description": "اضبط المظهر والكثافة واللون المميز ليتوافق مع أسلوب عمل فريقك.",
+        "action": "فتح إعدادات المظهر"
+      },
+      "invite": {
+        "title": "نمِّ فريقك",
+        "description": "ادعُ الزملاء وعيّن الأدوار ليكون لدى الجميع الوصول المناسب من اليوم الأول.",
+        "action": "دعوة أعضاء"
+      },
+      "security": {
+        "title": "أمّن كل شيء",
+        "description": "راجع MFA والجلسات النشطة وطرق تسجيل الدخول لحماية حسابك.",
+        "action": "مراجعة إعدادات الأمان"
+      }
+    }
+  },
+  "analytics": {
+    "heading": "نشاط مساحة العمل",
+    "description": "الجلسات واستدعاءات API عبر الزمن",
+    "rangeLabel": "اختر الفترة الزمنية",
+    "seriesSessions": "الجلسات",
+    "seriesApiCalls": "استدعاءات API",
+    "range": {
+      "7d": "آخر 7 أيام",
+      "30d": "آخر 30 يومًا",
+      "90d": "آخر 90 يومًا"
+    }
+  },
+  "members": {
+    "ariaLabel": "أعضاء الفريق",
+    "heading": "أعضاء الفريق",
+    "description_one": "شخص {{count}} في هذه المساحة",
+    "description_other": "{{count}} أشخاص في هذه المساحة",
+    "columnMember": "العضو",
+    "columnRole": "الدور",
+    "columnStatus": "الحالة",
+    "columnJoined": "الانضمام",
+    "status": {
+      "active": "نشط",
+      "invited": "مدعو",
+      "suspended": "معلّق"
+    },
+    "error": "تعذّر تحميل الأعضاء."
+  },
+  "schedule": {
+    "ariaLabel": "الجدول",
+    "heading": "الجدول",
+    "description": "التجديدات والمراجعات وفعاليات الفريق",
+    "upcoming": "القادمة",
+    "legendEvent": "يوم فعالية",
+    "empty": "لا شيء مجدول",
+    "events": {
+      "planRenewal": "تجديد الخطة",
+      "accessReview": "مراجعة وصول ربع سنوية",
+      "teamSync": "مزامنة الفريق",
+      "invoiceDue": "فاتورة مستحقة"
+    }
+  },
+  "sampleBadge": "بيانات نموذجية",
+  "themeShowcase": {
+    "ariaLabel": "سمة مساحة العمل",
+    "heading": "سمة مساحة العمل",
+    "shuffle": "خلط",
+    "customize": "تخصيص",
+    "custom": "مخصص",
+    "default": "افتراضي",
+    "shuffledTitle": "تم خلط السمة",
+    "shuffledDescription": "لون مميّز وخطوط ونصف قطر جديدة — وأسلوب تنبيه جديد."
+  }
+}

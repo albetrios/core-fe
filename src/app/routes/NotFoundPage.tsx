@@ -1,10 +1,13 @@
 import { Link } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { composePageTitle } from '@/lib/routes/page-head.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 
 export function Component() {
+  const { t } = useTranslation(ERRORS_NS);
   // Set the title here, not only on the `$` route's head: notFound() thrown
   // from a beforeLoad guard renders via rootRoute.notFoundComponent, where
   // no route head applies — without this the previous page's title sticks
@@ -20,10 +23,10 @@ export function Component() {
     >
       <h1 className="text-foreground text-5xl font-bold sm:text-6xl">404</h1>
       <p className="text-muted-foreground max-w-md text-base sm:text-lg">
-        The page you are looking for does not exist.
+        {t(ERRORS_KEYS.route.notFound)}
       </p>
       <Button asChild className="mt-4">
-        <Link to="/">Go Home</Link>
+        <Link to="/">{t(ERRORS_KEYS.route.goHome)}</Link>
       </Button>
     </div>
   );

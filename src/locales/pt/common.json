@@ -1,9 +1,8 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "Idioma e configurações regionais",
+    "heading": "Idioma",
+    "description": "O texto da interface segue o idioma escolhido. Datas, números e moeda têm os próprios cartões abaixo.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,63 +13,69 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "Força o layout da esquerda para a direita ou da direita para a esquerda neste dispositivo."
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "Região de formato",
+    "description": "Saída Intl de datas, números e moeda — independente do idioma da interface."
+  },
+  "dateTime": {
+    "heading": "Data e hora",
+    "description": "Salvo neste dispositivo — as alterações se aplicam imediatamente a todas as datas do app."
+  },
+  "timeZone": {
+    "heading": "Fuso horário",
+    "preview": "Fuso horário: {{value}}",
+    "device": "Fuso horário do dispositivo"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "Formato de data e hora",
+    "auto": "Padrão do idioma (numérico)",
+    "short": "Curto",
+    "medium": "Médio",
+    "long": "Longo",
+    "full": "Completo",
+    "iso": "Estilo ISO (AAAA-MM-DD)",
+    "date": "Somente data",
+    "time": "Somente hora",
+    "datetime": "Data + hora",
+    "previewDate": "Data e hora: {{value}}",
+    "previewNumber": "Número: {{value}}",
+    "previewRelative": "Relativo: {{value}}",
+    "previewTime": "Somente hora: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "Formato do relógio",
+    "auto": "Padrão do idioma",
+    "h12": "12 horas (AM/PM)",
+    "h23": "24 horas"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "Formato numérico",
+    "auto": "Padrão do idioma",
+    "standard": "Agrupado",
+    "compact": "Compacto (1,2 M)",
+    "engineering": "Engenharia",
+    "scientific": "Científico",
+    "description": "Saída de números e moeda — independente do idioma da interface."
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "Exibição da moeda",
+    "auto": "Padrão do idioma",
+    "symbol": "Símbolo",
+    "narrowSymbol": "Símbolo estreito",
+    "code": "Código ISO",
+    "name": "Nome da moeda"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "Direção do texto: {{value}}",
-    "firstDay": "A semana começa: {{value}}",
-    "measurement": "Unidades: {{value}}"
+    "heading": "Moeda de pré-visualização"
   },
   "direction": {
     "ltr": "Da esquerda para a direita",
-    "rtl": "Da direita para a esquerda"
+    "rtl": "Da direita para a esquerda",
+    "heading": "Direção do texto",
+    "auto": "Seguir o idioma"
   },
   "firstDay": {
     "saturday": "Sábado",
@@ -79,11 +84,103 @@
   },
   "measurement": {
     "metric": "Métrico",
-    "imperial": "Imperial"
+    "imperial": "Imperial (EUA)"
+  },
+  "localePreview": {
+    "heading": "Pré-visualização ao vivo",
+    "currency": "Moeda: {{value}}",
+    "direction": "Direção do texto: {{value}}",
+    "firstDay": "A semana começa: {{value}}",
+    "measurement": "Unidades: {{value}}"
   },
   "versionUpdate": {
     "title": "Atualização disponível",
     "description": "Uma nova versão do aplicativo está pronta.",
     "refresh": "Atualizar agora"
+  },
+  "a11y": {
+    "close": "Fechar",
+    "loading": "Carregando",
+    "loadingPage": "Carregando página",
+    "toggleTheme": "Alternar tema",
+    "openAppearance": "Abrir aparência",
+    "cookieConsent": "Consentimento de cookies",
+    "rowsPerPage": "Linhas por página",
+    "goFirstPage": "Ir para a primeira página",
+    "goPreviousPage": "Ir para a página anterior",
+    "goNextPage": "Ir para a próxima página",
+    "goLastPage": "Ir para a última página",
+    "selectAll": "Selecionar tudo",
+    "copyAccountId": "Copiar ID da conta",
+    "onboardingProgress": "Progresso da integração",
+    "themeCode": "Código do tema",
+    "mode": "Modo"
+  },
+  "appearance": {
+    "themeTitle": "Tema",
+    "themeLocked": "O tema é gerido pela configuração da sua organização e não pode ser alterado aqui.",
+    "themeDescription": "Predefinições de destaque nomeadas — ou copie um link / cole um código de tema para reproduzir um visual exato.",
+    "presetAria": "Predefinição de destaque nomeada",
+    "copyLink": "Copiar link",
+    "shuffleHint": "Use Aleatório para gerar um código.",
+    "codeLabel": "Código: {{seed}}",
+    "codePlaceholder": "Cole um código de tema",
+    "apply": "Aplicar",
+    "pickAnyColour": "Escolha qualquer cor",
+    "modeTitle": "Modo",
+    "modeDescription": "Guardado neste dispositivo.",
+    "colourTitle": "Cor",
+    "colourDescription": "Destaque, gráficos e a base neutra.",
+    "accentColour": "Cor de destaque",
+    "chartColour": "Cor dos gráficos",
+    "baseColour": "Cor base",
+    "harmony": "Harmonia",
+    "harmonyAria": "Harmonia de cores",
+    "accentIntensity": "Intensidade do destaque",
+    "typeTitle": "Tipografia e forma",
+    "typeDescription": "Fontes, raio dos cantos e superfície do menu.",
+    "bodyFont": "Fonte do corpo",
+    "headingFont": "Fonte dos títulos",
+    "radius": "Raio",
+    "shapeLanguage": "Linguagem de formas",
+    "typeScale": "Escala tipográfica",
+    "menu": "Menu",
+    "menuAria": "Estilo de menu",
+    "iconsTitle": "Ícones",
+    "iconsDescription": "Espessura do traço, cor e conjunto de ícones.",
+    "iconWeight": "Espessura do ícone",
+    "iconColour": "Cor do ícone",
+    "iconLibrary": "Biblioteca de ícones",
+    "layoutTitle": "Esquema",
+    "layoutDescription": "Largura da área de trabalho principal — padrão para painéis, leitura para texto focado.",
+    "contentWidth": "Largura do conteúdo",
+    "surfaceTitle": "Superfície e movimento",
+    "surfaceDescription": "Espaçamento, profundidade, contraste e como se move.",
+    "density": "Densidade",
+    "contrast": "Contraste",
+    "elevation": "Elevação",
+    "separation": "Separação",
+    "separationAria": "Separação de superfícies",
+    "motion": "Movimento",
+    "focusRing": "Anel de foco",
+    "notificationsTitle": "Notificações",
+    "notificationsDescription": "Escolha ou aleatorize um design de notificação — as pré-visualizações usam os seus tokens de tema ativos.",
+    "toastDesign": "Design da notificação",
+    "position": "Posição",
+    "positionAria": "Posição da notificação",
+    "previewSuccess": "Sucesso",
+    "previewError": "Erro",
+    "previewWarning": "Aviso",
+    "previewInfo": "Informação",
+    "shuffleSection": "Aleatorizar {{section}}",
+    "sectionColour": "cor",
+    "sectionType": "tipografia e forma",
+    "sectionSurface": "superfície e movimento",
+    "sectionNotifications": "estilo de notificação",
+    "custom": "Personalizado",
+    "customWith": "Personalizado — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "Pesquisar..."
   }
 }

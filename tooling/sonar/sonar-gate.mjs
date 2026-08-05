@@ -15,7 +15,6 @@ import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-const SONAR_URL = process.env.SONAR_HOST_URL ?? 'http://localhost:9000';
 const PROJECT_KEY = 'core-fe';
 const COMPOSE_FILE = 'docker-compose.sonar.yml';
 // The single gitignored local env file (`.env.local`, mirroring core-be) — holds
@@ -27,6 +26,12 @@ const ADMIN_LOGIN = 'admin';
 const SERVER_READY_TIMEOUT_MS = 240_000;
 const CE_TIMEOUT_MS = 240_000;
 const POLL_INTERVAL_MS = 4_000;
+// Match docker-compose.sonar.yml host port (9001). Override via SONAR_HOST_URL
+// when reusing core-be's server on :9000.
+const SONAR_URL =
+  process.env.SONAR_HOST_URL ??
+  readEnvLocal().SONAR_HOST_URL ??
+  'http://localhost:9001';
 
 /** @param {string} message */
 function log(message) {

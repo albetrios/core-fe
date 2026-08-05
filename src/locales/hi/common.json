@@ -1,9 +1,8 @@
 {
   "language": {
     "openAria": "भाषा और क्षेत्रीय सेटिंग",
-    "title": "भाषा और क्षेत्र",
     "heading": "भाषा",
-    "description": "UI टेक्स्ट, तिथियाँ, संख्याएँ और मुद्रा इन प्राथमिकताओं का पालन करती हैं।",
+    "description": "UI पाठ आपके चुने हुए भाषा का अनुसरण करता है। तिथि, संख्या और मुद्रा के कार्ड नीचे हैं।",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,11 +13,21 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "इस डिवाइस पर बाएँ-से-दाएँ या दाएँ-से-बाएँ लेआउट बाध्य करें।"
   },
   "formatLocale": {
-    "heading": "क्षेत्रीय प्रारूप लोकेल",
+    "heading": "क्षेत्रीय प्रारूप",
     "description": "Intl तिथि, संख्या और मुद्रा आउटपुट — UI भाषा से स्वतंत्र।"
+  },
+  "dateTime": {
+    "heading": "तिथि और समय",
+    "description": "इस डिवाइस पर सहेजा जाता है — बदलाव ऐप की सभी तिथियों पर तुरंत लागू होते हैं।"
+  },
+  "timeZone": {
+    "heading": "समय क्षेत्र",
+    "preview": "समय क्षेत्र: {{value}}",
+    "device": "डिवाइस समय क्षेत्र"
   },
   "dateFormat": {
     "heading": "तिथि और समय प्रारूप",
@@ -48,7 +57,8 @@
     "standard": "समूहित",
     "compact": "संक्षिप्त (1.2M)",
     "engineering": "इंजीनियरिंग",
-    "scientific": "वैज्ञानिक"
+    "scientific": "वैज्ञानिक",
+    "description": "संख्या और मुद्रा आउटपुट — UI भाषा से स्वतंत्र।"
   },
   "currencyDisplay": {
     "heading": "मुद्रा प्रदर्शन",
@@ -61,16 +71,11 @@
   "currencyCode": {
     "heading": "पूर्वावलोकन मुद्रा"
   },
-  "localePreview": {
-    "heading": "लाइव पूर्वावलोकन",
-    "currency": "मुद्रा: {{value}}",
-    "direction": "पाठ दिशा: {{value}}",
-    "firstDay": "सप्ताह की शुरुआत: {{value}}",
-    "measurement": "इकाइयाँ: {{value}}"
-  },
   "direction": {
     "ltr": "बाएँ से दाएँ",
-    "rtl": "दाएँ से बाएँ"
+    "rtl": "दाएँ से बाएँ",
+    "heading": "पाठ दिशा",
+    "auto": "भाषा का पालन करें"
   },
   "firstDay": {
     "saturday": "शनिवार",
@@ -81,9 +86,101 @@
     "metric": "मीट्रिक",
     "imperial": "इंपीरियल"
   },
+  "localePreview": {
+    "heading": "लाइव पूर्वावलोकन",
+    "currency": "मुद्रा: {{value}}",
+    "direction": "पाठ दिशा: {{value}}",
+    "firstDay": "सप्ताह की शुरुआत: {{value}}",
+    "measurement": "इकाइयाँ: {{value}}"
+  },
   "versionUpdate": {
     "title": "अपडेट उपलब्ध है",
     "description": "ऐप का नया संस्करण तैयार है।",
     "refresh": "अभी रीफ़्रेश करें"
+  },
+  "a11y": {
+    "close": "बंद करें",
+    "loading": "लोड हो रहा है",
+    "loadingPage": "पेज लोड हो रहा है",
+    "toggleTheme": "थीम बदलें",
+    "openAppearance": "दिखावट खोलें",
+    "cookieConsent": "कुकी सहमति",
+    "rowsPerPage": "प्रति पृष्ठ पंक्तियाँ",
+    "goFirstPage": "पहला पृष्ठ",
+    "goPreviousPage": "पिछला पृष्ठ",
+    "goNextPage": "अगला पृष्ठ",
+    "goLastPage": "अंतिम पृष्ठ",
+    "selectAll": "सभी चुनें",
+    "copyAccountId": "खाता ID कॉपी करें",
+    "onboardingProgress": "ऑनबोर्डिंग प्रगति",
+    "themeCode": "थीम कोड",
+    "mode": "मोड"
+  },
+  "appearance": {
+    "themeTitle": "थीम",
+    "themeLocked": "थीम आपके संगठन के कॉन्फ़िगरेशन द्वारा प्रबंधित है और इसे यहाँ बदला नहीं जा सकता।",
+    "themeDescription": "नामित एक्सेंट प्रीसेट — या लिंक कॉपी करें / थीम कोड पेस्ट करके ठीक वही रूप दोबारा बनाएँ।",
+    "presetAria": "नामित एक्सेंट प्रीसेट",
+    "copyLink": "लिंक कॉपी करें",
+    "shuffleHint": "कोड बनाने के लिए शफ़ल करें।",
+    "codeLabel": "कोड: {{seed}}",
+    "codePlaceholder": "थीम कोड पेस्ट करें",
+    "apply": "लागू करें",
+    "pickAnyColour": "कोई भी रंग चुनें",
+    "modeTitle": "मोड",
+    "modeDescription": "इस डिवाइस पर सहेजा गया।",
+    "colourTitle": "रंग",
+    "colourDescription": "एक्सेंट, चार्ट और न्यूट्रल बेस।",
+    "accentColour": "एक्सेंट रंग",
+    "chartColour": "चार्ट रंग",
+    "baseColour": "बेस रंग",
+    "harmony": "सामंजस्य",
+    "harmonyAria": "रंग सामंजस्य",
+    "accentIntensity": "एक्सेंट तीव्रता",
+    "typeTitle": "टाइप और आकार",
+    "typeDescription": "फ़ॉन्ट, कोने की त्रिज्या और मेन्यू सतह।",
+    "bodyFont": "मुख्य फ़ॉन्ट",
+    "headingFont": "शीर्षक फ़ॉन्ट",
+    "radius": "त्रिज्या",
+    "shapeLanguage": "आकार भाषा",
+    "typeScale": "टाइप स्केल",
+    "menu": "मेन्यू",
+    "menuAria": "मेन्यू शैली",
+    "iconsTitle": "आइकन",
+    "iconsDescription": "स्ट्रोक मोटाई, रंग और आइकन सेट।",
+    "iconWeight": "आइकन मोटाई",
+    "iconColour": "आइकन रंग",
+    "iconLibrary": "आइकन लाइब्रेरी",
+    "layoutTitle": "लेआउट",
+    "layoutDescription": "मुख्य कार्यक्षेत्र की चौड़ाई — डैशबोर्ड के लिए मानक, केंद्रित पाठ के लिए पठन चौड़ाई।",
+    "contentWidth": "सामग्री चौड़ाई",
+    "surfaceTitle": "सतह और गति",
+    "surfaceDescription": "अंतराल, गहराई, कंट्रास्ट और गति।",
+    "density": "घनत्व",
+    "contrast": "कंट्रास्ट",
+    "elevation": "ऊँचाई",
+    "separation": "पृथक्करण",
+    "separationAria": "सतह पृथक्करण",
+    "motion": "गति",
+    "focusRing": "फ़ोकस रिंग",
+    "notificationsTitle": "सूचनाएँ",
+    "notificationsDescription": "टोस्ट डिज़ाइन चुनें या शफ़ल करें — पूर्वावलोकन आपके सक्रिय थीम टोकन का उपयोग करते हैं।",
+    "toastDesign": "टोस्ट डिज़ाइन",
+    "position": "स्थिति",
+    "positionAria": "टोस्ट स्थिति",
+    "previewSuccess": "सफलता",
+    "previewError": "त्रुटि",
+    "previewWarning": "चेतावनी",
+    "previewInfo": "जानकारी",
+    "shuffleSection": "{{section}} शफ़ल करें",
+    "sectionColour": "रंग",
+    "sectionType": "टाइप और आकार",
+    "sectionSurface": "सतह और गति",
+    "sectionNotifications": "सूचना शैली",
+    "custom": "कस्टम",
+    "customWith": "कस्टम — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "खोजें..."
   }
 }

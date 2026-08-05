@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { authApi } from '@/shared/api/auth-api.ts';
 import { forceLogout } from '@/shared/auth/service.ts';
 import { getAccessToken } from '@/shared/auth/token.ts';
@@ -55,6 +56,7 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
  * working destructive action.)
  */
 export function AccountPanel() {
+  const { t: tCommon } = useTranslation(LOCALE_NS);
   const { t } = useTranslation(SETTINGS_NS);
   const accountPanels = SETTINGS_KEYS.panels.account;
   const user = useAuthStore((s) => s.user);
@@ -112,7 +114,7 @@ export function AccountPanel() {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Copy account ID"
+                aria-label={tCommon(LOCALE_KEYS.copyAccountId)}
                 onClick={() => void copyId()}
                 data-testid="account-copy-id"
               >
@@ -154,7 +156,7 @@ export function AccountPanel() {
               onClick={() => setConfirmDelete(true)}
               data-testid="account-delete"
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete account
+              <Trash2 className="me-2 h-4 w-4" /> Delete account
             </Button>
           </div>
         </CardContent>

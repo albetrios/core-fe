@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "Qualcosa è andato storto",
+    "message": "Si è verificato un errore imprevisto. Prova a ricaricare la pagina.",
+    "reload": "Ricarica pagina"
+  },
+  "route": {
+    "notFound": "La pagina che stai cercando non esiste.",
+    "generic": "Qualcosa è andato storto.",
+    "pageTitle": "Questa pagina ha riscontrato un errore",
+    "pageMessage": "Qualcosa è andato storto durante il rendering di questa pagina.",
+    "tryAgain": "Riprova",
+    "goHome": "Vai alla home",
+    "refresh": "Aggiorna pagina"
+  },
+  "widget": {
+    "unavailable": "{{title}} non disponibile",
+    "message": "Qualcosa è andato storto nel caricamento di questa sezione. Riprova.",
+    "retry": "Riprova",
+    "pageContent": "Contenuto della pagina",
+    "emailBanner": "Verifica e-mail",
+    "notifications": "Notifiche",
+    "organizationSwitcher": "Selettore organizzazione"
+  },
+  "toast": {
+    "dismiss": "Chiudi notifica",
+    "undo": "Annulla",
+    "undone": "Azione annullata",
+    "processing": "Elaborazione…",
+    "preview": {
+      "successTitle": "Modifiche salvate",
+      "successDescription": "Le tue impostazioni sono attive.",
+      "errorTitle": "Qualcosa è andato storto",
+      "errorDescription": "Riprova.",
+      "warningTitle": "Attenzione",
+      "warningDescription": "Questa azione richiede una revisione.",
+      "infoTitle": "Lo sapevi?",
+      "infoDescription": "Anche mescolare cambia questo design."
+    }
+  },
+  "api": {
+    "fallback": "Qualcosa è andato storto. Riprova.",
+    "unexpected": "Si è verificato un errore imprevisto",
+    "http400": "La richiesta non è valida. Controlla i dati e riprova.",
+    "http401": "La sessione è scaduta. Accedi di nuovo.",
+    "http403": "Non hai il permesso di eseguire questa azione.",
+    "http404": "La risorsa richiesta non è stata trovata.",
+    "http409": "Si è verificato un conflitto. La risorsa potrebbe essere stata modificata da qualcun altro.",
+    "http422": "I dati inviati non sono validi. Controlla e riprova.",
+    "http429": "Troppe richieste. Attendi un momento e riprova.",
+    "http500": "Si è verificato un errore interno del server. Riprova più tardi.",
+    "http502": "Il server è temporaneamente non disponibile. Riprova più tardi.",
+    "http503": "Il servizio è temporaneamente non disponibile. Riprova più tardi."
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "Impossibile caricare i dati.",
+      "retry": "Riprova"
+    },
+    "organization": {
+      "roleRequired": "È richiesto un ruolo per cambiare il ruolo di un membro.",
+      "updateFailed": "Impossibile aggiornare l'organizzazione",
+      "logoInvalidType": "Scegli un file immagine.",
+      "logoTooLarge": "Il logo deve essere inferiore a 1 MB.",
+      "logoReadFailed": "Impossibile leggere quel file.",
+      "formCheck": "Controlla il modulo",
+      "updateSuccess": "Organizzazione aggiornata",
+      "createSuccess": "Creato {{name}}"
+    },
+    "account": {
+      "copyFailed": "Impossibile copiare negli appunti",
+      "themeCodeNumeric": "Inserisci un codice tema numerico",
+      "copySuccess": "ID account copiato",
+      "themeLinkCopied": "Link del tema copiato",
+      "themeLinkCopiedDescription": "Condividi questo URL per riprodurre l'aspetto.",
+      "notificationStylePreview": "Stile notifica",
+      "notificationStylePreviewDescription": "{{variant}} — temizzato con il tuo accento e i colori semantici.",
+      "accountDeletionPending": "Account eliminato. Disconnessione…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "Impossibile aggiungere la passkey",
+        "removeFailed": "Impossibile rimuovere la passkey",
+        "addSuccess": "Passkey aggiunta",
+        "removeSuccess": "Passkey rimossa"
+      },
+      "mfa": {
+        "disableFailed": "Impossibile disattivare l'autenticazione a due fattori",
+        "enableSuccess": "Autenticazione a due fattori attivata",
+        "disableSuccess": "Autenticazione a due fattori disattivata"
+      },
+      "members": {
+        "updateRoleFailed": "Impossibile aggiornare il ruolo",
+        "removeFailed": "Impossibile rimuovere il membro",
+        "updateFailed": "Impossibile aggiornare il membro",
+        "updateRoleSuccess": "Ruolo del membro aggiornato",
+        "removeSuccess": "Membro rimosso",
+        "suspendSuccess": "Membro sospeso",
+        "reactivateSuccess": "Membro riattivato"
+      },
+      "roles": {
+        "createFailed": "Impossibile creare il ruolo",
+        "updateFailed": "Impossibile aggiornare il ruolo",
+        "deleteFailed": "Impossibile eliminare il ruolo",
+        "createSuccess": "Ruolo \"{{name}}\" creato",
+        "updateSuccess": "Ruolo \"{{name}}\" aggiornato",
+        "deleteSuccess": "Ruolo eliminato"
+      },
+      "apiKeys": {
+        "createFailed": "Impossibile creare la chiave API",
+        "renameFailed": "Impossibile rinominare la chiave API",
+        "revokeFailed": "Impossibile revocare la chiave API",
+        "createSuccess": "Chiave API creata",
+        "renameSuccess": "Chiave API rinominata",
+        "revokeSuccess": "Chiave API revocata"
+      },
+      "sessions": {
+        "signOutFailed": "Impossibile disconnettere quella sessione",
+        "signOutSuccess": "Disconnesso da quella sessione"
+      },
+      "notifications": {
+        "updateFailed": "Impossibile aggiornare la notifica",
+        "updateManyFailed": "Impossibile aggiornare le notifiche",
+        "savePreferencesFailed": "Impossibile salvare le preferenze",
+        "savePreferencesSuccess": "Preferenze di notifica salvate"
+      },
+      "webhooks": {
+        "createFailed": "Impossibile creare il webhook",
+        "deleteFailed": "Impossibile eliminare il webhook",
+        "createSuccess": "Webhook creato",
+        "deleteSuccess": "Webhook eliminato"
+      },
+      "subscription": {
+        "changePlanFailed": "Impossibile cambiare piano",
+        "changePlanSuccess": "Passato al piano {{plan}}"
+      },
+      "invitations": {
+        "sendFailed": "Impossibile inviare l'invito",
+        "sendSuccess": "Invito inviato a {{email}}"
+      }
+    },
+    "profileUpdated": "Profilo aggiornato"
+  }
+}

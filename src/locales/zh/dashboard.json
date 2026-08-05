@@ -126,7 +126,23 @@
     "description": "续订、评审与团队活动",
     "upcoming": "即将到来",
     "legendEvent": "活动日",
-    "empty": "暂无安排"
+    "empty": "暂无安排",
+    "events": {
+      "planRenewal": "套餐续订",
+      "accessReview": "季度访问审查",
+      "teamSync": "团队同步",
+      "invoiceDue": "发票到期"
+    }
   },
-  "sampleBadge": "示例数据"
+  "sampleBadge": "示例数据",
+  "themeShowcase": {
+    "ariaLabel": "工作区主题",
+    "heading": "工作区主题",
+    "shuffle": "随机",
+    "customize": "自定义",
+    "custom": "自定义",
+    "default": "默认",
+    "shuffledTitle": "主题已随机",
+    "shuffledDescription": "全新的强调色、字体和圆角——以及提示样式。"
+  }
 }

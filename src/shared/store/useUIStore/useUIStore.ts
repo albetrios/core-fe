@@ -9,8 +9,6 @@ interface UIStore {
   shortcutsOpen: boolean;
   /** The dedicated Appearance dialog (opened by the floating handle / Customize). */
   appearanceOpen: boolean;
-  /** The dedicated Language & region dialog (opened by the floating handle). */
-  languageOpen: boolean;
 
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -20,8 +18,6 @@ interface UIStore {
   setShortcutsOpen: (open: boolean) => void;
   setAppearanceOpen: (open: boolean) => void;
   toggleAppearance: () => void;
-  setLanguageOpen: (open: boolean) => void;
-  toggleLanguage: () => void;
 }
 
 /**
@@ -40,7 +36,6 @@ export const useUIStore = create<UIStore>((set) => ({
   commandPaletteOpen: false,
   shortcutsOpen: false,
   appearanceOpen: false,
-  languageOpen: false,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
@@ -56,25 +51,14 @@ export const useUIStore = create<UIStore>((set) => ({
   },
   toggleShortcuts: () => set((s) => ({ shortcutsOpen: !s.shortcutsOpen })),
   setShortcutsOpen: (shortcutsOpen) => set({ shortcutsOpen }),
-  // Appearance + Language are mutually exclusive side panels — opening one closes the other.
   setAppearanceOpen: (appearanceOpen) => {
     if (appearanceOpen) captureAnalyticsEvent(ANALYTICS_EVENTS.appearanceDialogOpened);
-    set(appearanceOpen ? { appearanceOpen, languageOpen: false } : { appearanceOpen });
+    set({ appearanceOpen });
   },
   toggleAppearance: () =>
     set((s) => {
       const next = !s.appearanceOpen;
       if (next) captureAnalyticsEvent(ANALYTICS_EVENTS.appearanceDialogOpened);
-      return { appearanceOpen: next, languageOpen: false };
-    }),
-  setLanguageOpen: (languageOpen) => {
-    if (languageOpen) captureAnalyticsEvent(ANALYTICS_EVENTS.languageDialogOpened);
-    set(languageOpen ? { languageOpen, appearanceOpen: false } : { languageOpen });
-  },
-  toggleLanguage: () =>
-    set((s) => {
-      const next = !s.languageOpen;
-      if (next) captureAnalyticsEvent(ANALYTICS_EVENTS.languageDialogOpened);
-      return { languageOpen: next, appearanceOpen: false };
+      return { appearanceOpen: next };
     }),
 }));

@@ -7,7 +7,7 @@ type FormattedDateProps = {
   className?: string;
 };
 
-/** Renders a date using the user's locale + date-format preferences. */
+/** Renders a date using the user's locale, timezone, and date-format preferences. */
 export function FormattedDate({
   value,
   relative = false,

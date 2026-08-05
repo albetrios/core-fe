@@ -1,9 +1,8 @@
 {
   "language": {
     "openAria": "言語と地域の設定",
-    "title": "言語と地域",
     "heading": "言語",
-    "description": "UI のテキスト、日付、数値、通貨はこの設定に従います。",
+    "description": "UIの文言は選んだ言語に従います。日付・数値・通貨は下の各カードで設定します。",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,11 +13,21 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "この端末で左横書き／右横書きレイアウトを強制します。"
   },
   "formatLocale": {
     "heading": "地域フォーマット",
     "description": "Intl の日付・数値・通貨の出力（UI 言語とは独立）。"
+  },
+  "dateTime": {
+    "heading": "日付と時刻",
+    "description": "このデバイスに保存されます — 変更はアプリ内のすべての日付にすぐ反映されます。"
+  },
+  "timeZone": {
+    "heading": "タイムゾーン",
+    "preview": "タイムゾーン：{{value}}",
+    "device": "デバイスのタイムゾーン"
   },
   "dateFormat": {
     "heading": "日付と時刻の形式",
@@ -48,7 +57,8 @@
     "standard": "桁区切り",
     "compact": "コンパクト（1.2M）",
     "engineering": "工学表記",
-    "scientific": "科学表記"
+    "scientific": "科学表記",
+    "description": "数値と通貨の表示 — UI言語とは独立。"
   },
   "currencyDisplay": {
     "heading": "通貨の表示",
@@ -61,16 +71,11 @@
   "currencyCode": {
     "heading": "プレビュー通貨"
   },
-  "localePreview": {
-    "heading": "リアルタイムプレビュー",
-    "currency": "通貨：{{value}}",
-    "direction": "文字方向：{{value}}",
-    "firstDay": "週の開始：{{value}}",
-    "measurement": "単位：{{value}}"
-  },
   "direction": {
     "ltr": "左から右",
-    "rtl": "右から左"
+    "rtl": "右から左",
+    "heading": "文字方向",
+    "auto": "言語に従う"
   },
   "firstDay": {
     "saturday": "土曜日",
@@ -81,9 +86,101 @@
     "metric": "メートル法",
     "imperial": "ヤード・ポンド法"
   },
+  "localePreview": {
+    "heading": "リアルタイムプレビュー",
+    "currency": "通貨：{{value}}",
+    "direction": "文字方向：{{value}}",
+    "firstDay": "週の開始：{{value}}",
+    "measurement": "単位：{{value}}"
+  },
   "versionUpdate": {
     "title": "アップデートがあります",
     "description": "アプリの新しいバージョンが利用可能です。",
     "refresh": "今すぐ更新"
+  },
+  "a11y": {
+    "close": "閉じる",
+    "loading": "読み込み中",
+    "loadingPage": "ページを読み込み中",
+    "toggleTheme": "テーマを切り替え",
+    "openAppearance": "外観を開く",
+    "cookieConsent": "Cookieの同意",
+    "rowsPerPage": "ページあたりの行数",
+    "goFirstPage": "最初のページへ",
+    "goPreviousPage": "前のページへ",
+    "goNextPage": "次のページへ",
+    "goLastPage": "最後のページへ",
+    "selectAll": "すべて選択",
+    "copyAccountId": "アカウントIDをコピー",
+    "onboardingProgress": "オンボーディングの進捗",
+    "themeCode": "テーマコード",
+    "mode": "モード"
+  },
+  "appearance": {
+    "themeTitle": "テーマ",
+    "themeLocked": "テーマは組織の設定で管理されているため、ここでは変更できません。",
+    "themeDescription": "名前付きアクセントプリセット、またはリンクをコピー／テーマコードを貼り付けて、まったく同じ外観を再現できます。",
+    "presetAria": "名前付きアクセントプリセット",
+    "copyLink": "リンクをコピー",
+    "shuffleHint": "シャッフルするとコードが生成されます。",
+    "codeLabel": "コード: {{seed}}",
+    "codePlaceholder": "テーマコードを貼り付け",
+    "apply": "適用",
+    "pickAnyColour": "任意の色を選択",
+    "modeTitle": "モード",
+    "modeDescription": "このデバイスに保存されます。",
+    "colourTitle": "カラー",
+    "colourDescription": "アクセント、チャート、ニュートラルベース。",
+    "accentColour": "アクセントカラー",
+    "chartColour": "チャートカラー",
+    "baseColour": "ベースカラー",
+    "harmony": "ハーモニー",
+    "harmonyAria": "カラーハーモニー",
+    "accentIntensity": "アクセントの強さ",
+    "typeTitle": "書体と形状",
+    "typeDescription": "フォント、角丸、メニューのサーフェス。",
+    "bodyFont": "本文フォント",
+    "headingFont": "見出しフォント",
+    "radius": "角丸",
+    "shapeLanguage": "シェイプランゲージ",
+    "typeScale": "タイプスケール",
+    "menu": "メニュー",
+    "menuAria": "メニューのスタイル",
+    "iconsTitle": "アイコン",
+    "iconsDescription": "線の太さ、色、アイコンセット。",
+    "iconWeight": "アイコンの太さ",
+    "iconColour": "アイコンの色",
+    "iconLibrary": "アイコンライブラリ",
+    "layoutTitle": "レイアウト",
+    "layoutDescription": "メインワークスペースの幅 — ダッシュボードには標準、集中して読む場合は読みやすい幅。",
+    "contentWidth": "コンテンツ幅",
+    "surfaceTitle": "サーフェスとモーション",
+    "surfaceDescription": "余白、奥行き、コントラスト、動きの質感。",
+    "density": "密度",
+    "contrast": "コントラスト",
+    "elevation": "エレベーション",
+    "separation": "区切り",
+    "separationAria": "サーフェスの区切り",
+    "motion": "モーション",
+    "focusRing": "フォーカスリング",
+    "notificationsTitle": "通知",
+    "notificationsDescription": "トーストのデザインを選択またはシャッフルします — プレビューには現在のテーマトークンが使われます。",
+    "toastDesign": "トーストのデザイン",
+    "position": "位置",
+    "positionAria": "トーストの位置",
+    "previewSuccess": "成功",
+    "previewError": "エラー",
+    "previewWarning": "警告",
+    "previewInfo": "情報",
+    "shuffleSection": "{{section}}をシャッフル",
+    "sectionColour": "カラー",
+    "sectionType": "書体と形状",
+    "sectionSurface": "サーフェスとモーション",
+    "sectionNotifications": "通知スタイル",
+    "custom": "カスタム",
+    "customWith": "カスタム — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "検索..."
   }
 }

@@ -111,7 +111,7 @@ export function OrganizationSwitcher({
         ) : null}
       </span>
       {org.id === activeId ? (
-        <Check className="text-primary ml-auto size-4 shrink-0" aria-hidden />
+        <Check className="text-primary ms-auto size-4 shrink-0" aria-hidden />
       ) : null}
     </DropdownMenuItem>
   );
@@ -151,7 +151,7 @@ export function OrganizationSwitcher({
             >
               {initialOf(activeName)}
             </span>
-            <span className="min-w-0 flex-1 truncate text-left text-sm font-medium">
+            <span className="min-w-0 flex-1 truncate text-start text-sm font-medium">
               {activeName}
             </span>
             <ChevronsUpDown className={cn('h-4 w-4 shrink-0 opacity-60', chevronClass)} />
@@ -182,7 +182,7 @@ export function OrganizationSwitcher({
               }}
               data-testid="organization-switcher-create"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="me-2 h-4 w-4" />
               {t(LAYOUT_KEYS.app.orgSwitcher.addOrganization)}
             </DropdownMenuItem>
           ) : null}

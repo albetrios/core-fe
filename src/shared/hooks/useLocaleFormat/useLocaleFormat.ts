@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import {
   formatCurrencyValue,
+  type FormatDateMeta,
   formatDateValue,
   formatNumberValue,
   formatRelativeTimeValue,
@@ -11,8 +12,9 @@ import {
   type FirstDayOfWeek,
   type MeasurementSystem,
   regionLocaleFacts,
+  resolvedTextDirection,
 } from '@/lib/i18n/intl-config.ts';
-import { localeDirection, type TextDirection } from '@/lib/i18n/locales.ts';
+import type { TextDirection } from '@/lib/i18n/locales.ts';
 import {
   localeFormatPrefs,
   useLocaleStore,
@@ -28,7 +30,11 @@ export function useLocaleFormat(): {
   direction: TextDirection;
   firstDayOfWeek: FirstDayOfWeek;
   measurementSystem: MeasurementSystem;
-  formatDate: (iso: string | Date) => string;
+  formatDate: (
+    iso: string | Date,
+    options?: Intl.DateTimeFormatOptions,
+    meta?: FormatDateMeta,
+  ) => string;
   formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
   formatCurrency: (cents: number, currency?: string) => string;
   formatRelativeTime: (iso: string | Date, base?: Date) => string;
@@ -37,6 +43,8 @@ export function useLocaleFormat(): {
   const formatLocale = useLocaleStore((s) => s.formatLocale);
   const dateFormat = useLocaleStore((s) => s.dateFormat);
   const hourCycle = useLocaleStore((s) => s.hourCycle);
+  const timeZone = useLocaleStore((s) => s.timeZone);
+  const textDirection = useLocaleStore((s) => s.textDirection);
   const numberStyle = useLocaleStore((s) => s.numberStyle);
   const currencyDisplay = useLocaleStore((s) => s.currencyDisplay);
   const currencyCode = useLocaleStore((s) => s.currencyCode);
@@ -47,6 +55,7 @@ export function useLocaleFormat(): {
         formatLocale,
         dateFormat,
         hourCycle,
+        timeZone,
         numberStyle,
         currencyDisplay,
         currencyCode,
@@ -56,6 +65,7 @@ export function useLocaleFormat(): {
       formatLocale,
       dateFormat,
       hourCycle,
+      timeZone,
       numberStyle,
       currencyDisplay,
       currencyCode,
@@ -63,7 +73,8 @@ export function useLocaleFormat(): {
   );
 
   const formatDate = useCallback(
-    (iso: string | Date) => formatDateValue(iso, prefs),
+    (iso: string | Date, options?: Intl.DateTimeFormatOptions, meta?: FormatDateMeta) =>
+      formatDateValue(iso, prefs, options, meta),
     [prefs],
   );
   const formatNumber = useCallback(
@@ -85,7 +96,7 @@ export function useLocaleFormat(): {
 
   return {
     prefs,
-    direction: localeDirection(locale),
+    direction: resolvedTextDirection(textDirection, locale),
     firstDayOfWeek: facts.firstDayOfWeek,
     measurementSystem: facts.measurementSystem,
     formatDate,

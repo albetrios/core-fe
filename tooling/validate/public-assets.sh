@@ -6,7 +6,7 @@ set -e
 cd "$(dirname "$0")/../.."
 PUBLIC="public"
 
-REQUIRED="config.js theme-init.js app-icon.svg manifest.webmanifest _headers offline.html robots.txt pwa-192x192.png pwa-512x512.png"
+REQUIRED="config.js theme-init.js locale-init.js app-icon.svg manifest.webmanifest _headers offline.html robots.txt pwa-192x192.png pwa-512x512.png"
 MISSING=""
 for f in $REQUIRED; do
   if [ ! -f "$PUBLIC/$f" ]; then

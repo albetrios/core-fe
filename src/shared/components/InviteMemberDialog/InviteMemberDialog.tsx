@@ -1,10 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type ReactNode, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { translateFormMessage } from '@/lib/i18n/translate-form-message.ts';
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   Dialog,
@@ -48,6 +53,7 @@ function isInvitableRole(role: RoleSummary): boolean {
  * caller (render only when the user holds `invitation:manage`).
  */
 export function InviteMemberDialog() {
+  const { t } = useTranslation(SETTINGS_NS);
   const [open, setOpen] = useState(false);
   const invite = useInviteMember();
   const roles = useRoles();
@@ -98,7 +104,7 @@ export function InviteMemberDialog() {
           <Input
             id="invite-email"
             type="email"
-            placeholder="teammate@company.com"
+            placeholder={t(SETTINGS_KEYS.panels.members.emailPlaceholder)}
             autoComplete="email"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'invite-email-error' : undefined}
@@ -124,7 +130,9 @@ export function InviteMemberDialog() {
                   className="w-full"
                   data-testid="invite-member-role"
                 >
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue
+                    placeholder={t(SETTINGS_KEYS.panels.members.rolePlaceholder)}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {invitableRoles.map((role) => (
@@ -170,7 +178,7 @@ export function InviteMemberDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" data-testid="invite-member-open">
-          <UserPlus className="mr-2 h-4 w-4" />
+          <UserPlus className="me-2 h-4 w-4" />
           Invite member
         </Button>
       </DialogTrigger>

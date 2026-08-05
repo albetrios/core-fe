@@ -1,6 +1,7 @@
 import { useParams } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
+import { onceAsync } from '@/lib/lazy-module.ts';
 import { CommandPaletteLazy } from '@/shared/components/CommandPalette/index.ts';
 import { KeyboardShortcutsLazy } from '@/shared/components/KeyboardShortcutsDialog/KeyboardShortcutsLazy.tsx';
 import { SessionTimeoutDialog } from '@/shared/components/SessionTimeoutDialog/index.ts';
@@ -16,18 +17,18 @@ import {
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-const SidebarShell = lazy(() =>
-  import('./variants/AppLayoutSidebar.tsx').then((m) => ({ default: m.SidebarShell })),
-);
-const TopNavShell = lazy(() =>
-  import('./variants/AppLayoutTopNav.tsx').then((m) => ({ default: m.TopNavShell })),
-);
-const RailShell = lazy(() =>
-  import('./variants/AppLayoutRail.tsx').then((m) => ({ default: m.RailShell })),
-);
-const FocusShell = lazy(() =>
-  import('./variants/AppLayoutFocus.tsx').then((m) => ({ default: m.FocusShell })),
-);
+// Each shell is fetched on first render (or preload) and shared from then on.
+// A module-scope `import()` would instead fetch all four the moment this
+// module evaluates, which defeats the split.
+const loadSidebar = onceAsync(() => import('./variants/AppLayoutSidebar.tsx'));
+const loadTopNav = onceAsync(() => import('./variants/AppLayoutTopNav.tsx'));
+const loadRail = onceAsync(() => import('./variants/AppLayoutRail.tsx'));
+const loadFocus = onceAsync(() => import('./variants/AppLayoutFocus.tsx'));
+
+const SidebarShell = lazy(() => loadSidebar().then((m) => ({ default: m.SidebarShell })));
+const TopNavShell = lazy(() => loadTopNav().then((m) => ({ default: m.TopNavShell })));
+const RailShell = lazy(() => loadRail().then((m) => ({ default: m.RailShell })));
+const FocusShell = lazy(() => loadFocus().then((m) => ({ default: m.FocusShell })));
 
 const APP_SHELLS = [SidebarShell, TopNavShell, RailShell, FocusShell] as const;
 
@@ -77,6 +78,16 @@ export function Component() {
   );
 }
 
+/** Warms every shell chunk so tests can render any variant without a Suspense race. */
+const preloadAppLayoutVariants = () =>
+  Promise.all([loadSidebar(), loadTopNav(), loadRail(), loadFocus()]);
+
 /** Re-export for tests and direct imports that need the outlet shell without routing. */
-// eslint-disable-next-line react-refresh/only-export-components -- test-facing re-exports beside the layout
-export { APP_SHELL_VARIANT, AppLayoutShell, resolveAppShellVariant };
+/* eslint-disable react-refresh/only-export-components -- test-facing re-exports beside the layout */
+export {
+  APP_SHELL_VARIANT,
+  AppLayoutShell,
+  preloadAppLayoutVariants,
+  resolveAppShellVariant,
+};
+/* eslint-enable react-refresh/only-export-components */

@@ -1,6 +1,9 @@
 import type { Table } from '@tanstack/react-table';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
+import { TABLE_KEYS } from '@/shared/components/DataTableToolbar/data-table.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   DropdownMenu,
@@ -26,9 +29,10 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
   searchColumnId,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder,
   children,
 }: DataTableToolbarProps<TData>) {
+  const { t } = useTranslation(LOCALE_NS);
   const isFiltered = useMemo(() => table.getState().columnFilters.length > 0, [table]);
 
   const searchColumn = useMemo(
@@ -47,12 +51,12 @@ export function DataTableToolbar<TData>({
         {/* Search input */}
         {searchColumn && (
           <div className="relative w-full max-w-sm">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Search className="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
             <Input
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholder ?? t(TABLE_KEYS.searchPlaceholder)}
               value={searchValue}
               onChange={(e) => searchColumn.setFilterValue(e.target.value)}
-              className="h-8 pl-9"
+              className="h-8 ps-9"
             />
           </div>
         )}
@@ -77,8 +81,8 @@ export function DataTableToolbar<TData>({
       {/* Column visibility toggle */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="ml-auto hidden h-8 lg:flex">
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" className="ms-auto hidden h-8 lg:flex">
+            <SlidersHorizontal className="me-2 h-4 w-4" />
             View
           </Button>
         </DropdownMenuTrigger>

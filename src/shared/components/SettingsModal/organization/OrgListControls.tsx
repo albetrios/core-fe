@@ -53,14 +53,14 @@ export function OrgListControls({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
       <div className="relative max-w-sm flex-1">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+        <Search className="text-muted-foreground absolute start-3 top-1/2 size-4 -translate-y-1/2" />
         <Input
           type="search"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder={searchPlaceholder}
           aria-label={searchPlaceholder}
-          className="pl-9"
+          className="ps-9"
           data-testid={searchTestId}
         />
       </div>

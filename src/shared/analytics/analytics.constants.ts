@@ -23,7 +23,6 @@ export const ANALYTICS_EVENTS = {
   settingsSectionViewed: 'settings_section_viewed',
   commandPaletteOpened: 'command_palette_opened',
   appearanceDialogOpened: 'appearance_dialog_opened',
-  languageDialogOpened: 'language_dialog_opened',
 
   /** Deploy / version */
   deploymentUpdateAvailable: 'deployment_update_available',

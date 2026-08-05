@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -19,6 +21,7 @@ import { AppearancePanel } from './AppearancePanel.tsx';
  * the close button, or a click outside dismisses it.
  */
 export function AppearanceDialog() {
+  const { t } = useTranslation(LOCALE_NS);
   const open = useUIStore((s) => s.appearanceOpen);
   const setOpen = useUIStore((s) => s.setAppearanceOpen);
   const shuffleTheme = useThemeStore((s) => s.shuffleTheme);
@@ -67,7 +70,7 @@ export function AppearanceDialog() {
       aria-labelledby="appearance-popover-title"
       data-testid="appearance-dialog"
       data-slot="popover-content"
-      className="bg-popover text-popover-foreground border-border animate-in slide-in-from-right-2 fade-in pointer-events-auto fixed top-3 right-3 z-[80] flex max-h-[calc(100dvh-1.5rem)] w-[min(100vw-1.5rem,480px)] flex-col overflow-hidden rounded-md border transition"
+      className="bg-popover text-popover-foreground border-border animate-in slide-in-from-end-2 fade-in rtl:slide-in-from-start-2 pointer-events-auto fixed end-3 top-3 z-[80] flex max-h-[calc(100dvh-1.5rem)] w-[min(100vw-1.5rem,480px)] flex-col overflow-hidden rounded-md border transition"
     >
       <div className="border-border flex items-start justify-between gap-3 border-b px-5 py-3">
         <div className="space-y-0.5">
@@ -86,16 +89,16 @@ export function AppearanceDialog() {
             onClick={handleShuffle}
             data-testid="theme-shuffle"
           >
-            <Sparkles className="mr-1.5 size-3.5" aria-hidden="true" />
+            <Sparkles className="me-1.5 size-3.5" aria-hidden="true" />
             Shuffle
           </Button>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Close"
+            aria-label={t(LOCALE_KEYS.closeAria)}
             data-testid="appearance-close"
             data-slot="button"
-            className={cn(closeControlClassName, '-mr-1')}
+            className={cn(closeControlClassName, '-me-1')}
           >
             <X className="size-4" aria-hidden="true" />
           </button>

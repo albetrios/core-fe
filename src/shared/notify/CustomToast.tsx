@@ -216,7 +216,7 @@ export function CustomToast({
         variant === 'outline' &&
           cn('bg-popover/95 text-popover-foreground', tone.outlineBorder),
         variant === 'accent' &&
-          'bg-popover/95 text-popover-foreground border-border pl-4',
+          'bg-popover/95 text-popover-foreground border-border ps-4',
         variant === 'minimal' &&
           'border-border/70 bg-background/90 text-foreground border-dashed',
         variant === 'glass' &&
@@ -225,7 +225,7 @@ export function CustomToast({
     >
       {variant === 'accent' ? (
         <span
-          className={cn('absolute inset-y-0 left-0 w-1', tone.bar)}
+          className={cn('absolute inset-y-0 start-0 w-1', tone.bar)}
           aria-hidden="true"
         />
       ) : null}

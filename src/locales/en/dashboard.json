@@ -127,7 +127,23 @@
     "description": "Renewals, reviews, and team events",
     "upcoming": "Upcoming",
     "legendEvent": "Event day",
-    "empty": "Nothing scheduled"
+    "empty": "Nothing scheduled",
+    "events": {
+      "planRenewal": "Plan renewal",
+      "accessReview": "Quarterly access review",
+      "teamSync": "Team sync",
+      "invoiceDue": "Invoice due"
+    }
   },
-  "sampleBadge": "Sample data"
+  "sampleBadge": "Sample data",
+  "themeShowcase": {
+    "ariaLabel": "Workspace theme",
+    "heading": "Workspace theme",
+    "shuffle": "Shuffle",
+    "customize": "Customize",
+    "custom": "Custom",
+    "default": "Default",
+    "shuffledTitle": "Theme shuffled",
+    "shuffledDescription": "New accent, fonts, radius — and toast style."
+  }
 }

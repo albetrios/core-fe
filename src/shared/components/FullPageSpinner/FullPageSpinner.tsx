@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { isAppSplashActive, onAppSplashDismissed } from '@/lib/app-splash.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { iconChipClassName, iconOnPrimarySurface } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
 import { Boxes } from '@/shared/icons/index.ts';
@@ -13,6 +15,7 @@ import { Boxes } from '@/shared/icons/index.ts';
  * takes over for Suspense boundaries. Reduced-motion is honoured globally.
  */
 export function FullPageSpinner() {
+  const { t } = useTranslation(LOCALE_NS);
   const [splashHidden, setSplashHidden] = useState(() => !isAppSplashActive());
 
   useEffect(() => {
@@ -24,7 +27,7 @@ export function FullPageSpinner() {
 
   return (
     <output
-      aria-label="Loading"
+      aria-label={t(LOCALE_KEYS.loading)}
       data-testid="full-page-spinner"
       className="bg-background fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 overflow-hidden"
     >

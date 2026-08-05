@@ -38,6 +38,8 @@ export default defineConfig(({ mode }) => {
       react(),
       babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),
+      // Env-driven only — set BUILD_I18N_MODE=multi in `.env.local` (local defaults)
+      // for Appearance → Language; production defaults to single for white-label.
       i18nBuild({
         modeFlag: env.BUILD_I18N_MODE,
         localeFlag: env.BUILD_I18N_LOCALE,
@@ -73,7 +75,6 @@ export default defineConfig(({ mode }) => {
             '**/iconset-tabler-*.js',
             '**/CommandPalette-*.js',
             '**/AppearanceDialog-*.js',
-            '**/LanguageDialog-*.js',
           ],
         },
       }),

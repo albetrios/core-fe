@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils.ts';
 
 /** Large selectable tile (mode cards, language rows). */
 export const appearanceTileClassName =
-  'bg-background relative border text-left transition-all outline-none focus-visible:outline-hidden rounded-[var(--radius-lg)]';
+  'bg-background relative border text-start transition-all outline-none focus-visible:outline-hidden rounded-[var(--radius-lg)]';
 
 export const appearanceTileActiveClassName = 'border-primary ring-primary/20 ring-2';
 export const appearanceTileIdleClassName = 'border-border hover:border-primary/50';

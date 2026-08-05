@@ -1,0 +1,149 @@
+{
+  "greeting": "おかえりなさい、{{name}} さん",
+  "greetingFallback": "ゲスト",
+  "heroSubtitle": "今日のワークスペースの状況です。",
+  "heroSubtitleSolo": "今日の状況です。",
+  "errorLoad": "ワークスペースを読み込めませんでした。更新して再試行してください。",
+  "workspaceFallback": "ワークスペース",
+  "workspaceNameFallback": "ワークスペース",
+  "orgType": {
+    "team": "チーム",
+    "personal": "個人"
+  },
+  "status": {
+    "active": "有効",
+    "suspended": "停止中",
+    "archived": "アーカイブ済み"
+  },
+  "overview": {
+    "ariaLabel": "概要"
+  },
+  "stats": {
+    "workspaces": "ワークスペース",
+    "workspacesHintOne": "これだけ",
+    "workspacesHintMany": "メンバーです",
+    "permissions": "権限",
+    "permissionsHint": "このワークスペース内",
+    "type": "ワークスペースの種類",
+    "typeHintTeam": "チームと共有",
+    "typeHintPersonal": "あなた専用",
+    "billing": "請求",
+    "billingManaged": "管理済み",
+    "billingNone": "—",
+    "billingHintTeam": "チームプラン",
+    "billingHintPersonal": "個人 — なし"
+  },
+  "nextSteps": {
+    "ariaLabel": "おすすめの次のステップ",
+    "heading": "おすすめの次のステップ"
+  },
+  "quickActions": {
+    "ariaLabel": "クイックアクション",
+    "heading": "クイックアクション",
+    "inviteTitle": "メンバーを招待",
+    "inviteDescription": "{{orgName}} に同僚を追加",
+    "rolesTitle": "ロールを管理",
+    "rolesDescription": "誰が何をできるかを定義",
+    "billingTitle": "請求とプラン",
+    "billingDescription": "サブスクリプションと請求書",
+    "orgSettingsTitle": "組織設定",
+    "orgSettingsDescription": "名前、ブランディングなど",
+    "accountTitle": "アカウント",
+    "accountDescription": "プロフィール、セキュリティ、セッション"
+  },
+  "organizations": {
+    "ariaLabel": "あなたの組織",
+    "heading": "あなたの組織",
+    "current": "現在",
+    "openWorkspace": "ワークスペースを開く →"
+  },
+  "insights": {
+    "ariaLabel": "ワークスペースのインサイト",
+    "heading": "ワークスペースのインサイト"
+  },
+  "highlights": {
+    "ariaLabel": "ワークスペースのハイライト",
+    "heading": "ハイライト",
+    "description": "ワークスペースをもっと活用するための厳選ヒント",
+    "tabsLabel": "ハイライトのトピック",
+    "slideAnnouncement": "スライド {{current}} / {{total}}: {{title}}",
+    "previousSlide": "前のハイライト",
+    "nextSlide": "次のハイライト",
+    "goToSlide": "{{title}} のハイライトへ",
+    "tabs": {
+      "appearance": "外観",
+      "invite": "チーム",
+      "security": "セキュリティ"
+    },
+    "slides": {
+      "appearance": {
+        "title": "自分らしく",
+        "description": "テーマ、密度、アクセントを調整して、チームの働き方に合わせましょう。",
+        "action": "外観設定を開く"
+      },
+      "invite": {
+        "title": "チームを広げよう",
+        "description": "同僚を招待してロールを割り当て、初日からの適切なアクセスを。",
+        "action": "メンバーを招待"
+      },
+      "security": {
+        "title": "しっかり守る",
+        "description": "MFA、アクティブセッション、サインイン方法を確認してアカウントを保護。",
+        "action": "セキュリティ設定を確認"
+      }
+    }
+  },
+  "analytics": {
+    "heading": "ワークスペースのアクティビティ",
+    "description": "時間経過に伴うセッションと API 呼び出し",
+    "rangeLabel": "期間を選択",
+    "seriesSessions": "セッション",
+    "seriesApiCalls": "API 呼び出し",
+    "range": {
+      "7d": "過去 7 日",
+      "30d": "過去 30 日",
+      "90d": "過去 90 日"
+    }
+  },
+  "members": {
+    "ariaLabel": "チームメンバー",
+    "heading": "チームメンバー",
+    "description_one": "このワークスペースに {{count}} 人",
+    "description_other": "このワークスペースに {{count}} 人",
+    "columnMember": "メンバー",
+    "columnRole": "ロール",
+    "columnStatus": "ステータス",
+    "columnJoined": "参加日",
+    "status": {
+      "active": "有効",
+      "invited": "招待済み",
+      "suspended": "停止中"
+    },
+    "error": "メンバーを読み込めませんでした。"
+  },
+  "schedule": {
+    "ariaLabel": "スケジュール",
+    "heading": "スケジュール",
+    "description": "更新、レビュー、チームイベント",
+    "upcoming": "今後",
+    "legendEvent": "イベント日",
+    "empty": "予定なし",
+    "events": {
+      "planRenewal": "プラン更新",
+      "accessReview": "四半期アクセスレビュー",
+      "teamSync": "チーム同期",
+      "invoiceDue": "請求書期限"
+    }
+  },
+  "sampleBadge": "サンプルデータ",
+  "themeShowcase": {
+    "ariaLabel": "ワークスペーステーマ",
+    "heading": "ワークスペーステーマ",
+    "shuffle": "シャッフル",
+    "customize": "カスタマイズ",
+    "custom": "カスタム",
+    "default": "デフォルト",
+    "shuffledTitle": "テーマをシャッフルしました",
+    "shuffledDescription": "新しいアクセント、フォント、角丸 — そしてトーストのスタイル。"
+  }
+}

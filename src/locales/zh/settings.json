@@ -126,7 +126,9 @@
       "removeTitle": "移除 {{name}}？",
       "removeDescription": "该成员将失去对此组织的访问权限。确认后几秒内可撤销。",
       "removeConfirm": "移除",
-      "removePending": "正在移除 {{name}}…"
+      "removePending": "正在移除 {{name}}…",
+      "emailPlaceholder": "tongshi@gongsi.com",
+      "rolePlaceholder": "选择角色"
     },
     "roles": {
       "title": "角色",
@@ -147,7 +149,9 @@
       "deleteTitle": "删除 {{name}}？",
       "deleteDescription": "使用此角色的成员需要重新分配角色。确认后几秒内可撤销。",
       "deleteConfirm": "删除",
-      "deletePending": "正在删除 {{name}}…"
+      "deletePending": "正在删除 {{name}}…",
+      "namePlaceholder": "例如：成员",
+      "descriptionPlaceholder": "该角色可以做什么？"
     },
     "listSort": {
       "label": "排序方式",
@@ -165,13 +169,22 @@
       "confirmSave": "保存更改",
       "confirmCancel": "取消",
       "saving": "保存中…",
-      "save": "保存更改"
+      "save": "保存更改",
+      "namePlaceholder": "您的姓名",
+      "jobTitlePlaceholder": "例如：产品工程师"
     },
     "account": {
       "deleteTitle": "删除您的账户？",
       "deleteDescription": "此操作不可逆，无法撤销。您的所有数据都将被删除。",
       "deleteConfirm": "删除账户",
       "deleteCancel": "取消"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "搜索 API 密钥…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }

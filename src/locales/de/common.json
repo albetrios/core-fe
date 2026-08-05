@@ -1,9 +1,8 @@
 {
   "language": {
-    "openAria": "Language & regional settings",
-    "title": "Language & region",
-    "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "openAria": "Sprache und regionale Einstellungen",
+    "heading": "Sprache",
+    "description": "UI-Texte folgen der gewählten Sprache. Datum, Zahlen und Währung haben eigene Karten darunter.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -14,63 +13,69 @@
     "ar": "العربية",
     "hi": "हिन्दी",
     "ko": "한국어",
-    "it": "Italiano"
+    "it": "Italiano",
+    "directionDescription": "Erzwingt Links-nach-rechts- oder Rechts-nach-links-Layout auf diesem Gerät."
   },
   "formatLocale": {
-    "heading": "Regional format locale",
-    "description": "Intl date, number, and currency output — independent of UI language."
+    "heading": "Regionales Format",
+    "description": "Intl-Ausgabe für Datum, Zahlen und Währung — unabhängig von der UI-Sprache."
+  },
+  "dateTime": {
+    "heading": "Datum und Uhrzeit",
+    "description": "Wird auf diesem Gerät gespeichert — Änderungen gelten sofort für alle Daten in der App."
+  },
+  "timeZone": {
+    "heading": "Zeitzone",
+    "preview": "Zeitzone: {{value}}",
+    "device": "Gerätezeitzone"
   },
   "dateFormat": {
-    "heading": "Date & time format",
-    "auto": "Locale default (numeric)",
-    "short": "Short",
-    "medium": "Medium",
-    "long": "Long",
-    "full": "Full",
-    "iso": "ISO-style (YYYY-MM-DD)",
-    "date": "Date only",
-    "time": "Time only",
-    "datetime": "Date + time",
-    "previewDate": "Date & time: {{value}}",
-    "previewNumber": "Number: {{value}}",
-    "previewRelative": "Relative: {{value}}",
-    "previewTime": "Time only: {{value}}"
+    "heading": "Datums- und Zeitformat",
+    "auto": "Sprachstandard (numerisch)",
+    "short": "Kurz",
+    "medium": "Mittel",
+    "long": "Lang",
+    "full": "Vollständig",
+    "iso": "ISO-Stil (JJJJ-MM-TT)",
+    "date": "Nur Datum",
+    "time": "Nur Uhrzeit",
+    "datetime": "Datum + Uhrzeit",
+    "previewDate": "Datum und Uhrzeit: {{value}}",
+    "previewNumber": "Zahl: {{value}}",
+    "previewRelative": "Relativ: {{value}}",
+    "previewTime": "Nur Uhrzeit: {{value}}"
   },
   "hourCycle": {
-    "heading": "Clock format",
-    "auto": "Locale default",
-    "h12": "12-hour (AM/PM)",
-    "h23": "24-hour"
+    "heading": "Uhrformat",
+    "auto": "Sprachstandard",
+    "h12": "12-Stunden (AM/PM)",
+    "h23": "24-Stunden"
   },
   "numberStyle": {
-    "heading": "Number format",
-    "auto": "Locale default",
-    "standard": "Grouped",
-    "compact": "Compact (1.2M)",
-    "engineering": "Engineering",
-    "scientific": "Scientific"
+    "heading": "Zahlenformat",
+    "auto": "Sprachstandard",
+    "standard": "Gruppiert",
+    "compact": "Kompakt (1,2 Mio.)",
+    "engineering": "Technisch",
+    "scientific": "Wissenschaftlich",
+    "description": "Zahlen- und Währungsausgabe — unabhängig von der UI-Sprache."
   },
   "currencyDisplay": {
-    "heading": "Currency display",
-    "auto": "Locale default",
-    "symbol": "Symbol",
-    "narrowSymbol": "Narrow symbol",
-    "code": "ISO code",
-    "name": "Currency name"
+    "heading": "Währungsanzeige",
+    "auto": "Sprachstandard",
+    "symbol": "Zeichen",
+    "narrowSymbol": "Enges Symbol",
+    "code": "ISO-Code",
+    "name": "Währungsname"
   },
   "currencyCode": {
-    "heading": "Preview currency"
-  },
-  "localePreview": {
-    "heading": "Live preview",
-    "currency": "Currency: {{value}}",
-    "direction": "Textrichtung: {{value}}",
-    "firstDay": "Woche beginnt: {{value}}",
-    "measurement": "Einheiten: {{value}}"
+    "heading": "Vorschau-Währung"
   },
   "direction": {
     "ltr": "Von links nach rechts",
-    "rtl": "Von rechts nach links"
+    "rtl": "Von rechts nach links",
+    "heading": "Textrichtung",
+    "auto": "Sprache folgen"
   },
   "firstDay": {
     "saturday": "Samstag",
@@ -79,11 +84,103 @@
   },
   "measurement": {
     "metric": "Metrisch",
-    "imperial": "Imperial"
+    "imperial": "Angloamerikanisch"
+  },
+  "localePreview": {
+    "heading": "Live-Vorschau",
+    "currency": "Währung: {{value}}",
+    "direction": "Textrichtung: {{value}}",
+    "firstDay": "Woche beginnt: {{value}}",
+    "measurement": "Einheiten: {{value}}"
   },
   "versionUpdate": {
     "title": "Update verfügbar",
     "description": "Eine neue Version der App ist bereit.",
     "refresh": "Jetzt aktualisieren"
+  },
+  "a11y": {
+    "close": "Schließen",
+    "loading": "Wird geladen",
+    "loadingPage": "Seite wird geladen",
+    "toggleTheme": "Design umschalten",
+    "openAppearance": "Darstellung öffnen",
+    "cookieConsent": "Cookie-Einwilligung",
+    "rowsPerPage": "Zeilen pro Seite",
+    "goFirstPage": "Zur ersten Seite",
+    "goPreviousPage": "Zur vorherigen Seite",
+    "goNextPage": "Zur nächsten Seite",
+    "goLastPage": "Zur letzten Seite",
+    "selectAll": "Alle auswählen",
+    "copyAccountId": "Konto-ID kopieren",
+    "onboardingProgress": "Onboarding-Fortschritt",
+    "themeCode": "Theme-Code",
+    "mode": "Modus"
+  },
+  "appearance": {
+    "themeTitle": "Design",
+    "themeLocked": "Das Design wird durch die Konfiguration Ihrer Organisation verwaltet und kann hier nicht geändert werden.",
+    "themeDescription": "Benannte Akzent-Voreinstellungen — oder Link kopieren / Design-Code einfügen, um ein exaktes Erscheinungsbild zu reproduzieren.",
+    "presetAria": "Benannte Akzent-Voreinstellung",
+    "copyLink": "Link kopieren",
+    "shuffleHint": "Mischen, um einen Code zu erzeugen.",
+    "codeLabel": "Code: {{seed}}",
+    "codePlaceholder": "Design-Code einfügen",
+    "apply": "Anwenden",
+    "pickAnyColour": "Beliebige Farbe wählen",
+    "modeTitle": "Modus",
+    "modeDescription": "Auf diesem Gerät gespeichert.",
+    "colourTitle": "Farbe",
+    "colourDescription": "Akzent, Diagramme und die neutrale Basis.",
+    "accentColour": "Akzentfarbe",
+    "chartColour": "Diagrammfarbe",
+    "baseColour": "Basisfarbe",
+    "harmony": "Harmonie",
+    "harmonyAria": "Farbharmonie",
+    "accentIntensity": "Akzentintensität",
+    "typeTitle": "Schrift & Form",
+    "typeDescription": "Schriften, Eckenradius und Menüoberfläche.",
+    "bodyFont": "Fließtextschrift",
+    "headingFont": "Überschriftenschrift",
+    "radius": "Radius",
+    "shapeLanguage": "Formensprache",
+    "typeScale": "Schriftskala",
+    "menu": "Menü",
+    "menuAria": "Menüstil",
+    "iconsTitle": "Symbole",
+    "iconsDescription": "Strichstärke, Farbe und Symbolsatz.",
+    "iconWeight": "Symbolstärke",
+    "iconColour": "Symbolfarbe",
+    "iconLibrary": "Symbolbibliothek",
+    "layoutTitle": "Layout",
+    "layoutDescription": "Wie breit der Hauptarbeitsbereich ist — Standard für Dashboards, Lesebreite für konzentrierte Texte.",
+    "contentWidth": "Inhaltsbreite",
+    "surfaceTitle": "Oberfläche & Bewegung",
+    "surfaceDescription": "Abstände, Tiefe, Kontrast und Bewegung.",
+    "density": "Dichte",
+    "contrast": "Kontrast",
+    "elevation": "Erhöhung",
+    "separation": "Trennung",
+    "separationAria": "Oberflächentrennung",
+    "motion": "Bewegung",
+    "focusRing": "Fokusring",
+    "notificationsTitle": "Benachrichtigungen",
+    "notificationsDescription": "Wählen oder mischen Sie ein Toast-Design — Vorschauen nutzen Ihre aktiven Design-Tokens.",
+    "toastDesign": "Toast-Design",
+    "position": "Position",
+    "positionAria": "Toast-Position",
+    "previewSuccess": "Erfolg",
+    "previewError": "Fehler",
+    "previewWarning": "Warnung",
+    "previewInfo": "Info",
+    "shuffleSection": "{{section}} mischen",
+    "sectionColour": "Farbe",
+    "sectionType": "Schrift & Form",
+    "sectionSurface": "Oberfläche & Bewegung",
+    "sectionNotifications": "Benachrichtigungsstil",
+    "custom": "Benutzerdefiniert",
+    "customWith": "Benutzerdefiniert — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "Suchen..."
   }
 }

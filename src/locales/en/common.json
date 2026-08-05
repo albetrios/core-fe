@@ -1,9 +1,27 @@
 {
+  "a11y": {
+    "close": "Close",
+    "loading": "Loading",
+    "loadingPage": "Loading page",
+    "toggleTheme": "Toggle theme",
+    "openAppearance": "Open appearance",
+    "cookieConsent": "Cookie consent",
+    "rowsPerPage": "Rows per page",
+    "goFirstPage": "Go to first page",
+    "goPreviousPage": "Go to previous page",
+    "goNextPage": "Go to next page",
+    "goLastPage": "Go to last page",
+    "selectAll": "Select all",
+    "copyAccountId": "Copy account ID",
+    "onboardingProgress": "Onboarding progress",
+    "themeCode": "Theme code",
+    "mode": "Mode"
+  },
   "language": {
     "openAria": "Language & regional settings",
-    "title": "Language & region",
     "heading": "Language",
-    "description": "UI copy, dates, numbers, and currency follow these preferences.",
+    "description": "UI copy follows the language you pick. Dates, numbers, and currency have their own cards below.",
+    "directionDescription": "Force left-to-right or right-to-left layout on this device.",
     "en": "English",
     "es": "Español",
     "zh": "中文",
@@ -19,6 +37,15 @@
   "formatLocale": {
     "heading": "Regional format locale",
     "description": "Intl date, number, and currency output — independent of UI language."
+  },
+  "dateTime": {
+    "heading": "Date & time",
+    "description": "Saved on this device — changes apply live to every date in the app."
+  },
+  "timeZone": {
+    "heading": "Timezone",
+    "device": "Device timezone",
+    "preview": "Timezone: {{value}}"
   },
   "dateFormat": {
     "heading": "Date & time format",
@@ -44,6 +71,7 @@
   },
   "numberStyle": {
     "heading": "Number format",
+    "description": "Number and currency output — independent of UI language.",
     "auto": "Locale default",
     "standard": "Grouped",
     "compact": "Compact (1.2M)",
@@ -62,6 +90,8 @@
     "heading": "Preview currency"
   },
   "direction": {
+    "heading": "Text direction",
+    "auto": "Follow language",
     "ltr": "Left-to-right",
     "rtl": "Right-to-left"
   },
@@ -85,5 +115,72 @@
     "title": "Update available",
     "description": "A new version of the app is ready.",
     "refresh": "Refresh now"
+  },
+  "appearance": {
+    "themeTitle": "Theme",
+    "themeLocked": "The theme is managed by your organization's configuration and can't be changed here.",
+    "themeDescription": "Named accent presets — or copy a link / paste a theme code to reproduce an exact generated look.",
+    "presetAria": "Named accent preset",
+    "copyLink": "Copy link",
+    "shuffleHint": "Shuffle to generate a code.",
+    "codeLabel": "Code: {{seed}}",
+    "codePlaceholder": "Paste a theme code",
+    "apply": "Apply",
+    "pickAnyColour": "Pick any colour",
+    "modeTitle": "Mode",
+    "modeDescription": "Saved on this device.",
+    "colourTitle": "Colour",
+    "colourDescription": "Accent, charts, and the neutral base.",
+    "accentColour": "Accent colour",
+    "chartColour": "Chart colour",
+    "baseColour": "Base colour",
+    "harmony": "Harmony",
+    "harmonyAria": "Colour harmony",
+    "accentIntensity": "Accent intensity",
+    "typeTitle": "Type & shape",
+    "typeDescription": "Fonts, corner radius, and menu surface.",
+    "bodyFont": "Body font",
+    "headingFont": "Heading font",
+    "radius": "Radius",
+    "shapeLanguage": "Shape language",
+    "typeScale": "Type scale",
+    "menu": "Menu",
+    "menuAria": "Menu style",
+    "iconsTitle": "Icons",
+    "iconsDescription": "Stroke weight, colour, and icon set.",
+    "iconWeight": "Icon weight",
+    "iconColour": "Icon colour",
+    "iconLibrary": "Icon library",
+    "layoutTitle": "Layout",
+    "layoutDescription": "How wide the main workspace is — standard for dashboards, reading for focused copy.",
+    "contentWidth": "Content width",
+    "surfaceTitle": "Surface & motion",
+    "surfaceDescription": "Spacing, depth, contrast, and how it moves.",
+    "density": "Density",
+    "contrast": "Contrast",
+    "elevation": "Elevation",
+    "separation": "Separation",
+    "separationAria": "Surface separation",
+    "motion": "Motion",
+    "focusRing": "Focus ring",
+    "notificationsTitle": "Notifications",
+    "notificationsDescription": "Pick or shuffle a toast design — previews use your live theme tokens.",
+    "toastDesign": "Toast design",
+    "position": "Position",
+    "positionAria": "Toast position",
+    "previewSuccess": "Success",
+    "previewError": "Error",
+    "previewWarning": "Warning",
+    "previewInfo": "Info",
+    "shuffleSection": "Shuffle {{section}}",
+    "sectionColour": "colour",
+    "sectionType": "type & shape",
+    "sectionSurface": "surface & motion",
+    "sectionNotifications": "notification style",
+    "custom": "Custom",
+    "customWith": "Custom — {{look}}"
+  },
+  "table": {
+    "searchPlaceholder": "Search..."
   }
 }

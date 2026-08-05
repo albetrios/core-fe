@@ -130,7 +130,9 @@
       "removeTitle": "移除 {{name}}？",
       "removeDescription": "他们将失去对此组织的访问权限。此操作无法撤销。",
       "cancel": "取消",
-      "confirmRemove": "移除"
+      "confirmRemove": "移除",
+      "rolePlaceholder": "角色",
+      "searchPlaceholder": "搜索成员…"
     },
     "shortcuts": {
       "title": "键盘快捷键",
@@ -139,6 +141,10 @@
       "showShortcuts": "显示键盘快捷键",
       "showShortcutsAlt": "显示快捷键（备用）",
       "closeDialog": "关闭对话框"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
     }
   },
   "public": {

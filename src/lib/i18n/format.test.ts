@@ -14,6 +14,7 @@ function prefs(overrides: Partial<LocaleFormatInput> = {}): LocaleFormatInput {
     formatLocale: 'en-US',
     dateFormat: 'auto',
     hourCycle: 'auto',
+    timeZone: 'auto',
     numberStyle: 'auto',
     currencyDisplay: 'auto',
     currencyCode: 'USD',
@@ -38,6 +39,95 @@ describe('formatDateValue', () => {
     expect(dateOnly).toMatch(/\d/);
     expect(timeOnly).toMatch(/\d/);
     expect(dateOnly).not.toContain(':');
+  });
+
+  it('overrides display timezone when an IANA zone is selected', () => {
+    const tokyo = formatDateValue(
+      sample,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'Asia/Tokyo' }),
+    );
+    const nyc = formatDateValue(
+      sample,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'America/New_York' }),
+    );
+    expect(tokyo).toMatch(/\d/);
+    expect(nyc).toMatch(/\d/);
+    expect(tokyo).not.toBe(nyc);
+  });
+
+  it('keeps the civil day for local Date inputs under a foreign display TZ', () => {
+    // Calendar/placeholder events use local-midnight Dates. A western TZ must
+    // not shift June 18 → June 17 (the bug that shipped with timeZone wiring).
+    const civil = new Date(2026, 5, 18);
+    const label = formatDateValue(
+      civil,
+      prefs({
+        formatLocale: 'en-US',
+        dateFormat: 'date',
+        timeZone: 'America/New_York',
+      }),
+      undefined,
+      { civilDay: true },
+    );
+    expect(label).toMatch(/06\/18\/2026|6\/18\/2026/);
+  });
+
+  it('does not pin noon for Date + time-bearing style without civilDay', () => {
+    const instant = new Date(2026, 5, 18, 3, 0, 0);
+    const withCivil = formatDateValue(
+      instant,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'UTC' }),
+      undefined,
+      { civilDay: true },
+    );
+    const absolute = formatDateValue(
+      instant,
+      prefs({ dateFormat: 'time', hourCycle: 'h23', timeZone: 'UTC' }),
+    );
+    // Civil noon UTC → 12:00; absolute 03:00 local may differ once TZ applied.
+    expect(withCivil).not.toBe(absolute);
+  });
+
+  it('still shifts absolute ISO instants across display timezones', () => {
+    const tokyo = formatDateValue(
+      '2026-06-18T00:30:00.000Z',
+      prefs({ dateFormat: 'date', timeZone: 'Asia/Tokyo' }),
+    );
+    const nyc = formatDateValue(
+      '2026-06-18T00:30:00.000Z',
+      prefs({ dateFormat: 'date', timeZone: 'America/New_York' }),
+    );
+    expect(tokyo).not.toBe(nyc);
+  });
+
+  it('applies custom options while still honouring format locale + timezone', () => {
+    const label = formatDateValue(
+      sample,
+      prefs({ formatLocale: 'en-IN', timeZone: 'Asia/Kolkata' }),
+      { weekday: 'long', month: 'long', day: 'numeric' },
+    );
+    expect(label).toMatch(/\d/);
+    expect(label.length).toBeGreaterThan(5);
+  });
+
+  it('does not throw on an unsupported timeZone (retries without it)', () => {
+    // Preferenced/migrated-away IANA ids must not crash date cells.
+    expect(() =>
+      formatDateValue(
+        sample,
+        prefs({
+          timeZone: 'Not/A_Real_Zone' as LocaleFormatInput['timeZone'],
+        }),
+      ),
+    ).not.toThrow();
+    expect(
+      formatDateValue(
+        sample,
+        prefs({
+          timeZone: 'Not/A_Real_Zone' as LocaleFormatInput['timeZone'],
+        }),
+      ),
+    ).toMatch(/\d/);
   });
 });
 

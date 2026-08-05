@@ -8,8 +8,12 @@ import { useLocaleStore } from './useLocaleStore.ts';
 
 describe('useLocaleStore', () => {
   beforeEach(async () => {
-    useLocaleStore.setState({ locale: 'en', dateFormat: 'auto' });
-    await applyDocumentLocale('en');
+    useLocaleStore.setState({
+      locale: 'en',
+      dateFormat: 'auto',
+      textDirection: 'auto',
+    });
+    await applyDocumentLocale('en', 'auto');
   });
 
   it('persists and applies a new locale', async () => {
@@ -24,6 +28,22 @@ describe('useLocaleStore', () => {
     await useLocaleStore.getState().setLocale('ar');
     expect(document.documentElement.dir).toBe('rtl');
     await useLocaleStore.getState().setLocale('en');
+    expect(document.documentElement.dir).toBe('ltr');
+  });
+
+  it('text direction preference overrides language without changing locale', () => {
+    useLocaleStore.getState().setTextDirection('rtl');
+    expect(useLocaleStore.getState().textDirection).toBe('rtl');
+    expect(useLocaleStore.getState().locale).toBe('en');
+    expect(document.documentElement.dir).toBe('rtl');
+    useLocaleStore.getState().setTextDirection('ltr');
+    expect(document.documentElement.dir).toBe('ltr');
+  });
+
+  it('forced LTR keeps Arabic UI from flipping the document', async () => {
+    useLocaleStore.getState().setTextDirection('ltr');
+    await useLocaleStore.getState().setLocale('ar');
+    expect(useLocaleStore.getState().locale).toBe('ar');
     expect(document.documentElement.dir).toBe('ltr');
   });
 
@@ -52,5 +72,39 @@ describe('useLocaleStore', () => {
     expect(useLocaleStore.getState().hourCycle).toBe('h23');
     expect(useLocaleStore.getState().numberStyle).toBe('compact');
     expect(useLocaleStore.getState().currencyDisplay).toBe('code');
+  });
+
+  it('stores timezone preference independently of region changes', () => {
+    useLocaleStore.getState().setTimeZone('UTC');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
+    useLocaleStore.getState().setFormatLocale('ja-JP');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
+    useLocaleStore.getState().setFormatLocale('en-IN');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
+  });
+
+  it('keeps device timezone (auto) when the region changes', () => {
+    useLocaleStore.setState({ timeZone: 'auto' });
+    useLocaleStore.getState().setFormatLocale('ja-JP');
+    expect(useLocaleStore.getState().timeZone).toBe('auto');
+  });
+
+  it('does not clobber an explicit timezone when the UI language changes', async () => {
+    useLocaleStore.getState().setTimeZone('UTC');
+    await useLocaleStore.getState().setLocale('ja');
+    expect(useLocaleStore.getState().locale).toBe('ja');
+    expect(useLocaleStore.getState().formatLocale).toBe('ja-JP');
+    expect(useLocaleStore.getState().timeZone).toBe('UTC');
+  });
+
+  it('keeps device timezone (auto) when the UI language changes', async () => {
+    useLocaleStore.setState({ timeZone: 'auto' });
+    await useLocaleStore.getState().setLocale('hi');
+    expect(useLocaleStore.getState().timeZone).toBe('auto');
+  });
+
+  it('stores a currency code override independently', () => {
+    useLocaleStore.getState().setCurrencyCode('EUR');
+    expect(useLocaleStore.getState().currencyCode).toBe('EUR');
   });
 });

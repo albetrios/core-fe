@@ -1,0 +1,149 @@
+{
+  "greeting": "Willkommen zurück, {{name}}",
+  "greetingFallback": "dort",
+  "heroSubtitle": "Das passiert heute in Ihrem Arbeitsbereich.",
+  "heroSubtitleSolo": "Das passiert heute.",
+  "errorLoad": "Ihr Arbeitsbereich konnte nicht geladen werden. Bitte aktualisieren und erneut versuchen.",
+  "workspaceFallback": "Ihr Arbeitsbereich",
+  "workspaceNameFallback": "Ihr Arbeitsbereich",
+  "orgType": {
+    "team": "Team",
+    "personal": "Persönlich"
+  },
+  "status": {
+    "active": "Aktiv",
+    "suspended": "Gesperrt",
+    "archived": "Archiviert"
+  },
+  "overview": {
+    "ariaLabel": "Übersicht"
+  },
+  "stats": {
+    "workspaces": "Arbeitsbereiche",
+    "workspacesHintOne": "Nur dieser",
+    "workspacesHintMany": "Sie sind Mitglied",
+    "permissions": "Ihre Berechtigungen",
+    "permissionsHint": "In diesem Arbeitsbereich",
+    "type": "Arbeitsbereichstyp",
+    "typeHintTeam": "Mit Ihrem Team geteilt",
+    "typeHintPersonal": "Privat für Sie",
+    "billing": "Abrechnung",
+    "billingManaged": "Verwaltet",
+    "billingNone": "—",
+    "billingHintTeam": "Team-Plan",
+    "billingHintPersonal": "Persönlich — keiner"
+  },
+  "nextSteps": {
+    "ariaLabel": "Vorgeschlagene nächste Schritte",
+    "heading": "Vorgeschlagene nächste Schritte"
+  },
+  "quickActions": {
+    "ariaLabel": "Schnellaktionen",
+    "heading": "Schnellaktionen",
+    "inviteTitle": "Mitglieder einladen",
+    "inviteDescription": "Teammitglieder zu {{orgName}} hinzufügen",
+    "rolesTitle": "Rollen verwalten",
+    "rolesDescription": "Festlegen, wer was tun darf",
+    "billingTitle": "Abrechnung & Plan",
+    "billingDescription": "Abonnement und Rechnungen",
+    "orgSettingsTitle": "Organisationseinstellungen",
+    "orgSettingsDescription": "Name, Branding und mehr",
+    "accountTitle": "Ihr Konto",
+    "accountDescription": "Profil, Sicherheit, Sitzungen"
+  },
+  "organizations": {
+    "ariaLabel": "Ihre Organisationen",
+    "heading": "Ihre Organisationen",
+    "current": "Aktuell",
+    "openWorkspace": "Arbeitsbereich öffnen →"
+  },
+  "insights": {
+    "ariaLabel": "Arbeitsbereichseinblicke",
+    "heading": "Arbeitsbereichseinblicke"
+  },
+  "highlights": {
+    "ariaLabel": "Arbeitsbereich-Highlights",
+    "heading": "Highlights",
+    "description": "Ausgewählte Wege, mehr aus Ihrem Arbeitsbereich herauszuholen",
+    "tabsLabel": "Highlight-Themen",
+    "slideAnnouncement": "Folie {{current}} von {{total}}: {{title}}",
+    "previousSlide": "Vorheriges Highlight",
+    "nextSlide": "Nächstes Highlight",
+    "goToSlide": "Zum Highlight {{title}}",
+    "tabs": {
+      "appearance": "Darstellung",
+      "invite": "Team",
+      "security": "Sicherheit"
+    },
+    "slides": {
+      "appearance": {
+        "title": "Machen Sie es zu Ihrem",
+        "description": "Passen Sie Design, Dichte und Akzent an, damit der Arbeitsbereich zu Ihrer Arbeitsweise passt.",
+        "action": "Darstellungseinstellungen öffnen"
+      },
+      "invite": {
+        "title": "Team erweitern",
+        "description": "Laden Sie Teammitglieder ein und weisen Sie Rollen zu, damit alle vom ersten Tag an den richtigen Zugriff haben.",
+        "action": "Mitglieder einladen"
+      },
+      "security": {
+        "title": "Absichern",
+        "description": "Prüfen Sie MFA, aktive Sitzungen und Anmeldemethoden, um Ihr Konto zu schützen.",
+        "action": "Sicherheitseinstellungen prüfen"
+      }
+    }
+  },
+  "analytics": {
+    "heading": "Arbeitsbereichsaktivität",
+    "description": "Sitzungen und API-Aufrufe im Zeitverlauf",
+    "rangeLabel": "Zeitraum auswählen",
+    "seriesSessions": "Sitzungen",
+    "seriesApiCalls": "API-Aufrufe",
+    "range": {
+      "7d": "Letzte 7 Tage",
+      "30d": "Letzte 30 Tage",
+      "90d": "Letzte 90 Tage"
+    }
+  },
+  "members": {
+    "ariaLabel": "Teammitglieder",
+    "heading": "Teammitglieder",
+    "description_one": "{{count}} Person in diesem Arbeitsbereich",
+    "description_other": "{{count}} Personen in diesem Arbeitsbereich",
+    "columnMember": "Mitglied",
+    "columnRole": "Rolle",
+    "columnStatus": "Status",
+    "columnJoined": "Beigetreten",
+    "status": {
+      "active": "Aktiv",
+      "invited": "Eingeladen",
+      "suspended": "Gesperrt"
+    },
+    "error": "Mitglieder konnten nicht geladen werden."
+  },
+  "schedule": {
+    "ariaLabel": "Zeitplan",
+    "heading": "Zeitplan",
+    "description": "Verlängerungen, Reviews und Team-Events",
+    "upcoming": "Bevorstehend",
+    "legendEvent": "Ereignistag",
+    "empty": "Nichts geplant",
+    "events": {
+      "planRenewal": "Planverlängerung",
+      "accessReview": "Vierteljährliche Zugriffsprüfung",
+      "teamSync": "Team-Sync",
+      "invoiceDue": "Rechnung fällig"
+    }
+  },
+  "sampleBadge": "Beispieldaten",
+  "themeShowcase": {
+    "ariaLabel": "Arbeitsbereich-Design",
+    "heading": "Arbeitsbereich-Design",
+    "shuffle": "Mischen",
+    "customize": "Anpassen",
+    "custom": "Benutzerdefiniert",
+    "default": "Standard",
+    "shuffledTitle": "Design gemischt",
+    "shuffledDescription": "Neue Akzentfarbe, Schriften und Radius — und Toast-Stil."
+  }
+}

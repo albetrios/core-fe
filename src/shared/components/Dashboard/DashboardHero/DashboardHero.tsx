@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils.ts';
@@ -9,6 +8,7 @@ import {
 } from '@/shared/components/Dashboard/dashboard.constants.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
+import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
 import { Building2 } from '@/shared/icons/index.ts';
 import type { OrganizationStatusValue } from '@/shared/tenancy/me-context.ts';
 
@@ -41,19 +41,16 @@ export function DashboardHero({
   orgStatus,
 }: DashboardHeroProps) {
   const { t } = useTranslation(DASHBOARD_NS);
+  const { formatDate } = useLocaleFormat();
   const isTeam = orgType === 'TEAM';
   const personalOnly = useDeploymentMode() === 'personal-only';
   const showOrgContext = !personalOnly;
-  // Read the clock once per mount, not on every render (purity).
-  const todayLabel = useMemo(
-    () =>
-      new Date().toLocaleDateString(undefined, {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-      }),
-    [],
-  );
+  // Regional locale for the label; "today" is the device local calendar day.
+  const todayLabel = formatDate(new Date(), {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <header
@@ -61,11 +58,11 @@ export function DashboardHero({
       className="border-border/60 from-muted/50 via-card to-card relative overflow-hidden rounded-2xl border bg-gradient-to-br px-5 py-6 sm:px-7 sm:py-8"
     >
       <div
-        className="bg-primary/10 pointer-events-none absolute -top-16 -right-8 size-56 rounded-full blur-3xl"
+        className="bg-primary/10 pointer-events-none absolute -end-8 -top-16 size-56 rounded-full blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="bg-brand/8 pointer-events-none absolute -bottom-20 left-1/3 size-40 rounded-full blur-3xl"
+        className="bg-brand/8 pointer-events-none absolute start-1/3 -bottom-20 size-40 rounded-full blur-3xl"
         aria-hidden="true"
       />
 

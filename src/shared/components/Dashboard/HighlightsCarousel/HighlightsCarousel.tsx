@@ -93,7 +93,7 @@ function HighlightSlide({
       id={highlightPanelId(slide.id)}
       aria-labelledby={highlightTabId(slide.id)}
       hidden={!isActive}
-      className="text-left"
+      className="text-start"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div
@@ -121,7 +121,7 @@ function HighlightSlide({
             </p>
           </div>
 
-          <Button asChild size="sm" className="group h-9 w-fit rounded-full pr-1 pl-4">
+          <Button asChild size="sm" className="group h-9 w-fit rounded-full ps-4 pe-1">
             <a
               href={slide.href}
               tabIndex={isActive ? 0 : -1}
@@ -194,13 +194,13 @@ export function HighlightsCarousel() {
         <div
           aria-hidden="true"
           className={cn(
-            'pointer-events-none absolute -top-16 -right-12 size-40 rounded-full blur-3xl transition-colors duration-700 ease-out',
+            'pointer-events-none absolute -end-12 -top-16 size-40 rounded-full blur-3xl transition-colors duration-700 ease-out',
             atmosphere.orb,
           )}
         />
         <div
           aria-hidden="true"
-          className="bg-muted/30 pointer-events-none absolute -bottom-16 -left-14 size-32 rounded-full blur-3xl"
+          className="bg-muted/30 pointer-events-none absolute -start-14 -bottom-16 size-32 rounded-full blur-3xl"
         />
 
         <CardHeader className="relative z-10 flex flex-row items-start justify-between gap-3 px-4 pt-4 pb-0">
@@ -269,9 +269,9 @@ export function HighlightsCarousel() {
               duration: reducedMotion ? 0 : 25,
             }}
           >
-            <CarouselContent className="-ml-0">
+            <CarouselContent className="-ms-0">
               {DASHBOARD_HIGHLIGHT_SLIDES.map((slide, index) => (
-                <CarouselItem key={slide.id} className="pl-0">
+                <CarouselItem key={slide.id} className="ps-0">
                   <HighlightSlide slide={slide} isActive={index === activeIndex} />
                 </CarouselItem>
               ))}

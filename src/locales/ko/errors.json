@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "문제가 발생했습니다",
+    "message": "예기치 않은 오류가 발생했습니다. 페이지를 다시 로드해 주세요.",
+    "reload": "페이지 다시 로드"
+  },
+  "route": {
+    "notFound": "찾으시는 페이지가 없습니다.",
+    "generic": "문제가 발생했습니다.",
+    "pageTitle": "이 페이지에서 오류가 발생했습니다",
+    "pageMessage": "이 페이지를 렌더링하는 중 문제가 발생했습니다.",
+    "tryAgain": "다시 시도",
+    "goHome": "홈으로",
+    "refresh": "페이지 새로고침"
+  },
+  "widget": {
+    "unavailable": "{{title}}을(를) 사용할 수 없음",
+    "message": "이 섹션을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+    "retry": "다시 시도",
+    "pageContent": "페이지 콘텐츠",
+    "emailBanner": "이메일 확인",
+    "notifications": "알림",
+    "organizationSwitcher": "조직 전환기"
+  },
+  "toast": {
+    "dismiss": "알림 닫기",
+    "undo": "실행 취소",
+    "undone": "작업이 취소됨",
+    "processing": "처리 중…",
+    "preview": {
+      "successTitle": "변경 사항이 저장됨",
+      "successDescription": "설정이 적용되었습니다.",
+      "errorTitle": "문제가 발생했습니다",
+      "errorDescription": "다시 시도해 주세요.",
+      "warningTitle": "주의",
+      "warningDescription": "이 작업에는 검토가 필요합니다.",
+      "infoTitle": "알고 계셨나요?",
+      "infoDescription": "셔플하면 이 디자인도 바뀝니다."
+    }
+  },
+  "api": {
+    "fallback": "문제가 발생했습니다. 다시 시도해 주세요.",
+    "unexpected": "예기치 않은 오류가 발생했습니다",
+    "http400": "요청이 올바르지 않습니다. 입력을 확인하고 다시 시도해 주세요.",
+    "http401": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+    "http403": "이 작업을 수행할 권한이 없습니다.",
+    "http404": "요청한 리소스를 찾을 수 없습니다.",
+    "http409": "충돌이 발생했습니다. 다른 사람이 리소스를 수정했을 수 있습니다.",
+    "http422": "제출한 데이터가 올바르지 않습니다. 검토 후 다시 시도해 주세요.",
+    "http429": "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+    "http500": "내부 서버 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
+    "http502": "서버를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.",
+    "http503": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요."
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "데이터를 불러올 수 없습니다.",
+      "retry": "다시 시도"
+    },
+    "organization": {
+      "roleRequired": "멤버 역할을 변경하려면 역할이 필요합니다.",
+      "updateFailed": "조직을 업데이트할 수 없습니다",
+      "logoInvalidType": "이미지 파일을 선택해 주세요.",
+      "logoTooLarge": "로고는 1MB 미만이어야 합니다.",
+      "logoReadFailed": "해당 파일을 읽을 수 없습니다.",
+      "formCheck": "양식을 확인하세요",
+      "updateSuccess": "조직이 업데이트됨",
+      "createSuccess": "{{name}} 생성됨"
+    },
+    "account": {
+      "copyFailed": "클립보드에 복사할 수 없습니다",
+      "themeCodeNumeric": "숫자 테마 코드를 입력하세요",
+      "copySuccess": "계정 ID가 복사됨",
+      "themeLinkCopied": "테마 링크가 복사됨",
+      "themeLinkCopiedDescription": "이 URL을 공유해 외관을 재현하세요.",
+      "notificationStylePreview": "알림 스타일",
+      "notificationStylePreviewDescription": "{{variant}} — 액센트와 시맨틱 색상으로 테마 적용.",
+      "accountDeletionPending": "계정이 삭제됨. 로그아웃 중…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "패스키를 추가할 수 없습니다",
+        "removeFailed": "패스키를 제거할 수 없습니다",
+        "addSuccess": "패스키가 추가됨",
+        "removeSuccess": "패스키가 제거됨"
+      },
+      "mfa": {
+        "disableFailed": "2단계 인증을 비활성화할 수 없습니다",
+        "enableSuccess": "2단계 인증이 활성화됨",
+        "disableSuccess": "2단계 인증이 비활성화됨"
+      },
+      "members": {
+        "updateRoleFailed": "역할을 업데이트할 수 없습니다",
+        "removeFailed": "멤버를 제거할 수 없습니다",
+        "updateFailed": "멤버를 업데이트할 수 없습니다",
+        "updateRoleSuccess": "멤버 역할이 업데이트됨",
+        "removeSuccess": "멤버가 제거됨",
+        "suspendSuccess": "멤버가 정지됨",
+        "reactivateSuccess": "멤버가 재활성화됨"
+      },
+      "roles": {
+        "createFailed": "역할을 만들 수 없습니다",
+        "updateFailed": "역할을 업데이트할 수 없습니다",
+        "deleteFailed": "역할을 삭제할 수 없습니다",
+        "createSuccess": "역할 \"{{name}}\"이(가) 생성됨",
+        "updateSuccess": "역할 \"{{name}}\"이(가) 업데이트됨",
+        "deleteSuccess": "역할이 삭제됨"
+      },
+      "apiKeys": {
+        "createFailed": "API 키를 만들 수 없습니다",
+        "renameFailed": "API 키 이름을 바꿀 수 없습니다",
+        "revokeFailed": "API 키를 취소할 수 없습니다",
+        "createSuccess": "API 키가 생성됨",
+        "renameSuccess": "API 키 이름이 변경됨",
+        "revokeSuccess": "API 키가 취소됨"
+      },
+      "sessions": {
+        "signOutFailed": "해당 세션에서 로그아웃할 수 없습니다",
+        "signOutSuccess": "해당 세션에서 로그아웃됨"
+      },
+      "notifications": {
+        "updateFailed": "알림을 업데이트할 수 없습니다",
+        "updateManyFailed": "알림을 업데이트할 수 없습니다",
+        "savePreferencesFailed": "환경설정을 저장할 수 없습니다",
+        "savePreferencesSuccess": "알림 환경설정이 저장됨"
+      },
+      "webhooks": {
+        "createFailed": "웹훅을 만들 수 없습니다",
+        "deleteFailed": "웹훅을 삭제할 수 없습니다",
+        "createSuccess": "웹훅이 생성됨",
+        "deleteSuccess": "웹훅이 삭제됨"
+      },
+      "subscription": {
+        "changePlanFailed": "플랜을 변경할 수 없습니다",
+        "changePlanSuccess": "{{plan}} 플랜으로 전환됨"
+      },
+      "invitations": {
+        "sendFailed": "초대를 보낼 수 없습니다",
+        "sendSuccess": "{{email}}(으)로 초대를 보냄"
+      }
+    },
+    "profileUpdated": "프로필이 업데이트됨"
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "nav": {
+    "ariaSections": "設定セクション",
+    "ariaSettings": "設定",
+    "searchPlaceholder": "検索",
+    "searchAria": "設定を検索",
+    "empty": "一致なし",
+    "groups": {
+      "account": "アカウント",
+      "organization": "組織"
+    },
+    "profile": "プロフィール",
+    "account": "アカウント",
+    "security": "セキュリティ",
+    "notifications": "通知",
+    "sessions": "セッション",
+    "general": "一般",
+    "members": "メンバー",
+    "roles": "ロール",
+    "billing": "請求",
+    "integrations": "連携"
+  },
+  "security": {
+    "heading": "セキュリティ",
+    "description": "二要素認証とパスキー。",
+    "mfa": {
+      "title": "二要素認証",
+      "description": "サインイン時に認証アプリのコードを要求します。",
+      "enabled": "有効",
+      "disabled": "無効",
+      "setup": "二要素認証を設定",
+      "disable": "二要素認証を無効化",
+      "disableTitle": "二要素認証を無効にしますか？",
+      "disableDescription": "アカウントの保護が弱くなります。いつでも再度有効にできます。",
+      "disableConfirm": "無効にする",
+      "setupTitle": "二要素認証を設定",
+      "setupDescription": "認証アプリで QR コードをスキャンするか、シークレットを手動で入力してください。",
+      "recoveryTitle": "リカバリーコードを保存",
+      "recoveryDescription": "安全な場所に保管してください。端末を紛失した場合、各コードは一度だけ使えます。",
+      "done": "完了",
+      "cancel": "キャンセル",
+      "verifyEnable": "確認して有効化",
+      "codeLabel": "6桁のコードを入力",
+      "codeAria": "6桁の認証コード",
+      "secretLabel": "手動入力キー",
+      "copySecret": "シークレットをコピー",
+      "copiedSecret": "コピーしました",
+      "scanHint": "Google Authenticator、1Password、または他の TOTP アプリを開き、このコードをスキャンしてください。",
+      "errors": {
+        "setupFailed": "設定を開始できませんでした。もう一度お試しください。",
+        "invalidCode": "コードが一致しませんでした。現在の6桁コードを入力してください。"
+      }
+    },
+    "passkeys": {
+      "title": "パスキー",
+      "description": "デバイスを使ってパスワードなしでサインイン。",
+      "add": "パスキーを追加",
+      "empty": "パスキーはまだありません。パスワードなしでサインインするには追加してください。",
+      "removeAria": "{{name}} を削除",
+      "addTitle": "パスキーを追加",
+      "addDescription": "後で識別できる名前を付けてください。デバイスがパスキー作成を促します。",
+      "nameLabel": "名前",
+      "namePlaceholder": "MacBook Touch ID",
+      "cancel": "キャンセル",
+      "submit": "パスキーを追加"
+    },
+    "overview": {
+      "title": "アカウント保護",
+      "description": "サインインを守る仕組みのクイックビュー。",
+      "score": "{{total}} 中 {{score}} が有効",
+      "mfaOn": "二要素認証はオンです",
+      "mfaOff": "二要素認証はオフです",
+      "passkeysOn": "パスキー {{count}} 件登録済み",
+      "passkeysOn_other": "パスキー {{count}} 件登録済み",
+      "passkeysOff": "パスキー未登録",
+      "idleProtection": "アイドル時の自動サインアウトが有効"
+    },
+    "recoveryCodes": {
+      "reveal": "コードを表示",
+      "hide": "コードを隠す",
+      "copyAll": "すべてコピー",
+      "download": ".txt をダウンロード",
+      "copySuccess": "リカバリーコードをコピーしました — 1分後にクリップボードがクリアされます",
+      "copyFailed": "クリップボードにコピーできませんでした",
+      "downloadStarted": "ダウンロードを開始しました",
+      "clipboardNotice": "コピーしたシークレットは1分後にクリップボードから消去されます。",
+      "acknowledge": "これらのリカバリーコードを安全な場所に保存しました"
+    },
+    "stepUp": {
+      "title": "ご本人確認",
+      "description": "セキュリティのため、サインイン設定を変更する前に再確認してください。",
+      "passwordLabel": "パスワード",
+      "totpLabel": "認証コード",
+      "emailCodeLabel": "確認コード",
+      "emailCodeSent": "{{email}} に6文字のコードをメールで送信しました。",
+      "resend": "コードを再送信",
+      "resent": "コードを送信しました",
+      "verify": "確認",
+      "verifying": "確認中…",
+      "invalid": "一致しませんでした。もう一度お試しください。",
+      "passwordRequired": "この操作にはパスワードまたは認証コードが必要です。"
+    }
+  },
+  "discard": {
+    "title": "未保存の変更を破棄しますか？",
+    "description": "未保存の変更があります。このセクションを離れると破棄されます。",
+    "stay": "編集を続ける",
+    "leave": "変更を破棄"
+  },
+  "panels": {
+    "members": {
+      "title": "メンバー",
+      "description": "この組織のメンバー。",
+      "loadFailed": "メンバーを読み込めませんでした。もう一度お試しください。",
+      "emptyTitle": "まだメンバーがいません",
+      "emptyDescription": "同僚を招待してこの組織でコラボレーションしましょう。",
+      "searchPlaceholder": "メンバーを検索…",
+      "noResults": "検索に一致するメンバーがいません。",
+      "loadMore": "さらに読み込む",
+      "actionsAria": "{{name}} のアクション",
+      "changeRole": "ロールを変更",
+      "suspend": "停止",
+      "reactivate": "再有効化",
+      "removeAction": "組織から削除",
+      "removeAria": "{{name}} を削除",
+      "removeTitle": "{{name}} を削除しますか？",
+      "removeDescription": "この組織へのアクセスが失われます。確認後数秒間は元に戻せます。",
+      "removeConfirm": "削除",
+      "removePending": "{{name}} を削除中…",
+      "emailPlaceholder": "member@example.com",
+      "rolePlaceholder": "ロールを選択"
+    },
+    "roles": {
+      "title": "ロール",
+      "description": "メンバーに割り当てられる権限セット。",
+      "loadFailed": "ロールを読み込めませんでした。もう一度お試しください。",
+      "emptyTitle": "まだロールがありません",
+      "emptyDescription": "カスタムロールを作成して、必要な権限セットを付与しましょう。",
+      "searchPlaceholder": "ロールを検索…",
+      "noResults": "検索に一致するロールがありません。",
+      "loadMore": "さらに読み込む",
+      "systemBadge": "システム",
+      "memberCount": "{{count}} 人のメンバー",
+      "memberCount_other": "{{count}} 人のメンバー",
+      "actionsAria": "{{name}} のアクション",
+      "editAction": "ロールを編集",
+      "deleteAction": "ロールを削除",
+      "deleteAria": "{{name}} を削除",
+      "deleteTitle": "{{name}} を削除しますか？",
+      "deleteDescription": "このロールのメンバーには新しいロールの割り当てが必要です。確認後数秒間は元に戻せます。",
+      "deleteConfirm": "削除",
+      "deletePending": "{{name}} を削除中…",
+      "namePlaceholder": "例: メンバー",
+      "descriptionPlaceholder": "このロールで何ができますか？"
+    },
+    "listSort": {
+      "label": "並び替え",
+      "nameAsc": "名前（A–Z）",
+      "nameDesc": "名前（Z–A）",
+      "newest": "新しい順",
+      "oldest": "古い順"
+    },
+    "profile": {
+      "title": "プロフィール",
+      "description": "アプリでの表示方法。組織のメンバーに見えます。",
+      "completeness": "プロフィール完成度 {{percent}}%",
+      "confirmTitle": "プロフィールの変更を保存しますか？",
+      "confirmDescription": "プロフィール情報を更新してよろしいですか？",
+      "confirmSave": "変更を保存",
+      "confirmCancel": "キャンセル",
+      "saving": "保存中…",
+      "save": "変更を保存",
+      "namePlaceholder": "お名前",
+      "jobTitlePlaceholder": "例: プロダクトエンジニア"
+    },
+    "account": {
+      "deleteTitle": "アカウントを削除しますか？",
+      "deleteDescription": "この操作は永続的で元に戻せません。すべてのデータが削除されます。",
+      "deleteConfirm": "アカウントを削除",
+      "deleteCancel": "キャンセル"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "API キーを検索…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
+    }
+  }
+}

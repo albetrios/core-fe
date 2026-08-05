@@ -57,6 +57,10 @@ export const LAYOUT_KEYS = {
       appearance: 'app.contextStrip.appearance',
       shortcuts: 'app.contextStrip.shortcuts',
     },
+    orgCreate: {
+      namePlaceholder: 'app.orgCreate.namePlaceholder',
+      slugPlaceholder: 'app.orgCreate.slugPlaceholder',
+    },
     orgSwitcher: {
       selectPlaceholder: 'app.orgSwitcher.selectPlaceholder',
       triggerLabel: 'app.orgSwitcher.triggerLabel',

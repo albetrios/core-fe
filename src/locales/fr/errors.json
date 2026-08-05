@@ -1,0 +1,144 @@
+{
+  "global": {
+    "title": "Une erreur s'est produite",
+    "message": "Une erreur inattendue s'est produite. Veuillez recharger la page.",
+    "reload": "Recharger la page"
+  },
+  "route": {
+    "notFound": "La page que vous recherchez n'existe pas.",
+    "generic": "Une erreur s'est produite.",
+    "pageTitle": "Cette page a rencontré une erreur",
+    "pageMessage": "Une erreur s'est produite lors du rendu de cette page.",
+    "tryAgain": "Réessayer",
+    "goHome": "Retour à l'accueil",
+    "refresh": "Actualiser la page"
+  },
+  "widget": {
+    "unavailable": "{{title}} indisponible",
+    "message": "Une erreur s'est produite lors du chargement de cette section. Réessayez.",
+    "retry": "Réessayer",
+    "pageContent": "Contenu de la page",
+    "emailBanner": "Vérification de l'e-mail",
+    "notifications": "Notifications",
+    "organizationSwitcher": "Sélecteur d'organisation"
+  },
+  "toast": {
+    "dismiss": "Fermer la notification",
+    "undo": "Annuler",
+    "undone": "Action annulée",
+    "processing": "Traitement…",
+    "preview": {
+      "successTitle": "Modifications enregistrées",
+      "successDescription": "Vos paramètres sont actifs.",
+      "errorTitle": "Une erreur s'est produite",
+      "errorDescription": "Veuillez réessayer.",
+      "warningTitle": "Attention",
+      "warningDescription": "Cette action nécessite une vérification.",
+      "infoTitle": "Le saviez-vous ?",
+      "infoDescription": "Mélanger modifie aussi ce design."
+    }
+  },
+  "api": {
+    "fallback": "Une erreur s'est produite. Veuillez réessayer.",
+    "unexpected": "Une erreur inattendue s'est produite",
+    "http400": "La requête est invalide. Vérifiez vos données et réessayez.",
+    "http401": "Votre session a expiré. Veuillez vous reconnecter.",
+    "http403": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "http404": "La ressource demandée est introuvable.",
+    "http409": "Un conflit s'est produit. La ressource a peut-être été modifiée par quelqu'un d'autre.",
+    "http422": "Les données soumises sont invalides. Vérifiez et réessayez.",
+    "http429": "Trop de requêtes. Veuillez patienter un instant et réessayer.",
+    "http500": "Une erreur interne du serveur s'est produite. Réessayez plus tard.",
+    "http502": "Le serveur est temporairement indisponible. Réessayez plus tard.",
+    "http503": "Le service est temporairement indisponible. Réessayez plus tard."
+  },
+  "frontend": {
+    "query": {
+      "loadFailed": "Impossible de charger les données.",
+      "retry": "Réessayer"
+    },
+    "organization": {
+      "roleRequired": "Un rôle est requis pour modifier le rôle d'un membre.",
+      "updateFailed": "Impossible de mettre à jour l'organisation",
+      "logoInvalidType": "Veuillez choisir un fichier image.",
+      "logoTooLarge": "Le logo doit faire moins de 1 Mo.",
+      "logoReadFailed": "Impossible de lire ce fichier.",
+      "formCheck": "Vérifiez le formulaire",
+      "updateSuccess": "Organisation mise à jour",
+      "createSuccess": "{{name}} créé"
+    },
+    "account": {
+      "copyFailed": "Impossible de copier dans le presse-papiers",
+      "themeCodeNumeric": "Entrez un code de thème numérique",
+      "copySuccess": "ID du compte copié",
+      "themeLinkCopied": "Lien du thème copié",
+      "themeLinkCopiedDescription": "Partagez cette URL pour reproduire l'apparence.",
+      "notificationStylePreview": "Style de notification",
+      "notificationStylePreviewDescription": "{{variant}} — thématisé avec votre accent et vos couleurs sémantiques.",
+      "accountDeletionPending": "Compte supprimé. Déconnexion…"
+    },
+    "hooks": {
+      "passkeys": {
+        "addFailed": "Impossible d'ajouter la clé d'accès",
+        "removeFailed": "Impossible de supprimer la clé d'accès",
+        "addSuccess": "Clé d'accès ajoutée",
+        "removeSuccess": "Clé d'accès supprimée"
+      },
+      "mfa": {
+        "disableFailed": "Impossible de désactiver l'authentification à deux facteurs",
+        "enableSuccess": "Authentification à deux facteurs activée",
+        "disableSuccess": "Authentification à deux facteurs désactivée"
+      },
+      "members": {
+        "updateRoleFailed": "Impossible de mettre à jour le rôle",
+        "removeFailed": "Impossible de retirer le membre",
+        "updateFailed": "Impossible de mettre à jour le membre",
+        "updateRoleSuccess": "Rôle du membre mis à jour",
+        "removeSuccess": "Membre retiré",
+        "suspendSuccess": "Membre suspendu",
+        "reactivateSuccess": "Membre réactivé"
+      },
+      "roles": {
+        "createFailed": "Impossible de créer le rôle",
+        "updateFailed": "Impossible de mettre à jour le rôle",
+        "deleteFailed": "Impossible de supprimer le rôle",
+        "createSuccess": "Rôle « {{name}} » créé",
+        "updateSuccess": "Rôle « {{name}} » mis à jour",
+        "deleteSuccess": "Rôle supprimé"
+      },
+      "apiKeys": {
+        "createFailed": "Impossible de créer la clé API",
+        "renameFailed": "Impossible de renommer la clé API",
+        "revokeFailed": "Impossible de révoquer la clé API",
+        "createSuccess": "Clé API créée",
+        "renameSuccess": "Clé API renommée",
+        "revokeSuccess": "Clé API révoquée"
+      },
+      "sessions": {
+        "signOutFailed": "Impossible de déconnecter cette session",
+        "signOutSuccess": "Déconnecté de cette session"
+      },
+      "notifications": {
+        "updateFailed": "Impossible de mettre à jour la notification",
+        "updateManyFailed": "Impossible de mettre à jour les notifications",
+        "savePreferencesFailed": "Impossible d'enregistrer les préférences",
+        "savePreferencesSuccess": "Préférences de notification enregistrées"
+      },
+      "webhooks": {
+        "createFailed": "Impossible de créer le webhook",
+        "deleteFailed": "Impossible de supprimer le webhook",
+        "createSuccess": "Webhook créé",
+        "deleteSuccess": "Webhook supprimé"
+      },
+      "subscription": {
+        "changePlanFailed": "Impossible de changer de forfait",
+        "changePlanSuccess": "Passage au forfait {{plan}}"
+      },
+      "invitations": {
+        "sendFailed": "Impossible d'envoyer l'invitation",
+        "sendSuccess": "Invitation envoyée à {{email}}"
+      }
+    },
+    "profileUpdated": "Profil mis à jour"
+  }
+}

@@ -1,19 +1,22 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { axe } from 'vitest-axe';
 
+import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
-import { AuthLayout } from './AuthLayout.tsx';
+import { AuthLayout, preloadAuthLayoutVariants } from './AuthLayout.tsx';
 
 describe('AuthLayout', () => {
+  // Preload lazy shells so Suspense doesn't flake under full-suite contention.
   beforeAll(async () => {
-    await import('./variants/AuthLayoutSplit.tsx');
+    await preloadAuthLayoutVariants();
   });
 
   beforeEach(() => {
     // Default to the split variant; the shuffle-driven previews are opt-in below.
     useThemeStore.setState({ authVariant: 0 });
+    useLocaleStore.setState({ locale: 'en', textDirection: 'auto' });
   });
 
   it('renders the layout shell and its children', async () => {
@@ -23,7 +26,9 @@ describe('AuthLayout', () => {
       </AuthLayout>,
     );
 
-    expect(await findByTestId('auth-layout')).toBeInTheDocument();
+    expect(
+      await findByTestId('auth-layout', {}, { timeout: 15_000 }),
+    ).toBeInTheDocument();
     expect(await findByTestId('auth-form-container')).toBeInTheDocument();
     expect(getByText('Form content')).toBeInTheDocument();
   });
@@ -61,6 +66,16 @@ describe('AuthLayout', () => {
     );
     expect(await findByTestId('auth-layout')).toBeInTheDocument();
     expect(await findByTestId('auth-form-container')).toBeInTheDocument();
+  });
+
+  it('shows the auth locale select in multi-locale builds', async () => {
+    const { findByTestId } = renderWithProviders(
+      <AuthLayout>
+        <div>child</div>
+      </AuthLayout>,
+    );
+    expect(await findByTestId('auth-layout')).toBeInTheDocument();
+    expect(await findByTestId('auth-locale-select')).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {
