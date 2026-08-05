@@ -49,14 +49,16 @@ cache a rejection, so a chunk fetch that fails on a flaky network stays retryabl
 instead of leaving the surface unrenderable until a full reload.
 
 ```bash
-grep -rn "^const .* = import(" src   # audit for module-scope dynamic imports
+# audit for module-scope dynamic imports (column 0 = module scope; indented = in a function)
+grep -rnE '^(const|let|var) [^=]*= *(await )?import\(' src --include='*.ts' --include='*.tsx' \
+  | grep -v '\.test\.'
 ```
 
 ## Verify
 
 - `pnpm size` — every budget within limit.
 - `pnpm build:check` — no heavy deferred module on the first-paint path.
-- `grep -rn "^const .* = import(" src` — no module-scope dynamic imports.
+- The module-scope `import()` audit above — no matches outside tests.
 
 ## Related
 

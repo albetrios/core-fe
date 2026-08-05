@@ -13,6 +13,12 @@ sites and 33 JSON files in one change.
 Related: `pre-pr-sweep` (what to sweep for) · `i18n-constants` (locale packs) ·
 `lint-guard` (post-edit cleanup).
 
+Examples below are Python because a throwaway sweep script is not project code —
+nothing is committed and no dependency is added. The same discipline in Node
+(`node --input-type=module -e`, `JSON.parse`/`JSON.stringify`, which already
+preserve key insertion order) is equally correct; **the assertions are the point,
+not the language.** Anything committed to `tooling/` must be Node/TypeScript.
+
 ---
 
 ## 1. Assert every replacement matched exactly once

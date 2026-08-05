@@ -95,8 +95,8 @@
       ]
     },
     "pr-readiness": {
-      "description": "Final pass before opening a pull request or requesting review.",
-      "trigger": "**",
+      "description": "Final pass before opening a pull request or requesting review. Intent-triggered — no file glob; a glob here would match every change.",
+      "trigger": null,
       "steps": [
         "pre-pr-sweep",
         "before-commit-guard"
@@ -120,8 +120,8 @@
       ]
     },
     "review-response": {
-      "description": "Working a code-review report or PR review threads to completion.",
-      "trigger": "**",
+      "description": "Working a code-review report or PR review threads to completion. Intent-triggered — no file glob; a glob here would match every change.",
+      "trigger": null,
       "steps": [
         "review-response",
         "pre-pr-sweep",

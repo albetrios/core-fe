@@ -95,7 +95,9 @@ deferred to first render or an explicit preload, and a rejection is not cached s
 a failed chunk fetch stays retryable.
 
 ```bash
-grep -rn "^const .* = import(" src   # module-scope dynamic imports
+# module-scope dynamic imports (column 0 = module scope; indented = inside a function)
+grep -rnE '^(const|let|var) [^=]*= *(await )?import\(' src --include='*.ts' --include='*.tsx' \
+  | grep -v '\.test\.'
 ```
 
 ## 5. Derived artifacts regenerated too early

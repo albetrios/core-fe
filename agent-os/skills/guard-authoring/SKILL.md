@@ -79,11 +79,16 @@ This one is silent and easy to miss. When two config objects both match a file a
 both set the same rule, **the last one wins entirely**. Adding a pattern to the
 app-wide block does nothing for files also matched by a later, narrower block.
 
-core-fe declares `no-restricted-imports` in **seven** places: the app-wide `src/**`
-block plus per-layer blocks for `src/lib`, `src/core`, `src/core/http|rbac`,
-`src/shared`, `src/shared/components/ui` and `src/pages`. A restriction added only
-to the first is inert for all of `src/shared/**` and `src/pages/**` — exactly the
-code most likely to violate it.
+core-fe declares `no-restricted-imports` in **many** blocks — the app-wide `src/**`
+one plus per-layer blocks for `src/lib`, `src/core`, `src/core/http|rbac`,
+`src/shared`, `src/shared/components/ui`, `src/pages` and the `LocalizedCalendar`
+exemption. A restriction added only to the first is inert for all of
+`src/shared/**` and `src/pages/**` — exactly the code most likely to violate it.
+Enumerate the real set rather than trusting this list:
+
+```bash
+grep -n "'no-restricted-imports'" eslint.config.mjs
+```
 
 **Rule: when adding a `no-restricted-imports` entry, hoist the shared options into
 a module-level constant and restate them in every block whose glob can reach the
