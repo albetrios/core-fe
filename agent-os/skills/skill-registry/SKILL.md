@@ -39,6 +39,8 @@ Complete inventory of project skills. Use this to find the right skill for any t
 - ...locale or direction preference, apply path, FOUC init, build mode -> **locale-preferences**
 - ...about to open a PR / "is this ready for review" -> **pre-pr-sweep**
 - ...sweep / codemod / rename across many files, bulk JSON edits -> **safe-bulk-edits**
+- ...add / rename / remove an agent-os skill or rule -> **agent-os-authoring**
+- ...handed a review report / PR review threads to address -> **review-response** (verify each claim)
 - ...recommend extensions, IDE setup, productivity, workspace settings -> **extension-settings-recommendations**
 - ...add/change docs, where to document, keep README/CLAUDE in sync -> **documentation-maintenance**
 - ...run a full project health check / verify everything works after major changes -> **project-health-check**
@@ -71,6 +73,8 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 | **Locale / direction preference or apply path**           | **locale-preferences** → locale-formatting → i18n-constants → test-generation                                                                                                                                               |
 | **Opening a PR / requesting review**                      | **pre-pr-sweep** → before-commit-guard → documentation-maintenance (PR body accuracy)                                                                                                                                        |
 | **Codemod / sweep / bulk rename across many files**       | **safe-bulk-edits** → lint-guard → pre-pr-sweep                                                                                                                                                                             |
+| **Adding / changing an agent-os skill or rule**           | **agent-os-authoring** → documentation-maintenance → `/agent-os-sync`                                                                                                                                                       |
+| **Addressing a code review / review report**              | **review-response** → (the skill each finding names) → pre-pr-sweep → documentation-maintenance                                                                                                                             |
 | **New / changed UI component**                            | shadcn (add/compose) → frontend-design (craft) → ui-ux-pro-max (guidance, advisory) → web-design-guidelines (a11y) → composition-patterns (API) → test-generation → lint-guard                                              |
 | **Design decision (style/palette/font/chart)**            | ui-ux-pro-max (query DB, advisory) → frontend-design (direction) → shadcn (tokens/components) — never override neutral tokens/brand without user ask                                                                        |
 | **Add/choose a shadcn component or run the CLI**          | shadcn (single skill: CLI + critical rules + 20 allowed sources)                                                                                                                                                            |
@@ -102,7 +106,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 > If a task has **no** matching row here or in `skill-router.mdc`, use **find-skills** to look for one before building from scratch; if none exists, proceed with general capabilities.
 
-## Skill Inventory (47 skills)
+## Skill Inventory (49 skills)
 
 ### 0a. auto-implement (Master Orchestrator)
 
@@ -611,6 +615,45 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ---
 
+### 6a7. agent-os-authoring
+
+**Path:** `agent-os/skills/agent-os-authoring/SKILL.md`
+**Command:** `/agent-os-sync`
+
+**Purpose:** Add, rename or remove an agent-os skill or rule without breaking the integrity gates — all eight registration surfaces in one checklist, in the order that keeps `agent-os:check`, `triggers:strict` and `generate:check` green.
+
+**Trigger keywords:** "add a skill", "new skill", "rename skill", "remove skill", "new rule", "agent-os check failing", "skill count mismatch", "skill not grouped"
+
+**Key behaviors:**
+
+- Eight surfaces: SKILL.md, inventory count, decision tree, task matrix, inventory entry, cross-reference, `groups.json`, `skill-router.mdc` (+ `chains.json` / `skill-triggers.md` when applicable)
+- Frontmatter `name` **must** equal the directory name
+- Regenerate `project-tree.txt` **after** the last file — not before
+- `name != directory` warnings on vendored skills are expected; do not "fix" them
+
+**Related skills:** documentation-maintenance, guard-authoring
+
+---
+
+### 6a8. review-response
+
+**Path:** `agent-os/skills/review-response/SKILL.md`
+
+**Purpose:** Work a review document to completion — build a resolution matrix, and verify every finding against the code rather than trusting the review's own status labels. A review is evidence, not truth.
+
+**Trigger keywords:** "address the review", "review feedback", "review report", "PR comments", "resolution matrix", "reviewer said", "fix the findings"
+
+**Key behaviors:**
+
+- Verify claims marked ✅ too — "present" and "working" diverge for gates, guards and sweeps
+- Report findings that are wrong or understated, with the evidence
+- Diverging from a suggested fix is fine; state the reason
+- Never report a finding resolved because you edited the file it named
+
+**Related skills:** pre-pr-sweep, guard-authoring, full-code-review, documentation-maintenance
+
+---
+
 ### 6b. route-island
 
 **Path:** `agent-os/skills/route-island/SKILL.md`
@@ -992,7 +1035,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 **Trigger keywords:** "which skill", "list skills", "what skills exist", "help me find"
 
-**Maintenance:** Update this file whenever a skill is added, removed, or renamed. When adding a skill, add it to the Decision Tree, **Task → Required Skills** matrix, Skill Inventory, Cross-Reference table, and ensure `skill-router.mdc` includes it. **Installed (ecosystem) skills** live in `agent-os/skills/<name>/` and are tracked in `skills-lock.json` (e.g. `shadcn`, `frontend-design`, `find-skills`); **project skills** live in `agent-os/skills/<name>/`.
+**Maintenance:** Update this file whenever a skill is added, removed, or renamed. Full procedure — all eight surfaces plus the gate order — is **`agent-os/skills/agent-os-authoring/SKILL.md`**. In this file: bump the **Skill Inventory (N skills)** count, then add the skill to the Decision Tree, **Task → Required Skills** matrix, Skill Inventory, and Cross-Reference table; then `groups.json` (exactly one group), `skill-router.mdc`, and — when part of a pipeline — `chains.json` and `agent-os/docs/skill-triggers.md`. **Installed (ecosystem) skills** live in `agent-os/skills/<name>/` and are tracked in `skills-lock.json` (e.g. `shadcn`, `frontend-design`, `find-skills`); **project skills** live in `agent-os/skills/<name>/`.
 
 ---
 
@@ -1036,6 +1079,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 | `.size-limit.json`, bundle budgets (`pnpm size`)      | **bundle-performance**                                                                                                                           |
 | `eslint.config.mjs`                                   | **guard-authoring**, code-quality-security, lint-guard                                                                                           |
 | `tooling/validate/**`                                 | **guard-authoring**, platform-hygiene                                                                                                            |
+| `agent-os/skills/**`, `agent-os/rules/**`             | **agent-os-authoring**, documentation-maintenance                                                                                                |
 | `.husky/`                                             | code-quality-security                                                                                                                            |
 | `.github/workflows/`                                  | **guard-authoring** (static-sync steps), code-quality-security                                                                                   |
 | `catalog-info.yaml`                                   | (Backstage integration)                                                                                                                          |

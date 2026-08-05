@@ -38,6 +38,8 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 | Dates, timezones, numbers, currency, calendars | locale-formatting | `agent-os/skills/locale-formatting/SKILL.md` |
 | Locale/direction preferences, apply path, FOUC init, build mode | locale-preferences | `agent-os/skills/locale-preferences/SKILL.md` |
 | Codemod, sweep, bulk rename, editing many locale/config files | safe-bulk-edits | `agent-os/skills/safe-bulk-edits/SKILL.md` |
+| Adding, renaming or removing an agent-os skill or rule | agent-os-authoring | `agent-os/skills/agent-os-authoring/SKILL.md` |
+| Addressing a review report or PR review threads | review-response | `agent-os/skills/review-response/SKILL.md` |
 | Lint/type-check failures after implementation | lint-guard | `agent-os/skills/lint-guard/SKILL.md` |
 | Code smells, best practices, live-code review when code added/changed | code-smells-best-practices | `agent-os/skills/code-smells-best-practices/SKILL.md` |
 | New test, add test, test coverage, missing tests | test-generation | `agent-os/skills/test-generation/SKILL.md` |
@@ -87,6 +89,10 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 3g. **Before opening a PR**: invoke **`pre-pr-sweep`** — half-converted sweeps, incomplete deletions, ungated race paths, eager module-scope `import()`, stale derived artifacts, and a drifted PR body. See **`agent-os/rules/pr-review-prevention.mdc`**.
 
 3h. **i18n surface**: When rendering user-facing copy invoke **`i18n-constants`**; for any date/number/money value invoke **`locale-formatting`** (never bare `Intl`); when styling any component invoke **`rtl-logical-css`**; when touching the locale store, apply path, `locale-init.js` or `BUILD_I18N_MODE` invoke **`locale-preferences`**.
+
+3i. **Agent-os changes**: When creating or editing anything under `agent-os/skills/` or `agent-os/rules/`, invoke **`agent-os-authoring`** — eight registration surfaces, and the tree regenerates last.
+
+3j. **Review response**: When handed a review report or PR review threads, invoke **`review-response`** — verify every claim against the code, including the ones the review marked resolved.
 
 4. **Page Scaffolding**: When creating a new page, invoke `page-scaffolding` (after `route-island`) to ensure all standard files are created and `data-testid` attributes are placed (via `e2e-testids` skill).
 

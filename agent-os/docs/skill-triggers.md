@@ -33,6 +33,8 @@ Read in order; **project guardrails always win** over skill suggestions.
 | user-facing copy / dates / numbers / money     | `i18n-constants` → `locale-formatting`                                |
 | RTL / mirrored layout                          | `rtl-logical-css`                                                     |
 | codemod / sweep / bulk file edits              | `safe-bulk-edits`                                                     |
+| adding / renaming an agent-os skill or rule    | `agent-os-authoring`                                                  |
+| addressing a review report / PR threads        | `review-response`                                                     |
 | org-scoped route / guards / gateway / session  | `routing-tenancy` (after `route-island`)                              |
 | backend resource CRUD (list + URL dialogs)     | `route-island` → `resource-crud` → `routing-tenancy` (if org-scoped)  |
 | form mutation + API errors                     | `composition-patterns` → `http-forms-errors` → `test-generation`      |
@@ -78,6 +80,7 @@ Read in order; **project guardrails always win** over skill suggestions.
 | `.env.example`                                                                                 | `platform-hygiene`, `env-schema-add`, `documentation-maintenance`                                       |
 | `package.json` · `pnpm-lock.yaml` · `pnpm.overrides`                                           | `dependency-management`                                                                                 |
 | `tooling/validate/**` · `eslint.config.mjs` restrictions · `pr-ci.yml` static-sync steps       | `guard-authoring` (probe both directions; wire into CI, not just health-check)                          |
+| `agent-os/skills/**` · `agent-os/rules/**`                                                     | `agent-os-authoring` (eight surfaces; regenerate the tree last)                                         |
 | `src/locales/**` · `*.constants.ts` copy keys                                                  | `i18n-constants` → `locale-formatting` (if dates/numbers)                                               |
 | `src/lib/i18n/format.ts` · `useLocaleFormat/` · any date/number/money render                   | `locale-formatting`                                                                                     |
 | `useLocaleStore/` · `public/locale-init.js` · `BUILD_I18N_MODE`                                | `locale-preferences`                                                                                    |

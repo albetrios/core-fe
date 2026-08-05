@@ -118,6 +118,23 @@
       "optional": [
         "locale-preferences"
       ]
+    },
+    "review-response": {
+      "description": "Working a code-review report or PR review threads to completion.",
+      "trigger": "**",
+      "steps": [
+        "review-response",
+        "pre-pr-sweep",
+        "documentation-maintenance"
+      ]
+    },
+    "agent-os-change": {
+      "description": "Adding, renaming or removing an agent-os skill or rule.",
+      "trigger": "agent-os/skills/**",
+      "steps": [
+        "agent-os-authoring",
+        "documentation-maintenance"
+      ]
     }
   }
 }

@@ -38,7 +38,8 @@
       "systematic-debugging",
       "guard-authoring",
       "pre-pr-sweep",
-      "safe-bulk-edits"
+      "safe-bulk-edits",
+      "review-response"
     ],
     "docs": [
       "documentation-maintenance",
@@ -58,7 +59,8 @@
     ],
     "workflow": [
       "auto-implement",
-      "skill-registry"
+      "skill-registry",
+      "agent-os-authoring"
     ],
     "external": [
       "animejs",
