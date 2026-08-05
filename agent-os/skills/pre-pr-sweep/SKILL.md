@@ -9,6 +9,11 @@ Every item below is a defect class that **survived local gates and was caught by
 human reviewer** on a real core-fe PR. They are cheap to find deliberately and
 expensive to find in review. Run this after implementation, before opening the PR.
 
+This is a **detection checklist**: each item is a symptom plus the command that
+finds it. Where another skill owns the topic, it is named — read that skill for
+the fix rather than expecting the full reasoning here, so the two cannot drift
+apart.
+
 Related: `guard-authoring` (gates that actually gate) · `before-commit-guard`
 (commit-time gate) · `project-health-check` (full audit) · `change-completeness`
 rule (docs/tests/rules move with the code).
@@ -81,18 +86,11 @@ only protect its own writes, not the document/i18next side effects behind an
 
 ## 4. Module-scope `import()` is eager
 
-```ts
-const sidebarImport = import('./variants/AppLayoutSidebar.tsx');   // fetches NOW
-```
-
-A top-level dynamic import executes at module evaluation, so every variant chunk
-is fetched even though one renders — silently deleting the code-split. `pnpm
-build:check` will not catch it: that tripwires the **static preload graph**, not
-runtime fetches.
-
-Use `onceAsync()` (`src/lib/lazy-module.ts`) — same shared module promise, fetch
-deferred to first render or an explicit preload, and a rejection is not cached so
-a failed chunk fetch stays retryable.
+A top-level dynamic import executes at module evaluation, so every chunk is
+fetched even though one renders — silently deleting the code-split, and
+`pnpm build:check` will not catch it. Fix with `onceAsync()`; the reasoning and
+the retryability caveat live in **`bundle-performance`** (its owner — do not
+restate them here).
 
 ```bash
 # module-scope dynamic imports (column 0 = module scope; indented = inside a function)
@@ -113,42 +111,31 @@ new file.**
 
 ## 6. Test-timeout pins invert when the suite floor moves
 
-Per-test pins (`}, 15_000)`) written when the default was 5s became *reductions*
-once `vitest.config.ts` raised `testTimeout` to 30s — causing the flakes they were
-meant to prevent.
+A per-test pin written under a lower default becomes a *reduction* when
+`vitest.config.ts` raises `testTimeout` — causing the flakes it was added to
+prevent. Owner: **`test-generation`**.
 
 ```bash
 grep -rnE '\}, *[0-9_]+\);' src tests --include='*.test.ts*'   # audit vs the config floor
 ```
 
-Prefer the project-level `testTimeout`; delete per-test pins below it.
-
 ## 7. TSDoc detached by an interleaved comment
 
-The coverage extractor needs the doc block **adjacent** to the declaration. An
-`// eslint-disable-next-line` between them silently drops the summary and busts
-the budget.
-
-```ts
-/** Summary. */
-// eslint-disable-next-line react-refresh/only-export-components  ← detaches it
-export const thing = …
-```
-
-Declare first with its TSDoc, then export separately inside a block
-`/* eslint-disable */ … /* eslint-enable */`.
+`pnpm tsdoc:check` associates a doc block with the **next** declaration, so an
+`// eslint-disable-next-line` between them silently drops the summary while the
+comment still looks present. The declare-then-export fix is in
+**`test-generation`**.
 
 ## 8. i18n specifics
 
-- Every new English key must land in **all 11 locale packs** — `validate:i18n-parity`
-  compares against English, so a missing key fails but an *unused* key does not.
-- `*.constants.ts` holds **key paths only**, never English prose.
-- Do **not** translate proper nouns (font families) or product nomenclature
-  (preset/accent names). Keying them is fine; inventing per-locale values is not.
-- Example/technical values (`example.com`, an `acme` slug, a placeholder brand)
-  should be keyed but may keep one value across locales — say so in the PR.
-- Interpolated copy needs one key with `{{placeholders}}`, never string
-  concatenation across JSX nodes (word order differs per language).
+Owner: **`i18n-constants`** (copy) and **`locale-formatting`** (values). Sweep
+for: keys missing from a locale pack, English prose leaking into `*.constants.ts`,
+proper nouns or product nomenclature that should not be translated, and copy
+concatenated across JSX nodes instead of interpolated into one key.
+
+```bash
+pnpm validate:i18n && pnpm validate:i18n-parity
+```
 
 ## 9. Vendored `components/ui/**` edits
 
@@ -159,11 +146,14 @@ keep the original behaviour as the default and **note it in the PR body** as
 
 ## 10. The PR body drifts
 
-A body written at open time describes the first commit, not the branch. Before
-requesting review, re-read it against `git diff --name-only origin/main...HEAD`
-and fix: file counts, claims that a later commit reversed ("shells are eager"),
-stale test numbers, and whole workstreams added since (security pins, new gates,
-new components). Overclaiming in the title is a review finding of its own.
+A body written at open time describes the first commit, not the branch. Reconcile
+it before requesting review — the procedure and the worked example are in
+**`documentation-maintenance`**.
+
+```bash
+git diff --name-only origin/main...HEAD | wc -l   # vs the count the body claims
+git log --oneline origin/main..HEAD               # workstreams added since
+```
 
 ---
 
