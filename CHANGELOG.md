@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/nikunjmavani/core-fe/compare/v1.4.0...v1.5.0) (2026-08-05)
+
+
+### Added
+
+* **i18n:** locale prefs, RTL, and 11-locale UI translations ([#217](https://github.com/nikunjmavani/core-fe/issues/217)) ([4a056e3](https://github.com/nikunjmavani/core-fe/commit/4a056e33f9d7649d7b428e8513e103c93f7190cc))
+
 ## [1.4.0](https://github.com/nikunjmavani/core-fe/compare/v1.3.0...v1.4.0) (2026-08-01)
 
 
