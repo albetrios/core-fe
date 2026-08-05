@@ -138,7 +138,13 @@
       "removeTitle": "Remove {{name}}?",
       "removeDescription": "They will lose access to this organization. This action cannot be undone.",
       "cancel": "Cancel",
-      "confirmRemove": "Remove"
+      "confirmRemove": "Remove",
+      "rolePlaceholder": "Role",
+      "searchPlaceholder": "Search members…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
     }
   },
   "public": {

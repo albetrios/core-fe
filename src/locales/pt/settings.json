@@ -126,7 +126,9 @@
       "removeTitle": "Remover {{name}}?",
       "removeDescription": "Essa pessoa perderá o acesso a esta organização. Você pode desfazer por alguns segundos após confirmar.",
       "removeConfirm": "Remover",
-      "removePending": "Removendo {{name}}…"
+      "removePending": "Removendo {{name}}…",
+      "emailPlaceholder": "colega@empresa.com",
+      "rolePlaceholder": "Selecione uma função"
     },
     "roles": {
       "title": "Funções",
@@ -147,7 +149,9 @@
       "deleteTitle": "Excluir {{name}}?",
       "deleteDescription": "Membros com esta função precisarão de uma nova. Você pode desfazer por alguns segundos após confirmar.",
       "deleteConfirm": "Excluir",
-      "deletePending": "Excluindo {{name}}…"
+      "deletePending": "Excluindo {{name}}…",
+      "namePlaceholder": "ex.: Membro",
+      "descriptionPlaceholder": "O que esta função pode fazer?"
     },
     "listSort": {
       "label": "Ordenar por",
@@ -165,13 +169,22 @@
       "confirmSave": "Salvar alterações",
       "confirmCancel": "Cancelar",
       "saving": "Salvando…",
-      "save": "Salvar alterações"
+      "save": "Salvar alterações",
+      "namePlaceholder": "O seu nome",
+      "jobTitlePlaceholder": "ex.: Engenheiro de produto"
     },
     "account": {
       "deleteTitle": "Excluir sua conta?",
       "deleteDescription": "Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão removidos.",
       "deleteConfirm": "Excluir conta",
       "deleteCancel": "Cancelar"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "Pesquisar chaves de API…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }

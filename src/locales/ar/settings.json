@@ -126,7 +126,9 @@
       "removeTitle": "إزالة {{name}}؟",
       "removeDescription": "سيفقدون الوصول إلى هذه المؤسسة. يمكنك التراجع لبضع ثوانٍ بعد التأكيد.",
       "removeConfirm": "إزالة",
-      "removePending": "جارٍ إزالة {{name}}…"
+      "removePending": "جارٍ إزالة {{name}}…",
+      "emailPlaceholder": "member@example.com",
+      "rolePlaceholder": "اختر دورًا"
     },
     "roles": {
       "title": "الأدوار",
@@ -147,7 +149,9 @@
       "deleteTitle": "حذف {{name}}؟",
       "deleteDescription": "سيحتاج الأعضاء بهذا الدور إلى تعيين دور جديد. يمكنك التراجع لبضع ثوانٍ بعد التأكيد.",
       "deleteConfirm": "حذف",
-      "deletePending": "جارٍ حذف {{name}}…"
+      "deletePending": "جارٍ حذف {{name}}…",
+      "namePlaceholder": "مثال: عضو",
+      "descriptionPlaceholder": "ما الذي يمكن لهذا الدور فعله؟"
     },
     "listSort": {
       "label": "ترتيب حسب",
@@ -165,13 +169,22 @@
       "confirmSave": "حفظ التغييرات",
       "confirmCancel": "إلغاء",
       "saving": "جارٍ الحفظ…",
-      "save": "حفظ التغييرات"
+      "save": "حفظ التغييرات",
+      "namePlaceholder": "اسمك",
+      "jobTitlePlaceholder": "مثال: مهندس منتجات"
     },
     "account": {
       "deleteTitle": "حذف حسابك؟",
       "deleteDescription": "هذا الإجراء دائم ولا يمكن التراجع عنه. ستُزال جميع بياناتك.",
       "deleteConfirm": "حذف الحساب",
       "deleteCancel": "إلغاء"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "ابحث عن مفاتيح API…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }

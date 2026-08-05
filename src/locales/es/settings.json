@@ -126,7 +126,9 @@
       "removeTitle": "¿Eliminar a {{name}}?",
       "removeDescription": "Perderá el acceso a esta organización. Puedes deshacerlo durante unos segundos tras confirmar.",
       "removeConfirm": "Eliminar",
-      "removePending": "Eliminando a {{name}}…"
+      "removePending": "Eliminando a {{name}}…",
+      "emailPlaceholder": "companero@empresa.com",
+      "rolePlaceholder": "Selecciona un rol"
     },
     "roles": {
       "title": "Roles y permisos",
@@ -147,7 +149,9 @@
       "deleteTitle": "¿Eliminar {{name}}?",
       "deleteDescription": "Los miembros con este rol necesitarán que se les asigne uno nuevo. Puedes deshacerlo durante unos segundos tras confirmar.",
       "deleteConfirm": "Eliminar",
-      "deletePending": "Eliminando {{name}}…"
+      "deletePending": "Eliminando {{name}}…",
+      "namePlaceholder": "p. ej. Miembro",
+      "descriptionPlaceholder": "¿Qué puede hacer este rol?"
     },
     "listSort": {
       "label": "Ordenar por",
@@ -165,13 +169,22 @@
       "confirmSave": "Guardar cambios",
       "confirmCancel": "Cancelar",
       "saving": "Guardando…",
-      "save": "Guardar cambios"
+      "save": "Guardar cambios",
+      "namePlaceholder": "Tu nombre",
+      "jobTitlePlaceholder": "p. ej. Ingeniero de producto"
     },
     "account": {
       "deleteTitle": "¿Eliminar tu cuenta?",
       "deleteDescription": "Esta acción es permanente y no se puede deshacer. Se eliminarán todos tus datos.",
       "deleteConfirm": "Eliminar cuenta",
       "deleteCancel": "Cancelar"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "Buscar claves de API…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }

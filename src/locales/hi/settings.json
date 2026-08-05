@@ -126,7 +126,9 @@
       "removeTitle": "{{name}} को हटाएँ?",
       "removeDescription": "उन्हें इस संगठन की पहुँच खोनी पड़ेगी। पुष्टि के बाद कुछ सेकंड के लिए पूर्ववत कर सकते हैं।",
       "removeConfirm": "हटाएँ",
-      "removePending": "{{name}} हटाया जा रहा है…"
+      "removePending": "{{name}} हटाया जा रहा है…",
+      "emailPlaceholder": "member@example.com",
+      "rolePlaceholder": "एक भूमिका चुनें"
     },
     "roles": {
       "title": "भूमिकाएँ",
@@ -147,7 +149,9 @@
       "deleteTitle": "{{name}} हटाएँ?",
       "deleteDescription": "इस भूमिका वाले सदस्यों को नई भूमिका असाइन करनी होगी। पुष्टि के बाद कुछ सेकंड के लिए पूर्ववत कर सकते हैं।",
       "deleteConfirm": "हटाएँ",
-      "deletePending": "{{name}} हटाया जा रहा है…"
+      "deletePending": "{{name}} हटाया जा रहा है…",
+      "namePlaceholder": "उदा. सदस्य",
+      "descriptionPlaceholder": "यह भूमिका क्या कर सकती है?"
     },
     "listSort": {
       "label": "क्रमबद्ध करें",
@@ -165,13 +169,22 @@
       "confirmSave": "परिवर्तन सहेजें",
       "confirmCancel": "रद्द करें",
       "saving": "सहेजा जा रहा है…",
-      "save": "परिवर्तन सहेजें"
+      "save": "परिवर्तन सहेजें",
+      "namePlaceholder": "आपका नाम",
+      "jobTitlePlaceholder": "उदा. प्रोडक्ट इंजीनियर"
     },
     "account": {
       "deleteTitle": "अपना खाता हटाएँ?",
       "deleteDescription": "यह क्रिया स्थायी है और पूर्ववत नहीं की जा सकती। आपका सारा डेटा हट जाएगा।",
       "deleteConfirm": "खाता हटाएँ",
       "deleteCancel": "रद्द करें"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "API कुंजियाँ खोजें…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }

@@ -138,7 +138,13 @@
       "removeTitle": "Retirer {{name}} ?",
       "removeDescription": "Cette personne perdra l'accès à cette organisation. Cette action est irréversible.",
       "cancel": "Annuler",
-      "confirmRemove": "Retirer"
+      "confirmRemove": "Retirer",
+      "rolePlaceholder": "Rôle",
+      "searchPlaceholder": "Rechercher des membres…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
     }
   },
   "public": {

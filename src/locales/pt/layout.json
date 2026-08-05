@@ -138,7 +138,13 @@
       "removeTitle": "Remover {{name}}?",
       "removeDescription": "Essa pessoa perderá o acesso a esta organização. Esta ação não pode ser desfeita.",
       "cancel": "Cancelar",
-      "confirmRemove": "Remover"
+      "confirmRemove": "Remover",
+      "rolePlaceholder": "Função",
+      "searchPlaceholder": "Pesquisar membros…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
     }
   },
   "public": {

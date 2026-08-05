@@ -126,7 +126,9 @@
       "removeTitle": "{{name}} を削除しますか？",
       "removeDescription": "この組織へのアクセスが失われます。確認後数秒間は元に戻せます。",
       "removeConfirm": "削除",
-      "removePending": "{{name}} を削除中…"
+      "removePending": "{{name}} を削除中…",
+      "emailPlaceholder": "member@example.com",
+      "rolePlaceholder": "ロールを選択"
     },
     "roles": {
       "title": "ロール",
@@ -147,7 +149,9 @@
       "deleteTitle": "{{name}} を削除しますか？",
       "deleteDescription": "このロールのメンバーには新しいロールの割り当てが必要です。確認後数秒間は元に戻せます。",
       "deleteConfirm": "削除",
-      "deletePending": "{{name}} を削除中…"
+      "deletePending": "{{name}} を削除中…",
+      "namePlaceholder": "例: メンバー",
+      "descriptionPlaceholder": "このロールで何ができますか？"
     },
     "listSort": {
       "label": "並び替え",
@@ -165,13 +169,22 @@
       "confirmSave": "変更を保存",
       "confirmCancel": "キャンセル",
       "saving": "保存中…",
-      "save": "変更を保存"
+      "save": "変更を保存",
+      "namePlaceholder": "お名前",
+      "jobTitlePlaceholder": "例: プロダクトエンジニア"
     },
     "account": {
       "deleteTitle": "アカウントを削除しますか？",
       "deleteDescription": "この操作は永続的で元に戻せません。すべてのデータが削除されます。",
       "deleteConfirm": "アカウントを削除",
       "deleteCancel": "キャンセル"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "API キーを検索…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }

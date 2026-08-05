@@ -130,7 +130,9 @@
       "removeTitle": "¿Eliminar a {{name}}?",
       "removeDescription": "Perderá el acceso a esta organización. Esta acción no se puede deshacer.",
       "cancel": "Cancelar",
-      "confirmRemove": "Eliminar"
+      "confirmRemove": "Eliminar",
+      "rolePlaceholder": "Rol",
+      "searchPlaceholder": "Buscar miembros…"
     },
     "shortcuts": {
       "title": "Atajos de teclado",
@@ -139,6 +141,10 @@
       "showShortcuts": "Mostrar atajos de teclado",
       "showShortcutsAlt": "Mostrar atajos (alternativo)",
       "closeDialog": "Cerrar diálogo"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
     }
   },
   "public": {

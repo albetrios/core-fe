@@ -138,7 +138,13 @@
       "removeTitle": "إزالة {{name}}؟",
       "removeDescription": "سيفقدون الوصول إلى هذه المؤسسة. لا يمكن التراجع عن هذا الإجراء.",
       "cancel": "إلغاء",
-      "confirmRemove": "إزالة"
+      "confirmRemove": "إزالة",
+      "rolePlaceholder": "الدور",
+      "searchPlaceholder": "ابحث عن الأعضاء…"
+    },
+    "orgCreate": {
+      "namePlaceholder": "Acme Inc.",
+      "slugPlaceholder": "acme"
     }
   },
   "public": {

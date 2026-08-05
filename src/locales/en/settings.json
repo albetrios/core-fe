@@ -126,7 +126,9 @@
       "removeTitle": "Remove {{name}}?",
       "removeDescription": "They'll lose access to this organization. You can undo for a few seconds after confirming.",
       "removeConfirm": "Remove",
-      "removePending": "Removing {{name}}…"
+      "removePending": "Removing {{name}}…",
+      "emailPlaceholder": "teammate@company.com",
+      "rolePlaceholder": "Select a role"
     },
     "roles": {
       "title": "Roles",
@@ -147,7 +149,9 @@
       "deleteTitle": "Delete {{name}}?",
       "deleteDescription": "Members with this role will need a new one assigned. You can undo for a few seconds after confirming.",
       "deleteConfirm": "Delete",
-      "deletePending": "Deleting {{name}}…"
+      "deletePending": "Deleting {{name}}…",
+      "namePlaceholder": "e.g. Member",
+      "descriptionPlaceholder": "What can this role do?"
     },
     "listSort": {
       "label": "Sort by",
@@ -165,13 +169,22 @@
       "confirmSave": "Save changes",
       "confirmCancel": "Cancel",
       "saving": "Saving…",
-      "save": "Save changes"
+      "save": "Save changes",
+      "namePlaceholder": "Your name",
+      "jobTitlePlaceholder": "e.g. Product Engineer"
     },
     "account": {
       "deleteTitle": "Delete your account?",
       "deleteDescription": "This action is permanent and cannot be undone. All your data will be removed.",
       "deleteConfirm": "Delete account",
       "deleteCancel": "Cancel"
+    },
+    "general": {
+      "namePlaceholder": "Acme Inc."
+    },
+    "integrations": {
+      "searchPlaceholder": "Search API keys…",
+      "webhookUrlPlaceholder": "https://example.com/hooks"
     }
   }
 }
