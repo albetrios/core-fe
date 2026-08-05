@@ -10,6 +10,47 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
+/**
+ * Shared by the app-wide restriction block and the LocalizedCalendar override.
+ * Flat config REPLACES a rule's options rather than merging them, so any block
+ * that re-declares `no-restricted-imports` must restate these or it silently
+ * drops the icon/toast boundaries for the files it matches.
+ */
+const RESTRICTED_IMPORT_PATHS = [
+  {
+    name: 'lucide-react',
+    message: "Import icons from '@/shared/icons/index.ts' (one-file icon-library swap).",
+  },
+  {
+    name: '@tabler/icons-react',
+    message:
+      "Import icons from '@/shared/icons/index.ts' — Tabler is wired there as a swappable set.",
+  },
+  {
+    name: '@phosphor-icons/react',
+    message:
+      "Import icons from '@/shared/icons/index.ts' — Phosphor is wired there as a swappable set.",
+  },
+  {
+    name: 'sonner',
+    message:
+      "Use '@/shared/notify' for toasts — the single toast surface (one place for durations/de-dupe/a11y).",
+  },
+];
+
+/** Vendored calendar bypasses locale prefs; app code goes through the wrapper. */
+const RESTRICTED_CALENDAR_PATTERN = {
+  group: ['**/shared/components/ui/calendar', '**/shared/components/ui/calendar.tsx'],
+  message:
+    "Import '@/shared/components/LocalizedCalendar' — the vendored calendar's defaults ignore weekStartsOn / month formatting from Appearance prefs.",
+};
+
+/** The shared layer's own boundary, restated by the LocalizedCalendar override. */
+const SHARED_LAYER_PATTERN = {
+  group: ['@/pages/**', '@/app/**'],
+  message: 'src/shared must not depend on pages or app (shared may import core/lib).',
+};
+
 export default defineConfig([
   globalIgnores(['dist', 'node_modules', 'coverage', 'test-results', '.stryker-tmp']),
   {
@@ -79,28 +120,8 @@ export default defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: 'lucide-react',
-              message:
-                "Import icons from '@/shared/icons/index.ts' (one-file icon-library swap).",
-            },
-            {
-              name: '@tabler/icons-react',
-              message:
-                "Import icons from '@/shared/icons/index.ts' — Tabler is wired there as a swappable set.",
-            },
-            {
-              name: '@phosphor-icons/react',
-              message:
-                "Import icons from '@/shared/icons/index.ts' — Phosphor is wired there as a swappable set.",
-            },
-            {
-              name: 'sonner',
-              message:
-                "Use '@/shared/notify' for toasts — the single toast surface (one place for durations/de-dupe/a11y).",
-            },
-          ],
+          paths: RESTRICTED_IMPORT_PATHS,
+          patterns: [RESTRICTED_CALENDAR_PATTERN],
         },
       ],
     },
@@ -275,15 +296,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        {
-          patterns: [
-            {
-              group: ['@/pages/**', '@/app/**'],
-              message:
-                'src/shared must not depend on pages or app (shared may import core/lib).',
-            },
-          ],
-        },
+        { patterns: [SHARED_LAYER_PATTERN, RESTRICTED_CALENDAR_PATTERN] },
       ],
     },
   },
@@ -322,8 +335,25 @@ export default defineConfig([
               group: ['@/app/**'],
               message: 'Pages must not import the app shell.',
             },
+            RESTRICTED_CALENDAR_PATTERN,
           ],
         },
+      ],
+    },
+  },
+
+  // The sanctioned calendar boundary: LocalizedCalendar is the ONE place
+  // allowed to import the vendored primitive (it injects weekStartsOn + the
+  // civil-day month formatter from Appearance prefs). Must sit AFTER the
+  // src/shared block — flat config replaces rule options rather than merging,
+  // so the last matching block wins and the icon/toast paths plus the shared
+  // layer boundary have to be restated here.
+  {
+    files: ['src/shared/components/LocalizedCalendar/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { paths: RESTRICTED_IMPORT_PATHS, patterns: [SHARED_LAYER_PATTERN] },
       ],
     },
   },
