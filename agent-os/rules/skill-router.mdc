@@ -32,6 +32,8 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 | Component API, compound components, boolean props | composition-patterns | `agent-os/skills/composition-patterns/SKILL.md` |
 | Lint rules, security scan, pre-commit, CI pipeline | code-quality-security | `agent-os/skills/code-quality-security/SKILL.md` |
 | Commit checks, before-commit guard, pre-commit failures | before-commit-guard | `agent-os/skills/before-commit-guard/SKILL.md` |
+| Adding a validate gate, lint restriction, or static-sync CI step | guard-authoring | `agent-os/skills/guard-authoring/SKILL.md` |
+| Opening a PR, "ready for review", final pre-push sweep | pre-pr-sweep | `agent-os/skills/pre-pr-sweep/SKILL.md` |
 | Lint/type-check failures after implementation | lint-guard | `agent-os/skills/lint-guard/SKILL.md` |
 | Code smells, best practices, live-code review when code added/changed | code-smells-best-practices | `agent-os/skills/code-smells-best-practices/SKILL.md` |
 | New test, add test, test coverage, missing tests | test-generation | `agent-os/skills/test-generation/SKILL.md` |
@@ -76,11 +78,15 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 
 3e. **Platform hygiene**: When touching env schema, `platformConfig`, `build-env.ts`, knip, or platform validators, invoke **`platform-hygiene`** (env key add/rename/remove chains **`env-schema-add`** first). See **`agent-os/rules/platform-hygiene-sync.mdc`**.
 
+3f. **New machine-enforced invariant**: When adding or editing anything under `tooling/validate/`, a `no-restricted-imports` entry in `eslint.config.mjs`, or a static-sync step in `pr-ci.yml`, invoke **`guard-authoring`** — a gate must be probed in both directions and wired into CI, not just `health-check.sh`.
+
+3g. **Before opening a PR**: invoke **`pre-pr-sweep`** — half-converted sweeps, incomplete deletions, ungated race paths, eager module-scope `import()`, stale derived artifacts, and a drifted PR body. See **`agent-os/rules/pr-review-prevention.mdc`**.
+
 4. **Page Scaffolding**: When creating a new page, invoke `page-scaffolding` (after `route-island`) to ensure all standard files are created and `data-testid` attributes are placed (via `e2e-testids` skill).
 
 5. **Component Promotion**: When importing a page-specific component into a second page, invoke the `component-promotion` skill to move it to `shared/`.
 
-6. **Code Quality**: When modifying `eslint.config.mjs`, `.husky/*`, or `.github/workflows/pr-ci.yml`, invoke the `code-quality-security` skill for consistency checks.
+6. **Code Quality**: When modifying `eslint.config.mjs`, `.husky/*`, or `.github/workflows/pr-ci.yml`, invoke the `code-quality-security` skill for consistency checks — and **`guard-authoring`** whenever the change adds or edits an enforced rule.
 
 7. **Lint Guard**: After every implementation that adds or changes source files, invoke the `lint-guard` skill to fix all ESLint and TypeScript errors before responding. Do not announce this step — just ensure zero errors.
 

@@ -92,3 +92,28 @@ Add a tier only when it earns its keep — most areas need only OVERVIEW.
 - **Index:** `docs/README.md` — single entry point by use case.
 - **Naming:** Lowercase kebab-case filenames; directories match use case.
 - **Sync:** When adding or moving a doc, update README, CLAUDE, and docs/README.md; keep skill references to doc paths correct.
+
+---
+
+## The PR description is a maintained document
+
+A body written when the PR opened describes the **first commit**, not the branch.
+On core-fe #217 it still claimed "110 files" (actual: 211), "layout shells are
+eager" (a later commit made them lazy), a stale test count, and omitted whole
+workstreams added since — a security pin, two new CI gates, three new components.
+
+Before requesting review, reconcile the description against the branch:
+
+```bash
+git diff --name-only origin/main...HEAD | wc -l          # file count
+git log --oneline origin/main..HEAD                      # workstreams added
+git diff --name-only origin/main...HEAD | grep -E '^docs/'   # docs-touched list
+```
+
+Fix: file/test counts, any claim a later commit reversed, and missing sections.
+**Do not overclaim in the title** — scope the wording to what actually shipped
+("11-locale UI translations", not "full UI translations", when catalogs remain).
+
+Also record in the body anything a future refresh would silently drop — e.g. an
+edit to a vendored `components/ui/**` file, flagged as "re-apply after a shadcn
+refresh".

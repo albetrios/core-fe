@@ -4,46 +4,107 @@
     "page-change": {
       "description": "Adding or changing a page / route island end-to-end.",
       "trigger": "src/pages/**/*.route.tsx",
-      "steps": ["page-scaffolding", "route-island", "e2e-testids", "test-generation"],
-      "optional": ["routing-tenancy"]
+      "steps": [
+        "page-scaffolding",
+        "route-island",
+        "e2e-testids",
+        "test-generation"
+      ],
+      "optional": [
+        "routing-tenancy"
+      ]
     },
     "component-promotion": {
       "description": "Promoting a page-local component up the ladder into shared / family-shared.",
       "trigger": "src/shared/components/**/*.tsx",
-      "steps": ["component-promotion", "composition-patterns", "test-generation"]
+      "steps": [
+        "component-promotion",
+        "composition-patterns",
+        "test-generation"
+      ]
     },
     "resource-crud": {
       "description": "Scaffolding a backend resource UI — list page plus URL-driven create/edit dialogs.",
       "trigger": "src/pages/**/*.resource.ts",
-      "steps": ["resource-crud", "http-forms-errors", "i18n-constants", "test-generation"]
+      "steps": [
+        "resource-crud",
+        "http-forms-errors",
+        "i18n-constants",
+        "test-generation"
+      ]
     },
     "ui-review": {
       "description": "Building or restyling UI — craft, accessibility, and motion review.",
       "trigger": "src/**/components/**/*.tsx",
-      "steps": ["frontend-design", "web-design-guidelines", "review-animations"],
-      "optional": ["theme-axis-audit", "visual-regression"]
+      "steps": [
+        "frontend-design",
+        "web-design-guidelines",
+        "review-animations"
+      ],
+      "optional": [
+        "theme-axis-audit",
+        "visual-regression"
+      ]
     },
     "form-mutation": {
       "description": "Building a form that mutates via apiClient and maps server/validation errors.",
       "trigger": "src/**/forms/**/*.tsx",
-      "steps": ["composition-patterns", "http-forms-errors", "test-generation"]
+      "steps": [
+        "composition-patterns",
+        "http-forms-errors",
+        "test-generation"
+      ]
     },
     "data-hook": {
       "description": "Adding a TanStack Query hook / data layer over the fetch client.",
       "trigger": "src/**/*.api.ts",
-      "steps": ["react-best-practices", "test-generation"]
+      "steps": [
+        "react-best-practices",
+        "test-generation"
+      ]
     },
     "styling": {
       "description": "Styling / theming with semantic tokens and Tailwind.",
       "trigger": "src/index.css",
-      "steps": ["frontend-design", "web-design-guidelines"],
-      "optional": ["theme-axis-audit", "visual-regression"]
+      "steps": [
+        "frontend-design",
+        "web-design-guidelines"
+      ],
+      "optional": [
+        "theme-axis-audit",
+        "visual-regression"
+      ]
     },
     "env-change": {
       "description": "Adding, renaming, or removing an env var and keeping schema + templates in sync.",
       "trigger": "src/core/config/env-schema.ts",
-      "steps": ["env-schema-add"],
-      "optional": ["platform-hygiene"]
+      "steps": [
+        "env-schema-add"
+      ],
+      "optional": [
+        "platform-hygiene"
+      ]
+    },
+    "new-guard": {
+      "description": "Adding a machine-enforced invariant (validator, eslint restriction, CI static-sync step).",
+      "trigger": "tooling/validate/**",
+      "steps": [
+        "guard-authoring",
+        "code-quality-security",
+        "documentation-maintenance"
+      ]
+    },
+    "pr-readiness": {
+      "description": "Final pass before opening a pull request or requesting review.",
+      "trigger": "**",
+      "steps": [
+        "pre-pr-sweep",
+        "before-commit-guard"
+      ],
+      "optional": [
+        "project-health-check",
+        "documentation-maintenance"
+      ]
     }
   }
 }

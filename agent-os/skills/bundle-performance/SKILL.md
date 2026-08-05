@@ -30,10 +30,33 @@ dev server — see `docs/reference/local-production-perf.md`.
 4. **CSP constraint.** `assetsInlineLimit: 0` in `vite.config.ts` is required for
    CSP — do not inline assets to shave requests.
 
+## Module-scope `import()` is eager — it deletes the split
+
+```ts
+const sidebarImport = import('./variants/AppLayoutSidebar.tsx');   // fetches NOW
+const Shell = lazy(() => sidebarImport.then((m) => ({ default: m.SidebarShell })));
+```
+
+A top-level dynamic import executes at **module evaluation**, so loading the
+parent fetches every variant even though one renders. This shipped on core-fe and
+`pnpm build:check` did **not** catch it — that tripwires the static preload graph,
+not runtime fetches.
+
+Use `onceAsync()` (`src/lib/lazy-module.ts`): same shared module promise (so
+`React.lazy` and any test preload resolve the identical promise), but nothing is
+fetched until first render or an explicit preload. It deliberately does **not**
+cache a rejection, so a chunk fetch that fails on a flaky network stays retryable
+instead of leaving the surface unrenderable until a full reload.
+
+```bash
+grep -rn "^const .* = import(" src   # audit for module-scope dynamic imports
+```
+
 ## Verify
 
 - `pnpm size` — every budget within limit.
 - `pnpm build:check` — no heavy deferred module on the first-paint path.
+- `grep -rn "^const .* = import(" src` — no module-scope dynamic imports.
 
 ## Related
 

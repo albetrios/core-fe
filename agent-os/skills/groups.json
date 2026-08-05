@@ -18,7 +18,12 @@
       "resource-crud",
       "http-forms-errors"
     ],
-    "testing": ["test-generation", "e2e-testids", "playwright-e2e", "visual-regression"],
+    "testing": [
+      "test-generation",
+      "e2e-testids",
+      "playwright-e2e",
+      "visual-regression"
+    ],
     "quality": [
       "lint-guard",
       "code-smells-best-practices",
@@ -29,10 +34,17 @@
       "react-best-practices",
       "code-structure",
       "component-promotion",
-      "systematic-debugging"
+      "systematic-debugging",
+      "guard-authoring",
+      "pre-pr-sweep"
     ],
-    "docs": ["documentation-maintenance", "requirement-format"],
-    "i18n": ["i18n-constants"],
+    "docs": [
+      "documentation-maintenance",
+      "requirement-format"
+    ],
+    "i18n": [
+      "i18n-constants"
+    ],
     "platform": [
       "env-schema-add",
       "platform-hygiene",
@@ -40,7 +52,15 @@
       "dependency-management",
       "bundle-performance"
     ],
-    "workflow": ["auto-implement", "skill-registry"],
-    "external": ["animejs", "emil-design-eng", "review-animations", "find-skills"]
+    "workflow": [
+      "auto-implement",
+      "skill-registry"
+    ],
+    "external": [
+      "animejs",
+      "emil-design-eng",
+      "review-animations",
+      "find-skills"
+    ]
   }
 }

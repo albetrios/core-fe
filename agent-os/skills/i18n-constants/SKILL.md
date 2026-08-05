@@ -149,3 +149,47 @@ Mirror key paths from `ONBOARDING_KEYS`. Use i18next plural suffixes (`_one`, `_
 4. `core/` / `lib/` timing and storage keys
 
 Each wave = one PR, behavior-neutral, `pnpm health` green.
+
+---
+
+## Review-caught rules (do these before the PR, not after)
+
+These are the i18n findings a human reviewer raised on shipped core-fe PRs. See
+`agent-os/skills/pre-pr-sweep/SKILL.md` for the full pre-PR sweep.
+
+**Never half-convert a component.** Keying an `aria-label` while the `title` three
+lines below stays English means a screen reader says Arabic and the tooltip says
+English. After converting one attribute form, grep the siblings across the file
+you touched:
+
+```bash
+grep -n 'aria-label="\|title="\|placeholder="' <file>
+```
+
+If the whole component cannot be finished, convert **whole components** and
+declare the boundary in the PR body — a fully untranslated component reads as a
+known gap; a half-translated one reads as a bug.
+
+**Every new key lands in all 11 packs.** `validate:i18n-parity` compares each
+locale against English, so a *missing* key fails — but a key left **unused in
+code** survives in every pack. Deleting a surface means deleting its keys too.
+
+**Constants hold key paths, never prose.** `*.constants.ts` exports dotted paths
+(`'appearance.themeTitle'`); the English text lives only in
+`src/locales/en/<ns>.json`.
+
+**Do not translate what should not be translated.**
+
+| Kind | Example | Do |
+| ---- | ------- | -- |
+| Proper nouns | font families (`Inter`, `JetBrains Mono`) | never translate |
+| Product nomenclature | theme/accent preset names | keep; needs a product decision |
+| Example / technical values | `example.com`, an `acme` slug, a placeholder brand | key it, but one value across locales is correct — say so in the PR |
+
+**Interpolate, never concatenate.** `Page {n} of {m}` must be one key with
+`{{page}}` / `{{pages}}` — word order differs per language, so splitting it across
+JSX text nodes cannot be translated correctly.
+
+**Hooks go where the string renders.** When a placeholder lives in a
+sub-component, `useTranslation` belongs in that sub-component, not in the exported
+panel — type-check catches this, but only after the wiring is wrong.

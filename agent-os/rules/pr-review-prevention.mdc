@@ -1,0 +1,71 @@
+---
+description: Non-negotiables distilled from findings that reached human PR review — prove gates fire, finish sweeps, complete deletions, and keep the PR body true
+alwaysApply: true
+---
+
+# PR Review Prevention — Ship It Right The First Time
+
+Each rule below exists because a real core-fe PR shipped without it and a human
+reviewer had to catch it. Treat them as part of "done", not as review feedback.
+
+Procedures: `agent-os/skills/guard-authoring/SKILL.md` (gates) ·
+`agent-os/skills/pre-pr-sweep/SKILL.md` (the full sweep).
+
+## A gate you have not watched fail is not a gate
+
+Adding a validator, an eslint restriction, or a CI step is **not** evidence it
+works. Before claiming a gate is landed:
+
+1. Create a synthetic violation and confirm the gate **flags** it.
+2. Confirm the exempt/allowed case still **passes**.
+3. Probe from every layer glob that can reach the violation — ESLint flat config
+   **replaces** rule options rather than merging them, so a restriction added to
+   one block is inert for files matched by a later block.
+4. Wire it into `.github/workflows/pr-ci.yml`. `health-check.sh` is local-only;
+   a locally-skippable invariant is an unenforced one.
+
+## Never read an exit code through a pipe
+
+`pnpm lint | tail -5` reports `tail`'s status. Capture the real one
+(`cmd > file 2>&1; echo $?`) or `set -o pipefail`. Reporting a gate as green on a
+piped command has already produced a false "all passing" on this repo.
+
+## Finish the sweep or scope it to whole units
+
+When applying a pattern across the codebase, do not stop at the list you started
+with — grep for sibling forms (`aria-label` → `title` → `placeholder`) and for
+remaining instances. If the sweep cannot be finished, convert **whole components**
+and declare the boundary in the PR body. A half-converted component is a bug; an
+untouched one is a known gap.
+
+## Deleting a surface means deleting its registrations
+
+Route mounts, service-worker precache patterns, vendor chunk lists, analytics
+events, store slices, locale keys, constants, test ids, and docs. `knip` does not
+see orphaned locale keys, and a constant referenced only by its own test is dead —
+a test is not a consumer.
+
+## A staleness guard must cover every path
+
+Extract it into a helper and route all call sites through it; grep the protected
+mutation to confirm. Guards belong at the mutation boundary, not in the caller —
+the caller cannot protect side effects that happen behind an `await`.
+
+## Module-scope `import()` defeats code splitting
+
+Top-level dynamic imports execute at module evaluation. Use `onceAsync()`
+(`src/lib/lazy-module.ts`) for a shared module promise without the eager fetch.
+`pnpm build:check` will not catch this — it tripwires the static preload graph.
+
+## Regenerate derived artifacts last
+
+`pnpm sync:check` (project tree, TSDoc budget, locale parity) runs **after** the
+final file is added, and again after any new file. Running it mid-change is how a
+stale `project-tree.txt` reaches CI.
+
+## Keep the PR body true to the branch
+
+Before requesting review, reconcile the description against
+`git diff --name-only origin/main...HEAD`. Fix stale counts, claims a later commit
+reversed, and workstreams added since it was written. Do not overclaim in the
+title — scope the wording to what actually shipped.
