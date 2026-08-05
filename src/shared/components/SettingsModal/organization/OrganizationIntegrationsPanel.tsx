@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
@@ -11,6 +12,10 @@ import {
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card } from '@/shared/components/ui/card.tsx';
@@ -48,6 +53,7 @@ function useCanManageIntegrations(): boolean {
 
 /** API keys — windowed list (masked) + search + cap-gated revoke. */
 function ApiKeysSection() {
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<OrgListSortPreset>(DEFAULT_ORG_LIST_SORT);
   const debouncedSearch = useDebouncedValue(search.trim());
@@ -69,7 +75,7 @@ function ApiKeysSection() {
         onSearchChange={setSearch}
         sort={sort}
         onSortChange={setSort}
-        searchPlaceholder="Search API keys…"
+        searchPlaceholder={tSettings(SETTINGS_KEYS.panels.integrations.searchPlaceholder)}
         searchTestId="apikeys-search"
         sortTestId="apikeys-sort"
       />
@@ -155,6 +161,7 @@ function ApiKeysSection() {
 
 /** Webhooks — list + cap-gated create (url + events) + delete. */
 function WebhooksSection() {
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
   const { data: hooks, isLoading } = useWebhooks();
   const canManage = useCanManageIntegrations();
   const create = useCreateWebhook();
@@ -262,7 +269,9 @@ function WebhooksSection() {
                 id="webhook-url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder="https://example.com/hooks"
+                placeholder={tSettings(
+                  SETTINGS_KEYS.panels.integrations.webhookUrlPlaceholder,
+                )}
                 data-testid="webhook-url"
               />
             </div>

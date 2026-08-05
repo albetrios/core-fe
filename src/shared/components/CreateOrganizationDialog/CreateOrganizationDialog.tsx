@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { type ReactNode, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
@@ -20,6 +21,7 @@ import {
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
 import { Plus } from '@/shared/icons/index.ts';
+import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { notify } from '@/shared/notify/index.ts';
 import {
   createOrganization,
@@ -50,6 +52,7 @@ export function CreateOrganizationDialog({
   open: controlledOpen,
   onOpenChange,
 }: CreateOrganizationDialogProps) {
+  const { t: tLayout } = useTranslation(LAYOUT_NS);
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
@@ -127,7 +130,7 @@ export function CreateOrganizationDialog({
             <Input
               id="new-org-name"
               autoComplete="organization"
-              placeholder="Acme Inc."
+              placeholder={tLayout(LAYOUT_KEYS.app.orgCreate.namePlaceholder)}
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? 'new-org-name-error' : undefined}
               data-testid="create-organization-dialog-name"
@@ -147,7 +150,7 @@ export function CreateOrganizationDialog({
             <Label htmlFor="new-org-slug">Workspace URL (optional)</Label>
             <Input
               id="new-org-slug"
-              placeholder="acme"
+              placeholder={tLayout(LAYOUT_KEYS.app.orgCreate.slugPlaceholder)}
               data-testid="create-organization-dialog-slug"
               {...register('slug')}
             />

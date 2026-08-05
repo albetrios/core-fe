@@ -264,6 +264,7 @@ export function MembersTable({
   syncUrl?: boolean;
 }) {
   const { t: tCommon } = useTranslation(LOCALE_NS);
+  const { t: tTable } = useTranslation(MEMBERS_TABLE_NS);
   const canManage = useHasPermission('membership:manage');
   const url = useDataTableUrlState(syncUrl);
   const [sorting, setSorting] = useState<SortingState>(url.initialSorting);
@@ -347,7 +348,7 @@ export function MembersTable({
       <DataTableToolbar
         table={table}
         searchColumnId="name"
-        searchPlaceholder="Search members…"
+        searchPlaceholder={tTable(MEMBERS_TABLE_KEYS.searchPlaceholder)}
       >
         <Select
           value={roleFilter}
@@ -360,7 +361,7 @@ export function MembersTable({
             className="h-8 w-[130px]"
             data-testid="members-role-filter"
           >
-            <SelectValue placeholder="Role" />
+            <SelectValue placeholder={tTable(MEMBERS_TABLE_KEYS.rolePlaceholder)} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All roles</SelectItem>

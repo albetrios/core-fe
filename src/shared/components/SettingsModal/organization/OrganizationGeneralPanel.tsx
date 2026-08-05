@@ -1,9 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { type ChangeEvent, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import { QueryBoundary } from '@/shared/components/QueryBoundary/index.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { useRegisterSettingsDirty } from '@/shared/components/SettingsModal/settings-dirty.tsx';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -193,6 +198,7 @@ function OrganizationGeneralForm({
   canManage: boolean;
   update: UpdateMutation;
 }) {
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
   const activeOrg = orgs.find((o) => o.id === organizationId);
 
   const serverName = activeOrg?.name ?? '';
@@ -223,7 +229,7 @@ function OrganizationGeneralForm({
               id="org-name"
               value={name}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Acme Inc."
+              placeholder={tSettings(SETTINGS_KEYS.panels.general.namePlaceholder)}
               disabled={!canManage}
               data-testid="org-name"
             />

@@ -114,6 +114,8 @@ export const SETTINGS_KEYS = {
     members: {
       title: 'panels.members.title',
       description: 'panels.members.description',
+      emailPlaceholder: 'panels.members.emailPlaceholder',
+      rolePlaceholder: 'panels.members.rolePlaceholder',
       loadFailed: 'panels.members.loadFailed',
       emptyTitle: 'panels.members.emptyTitle',
       emptyDescription: 'panels.members.emptyDescription',
@@ -134,6 +136,8 @@ export const SETTINGS_KEYS = {
     roles: {
       title: 'panels.roles.title',
       description: 'panels.roles.description',
+      namePlaceholder: 'panels.roles.namePlaceholder',
+      descriptionPlaceholder: 'panels.roles.descriptionPlaceholder',
       loadFailed: 'panels.roles.loadFailed',
       emptyTitle: 'panels.roles.emptyTitle',
       emptyDescription: 'panels.roles.emptyDescription',
@@ -159,9 +163,16 @@ export const SETTINGS_KEYS = {
       newest: 'panels.listSort.newest',
       oldest: 'panels.listSort.oldest',
     },
+    general: { namePlaceholder: 'panels.general.namePlaceholder' },
+    integrations: {
+      searchPlaceholder: 'panels.integrations.searchPlaceholder',
+      webhookUrlPlaceholder: 'panels.integrations.webhookUrlPlaceholder',
+    },
     profile: {
       title: 'panels.profile.title',
       description: 'panels.profile.description',
+      namePlaceholder: 'panels.profile.namePlaceholder',
+      jobTitlePlaceholder: 'panels.profile.jobTitlePlaceholder',
       completeness: 'panels.profile.completeness',
       confirmTitle: 'panels.profile.confirmTitle',
       confirmDescription: 'panels.profile.confirmDescription',

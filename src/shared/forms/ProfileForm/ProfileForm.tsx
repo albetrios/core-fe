@@ -133,7 +133,7 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
             <Input
               id="profile-name"
               {...register('name')}
-              placeholder="Your name"
+              placeholder={t(SETTINGS_KEYS.panels.profile.namePlaceholder)}
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? 'profile-name-error' : undefined}
               data-testid="profile-name"
@@ -154,7 +154,7 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
             <Input
               id="profile-job-title"
               {...register('jobTitle')}
-              placeholder="e.g. Product Engineer"
+              placeholder={t(SETTINGS_KEYS.panels.profile.jobTitlePlaceholder)}
               data-testid="profile-job-title"
             />
           </div>
