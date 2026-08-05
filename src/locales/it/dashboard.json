@@ -135,5 +135,15 @@
       "invoiceDue": "Fattura in scadenza"
     }
   },
-  "sampleBadge": "Dati di esempio"
+  "sampleBadge": "Dati di esempio",
+  "themeShowcase": {
+    "ariaLabel": "Tema dell'area di lavoro",
+    "heading": "Tema dell'area di lavoro",
+    "shuffle": "Casuale",
+    "customize": "Personalizza",
+    "custom": "Personalizzato",
+    "default": "Predefinito",
+    "shuffledTitle": "Tema mescolato",
+    "shuffledDescription": "Nuovo colore d'accento, caratteri e raggio — e stile di notifica."
+  }
 }

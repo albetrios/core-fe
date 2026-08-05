@@ -135,5 +135,15 @@
       "invoiceDue": "فاتورة مستحقة"
     }
   },
-  "sampleBadge": "بيانات نموذجية"
+  "sampleBadge": "بيانات نموذجية",
+  "themeShowcase": {
+    "ariaLabel": "سمة مساحة العمل",
+    "heading": "سمة مساحة العمل",
+    "shuffle": "خلط",
+    "customize": "تخصيص",
+    "custom": "مخصص",
+    "default": "افتراضي",
+    "shuffledTitle": "تم خلط السمة",
+    "shuffledDescription": "لون مميّز وخطوط ونصف قطر جديدة — وأسلوب تنبيه جديد."
+  }
 }

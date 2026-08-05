@@ -135,5 +135,15 @@
       "invoiceDue": "Facture due"
     }
   },
-  "sampleBadge": "Données d'exemple"
+  "sampleBadge": "Données d'exemple",
+  "themeShowcase": {
+    "ariaLabel": "Thème de l'espace de travail",
+    "heading": "Thème de l'espace de travail",
+    "shuffle": "Aléatoire",
+    "customize": "Personnaliser",
+    "custom": "Personnalisé",
+    "default": "Par défaut",
+    "shuffledTitle": "Thème mélangé",
+    "shuffledDescription": "Nouvelle couleur d'accent, polices et rayon — et style de notification."
+  }
 }

@@ -135,5 +135,15 @@
       "invoiceDue": "Invoice due"
     }
   },
-  "sampleBadge": "Sample data"
+  "sampleBadge": "Sample data",
+  "themeShowcase": {
+    "ariaLabel": "Workspace theme",
+    "heading": "Workspace theme",
+    "shuffle": "Shuffle",
+    "customize": "Customize",
+    "custom": "Custom",
+    "default": "Default",
+    "shuffledTitle": "Theme shuffled",
+    "shuffledDescription": "New accent, fonts, radius — and toast style."
+  }
 }

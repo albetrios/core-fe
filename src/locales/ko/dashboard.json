@@ -135,5 +135,15 @@
       "invoiceDue": "청구서 기한"
     }
   },
-  "sampleBadge": "샘플 데이터"
+  "sampleBadge": "샘플 데이터",
+  "themeShowcase": {
+    "ariaLabel": "작업 공간 테마",
+    "heading": "작업 공간 테마",
+    "shuffle": "셔플",
+    "customize": "사용자 지정",
+    "custom": "사용자 지정",
+    "default": "기본값",
+    "shuffledTitle": "테마를 셔플했습니다",
+    "shuffledDescription": "새로운 강조색, 글꼴, 모서리 — 그리고 토스트 스타일."
+  }
 }

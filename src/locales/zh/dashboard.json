@@ -134,5 +134,15 @@
       "invoiceDue": "发票到期"
     }
   },
-  "sampleBadge": "示例数据"
+  "sampleBadge": "示例数据",
+  "themeShowcase": {
+    "ariaLabel": "工作区主题",
+    "heading": "工作区主题",
+    "shuffle": "随机",
+    "customize": "自定义",
+    "custom": "自定义",
+    "default": "默认",
+    "shuffledTitle": "主题已随机",
+    "shuffledDescription": "全新的强调色、字体和圆角——以及提示样式。"
+  }
 }

@@ -135,5 +135,15 @@
       "invoiceDue": "Rechnung fällig"
     }
   },
-  "sampleBadge": "Beispieldaten"
+  "sampleBadge": "Beispieldaten",
+  "themeShowcase": {
+    "ariaLabel": "Arbeitsbereich-Design",
+    "heading": "Arbeitsbereich-Design",
+    "shuffle": "Mischen",
+    "customize": "Anpassen",
+    "custom": "Benutzerdefiniert",
+    "default": "Standard",
+    "shuffledTitle": "Design gemischt",
+    "shuffledDescription": "Neue Akzentfarbe, Schriften und Radius — und Toast-Stil."
+  }
 }

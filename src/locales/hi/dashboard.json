@@ -135,5 +135,15 @@
       "invoiceDue": "इनवॉइस देय"
     }
   },
-  "sampleBadge": "नमूना डेटा"
+  "sampleBadge": "नमूना डेटा",
+  "themeShowcase": {
+    "ariaLabel": "कार्यस्थान थीम",
+    "heading": "कार्यस्थान थीम",
+    "shuffle": "शफ़ल",
+    "customize": "अनुकूलित करें",
+    "custom": "कस्टम",
+    "default": "डिफ़ॉल्ट",
+    "shuffledTitle": "थीम शफ़ल की गई",
+    "shuffledDescription": "नया एक्सेंट, फ़ॉन्ट और रेडियस — और टोस्ट शैली।"
+  }
 }

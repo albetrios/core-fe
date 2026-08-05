@@ -135,5 +135,15 @@
       "invoiceDue": "請求書期限"
     }
   },
-  "sampleBadge": "サンプルデータ"
+  "sampleBadge": "サンプルデータ",
+  "themeShowcase": {
+    "ariaLabel": "ワークスペーステーマ",
+    "heading": "ワークスペーステーマ",
+    "shuffle": "シャッフル",
+    "customize": "カスタマイズ",
+    "custom": "カスタム",
+    "default": "デフォルト",
+    "shuffledTitle": "テーマをシャッフルしました",
+    "shuffledDescription": "新しいアクセント、フォント、角丸 — そしてトーストのスタイル。"
+  }
 }

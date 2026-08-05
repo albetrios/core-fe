@@ -135,5 +135,15 @@
       "invoiceDue": "Fatura vencida"
     }
   },
-  "sampleBadge": "Dados de exemplo"
+  "sampleBadge": "Dados de exemplo",
+  "themeShowcase": {
+    "ariaLabel": "Tema do espaço de trabalho",
+    "heading": "Tema do espaço de trabalho",
+    "shuffle": "Aleatório",
+    "customize": "Personalizar",
+    "custom": "Personalizado",
+    "default": "Padrão",
+    "shuffledTitle": "Tema alterado",
+    "shuffledDescription": "Nova cor de destaque, fontes e raio — e estilo de notificação."
+  }
 }
