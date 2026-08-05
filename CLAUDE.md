@@ -13,7 +13,8 @@ pnpm lint         # ESLint
 pnpm biome:check  # Biome lint lane (lint-only; Prettier owns formatting)
 pnpm health       # Full project health check (all phases)
 pnpm health:fix   # Auto-fix + full health check
-pnpm sync:check   # Deterministic docs↔code drift (structure, testids, i18n, tree, agent-os)
+pnpm sync:check   # Deterministic docs↔code drift (structure, testids, i18n, tree, agent-os, identity)
+pnpm rebrand "<Product>"  # Rename the product (dry run; --apply to write) — see new-project.md
 pnpm quality      # health + local SonarQube gate (Docker)
 ```
 
@@ -63,6 +64,7 @@ it locally via `pnpm run validate:lockfile` (see `agent-os/skills/platform-hygie
 
 - **Engineering principles (Cursor):** `agent-os/rules/engineering-principles.mdc`
 - **Index by use case:** docs/README.md
+- **Derive a NEW product from this repo:** docs/getting-started/new-project.md — fork path, `pnpm rebrand`, the two-name model (platform `core-fe` stays; product identity is rewritten), upstream sync
 - **Local setup:** docs/getting-started/setup.md
 - **Requirement intake (format, types, skills, rules):** docs/getting-started/requirement-intake.md — template: docs/getting-started/requirement-format.md, example: docs/getting-started/requirements/sample-requirement.md
 - **Deploy / CI-CD:** docs/deployment/cicd-and-netlify.md, docs/deployment/deployment-and-pre-launch.md; **release + versioning:** docs/process/release-versioning.md
