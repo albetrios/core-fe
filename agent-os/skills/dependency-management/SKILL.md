@@ -43,3 +43,34 @@ before-commit guard blocks it locally via `pnpm run validate:lockfile`.
 Skills: `code-quality-security` (audit policy), `platform-hygiene` (knip,
 deploy validators), `bundle-performance` (size impact). Agent:
 `dependency-auditor` (read-only finder).
+
+---
+
+## Advisory triage — a HIGH in a dev-only transitive dep still fails CI
+
+`pnpm deps:audit` gates on **high+** across the whole tree, not just production
+deps. A transitive advisory reached through a dev tool (an MCP server, a test
+browser driver) reds the Security audit lane exactly like a runtime one.
+
+Flow:
+
+```bash
+pnpm deps:audit                 # read the advisory + the vulnerable range
+pnpm why <package>              # find which parent(s) pull it in
+```
+
+If no parent has published a fix, pin the transitive dep with a `pnpm.overrides`
+entry — **not** a direct dependency, which would misrepresent the dependency graph:
+
+```jsonc
+"pnpm": { "overrides": { "ip-address": ">=10.4.0 <11" } }
+```
+
+Bound the range (`>=x <major+1`) so the override does not silently absorb a future
+breaking major. Then `pnpm install`, and commit `package.json` + `pnpm-lock.yaml`
+**in the same commit** — a desynced lockfile fails every frozen-install job and
+reds any open release-please PR.
+
+Verify: `pnpm run validate:lockfile` then `pnpm deps:audit` (expect
+`none at high+`). If a lockfile error appears while the lockfile is fine, check
+the Node version first — see `before-commit-guard`.

@@ -105,6 +105,19 @@
         "project-health-check",
         "documentation-maintenance"
       ]
+    },
+    "i18n-surface": {
+      "description": "Adding or changing user-facing copy, dates/numbers, or locale preferences.",
+      "trigger": "src/locales/**",
+      "steps": [
+        "i18n-constants",
+        "locale-formatting",
+        "rtl-logical-css",
+        "test-generation"
+      ],
+      "optional": [
+        "locale-preferences"
+      ]
     }
   }
 }

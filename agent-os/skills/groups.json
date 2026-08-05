@@ -9,7 +9,8 @@
       "web-design-guidelines",
       "composition-patterns",
       "theme-axis-audit",
-      "pwa-manifest"
+      "pwa-manifest",
+      "rtl-logical-css"
     ],
     "routing-pages": [
       "page-scaffolding",
@@ -36,14 +37,17 @@
       "component-promotion",
       "systematic-debugging",
       "guard-authoring",
-      "pre-pr-sweep"
+      "pre-pr-sweep",
+      "safe-bulk-edits"
     ],
     "docs": [
       "documentation-maintenance",
       "requirement-format"
     ],
     "i18n": [
-      "i18n-constants"
+      "i18n-constants",
+      "locale-formatting",
+      "locale-preferences"
     ],
     "platform": [
       "env-schema-add",

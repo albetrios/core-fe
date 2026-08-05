@@ -30,6 +30,9 @@ Read in order; **project guardrails always win** over skill suggestions.
 | a new page / route                             | `page-scaffolding` → `route-island`                                   |
 | adding a validate gate / enforced lint rule    | `guard-authoring`                                                     |
 | opening a PR / "ready for review"              | `pre-pr-sweep`                                                        |
+| user-facing copy / dates / numbers / money     | `i18n-constants` → `locale-formatting`                                |
+| RTL / mirrored layout                          | `rtl-logical-css`                                                     |
+| codemod / sweep / bulk file edits              | `safe-bulk-edits`                                                     |
 | org-scoped route / guards / gateway / session  | `routing-tenancy` (after `route-island`)                              |
 | backend resource CRUD (list + URL dialogs)     | `route-island` → `resource-crud` → `routing-tenancy` (if org-scoped)  |
 | form mutation + API errors                     | `composition-patterns` → `http-forms-errors` → `test-generation`      |
@@ -75,6 +78,10 @@ Read in order; **project guardrails always win** over skill suggestions.
 | `.env.example`                                                                                 | `platform-hygiene`, `env-schema-add`, `documentation-maintenance`                                       |
 | `package.json` · `pnpm-lock.yaml` · `pnpm.overrides`                                           | `dependency-management`                                                                                 |
 | `tooling/validate/**` · `eslint.config.mjs` restrictions · `pr-ci.yml` static-sync steps       | `guard-authoring` (probe both directions; wire into CI, not just health-check)                          |
+| `src/locales/**` · `*.constants.ts` copy keys                                                  | `i18n-constants` → `locale-formatting` (if dates/numbers)                                               |
+| `src/lib/i18n/format.ts` · `useLocaleFormat/` · any date/number/money render                   | `locale-formatting`                                                                                     |
+| `useLocaleStore/` · `public/locale-init.js` · `BUILD_I18N_MODE`                                | `locale-preferences`                                                                                    |
+| any component styling (RTL correctness)                                                        | `rtl-logical-css`                                                                                       |
 | `vite.config.ts` · `tooling/ci/run-size-limit.mjs` · size budget                               | `bundle-performance`                                                                                    |
 | `src/core/config/app-manifest.ts` · `public/manifest.webmanifest` · `app-icon.svg`             | `pwa-manifest`                                                                                          |
 | `docs/**/*.md` · `**/*.OVERVIEW.md`                                                            | `documentation-maintenance`                                                                             |

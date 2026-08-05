@@ -174,6 +174,7 @@ core-fe/
 │   │   ├── env-schema-add-sync.mdc
 │   │   ├── file-structure.mdc
 │   │   ├── platform-hygiene-sync.mdc
+│   │   ├── pr-review-prevention.mdc
 │   │   ├── preset-product-design.mdc
 │   │   ├── project-conventions.mdc
 │   │   ├── pwa-manifest-sync.mdc
@@ -183,7 +184,7 @@ core-fe/
 │   │   ├── testing-requirements.mdc
 │   │   ├── theme-axis-audit.mdc
 │   │   └── ui-sources.mdc
-│   ├── skills/  (43 skills: auto-implement, shadcn, route-island, …)
+│   ├── skills/  (47 skills: auto-implement, shadcn, route-island, …)
 │   └── skills-lock.json
 ├── docs/
 │   ├── deployment/

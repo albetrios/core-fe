@@ -34,7 +34,11 @@ Complete inventory of project skills. Use this to find the right skill for any t
 - ...form mutation errors, 422 mapping, rate limit, QueryBoundary -> **http-forms-errors**
 - ...platform config, knip, vite-env / client-env validators -> **platform-hygiene**
 - ...add a validate gate / lint restriction / static-sync CI step -> **guard-authoring** (prove it fires)
+- ...RTL mirroring / logical properties / physical ml-mr-left-right -> **rtl-logical-css**
+- ...render a date / time / timezone / number / currency -> **locale-formatting** (never bare Intl)
+- ...locale or direction preference, apply path, FOUC init, build mode -> **locale-preferences**
 - ...about to open a PR / "is this ready for review" -> **pre-pr-sweep**
+- ...sweep / codemod / rename across many files, bulk JSON edits -> **safe-bulk-edits**
 - ...recommend extensions, IDE setup, productivity, workspace settings -> **extension-settings-recommendations**
 - ...add/change docs, where to document, keep README/CLAUDE in sync -> **documentation-maintenance**
 - ...run a full project health check / verify everything works after major changes -> **project-health-check**
@@ -62,7 +66,11 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 | **Form + API mutation**                                   | composition-patterns → **http-forms-errors** → test-generation → lint-guard                                                                                                                                                 |
 | **Platform / env hygiene**                                | **platform-hygiene** → env-schema-add (if key changed) → documentation-maintenance → lint-guard                                                                                                                             |
 | **New machine-enforced invariant (gate / lint rule)**     | **guard-authoring** (probe both directions) → code-quality-security (CI wiring) → documentation-maintenance                                                                                                                 |
+| **Any user-visible date / number / money value**          | **locale-formatting** → i18n-constants (labels) → test-generation                                                                                                                                                           |
+| **New / restyled component (RTL correctness)**            | shadcn → frontend-design → **rtl-logical-css** → web-design-guidelines → test-generation                                                                                                                                    |
+| **Locale / direction preference or apply path**           | **locale-preferences** → locale-formatting → i18n-constants → test-generation                                                                                                                                               |
 | **Opening a PR / requesting review**                      | **pre-pr-sweep** → before-commit-guard → documentation-maintenance (PR body accuracy)                                                                                                                                        |
+| **Codemod / sweep / bulk rename across many files**       | **safe-bulk-edits** → lint-guard → pre-pr-sweep                                                                                                                                                                             |
 | **New / changed UI component**                            | shadcn (add/compose) → frontend-design (craft) → ui-ux-pro-max (guidance, advisory) → web-design-guidelines (a11y) → composition-patterns (API) → test-generation → lint-guard                                              |
 | **Design decision (style/palette/font/chart)**            | ui-ux-pro-max (query DB, advisory) → frontend-design (direction) → shadcn (tokens/components) — never override neutral tokens/brand without user ask                                                                        |
 | **Add/choose a shadcn component or run the CLI**          | shadcn (single skill: CLI + critical rules + 20 allowed sources)                                                                                                                                                            |
@@ -94,7 +102,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 > If a task has **no** matching row here or in `skill-router.mdc`, use **find-skills** to look for one before building from scratch; if none exists, proceed with general capabilities.
 
-## Skill Inventory (43 skills)
+## Skill Inventory (47 skills)
 
 ### 0a. auto-implement (Master Orchestrator)
 
@@ -524,6 +532,85 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ---
 
+### 6a3. rtl-logical-css
+
+**Path:** `agent-os/skills/rtl-logical-css/SKILL.md`
+**Reference:** `docs/reference/internationalization.md`
+
+**Purpose:** Keep every surface mirror-correct under RTL — logical Tailwind properties instead of physical `ml/mr/pl/pr/left/right`, `rtl:` variants for transforms and glyphs that do not auto-flip, and the `validate:logical` gate.
+
+**Trigger keywords:** "RTL", "right-to-left", "Arabic layout", "logical properties", "ms-/me-/ps-/pe-", "start-/end-", "mirrored layout", "validate:logical"
+
+**Key behaviors:**
+
+- Full physical → logical conversion map, including negatives (`-mr-1` → `-me-1`)
+- Transforms/glyphs need explicit `rtl:` variants — logical properties do not flip them
+- If a container's padding is logical, its absolutely-positioned children must be too
+- Screenshot-verify one RTL surface; the gate cannot catch a missing `rtl:` transform
+
+**Related skills:** locale-preferences, tailwind-styling rule, guard-authoring
+
+---
+
+### 6a4. locale-formatting
+
+**Path:** `agent-os/skills/locale-formatting/SKILL.md`
+**Reference:** `docs/reference/internationalization.md`
+
+**Purpose:** Route every date, time, timezone, number and currency value through `useLocaleFormat` so Appearance prefs apply. Covers the civil-day opt-in, the `LocalizedCalendar` wrapper, chart tooltip formatters, and the `validate:no-bare-intl` gate.
+
+**Trigger keywords:** "format date", "timezone", "toLocaleString", "Intl.NumberFormat", "currency display", "hour cycle", "civil day", "calendar", "validate:no-bare-intl"
+
+**Key behaviors:**
+
+- Never `toLocale*` / `new Intl.*` outside `lib/i18n` and vendored `ui/`
+- `{ civilDay: true }` for calendar days; nothing for instants — classify every `formatDate(` caller
+- Import `LocalizedCalendar`, never `ui/calendar` (eslint-enforced)
+- Inject `valueFormatter` at the call site for vendored chart tooltips
+
+**Related skills:** locale-preferences, i18n-constants, guard-authoring
+
+---
+
+### 6a5. locale-preferences
+
+**Path:** `agent-os/skills/locale-preferences/SKILL.md`
+**Reference:** `docs/reference/internationalization.md`
+
+**Purpose:** The locale preference runtime — `useLocaleStore` persist/migrate, race-safe document apply via the generation guard, the pre-paint `locale-init.js` FOUC script and its drift test, and `single` vs `multi` build modes.
+
+**Trigger keywords:** "locale store", "text direction preference", "applyDocumentLocale", "locale-init.js", "FOUC", "BUILD_I18N_MODE", "persist migrate", "language switch race"
+
+**Key behaviors:**
+
+- Bump `version` + handle the field in `migrate` when adding a preference
+- Route **all three** apply paths through `beginLocaleApply()`; the check lives inside `applyDocumentLocale`
+- `locale-init.drift.test.ts` pins the hand-copied RTL set + storage key to the TS source
+- Keep `load-namespace.ts` loaders explicit — a missing locale×namespace must be a compile error
+
+**Related skills:** locale-formatting, i18n-constants, rtl-logical-css, platform-hygiene
+
+---
+
+### 6a6. safe-bulk-edits
+
+**Path:** `agent-os/skills/safe-bulk-edits/SKILL.md`
+
+**Purpose:** Apply many mechanical edits without silent misses — assert every replacement matches exactly once (write only after all pass), edit JSON packs preserving key order and trailing newline, validate cross-file key sets before writing, and keep staging atomic so a rejected commit does not leak into the next one.
+
+**Trigger keywords:** "codemod", "sweep across files", "bulk rename", "replace everywhere", "edit all locales", "mass edit", "scripted refactor"
+
+**Key behaviors:**
+
+- `count(old) != 1` aborts before any write — a pattern matching twice is as wrong as zero
+- Re-derive anchors after any commit; formatters move imports, wrapping and table padding
+- JSON: `object_pairs_hook=OrderedDict`, `ensure_ascii=False`, restore trailing newline
+- `git status --short` before every commit; `git show --stat HEAD` after
+
+**Related skills:** pre-pr-sweep, lint-guard, i18n-constants
+
+---
+
 ### 6b. route-island
 
 **Path:** `agent-os/skills/route-island/SKILL.md`
@@ -942,6 +1029,9 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 | `src/core/`                                           | test-generation                                                                                                                                  |
 | `src/lib/`                                            | test-generation                                                                                                                                  |
 | `src/shared/store/`                                   | test-generation                                                                                                                                  |
+| `src/shared/store/useLocaleStore/`, `public/locale-init.js` | **locale-preferences**, test-generation                                                                                                    |
+| `src/lib/i18n/format.ts`, `useLocaleFormat/`          | **locale-formatting**, test-generation                                                                                                           |
+| `src/locales/**`                                      | **i18n-constants**, locale-preferences                                                                                                           |
 | `package.json`, `pnpm-lock.yaml`, `pnpm.overrides`    | **dependency-management**                                                                                                                        |
 | `.size-limit.json`, bundle budgets (`pnpm size`)      | **bundle-performance**                                                                                                                           |
 | `eslint.config.mjs`                                   | **guard-authoring**, code-quality-security, lint-guard                                                                                           |

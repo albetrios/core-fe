@@ -109,3 +109,37 @@ Use `pnpm health` or `pnpm health:fix` for the full path-to-production flow befo
 | `package.json` `lint-staged`              | ESLint + Prettier on staged files                                       |
 | `src/core/config/env-schema.ts`           | Schema source of truth for env keys                                     |
 | `tooling/validate/sync-env-example.ts`    | Schema ↔ `.env.example` parity                                          |
+
+---
+
+## Traps that make the guard look wrong when it is right
+
+**A "lockfile out of sync" error can actually be a Node version mismatch.**
+`.npmrc` sets `engine-strict=true`, and `validate:lockfile` runs
+`pnpm install --frozen-lockfile` — which fails on an engine mismatch *before* it
+checks the lockfile, while printing the lockfile message. If the lockfile is
+genuinely in sync, read the pnpm error body:
+
+```
+ERR_PNPM_UNSUPPORTED_ENGINE  Your Node version is incompatible with "<pkg>"
+```
+
+Fix the Node version (`nvm use <version>` matching `.nvmrc` and every dependency's
+`engines`), not the lockfile. Regenerating a healthy lockfile to chase this
+creates real churn.
+
+**A rejected commit leaves the index populated.** If an attempt ran `git add -A`
+and the hook failed, those paths are still staged — the next narrowly-scoped
+`git add` silently includes them, producing a commit whose message describes a
+fraction of its contents.
+
+```bash
+git status --short      # before every commit
+git show --stat HEAD    # after: does it match the message?
+```
+
+`git reset` (mixed) clears the index without touching the working tree. See
+`agent-os/skills/safe-bulk-edits/SKILL.md` for the full staging discipline.
+
+**Never conclude a gate passed from a piped command.** `pnpm lint | tail -5`
+reports `tail`'s status. Capture it: `cmd > /tmp/out 2>&1; echo $?`.
