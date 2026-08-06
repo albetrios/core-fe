@@ -328,19 +328,30 @@ const RENAME_SKIP_FILES = new Set([
   'sbom.cyclonedx.json',
 ]);
 
-/** Directory names never walked for a rename. */
+/**
+ * Directory names skipped wherever they appear — build output and caches that are
+ * never source, at any depth.
+ */
 const RENAME_SKIP_DIRS = new Set([
   '.git',
   'node_modules',
   'dist',
   'coverage',
-  'test-results',
-  'reports',
   '.stryker-tmp',
   '.netlify',
   '.pnpm-store',
   '__pycache__',
 ]);
+
+/**
+ * Directories skipped only at the repo ROOT.
+ *
+ * Kept separate from the name-based set because `reports/` at the root is generated
+ * output while `tooling/reports/` is source — matching on the bare name silently
+ * skipped the project-tree generator, leaving a hardcoded name behind after a
+ * rename that otherwise reported success.
+ */
+const RENAME_SKIP_ROOT_DIRS = new Set(['reports', 'test-results']);
 
 /** Extensions treated as text for a repo-wide rename. */
 const TEXT_EXTENSIONS = [
@@ -391,6 +402,7 @@ export function slugWord(value) {
 export function renameableFiles(root = ROOT, dir = root, out = []) {
   for (const entry of readdirSync(dir)) {
     if (RENAME_SKIP_DIRS.has(entry)) continue;
+    if (dir === root && RENAME_SKIP_ROOT_DIRS.has(entry)) continue;
     const full = join(dir, entry);
     const stats = lstatSync(full);
     if (stats.isSymbolicLink()) continue;
@@ -479,7 +491,12 @@ export function findPreviousNames(identity, root = ROOT) {
   if (previous.length === 0) return [];
   const found = [];
   for (const file of renameableFiles(root)) {
-    const text = readFileSync(join(root, file), 'utf8');
+    // Two masks before counting, or the guard cries wolf on its own machinery:
+    //  - protected phrases ("Core Web Vitals") are preserved BY DESIGN;
+    //  - the `previousNames` list itself is the one place that must still hold the
+    //    retired names, otherwise the guard erases the evidence it runs on.
+    let text = maskProtected(readFileSync(join(root, file), 'utf8'));
+    text = text.replace(/("previousNames":\s*)\[[^\]]*\]/, '$1[]');
     for (const name of previous) {
       const pattern = name.includes('-') ? slugWord(name) : wholeWord(name);
       const count = (text.match(pattern) ?? []).length;
