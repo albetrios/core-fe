@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Core"
+    "name": "{{productName}}"
   },
   "a11y": {
     "skipToMain": "تخطَّ إلى المحتوى الرئيسي",
@@ -45,7 +45,7 @@
     "settings": "الإعدادات",
     "logOut": "تسجيل الخروج",
     "toggleSidebar": "تبديل الشريط الجانبي",
-    "footerCopyright": "© {{year}} Core Platform",
+    "footerCopyright": "© {{year}} {{productName}} Platform",
     "nav": {
       "dashboard": "لوحة التحكم"
     },

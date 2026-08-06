@@ -9,7 +9,7 @@
  *   - `tooling/validate/identity.mjs`     fails when a file drifts (`pnpm validate:identity`)
  *   - `tests/ci/identity.policy.test.ts`  locks the contract in the ci-policy project
  *
- * Every surface exposes ONE `apply(text, identity)` transform, anchored on file
+ * Every surface exposes ONE `apply(text)` transform, anchored on file
  * *structure* (`"name": "…"`) rather than on the previous value. That makes it
  * both the rewriter and the checker: applying it to an in-sync file is a no-op,
  * so `apply(text) === text` IS the drift check. A rename therefore needs no
@@ -22,7 +22,7 @@
  * merges. `name` / `productName` / `codeowner` are the *product*'s identity and
  * are rewritten. See docs/getting-started/new-project.md.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -108,24 +108,12 @@ export const PRODUCT_BACKGROUND_COLOR = ${tsString(identity.backgroundColor)};
 `;
 }
 
-/** Replace a whole file with generated content. */
-const generated = (render) => (_text, identity) => render(identity);
-
 /**
  * Replace the first capture-group-anchored value. `pattern` must contain exactly
  * one capture group for the prefix; the value that follows is replaced wholesale.
  */
 const replaceValue = (pattern, value) => (text) =>
   text.replace(pattern, (match, prefix) => `${prefix}${value(match, prefix)}`);
-
-/** List the locale directories that carry a translated `layout` namespace. */
-export function localeLayoutFiles(root = ROOT) {
-  const localesDir = join(root, 'src/locales');
-  return readdirSync(localesDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => `src/locales/${entry.name}/layout.json`)
-    .sort();
-}
 
 /**
  * Every file whose content is derived from the identity block.
@@ -139,12 +127,12 @@ export function derivedSurfaces(identity, root = ROOT) {
   const [repoOwner] = repository.split('/');
   const ownerHandle = codeowner.startsWith('@') ? codeowner : `@${codeowner}`;
 
-  /** @type {Array<{ file: string, label: string, apply: (text: string, identity: Identity) => string }>} */
+  /** @type {Array<{ file: string, label: string, apply: (text: string) => string }>} */
   const surfaces = [
     {
       file: 'src/lib/product-identity.ts',
       label: 'generated product identity module',
-      apply: generated(renderProductIdentityModule),
+      apply: () => renderProductIdentityModule(identity),
     },
     {
       file: 'package.json',
@@ -239,11 +227,21 @@ export function derivedSurfaces(identity, root = ROOT) {
     },
     {
       file: '.github/workflows/reusable-netlify-deploy.yml',
-      label: 'build artifact name',
+      label: 'build artifact + Netlify site names',
       apply: (text) =>
         text
           .replace(/[\w-]+-dist\.tgz/g, `${name}-dist.tgz`)
-          .replace(/(--repo\s+)\S+/g, `$1${repository}`),
+          .replace(/(--repo\s+)\S+/g, `$1${repository}`)
+          // Netlify site + alias hostnames named in the step comments. Left stale
+          // these document the PREVIOUS product's deploy target, which is how a
+          // forked team ends up looking at the wrong dashboard. The optional
+          // `<alias>--` prefix must be preserved, so it is captured rather than
+          // swallowed by the site-name match.
+          .replace(
+            /([\w-]*--)?[\w-]+(\.netlify\.app)/g,
+            (_m, prefix, suffix) => `${prefix ?? ''}${name}${suffix}`,
+          )
+          .replace(/(shared\s+")[\w-]+(")/g, `$1${name}$2`),
     },
     {
       file: 'docker-compose.sonar.yml',
@@ -253,7 +251,29 @@ export function derivedSurfaces(identity, root = ROOT) {
           .replace(/^(\s*container_name:\s*)[\w-]+(-sonarqube)$/m, `$1${name}$2`)
           .replace(/^(\s*container_name:\s*)[\w-]+(-sonar-scanner)$/m, `$1${name}$2`)
           .replace(/(-Dsonar\.projectKey=)\S+/g, `$1${name}`)
-          .replace(/(-Dsonar\.projectName=)"[^"]*"/g, `$1"${name}"`),
+          .replace(/(-Dsonar\.projectName=)"[^"]*"/g, `$1"${name}"`)
+          // "…so the gate can mint a <name> token" in the header comment.
+          .replace(/(mint a )[\w-]+( token)/g, `$1${name}$2`),
+    },
+    {
+      file: '.github/workflows/preview.yml',
+      label: 'PR preview hostname',
+      apply: (text) =>
+        text.replace(
+          /([\w-]*--)?[\w-]+(\.netlify\.app)/g,
+          (_m, prefix, suffix) => `${prefix ?? ''}${name}${suffix}`,
+        ),
+    },
+    {
+      file: 'public/offline.html',
+      label: 'offline page title',
+      apply: replaceValue(/(<title>Offline — )[^<]*/, () => productName),
+    },
+    {
+      file: 'public/robots.txt',
+      label: 'robots.txt product reference',
+      apply: (text) =>
+        text.replace(/^(#\s*)\S+( is an authenticated)/m, `$1${productName}$2`),
     },
     {
       file: 'context7.json',
@@ -266,16 +286,13 @@ export function derivedSurfaces(identity, root = ROOT) {
     },
   ];
 
-  for (const file of localeLayoutFiles(root)) {
-    surfaces.push({
-      file,
-      label: `locale brand name (${file.split('/')[2]})`,
-      apply: replaceValue(
-        /("brand":\s*\{\s*"name":\s*)"[^"]*"/,
-        () => `"${productName}"`,
-      ),
-    });
-  }
+  // NOTE: `src/locales/**` is deliberately NOT a surface. Locale files carry the
+  // `{{productName}}` interpolation variable (resolved from this same identity by
+  // `interpolation.defaultVariables` in src/lib/i18n/i18n.ts), so translated copy
+  // holds no brand at all. Per-key transforms were the original approach and it
+  // failed exactly as you'd expect: `brand.name` was covered while
+  // `footerCopyright` and the onboarding question were not, leaving 22 stale
+  // user-visible strings. Brand-as-variable removes the whole class.
 
   // `repoOwner` is derived above so a malformed `owner/repo` slug fails loudly here
   // rather than silently producing half-rewritten GitHub URLs.
@@ -286,6 +303,59 @@ export function derivedSurfaces(identity, root = ROOT) {
   }
 
   return surfaces;
+}
+
+/**
+ * Match a name as a whole word, bounded by ASCII word characters only.
+ *
+ * Deliberately not `\b`: Korean copy reads "Core를" with no space, and Hangul is a
+ * Unicode word character, so `\bCore\b` silently fails to match it.
+ */
+export function wholeWord(value) {
+  return new RegExp(
+    `(?<![\\w-])${value.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&')}(?![\\w-])`,
+    'g',
+  );
+}
+
+/**
+ * Completeness invariant: pretend to rename, then assert no surface still holds
+ * the OLD name.
+ *
+ * This is the generic guard for the failure mode that per-surface transforms keep
+ * producing — a transform that covers *some* of a file's brand occurrences reads
+ * as working (drift is clean, the rename "succeeds") while shipping stale
+ * branding. Rather than enumerate the places to check, this applies a fake rename
+ * and demands zero survivors.
+ *
+ * @returns {Array<{ file: string, label: string, stale: string, count: number }>}
+ */
+export function findIncompleteTransforms(identity, root = ROOT) {
+  const renamed = {
+    ...identity,
+    name: 'zzrenamedpkg',
+    productName: 'ZzRenamedProduct',
+    displayName: 'ZzRenamedProduct Frontend',
+    repository: `${identity.repository.split('/')[0]}/zzrenamedpkg`,
+  };
+  const incomplete = [];
+  // Surfaces must be built FROM the renamed identity: each transform closes over
+  // the identity passed to derivedSurfaces() and ignores its own argument, so
+  // apply(text, renamed) on a surface built from the current identity is a no-op
+  // rename that would silently pass this check.
+  for (const surface of derivedSurfaces(renamed, root)) {
+    const after = surface.apply(readFileSync(join(root, surface.file), 'utf8'));
+    for (const stale of [identity.productName, identity.name]) {
+      // The platform name legitimately survives a rename (the two-name model);
+      // only flag it when it is not simply the platform name being preserved.
+      if (stale === identity.platformName) continue;
+      const count = (after.match(wholeWord(stale)) ?? []).length;
+      if (count > 0) {
+        incomplete.push({ file: surface.file, label: surface.label, stale, count });
+      }
+    }
+  }
+  return incomplete;
 }
 
 /**

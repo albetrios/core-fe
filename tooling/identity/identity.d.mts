@@ -34,8 +34,14 @@ export interface DerivedSurface {
   file: string;
   /** Human label used in CLI output and failure messages. */
   label: string;
-  /** Idempotent, structurally anchored rewrite — a no-op when already in sync. */
-  apply: (text: string, identity: Identity) => string;
+  /**
+   * Idempotent, structurally anchored rewrite — a no-op when already in sync.
+   *
+   * Closes over the identity passed to `derivedSurfaces()`, so to simulate a
+   * rename you rebuild the surfaces from the new identity rather than passing it
+   * here.
+   */
+  apply: (text: string) => string;
 }
 
 /** Repo root resolved from this module's location. */
@@ -47,11 +53,17 @@ export function loadIdentity(root?: string): Identity;
 /** Render the generated `src/lib/product-identity.ts` source. */
 export function renderProductIdentityModule(identity: Identity): string;
 
-/** Locale `layout.json` paths, one per locale directory. */
-export function localeLayoutFiles(root?: string): string[];
-
 /** Every file whose content is derived from the identity block. */
 export function derivedSurfaces(identity: Identity, root?: string): DerivedSurface[];
+
+/** Match a name as a whole word, bounded by ASCII word characters only. */
+export function wholeWord(value: string): RegExp;
+
+/** Surfaces whose transform leaves the old name behind after a rename. */
+export function findIncompleteTransforms(
+  identity: Identity,
+  root?: string,
+): Array<{ file: string; label: string; stale: string; count: number }>;
 
 /** Surfaces whose on-disk content disagrees with the identity block. */
 export function findDrift(

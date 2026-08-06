@@ -50,7 +50,7 @@
       }
     },
     "useCase": {
-      "label": "Wofür werden Sie Core hauptsächlich nutzen?",
+      "label": "Wofür werden Sie {{productName}} hauptsächlich nutzen?",
       "options": {
         "customerManagement": "Kundenmanagement",
         "teamCollaboration": "Teamzusammenarbeit",

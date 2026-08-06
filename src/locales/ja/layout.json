@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Core"
+    "name": "{{productName}}"
   },
   "a11y": {
     "skipToMain": "メインコンテンツへスキップ",
@@ -45,7 +45,7 @@
     "settings": "設定",
     "logOut": "ログアウト",
     "toggleSidebar": "サイドバーを切り替え",
-    "footerCopyright": "© {{year}} Core Platform",
+    "footerCopyright": "© {{year}} {{productName}} Platform",
     "nav": {
       "dashboard": "ダッシュボード"
     },

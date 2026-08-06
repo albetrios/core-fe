@@ -82,11 +82,16 @@ Options:
 
 The single source of truth is `tooling/setup/setup.config.json` → `project.*`. Everything below is derived from it, so you never edit these by hand:
 
-- **App-facing** — the generated `src/lib/product-identity.ts` (imported by `page-head.ts` and `app-manifest.ts`), `public/manifest.webmanifest`, `public/app-icon.svg`, and `brand.name` in all 11 `src/locales/*/layout.json` files.
+- **App-facing** — the generated `src/lib/product-identity.ts` (imported by `page-head.ts`, `app-manifest.ts` and the i18n bootstrap), `public/manifest.webmanifest`, `public/app-icon.svg`, `public/offline.html` and `public/robots.txt`.
 - **Repo + tooling** — `package.json`, `sonar-project.properties`, `typedoc.json`, `context7.json`, `catalog-info.yaml`, `docker-compose.sonar.yml`, `.github/release-please/config.json`, `.github/codeql/codeql-config.yml`.
-- **Ownership + deploy** — `.github/CODEOWNERS`, `.github/environments/production.json`, and the build artifact name in `.github/workflows/reusable-netlify-deploy.yml`.
+- **Ownership + deploy** — `.github/CODEOWNERS`, `.github/environments/production.json`, the build artifact name and Netlify hostnames in `.github/workflows/reusable-netlify-deploy.yml`, and the PR preview hostname in `.github/workflows/preview.yml`.
 
-`index.html` is **not** in that list: its title, description, `theme-color`, and boot-splash name are `{{PRODUCT_*}}` tokens substituted at build time by `plugins/product-identity-html.ts`, so they can never drift.
+Two surfaces are **not** in that list, because the brand was moved out of them entirely rather than rewritten:
+
+- `index.html` — title, description, `theme-color` and the boot-splash name are `{{PRODUCT_*}}` tokens substituted at build time by `plugins/product-identity-html.ts`.
+- `src/locales/**` — translated copy carries the `{{productName}}` interpolation variable, resolved from the identity block by `interpolation.defaultVariables` in `src/lib/i18n/i18n.ts`. The product name is identity, not translated content, so it lives in one place instead of 33 strings across 11 languages.
+
+> **Why that matters.** The first version of this rebrand _did_ rewrite locale files key-by-key — and covered `brand.name` while missing `footerCopyright` and the onboarding question, so a renamed product shipped "© 2026 Core Platform" in its footer. `pnpm validate:identity` now runs a **completeness invariant**: it applies a fake rename to every surface and fails if the old name survives anywhere. A partial transform is worse than none, because drift stays clean and the rename reports success.
 
 ### What it does not cover
 
