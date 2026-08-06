@@ -385,3 +385,48 @@ test.describe('Feature Name', () => {
 Always include axe checks via `@axe-core/playwright` in `accessibility.e2e.test.ts` (and feature specs when auditing a11y).
 
 Full test matrix: `docs/reference/testing.md`.
+
+---
+
+## Review-caught rules
+
+**Do not pin per-test timeouts below the suite floor.** `vitest.config.ts` owns
+`testTimeout`. Per-test pins written when the default was lower silently become
+*reductions* when the floor rises — on core-fe, 19 pins of `15_000`/`20_000`
+turned into reductions once the floor moved to `30_000`, causing the very flakes
+they were added to prevent.
+
+```bash
+grep -rnE '\}, *[0-9_]+\);' src tests --include='*.test.ts*'   # audit against the config floor
+```
+
+Fix contention with the project-level `testTimeout` / `maxWorkers`, not scattered
+magic numbers. If one test genuinely needs longer, pin it *above* the floor and
+say why in a comment.
+
+**Keep TSDoc adjacent to the declaration.** The coverage extractor
+(`pnpm tsdoc:check`) associates a doc block with the *next* declaration. An
+interleaved `// eslint-disable-next-line` detaches it and busts the budget while
+the comment still looks present:
+
+```ts
+/** Summary. */
+// eslint-disable-next-line react-refresh/only-export-components   ← detaches
+export const preload = …
+```
+
+Declare with its TSDoc, then export separately inside a block disable:
+
+```ts
+/** Summary. */
+const preload = …
+
+/* eslint-disable react-refresh/only-export-components -- test-facing hook */
+export { preload };
+/* eslint-enable react-refresh/only-export-components */
+```
+
+**Prefer an exported preload helper over duplicated imports in tests.** When a
+component memoizes lazy chunks, export a `preload*()` and call it in `beforeAll`
+— re-importing the modules in the test creates a second promise and reintroduces
+the Suspense race.

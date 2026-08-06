@@ -33,6 +33,14 @@ Complete inventory of project skills. Use this to find the right skill for any t
 - ...backend resource CRUD (list, URL dialogs, resource manifest) -> **resource-crud**
 - ...form mutation errors, 422 mapping, rate limit, QueryBoundary -> **http-forms-errors**
 - ...platform config, knip, vite-env / client-env validators -> **platform-hygiene**
+- ...add a validate gate / lint restriction / static-sync CI step -> **guard-authoring** (prove it fires)
+- ...RTL mirroring / logical properties / physical ml-mr-left-right -> **rtl-logical-css**
+- ...render a date / time / timezone / number / currency -> **locale-formatting** (never bare Intl)
+- ...locale or direction preference, apply path, FOUC init, build mode -> **locale-preferences**
+- ...about to open a PR / "is this ready for review" -> **pre-pr-sweep**
+- ...sweep / codemod / rename across many files, bulk JSON edits -> **safe-bulk-edits**
+- ...add / rename / remove an agent-os skill or rule -> **agent-os-authoring**
+- ...handed a review report / PR review threads to address -> **review-response** (verify each claim)
 - ...recommend extensions, IDE setup, productivity, workspace settings -> **extension-settings-recommendations**
 - ...add/change docs, where to document, keep README/CLAUDE in sync -> **documentation-maintenance**
 - ...run a full project health check / verify everything works after major changes -> **project-health-check**
@@ -59,6 +67,14 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 | **Backend resource CRUD island**                          | route-island → **resource-crud** → **routing-tenancy** (if org-scoped) → **http-forms-errors** (forms) → test-generation → e2e-testids → lint-guard                                                                         |
 | **Form + API mutation**                                   | composition-patterns → **http-forms-errors** → test-generation → lint-guard                                                                                                                                                 |
 | **Platform / env hygiene**                                | **platform-hygiene** → env-schema-add (if key changed) → documentation-maintenance → lint-guard                                                                                                                             |
+| **New machine-enforced invariant (gate / lint rule)**     | **guard-authoring** (probe both directions) → code-quality-security (CI wiring) → documentation-maintenance                                                                                                                 |
+| **Any user-visible date / number / money value**          | **locale-formatting** → i18n-constants (labels) → test-generation                                                                                                                                                           |
+| **New / restyled component (RTL correctness)**            | shadcn → frontend-design → **rtl-logical-css** → web-design-guidelines → test-generation                                                                                                                                    |
+| **Locale / direction preference or apply path**           | **locale-preferences** → locale-formatting → i18n-constants → test-generation                                                                                                                                               |
+| **Opening a PR / requesting review**                      | **pre-pr-sweep** → before-commit-guard → documentation-maintenance (PR body accuracy)                                                                                                                                        |
+| **Codemod / sweep / bulk rename across many files**       | **safe-bulk-edits** → lint-guard → pre-pr-sweep                                                                                                                                                                             |
+| **Adding / changing an agent-os skill or rule**           | **agent-os-authoring** → documentation-maintenance → `/agent-os-sync`                                                                                                                                                       |
+| **Addressing a code review / review report**              | **review-response** → (the skill each finding names) → pre-pr-sweep → documentation-maintenance                                                                                                                             |
 | **New / changed UI component**                            | shadcn (add/compose) → frontend-design (craft) → ui-ux-pro-max (guidance, advisory) → web-design-guidelines (a11y) → composition-patterns (API) → test-generation → lint-guard                                              |
 | **Design decision (style/palette/font/chart)**            | ui-ux-pro-max (query DB, advisory) → frontend-design (direction) → shadcn (tokens/components) — never override neutral tokens/brand without user ask                                                                        |
 | **Add/choose a shadcn component or run the CLI**          | shadcn (single skill: CLI + critical rules + 20 allowed sources)                                                                                                                                                            |
@@ -90,7 +106,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 > If a task has **no** matching row here or in `skill-router.mdc`, use **find-skills** to look for one before building from scratch; if none exists, proceed with general capabilities.
 
-## Skill Inventory (41 skills)
+## Skill Inventory (49 skills)
 
 ### 0a. auto-implement (Master Orchestrator)
 
@@ -478,6 +494,166 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ---
 
+### 6a1. guard-authoring
+
+**Path:** `agent-os/skills/guard-authoring/SKILL.md`
+**Rule:** `agent-os/rules/pr-review-prevention.mdc`
+
+**Purpose:** Author machine-enforced invariants that actually enforce. A gate you have not watched fail is a green checkmark, not a gate — this covers proving it fires, wiring it into PR CI, the ESLint flat-config replacement trap, and external-binary silent passes.
+
+**Trigger keywords:** "add a validate gate", "new lint rule", "no-restricted-imports", "tooling/validate", "static-sync lane", "gate not firing", "eslint flat config", "enforce invariant"
+
+**Key behaviors:**
+
+- Probe both directions — the violation must be flagged, the exempt case must pass
+- Probe from every layer glob; flat config REPLACES rule options rather than merging
+- A gate in `health-check.sh` only is unenforced — add the `pr-ci.yml` static-sync step
+- Prefer a pure-Node scan over shelling to a binary that may be absent
+- Capture exit codes; never read one through a pipe
+
+**Related skills:** pre-pr-sweep, code-quality-security, platform-hygiene
+
+---
+
+### 6a2. pre-pr-sweep
+
+**Path:** `agent-os/skills/pre-pr-sweep/SKILL.md`
+**Rule:** `agent-os/rules/pr-review-prevention.mdc`
+
+**Purpose:** Catch the defect classes that survive local gates and get found by human reviewers — half-converted sweeps, incomplete deletions, ungated race paths, eager module-scope `import()`, stale derived artifacts, inverted test-timeout pins, and a drifted PR body.
+
+**Trigger keywords:** "before opening a PR", "pre-PR check", "ready for review", "did I miss anything", "review readiness", "PR body accurate", "finish the sweep"
+
+**Key behaviors:**
+
+- Grep sibling attribute forms (`aria-label` → `title` → `placeholder`) before calling a sweep done
+- Deleting a surface means deleting its route mount, precache, chunk list, analytics event, store slice and locale keys
+- Route every call site through one staleness helper; guards sit at the mutation boundary
+- Run `pnpm sync:check` LAST, after the final file exists
+- Reconcile the PR body against `git diff --name-only origin/main...HEAD`
+
+**Related skills:** guard-authoring, before-commit-guard, project-health-check, documentation-maintenance
+
+---
+
+### 6a3. rtl-logical-css
+
+**Path:** `agent-os/skills/rtl-logical-css/SKILL.md`
+**Reference:** `docs/reference/internationalization.md`
+
+**Purpose:** Keep every surface mirror-correct under RTL — logical Tailwind properties instead of physical `ml/mr/pl/pr/left/right`, `rtl:` variants for transforms and glyphs that do not auto-flip, and the `validate:logical` gate.
+
+**Trigger keywords:** "RTL", "right-to-left", "Arabic layout", "logical properties", "ms-/me-/ps-/pe-", "start-/end-", "mirrored layout", "validate:logical"
+
+**Key behaviors:**
+
+- Full physical → logical conversion map, including negatives (`-mr-1` → `-me-1`)
+- Transforms/glyphs need explicit `rtl:` variants — logical properties do not flip them
+- If a container's padding is logical, its absolutely-positioned children must be too
+- Screenshot-verify one RTL surface; the gate cannot catch a missing `rtl:` transform
+
+**Related skills:** locale-preferences, tailwind-styling rule, guard-authoring
+
+---
+
+### 6a4. locale-formatting
+
+**Path:** `agent-os/skills/locale-formatting/SKILL.md`
+**Reference:** `docs/reference/internationalization.md`
+
+**Purpose:** Route every date, time, timezone, number and currency value through `useLocaleFormat` so Appearance prefs apply. Covers the civil-day opt-in, the `LocalizedCalendar` wrapper, chart tooltip formatters, and the `validate:no-bare-intl` gate.
+
+**Trigger keywords:** "format date", "timezone", "toLocaleString", "Intl.NumberFormat", "currency display", "hour cycle", "civil day", "calendar", "validate:no-bare-intl"
+
+**Key behaviors:**
+
+- Never `toLocale*` / `new Intl.*` outside `lib/i18n` and vendored `ui/`
+- `{ civilDay: true }` for calendar days; nothing for instants — classify every `formatDate(` caller
+- Import `LocalizedCalendar`, never `ui/calendar` (eslint-enforced)
+- Inject `valueFormatter` at the call site for vendored chart tooltips
+
+**Related skills:** locale-preferences, i18n-constants, guard-authoring
+
+---
+
+### 6a5. locale-preferences
+
+**Path:** `agent-os/skills/locale-preferences/SKILL.md`
+**Reference:** `docs/reference/internationalization.md`
+
+**Purpose:** The locale preference runtime — `useLocaleStore` persist/migrate, race-safe document apply via the generation guard, the pre-paint `locale-init.js` FOUC script and its drift test, and `single` vs `multi` build modes.
+
+**Trigger keywords:** "locale store", "text direction preference", "applyDocumentLocale", "locale-init.js", "FOUC", "BUILD_I18N_MODE", "persist migrate", "language switch race"
+
+**Key behaviors:**
+
+- Bump `version` + handle the field in `migrate` when adding a preference
+- Route **all three** apply paths through `beginLocaleApply()`; the check lives inside `applyDocumentLocale`
+- `locale-init.drift.test.ts` pins the hand-copied RTL set + storage key to the TS source
+- Keep `load-namespace.ts` loaders explicit — a missing locale×namespace must be a compile error
+
+**Related skills:** locale-formatting, i18n-constants, rtl-logical-css, platform-hygiene
+
+---
+
+### 6a6. safe-bulk-edits
+
+**Path:** `agent-os/skills/safe-bulk-edits/SKILL.md`
+
+**Purpose:** Apply many mechanical edits without silent misses — assert every replacement matches exactly once (write only after all pass), edit JSON packs preserving key order and trailing newline, validate cross-file key sets before writing, and keep staging atomic so a rejected commit does not leak into the next one.
+
+**Trigger keywords:** "codemod", "sweep across files", "bulk rename", "replace everywhere", "edit all locales", "mass edit", "scripted refactor"
+
+**Key behaviors:**
+
+- `count(old) != 1` aborts before any write — a pattern matching twice is as wrong as zero
+- Re-derive anchors after any commit; formatters move imports, wrapping and table padding
+- JSON: `object_pairs_hook=OrderedDict`, `ensure_ascii=False`, restore trailing newline
+- `git status --short` before every commit; `git show --stat HEAD` after
+
+**Related skills:** pre-pr-sweep, lint-guard, i18n-constants
+
+---
+
+### 6a7. agent-os-authoring
+
+**Path:** `agent-os/skills/agent-os-authoring/SKILL.md`
+**Command:** `/agent-os-sync`
+
+**Purpose:** Add, rename or remove an agent-os skill or rule without breaking the integrity gates — all eight registration surfaces in one checklist, in the order that keeps `agent-os:check`, `triggers:strict` and `generate:check` green.
+
+**Trigger keywords:** "add a skill", "new skill", "rename skill", "remove skill", "new rule", "agent-os check failing", "skill count mismatch", "skill not grouped"
+
+**Key behaviors:**
+
+- Eight surfaces: SKILL.md, inventory count, decision tree, task matrix, inventory entry, cross-reference, `groups.json`, `skill-router.mdc` (+ `chains.json` / `skill-triggers.md` when applicable)
+- Frontmatter `name` **must** equal the directory name
+- Regenerate `project-tree.txt` **after** the last file — not before
+- `name != directory` warnings on vendored skills are expected; do not "fix" them
+
+**Related skills:** documentation-maintenance, guard-authoring
+
+---
+
+### 6a8. review-response
+
+**Path:** `agent-os/skills/review-response/SKILL.md`
+
+**Purpose:** Work a review document to completion — build a resolution matrix, and verify every finding against the code rather than trusting the review's own status labels. A review is evidence, not truth.
+
+**Trigger keywords:** "address the review", "review feedback", "review report", "PR comments", "resolution matrix", "reviewer said", "fix the findings"
+
+**Key behaviors:**
+
+- Verify claims marked ✅ too — "present" and "working" diverge for gates, guards and sweeps
+- Report findings that are wrong or understated, with the evidence
+- Diverging from a suggested fix is fine; state the reason
+- Never report a finding resolved because you edited the file it named
+
+**Related skills:** pre-pr-sweep, guard-authoring, full-code-review, documentation-maintenance
+
+---
+
 ### 6b. route-island
 
 **Path:** `agent-os/skills/route-island/SKILL.md`
@@ -859,7 +1035,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 **Trigger keywords:** "which skill", "list skills", "what skills exist", "help me find"
 
-**Maintenance:** Update this file whenever a skill is added, removed, or renamed. When adding a skill, add it to the Decision Tree, **Task → Required Skills** matrix, Skill Inventory, Cross-Reference table, and ensure `skill-router.mdc` includes it. **Installed (ecosystem) skills** live in `agent-os/skills/<name>/` and are tracked in `skills-lock.json` (e.g. `shadcn`, `frontend-design`, `find-skills`); **project skills** live in `agent-os/skills/<name>/`.
+**Maintenance:** Update this file whenever a skill is added, removed, or renamed. Full procedure — all eight surfaces plus the gate order — is **`agent-os/skills/agent-os-authoring/SKILL.md`**. In this file: bump the **Skill Inventory (N skills)** count, then add the skill to the Decision Tree, **Task → Required Skills** matrix, Skill Inventory, and Cross-Reference table; then `groups.json` (exactly one group), `skill-router.mdc`, and — when part of a pipeline — `chains.json` and `agent-os/docs/skill-triggers.md`. **Installed (ecosystem) skills** live in `agent-os/skills/<name>/` and are tracked in `skills-lock.json` (e.g. `shadcn`, `frontend-design`, `find-skills`); **project skills** live in `agent-os/skills/<name>/`.
 
 ---
 
@@ -896,11 +1072,16 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 | `src/core/`                                           | test-generation                                                                                                                                  |
 | `src/lib/`                                            | test-generation                                                                                                                                  |
 | `src/shared/store/`                                   | test-generation                                                                                                                                  |
+| `src/shared/store/useLocaleStore/`, `public/locale-init.js` | **locale-preferences**, test-generation                                                                                                    |
+| `src/lib/i18n/format.ts`, `useLocaleFormat/`          | **locale-formatting**, test-generation                                                                                                           |
+| `src/locales/**`                                      | **i18n-constants**, locale-preferences                                                                                                           |
 | `package.json`, `pnpm-lock.yaml`, `pnpm.overrides`    | **dependency-management**                                                                                                                        |
 | `.size-limit.json`, bundle budgets (`pnpm size`)      | **bundle-performance**                                                                                                                           |
-| `eslint.config.mjs`                                   | code-quality-security, lint-guard                                                                                                                |
+| `eslint.config.mjs`                                   | **guard-authoring**, code-quality-security, lint-guard                                                                                           |
+| `tooling/validate/**`                                 | **guard-authoring**, platform-hygiene                                                                                                            |
+| `agent-os/skills/**`, `agent-os/rules/**`             | **agent-os-authoring**, documentation-maintenance                                                                                                |
 | `.husky/`                                             | code-quality-security                                                                                                                            |
-| `.github/workflows/`                                  | code-quality-security                                                                                                                            |
+| `.github/workflows/`                                  | **guard-authoring** (static-sync steps), code-quality-security                                                                                   |
 | `catalog-info.yaml`                                   | (Backstage integration)                                                                                                                          |
 | `.vscode/`                                            | **extension-settings-recommendations**                                                                                                           |
 | `docs/`, README, CLAUDE                               | **documentation-maintenance**                                                                                                                    |
