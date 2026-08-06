@@ -195,8 +195,12 @@ export const useLocaleStore = create<LocaleStore>()(
         const profile = getBuildLocaleProfile();
         if (profile) {
           // Keep persisted regional prefs (timezone, date locale, formats); only
-          // pin the UI language to the single-locale build.
-          applyBuildUiLocaleLock(profile);
+          // pin the UI language to the single-locale build. Deferred a microtask:
+          // this callback runs synchronously inside `create()`, and touching the
+          // `useLocaleStore` module binding here is a TDZ ReferenceError that
+          // zustand's hydration chain swallows — leaving `hasHydrated()` false
+          // forever and the app gated on a blank screen.
+          queueMicrotask(() => applyBuildUiLocaleLock(profile));
           return;
         }
         if (state?.locale) {
