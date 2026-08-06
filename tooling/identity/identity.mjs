@@ -23,18 +23,20 @@
  * The alternative (keeping a separate platform name in prose) was rejected: a repo
  * that half-says the old name reads as a mistake.
  *
- * Two names are still NOT rewritten, for reasons that are not branding:
+ * Three things are still NOT rewritten, for reasons that are not branding:
  *   - `core-be` — a separate backend SERVICE this app calls. Renaming it would
  *     break `contracts:drift` (it reads `../core-be/docs/routes.txt`) and leave
  *     comments describing a backend that does not exist. Point it elsewhere with
  *     `$CORE_BE_DIR`, don't rename it.
  *   - `CHANGELOG.md` — the release history actually happened under the old name.
+ *   - {@link PROTECTED_PHRASES} — "Core Web Vitals" is Google's metric, not this
+ *     product; a blanket rename invented a metric that does not exist.
  *
  * `previousNames` records every name this repo has carried, and
  * `pnpm validate:identity` fails if any of them reappears — so the old name cannot
  * creep back in through a merge or a copy-paste.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -378,12 +380,21 @@ export function slugWord(value) {
   );
 }
 
-/** Walk every text file eligible for a repo-wide rename. */
+/**
+ * Walk every text file eligible for a repo-wide rename.
+ *
+ * Symlinks are skipped via `lstatSync`, for two reasons: `.cursor/`, `.claude/` and
+ * `.codex/` symlink into `agent-os/`, so following them would rewrite the same file
+ * two or three times; and a fresh clone has dangling links whose targets are
+ * gitignored, which made `statSync` throw ENOENT and abort the whole rename.
+ */
 export function renameableFiles(root = ROOT, dir = root, out = []) {
   for (const entry of readdirSync(dir)) {
     if (RENAME_SKIP_DIRS.has(entry)) continue;
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
+    const stats = lstatSync(full);
+    if (stats.isSymbolicLink()) continue;
+    if (stats.isDirectory()) {
       renameableFiles(root, full, out);
       continue;
     }
