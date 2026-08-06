@@ -177,7 +177,7 @@ describe('product identity', () => {
 
     it('derives the backend env-var name from the backend slug', () => {
       expect(backendDirEnvVar('core-be')).toBe('CORE_BE_DIR');
-      expect(backendDirEnvVar('romio-be')).toBe('ROMIO_BE_DIR');
+      expect(backendDirEnvVar('acme-be')).toBe('ACME_BE_DIR');
     });
 
     it('preserves phrases that merely contain the product name', () => {
