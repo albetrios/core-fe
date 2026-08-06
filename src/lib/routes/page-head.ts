@@ -8,7 +8,7 @@ export const APP_TITLE = PRODUCT_NAME;
 /** Default meta description for the app shell. */
 export const APP_DESCRIPTION = PRODUCT_DESCRIPTION;
 
-/** "Sign in · Core" — the one composition rule for document titles. */
+/** "Sign in · <product>" — the one composition rule for document titles. */
 export function composePageTitle(pageTitle: string): string {
   return `${pageTitle} · ${APP_TITLE}`;
 }

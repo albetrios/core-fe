@@ -99,14 +99,20 @@ function walk(dir, extensions, out = []) {
   return out;
 }
 
-/** Single-line string literals: '…', "…", `…`. */
-const STRING_LITERAL = /'[^\n']*'|"[^\n"]*"|`[^\n`]*`/g;
-
 /**
- * Find brand literals embedded ANYWHERE inside a string, not just as the whole
- * string. `'Core — two-factor recovery codes'` (the header of a file users
- * download) is exactly as much a hardcoded brand as `'Core'`, and an
- * exact-match-only scan silently misses it.
+ * Find the brand name anywhere on a non-comment line.
+ *
+ * Scans the WHOLE line, not just quoted strings. Two earlier narrower versions
+ * both shipped leaks:
+ *   - exact-match-only (`'Core'`) missed `'Core — two-factor recovery codes'`,
+ *     the header of a file users download;
+ *   - string-literals-only missed **JSX text**, which is not quoted at all —
+ *     hiding the boot-screen wordmark (`<span>Core</span>`) and the cookie-banner
+ *     copy. A clean-room rebrand of the whole repo is what surfaced those.
+ *
+ * Whole-line matching is safe because `wholeWord` is case-sensitive and bounded by
+ * ASCII word characters: `CoreModule`, `coreConfig` and `@/core/types.ts` cannot
+ * match the product name `Core`.
  *
  * Comment lines are skipped — prose naming the product in a docstring is
  * documentation, not a value the app renders.
@@ -117,10 +123,8 @@ export function scanText(text, literals) {
   const found = [];
   text.split('\n').forEach((line, index) => {
     if (isComment(line)) return;
-    const strings = line.match(STRING_LITERAL);
-    if (!strings) return;
     for (const literal of literals) {
-      if (strings.some((value) => wholeWord(literal).test(value))) {
+      if (wholeWord(literal).test(line)) {
         found.push({ literal, line: index + 1 });
       }
     }
