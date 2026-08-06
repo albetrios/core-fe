@@ -35,6 +35,7 @@ import {
   derivedSurfaces,
   findDrift,
   findIncompleteTransforms,
+  findPreviousNames,
   loadIdentity,
   wholeWord,
 } from '../identity/identity.mjs';
@@ -197,6 +198,31 @@ function main() {
   {{PRODUCT_*}} tokens; locale files use the {{productName}} variable. If this
   occurrence genuinely is not product branding, add the path with a reason to
   tooling/validate/identity-allowlist.txt.
+`);
+  }
+
+  // ── 4. A retired name coming back ─────────────────────────────────────────
+  // The permanent guard for a derived product: once renamed, the previous name
+  // must never reappear — not through an upstream merge, not through a
+  // copy-paste, not through a half-finished sweep.
+  const resurrected = findPreviousNames(identity, ROOT);
+  if (resurrected.length > 0) {
+    failed = true;
+    const total = resurrected.reduce((sum, hit) => sum + hit.count, 0);
+    console.error(
+      `\nidentity: ${total} occurrence(s) of a retired name in ${resurrected.length} file(s):\n`,
+    );
+    for (const { file, name, count } of resurrected.slice(0, 20)) {
+      console.error(`  ✖ ${file} — ${count}x "${name}"`);
+    }
+    if (resurrected.length > 20) {
+      console.error(`  … and ${resurrected.length - 20} more file(s)`);
+    }
+    console.error(`
+  This repo was renamed away from that name. Replace it with the current identity
+  (see tooling/setup/setup.config.json -> project). If the occurrence is real
+  history that must keep the old name, exclude the file in RENAME_SKIP_FILES in
+  tooling/identity/identity.mjs — as CHANGELOG.md is.
 `);
   }
 

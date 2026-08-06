@@ -12,8 +12,6 @@ export interface Identity {
   displayName: string;
   /** Owning organization slug. */
   organization: string;
-  /** Upstream platform name — never rewritten by a rebrand (the two-name model). */
-  platformName: string;
   /** User-visible product name ("Core"). */
   productName: string;
   /** One-line product description. */
@@ -26,6 +24,8 @@ export interface Identity {
   codeowner: string;
   /** GitHub `owner/repo` slug. */
   repository: string;
+  /** Every name this repo has carried; `validate:identity` fails if one reappears. */
+  previousNames: string[];
 }
 
 /** A file whose content is derived from the identity block. */
@@ -58,6 +58,24 @@ export function derivedSurfaces(identity: Identity, root?: string): DerivedSurfa
 
 /** Match a name as a whole word, bounded by ASCII word characters only. */
 export function wholeWord(value: string): RegExp;
+
+/** Match a hyphenated slug, treating `-` as a boundary (`core-fe-dist` matches). */
+export function slugWord(value: string): RegExp;
+
+/** Every text file eligible for a repo-wide rename (history/generated excluded). */
+export function renameableFiles(root?: string): string[];
+
+/** Plan a repo-wide rename: `[from, to]` pairs applied to every renameable file. */
+export function planRename(
+  root: string,
+  replacements: Array<[string, string]>,
+): Array<{ file: string; count: number; next: string }>;
+
+/** Occurrences of a name this repo used to carry — must always be empty. */
+export function findPreviousNames(
+  identity: Identity,
+  root?: string,
+): Array<{ file: string; name: string; count: number }>;
 
 /** Surfaces whose transform leaves the old name behind after a rename. */
 export function findIncompleteTransforms(

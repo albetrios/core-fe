@@ -39,18 +39,21 @@ git remote add origin https://github.com/<your-org>/acme-portal-fe.git
 
 ---
 
-## 2. The two-name model (read this before renaming)
+## 2. What a rename covers (read this before renaming)
 
-There are **two** names in play, and only one of them changes:
+**A rebrand is total.** The name is rewritten everywhere — package identity, CI, deploy targets, user-visible copy, **and prose in `docs/` and `agent-os/`**. A derived product keeps no trace of the name it came from, because a repo that half-says the old name reads as a mistake.
 
-| Name                 | Example                | Changes on rebrand? | Where it appears                                                                               |
-| -------------------- | ---------------------- | ------------------- | ---------------------------------------------------------------------------------------------- |
-| **Platform name**    | `core-fe`              | **No**              | `docs/`, `agent-os/`, architecture prose — statements _about the platform you are building on_ |
-| **Product identity** | `Core` → `Acme Portal` | **Yes**             | Anything a user sees, plus package/repo/CI/deploy identifiers                                  |
+> **The cost, stated plainly.** Because prose diverges from upstream, `git merge upstream/main` will conflict across the renamed doc files on every platform update. That is the price of a clean repo, and it was chosen deliberately. If you would rather keep clean merges, don't run the prose pass — but then expect the old name to stay visible in your docs.
 
-After you rebrand, `docs/reference/testing.md` will still say "core-fe". That is correct and deliberate: your product **is** built on the core-fe platform, and those sentences stay true. It also keeps `git merge upstream/main` from conflicting across ~120 documentation files every time you take a platform update.
+Three things are **not** renamed, for reasons that are not branding:
 
-Only rename the platform if you are hard-forking the platform itself — and then expect to own every future merge by hand.
+| Not renamed                              | Why                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`core-be`**                            | The name of a separate **backend service** this app calls, not your product. Renaming it breaks `pnpm contracts:drift` (which reads `../core-be/docs/routes.txt` to verify every endpoint you call exists) and leaves comments describing a backend that does not exist. To point at a differently-located backend, set `$CORE_BE_DIR` — do not rename it. |
+| **`CHANGELOG.md`**                       | The releases in it genuinely happened under the old name. Rewriting history is a lie; your product's history starts at your first release.                                                                                                                                                                                                                 |
+| **Phrases that merely contain the name** | `Core Web Vitals` is Google's metric. A blanket rename invented a metric that does not exist across 14 files, so protected phrases are masked during the sweep — see `PROTECTED_PHRASES` in `tooling/identity/identity.mjs`.                                                                                                                               |
+
+Once renamed, the old name is recorded in `project.previousNames`, and **`pnpm validate:identity` fails if it ever reappears** — through an upstream merge, a copy-paste, or a half-finished sweep.
 
 ---
 
@@ -95,14 +98,13 @@ Two surfaces are **not** in that list, because the brand was moved out of them e
 
 ### What it does not cover
 
-| Not covered                                                     | Why                                                                                  | What to do                                                                                                                 |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| **PWA PNG icons** (`public/pwa-192x192.png`, `pwa-512x512.png`) | Binary; needs `rsvg-convert`                                                         | Replace the artwork in `public/app-icon.svg`, then run the two commands the script prints                                  |
-| **GitHub repo settings, Environments, secrets**                 | Needs credentials                                                                    | Rename the repo, set description + homepage, then `pnpm github:sync`                                                       |
-| **Netlify site, Sentry + PostHog projects**                     | Needs credentials                                                                    | Create each, then set `NETLIFY_SITE_ID` / `SENTRY_*` / `VITE_POSTHOG_*` in GitHub Environments — never in a committed file |
-| **`CHANGELOG.md` and git history**                              | It is the upstream platform's real release history                                   | Leave it. Your product's history starts from your first release                                                            |
-| **The backend**                                                 | `core-be` carries the product name too (for example the WebAuthn relying-party name) | Rebrand `core-be` separately — a full product rename is a two-repo exercise                                                |
-| **`docs/` and `agent-os/` prose**                               | The two-name model — see above                                                       | Nothing                                                                                                                    |
+| Not covered                                                     | Why                                                                                                       | What to do                                                                                                                              |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **PWA PNG icons** (`public/pwa-192x192.png`, `pwa-512x512.png`) | Binary; needs `rsvg-convert`                                                                              | Replace the artwork in `public/app-icon.svg`, then run the two commands the script prints                                               |
+| **GitHub repo settings, Environments, secrets**                 | Needs credentials                                                                                         | Rename the repo, set description + homepage, then `pnpm github:sync`                                                                    |
+| **Netlify site, Sentry + PostHog projects**                     | Needs credentials                                                                                         | Create each, then set `NETLIFY_SITE_ID` / `SENTRY_*` / `VITE_POSTHOG_*` in GitHub Environments — never in a committed file              |
+| **`CHANGELOG.md` and git history**                              | It is the upstream platform's real release history                                                        | Leave it. Your product's history starts from your first release                                                                         |
+| **The backend's own branding**                                  | `core-be` also carries the product name (for example the WebAuthn relying-party name and the TOTP issuer) | Rebrand the `core-be` repo separately — a full product rename is a two-repo exercise. The _name_ `core-be` stays either way (see above) |
 
 ---
 

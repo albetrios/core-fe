@@ -15,15 +15,27 @@
  * so `apply(text) === text` IS the drift check. A rename therefore needs no
  * knowledge of the old name.
  *
- * ── The two-name model ──────────────────────────────────────────────────────
- * `platformName` ("core-fe") names the upstream platform this repo IS, and is
- * deliberately NOT rewritten on rebrand — docs and agent-os prose describing the
- * platform stay accurate in a derived product, and forks keep clean upstream
- * merges. `name` / `productName` / `codeowner` are the *product*'s identity and
- * are rewritten. See docs/getting-started/new-project.md.
+ * ── Total rename ─────────────────────────────────────────────────────────────
+ * A rebrand rewrites the name EVERYWHERE, prose included: a derived product keeps
+ * no trace of the name it came from. That is a deliberate product decision, and it
+ * has a cost worth stating — because docs and agent-os prose diverge from upstream,
+ * `git merge upstream/main` conflicts across ~120 files on every platform update.
+ * The alternative (keeping a separate platform name in prose) was rejected: a repo
+ * that half-says the old name reads as a mistake.
+ *
+ * Two names are still NOT rewritten, for reasons that are not branding:
+ *   - `core-be` — a separate backend SERVICE this app calls. Renaming it would
+ *     break `contracts:drift` (it reads `../core-be/docs/routes.txt`) and leave
+ *     comments describing a backend that does not exist. Point it elsewhere with
+ *     `$CORE_BE_DIR`, don't rename it.
+ *   - `CHANGELOG.md` — the release history actually happened under the old name.
+ *
+ * `previousNames` records every name this repo has carried, and
+ * `pnpm validate:identity` fails if any of them reappears — so the old name cannot
+ * creep back in through a merge or a copy-paste.
  */
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -35,7 +47,6 @@ const SETUP_CONFIG = 'tooling/setup/setup.config.json';
  * @property {string} name            Repo + package name (`core-fe`).
  * @property {string} displayName     Human repo label ("Core Frontend").
  * @property {string} organization    Owning organization slug.
- * @property {string} platformName    Upstream platform name — never rebranded.
  * @property {string} productName     User-visible product name ("Core").
  * @property {string} productDescription  One-line product description.
  * @property {string} themeColor      PWA / browser-chrome theme colour.
@@ -52,7 +63,6 @@ export function loadIdentity(root = ROOT) {
     name: project.name,
     displayName: project.displayName,
     organization: project.organization,
-    platformName: project.platformName,
     productName: project.productName,
     productDescription: project.productDescription,
     themeColor: project.themeColor,
@@ -70,7 +80,10 @@ export function loadIdentity(root = ROOT) {
         'See docs/getting-started/new-project.md.',
     );
   }
-  return identity;
+  // Every name this repo has carried. Validated separately from the string fields
+  // above because it is a list, and empty is the correct value for a repo that has
+  // never been renamed.
+  return { ...identity, previousNames: project.previousNames ?? [] };
 }
 
 /** Escape a value for safe use inside a single-quoted TypeScript string. */
@@ -305,6 +318,166 @@ export function derivedSurfaces(identity, root = ROOT) {
   return surfaces;
 }
 
+/** Never rewritten by a rename: real history and generated artifacts. */
+const RENAME_SKIP_FILES = new Set([
+  'CHANGELOG.md',
+  'CHANGELOG-dev.md',
+  'pnpm-lock.yaml',
+  'sbom.cyclonedx.json',
+]);
+
+/** Directory names never walked for a rename. */
+const RENAME_SKIP_DIRS = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  'coverage',
+  'test-results',
+  'reports',
+  '.stryker-tmp',
+  '.netlify',
+  '.pnpm-store',
+  '__pycache__',
+]);
+
+/** Extensions treated as text for a repo-wide rename. */
+const TEXT_EXTENSIONS = [
+  '.ts',
+  '.tsx',
+  '.mts',
+  '.mjs',
+  '.cjs',
+  '.js',
+  '.json',
+  '.jsonc',
+  '.md',
+  '.mdc',
+  '.yml',
+  '.yaml',
+  '.html',
+  '.txt',
+  '.svg',
+  '.css',
+  '.sh',
+  '.py',
+  '.properties',
+  '.webmanifest',
+  '.example',
+];
+
+/**
+ * Match a slug as a whole word where a hyphen counts as a boundary, so
+ * `core-fe-dist.tgz` and `development--core-fe.netlify.app` both match while
+ * `core-fetch` does not. Distinct from {@link wholeWord}, which treats `-` as part
+ * of the word — correct for a display name, wrong for a hyphenated slug.
+ */
+export function slugWord(value) {
+  return new RegExp(
+    `(?<!\\w)${value.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&')}(?!\\w)`,
+    'g',
+  );
+}
+
+/** Walk every text file eligible for a repo-wide rename. */
+export function renameableFiles(root = ROOT, dir = root, out = []) {
+  for (const entry of readdirSync(dir)) {
+    if (RENAME_SKIP_DIRS.has(entry)) continue;
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      renameableFiles(root, full, out);
+      continue;
+    }
+    const rel = relative(root, full);
+    if (RENAME_SKIP_FILES.has(rel) || RENAME_SKIP_FILES.has(entry)) continue;
+    if (TEXT_EXTENSIONS.some((ext) => entry.endsWith(ext)) || !entry.includes('.')) {
+      out.push(rel);
+    }
+  }
+  return out;
+}
+
+/**
+ * Phrases that contain the product name but are NOT this product.
+ *
+ * "Core Web Vitals" is Google's metric name, not this product. A blanket rename
+ * rewrote it in 14 files, inventing a metric that does not exist. Protected phrases
+ * are masked before replacement and restored after, so they survive verbatim. Add
+ * to this list rather than weakening the rename.
+ */
+const PROTECTED_PHRASES = ['Core Web Vitals'];
+
+const PROTECT_SENTINEL = ' PROTECTED';
+
+/** Mask protected phrases so a rename cannot rewrite them. */
+function maskProtected(text) {
+  return PROTECTED_PHRASES.reduce(
+    (acc, phrase, index) => acc.split(phrase).join(`${PROTECT_SENTINEL}${index} `),
+    text,
+  );
+}
+
+/** Restore masked phrases. */
+function unmaskProtected(text) {
+  return PROTECTED_PHRASES.reduce(
+    (acc, phrase, index) => acc.split(`${PROTECT_SENTINEL}${index} `).join(phrase),
+    text,
+  );
+}
+
+/**
+ * Rewrite every occurrence of a name across the repo.
+ *
+ * This is the prose half of a rename — the part no structural transform can cover,
+ * because "core-fe is trunk-based" has no anchor to hook. It is deliberately
+ * old-value-anchored (unlike the surface transforms), which is why it lives here
+ * rather than in {@link derivedSurfaces}: it can only run when the previous name is
+ * known, i.e. during an actual rename.
+ *
+ * @returns {Array<{ file: string, count: number, next: string }>} changed files.
+ */
+export function planRename(root, replacements) {
+  const changes = [];
+  for (const file of renameableFiles(root)) {
+    const before = readFileSync(join(root, file), 'utf8');
+    let next = maskProtected(before);
+    let count = 0;
+    for (const [from, to] of replacements) {
+      if (!from || from === to) continue;
+      const pattern = from.includes('-') ? slugWord(from) : wholeWord(from);
+      const matches = next.match(pattern);
+      if (!matches) continue;
+      count += matches.length;
+      next = next.replace(pattern, to);
+    }
+    next = unmaskProtected(next);
+    if (count > 0 && next !== before) changes.push({ file, count, next });
+  }
+  return changes;
+}
+
+/**
+ * Occurrences of a name this repo used to carry.
+ *
+ * The permanent guard against the old name returning — through an upstream merge,
+ * a copy-paste, or a half-finished sweep.
+ *
+ * @returns {Array<{ file: string, name: string, count: number }>}
+ */
+export function findPreviousNames(identity, root = ROOT) {
+  const previous = identity.previousNames ?? [];
+  if (previous.length === 0) return [];
+  const found = [];
+  for (const file of renameableFiles(root)) {
+    const text = readFileSync(join(root, file), 'utf8');
+    for (const name of previous) {
+      const pattern = name.includes('-') ? slugWord(name) : wholeWord(name);
+      const count = (text.match(pattern) ?? []).length;
+      if (count > 0) found.push({ file, name, count });
+    }
+  }
+  return found;
+}
+
 /**
  * Match a name as a whole word, bounded by ASCII word characters only.
  *
@@ -346,9 +519,6 @@ export function findIncompleteTransforms(identity, root = ROOT) {
   for (const surface of derivedSurfaces(renamed, root)) {
     const after = surface.apply(readFileSync(join(root, surface.file), 'utf8'));
     for (const stale of [identity.productName, identity.name]) {
-      // The platform name legitimately survives a rename (the two-name model);
-      // only flag it when it is not simply the platform name being preserved.
-      if (stale === identity.platformName) continue;
       const count = (after.match(wholeWord(stale)) ?? []).length;
       if (count > 0) {
         incomplete.push({ file: surface.file, label: surface.label, stale, count });

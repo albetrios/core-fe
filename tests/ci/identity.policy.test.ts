@@ -7,7 +7,9 @@ import {
   derivedSurfaces,
   findDrift,
   findIncompleteTransforms,
+  findPreviousNames,
   loadIdentity,
+  planRename,
   renderProductIdentityModule,
   wholeWord,
 } from '../../tooling/identity/identity.mjs';
@@ -34,6 +36,8 @@ describe('product identity', () => {
 
   it('declares every required identity field', () => {
     const missing = Object.entries(identity)
+      // `previousNames` is a list (empty is correct for a never-renamed repo).
+      .filter(([key]) => key !== 'previousNames')
       .filter(([, value]) => typeof value !== 'string' || value.length === 0)
       .map(([key]) => key);
     expect(missing).toEqual([]);
@@ -118,19 +122,61 @@ describe('product identity', () => {
     });
   });
 
-  describe('two-name model', () => {
-    it('does not list docs/ or agent-os/ prose as a rebrand surface', () => {
-      const files = derivedSurfaces(identity, ROOT).map((surface) => surface.file);
-      expect(
-        files.filter((file) => file.startsWith('docs/') || file.startsWith('agent-os/')),
-      ).toEqual([]);
+  describe('total rename', () => {
+    const rename = (): Array<{ file: string; count: number; next: string }> =>
+      planRename(ROOT, [
+        [identity.name, 'zzslug-fe'],
+        [identity.productName, 'ZzProduct'],
+        [identity.displayName, 'ZzProduct Frontend'],
+      ]);
+
+    it('reaches prose that no structural transform can anchor', () => {
+      // "core-fe is trunk-based" has nothing to hook, so a rename must sweep text
+      // files too. Without this pass a derived product keeps ~200 stale mentions.
+      const plan = rename();
+      expect(plan.length).toBeGreaterThan(100);
+      expect(plan.map((change) => change.file)).toContain(
+        'docs/process/trunk-based-workflow.md',
+      );
     });
 
-    it('keeps the platform name in the identity block', () => {
-      // core-fe names the PLATFORM this repo is. A fork keeps it so platform
-      // prose stays true and upstream merges do not conflict across ~120 files.
-      expect(identity.platformName).toBe('core-fe');
-      expect(read('tooling/setup/setup.config.json')).toContain('"platformName"');
+    /**
+     * Count a phrase before vs after a rename.
+     *
+     * Compared as counts rather than by searching the output for a renamed variant,
+     * because this very file contains those sentinels as source text — a
+     * `not.toMatch(/…-be/)` assertion matches its own regex literal and fails.
+     */
+    const preservedEverywhere = (phrase: string): void => {
+      for (const change of rename()) {
+        const before = read(change.file).split(phrase).length - 1;
+        const after = change.next.split(phrase).length - 1;
+        expect(after, `${phrase} changed in ${change.file}`).toBe(before);
+      }
+    };
+
+    it('never renames core-be — a separate backend service, not our brand', () => {
+      // Renaming it would break contracts:drift (it reads ../core-be/docs/routes.txt)
+      // and leave comments describing a backend that does not exist.
+      preservedEverywhere('core-be');
+    });
+
+    it('preserves phrases that merely contain the product name', () => {
+      // "Core Web Vitals" is Google's metric. A blanket rename invented a metric
+      // that does not exist, in 14 files.
+      preservedEverywhere('Core Web Vitals');
+    });
+
+    it('leaves real history and generated artifacts alone', () => {
+      const files = rename().map((change) => change.file);
+      expect(files).not.toContain('CHANGELOG.md');
+      expect(files).not.toContain('pnpm-lock.yaml');
+    });
+
+    it('has no retired name still present', () => {
+      // `previousNames` grows on every rename; this must always be empty.
+      expect(findPreviousNames(identity, ROOT)).toEqual([]);
+      expect(read('tooling/setup/setup.config.json')).toContain('"previousNames"');
     });
   });
 });

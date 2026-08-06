@@ -64,7 +64,7 @@ it locally via `pnpm run validate:lockfile` (see `agent-os/skills/platform-hygie
 
 - **Engineering principles (Cursor):** `agent-os/rules/engineering-principles.mdc`
 - **Index by use case:** docs/README.md
-- **Derive a NEW product from this repo:** docs/getting-started/new-project.md — fork path, `pnpm rebrand`, the two-name model (platform `core-fe` stays; product identity is rewritten), upstream sync
+- **Derive a NEW product from this repo:** docs/getting-started/new-project.md — fork path, `pnpm rebrand` (a **total** rename, prose included; `core-be` and `CHANGELOG.md` excluded), `previousNames` guard, upstream sync
 - **Local setup:** docs/getting-started/setup.md
 - **Requirement intake (format, types, skills, rules):** docs/getting-started/requirement-intake.md — template: docs/getting-started/requirement-format.md, example: docs/getting-started/requirements/sample-requirement.md
 - **Deploy / CI-CD:** docs/deployment/cicd-and-netlify.md, docs/deployment/deployment-and-pre-launch.md; **release + versioning:** docs/process/release-versioning.md

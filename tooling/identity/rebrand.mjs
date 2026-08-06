@@ -12,9 +12,9 @@
  *   pnpm identity:sync                                re-derive files, no rename
  *
  * What it deliberately does NOT touch:
- *   - `platformName` and platform prose in `docs/` + `agent-os/` — this repo
- *     stays "core-fe, the platform" after a fork, so those references remain
- *     true and upstream merges stay clean (the two-name model).
+ *   - `core-be` — a separate backend SERVICE this app calls, not this product's
+ *     name. Renaming it would break `contracts:drift` and describe a backend
+ *     that does not exist; point it elsewhere with `$CORE_BE_DIR` instead.
  *   - `CHANGELOG.md` and git history — the release history of the upstream
  *     platform is a fact, not branding.
  *   - Anything requiring credentials (Netlify, GitHub, Sentry, PostHog) or a
@@ -24,7 +24,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { derivedSurfaces, loadIdentity, ROOT } from './identity.mjs';
+import { derivedSurfaces, loadIdentity, planRename, ROOT } from './identity.mjs';
 
 const BOLD = '[1m';
 const DIM = '[2m';
@@ -100,7 +100,6 @@ function main() {
   --apply                 write changes (default is a dry run)
 
 Current identity: ${current.productName} (${current.name}) — ${current.repository}
-Platform name (never rebranded): ${current.platformName}
 See docs/getting-started/new-project.md.`);
     process.exitCode = 1;
     return;
@@ -152,9 +151,7 @@ See docs/getting-started/new-project.md.`);
     console.log(
       `  codeowner    ${current.codeowner}  →  ${BOLD}${next.codeowner}${RESET}`,
     );
-    console.log(
-      `  ${DIM}platform     ${next.platformName} (unchanged — the two-name model)${RESET}\n`,
-    );
+    console.log('');
   }
 
   // The identity block must land first: every surface derives from it.
@@ -216,6 +213,52 @@ See docs/getting-started/new-project.md.`);
     }
   }
 
+  // Repo-wide prose rename. Structural transforms cannot reach sentences like
+  // "core-fe is trunk-based" — there is no anchor to hook — so this pass replaces
+  // the old name everywhere, skipping CHANGELOG history and generated artifacts.
+  // Not run for `--sync`: no rename happened, so there is no old name to replace.
+  let renamedFiles = 0;
+  let renamedOccurrences = 0;
+  if (!sync) {
+    const plan = planRename(ROOT, [
+      [current.name, next.name],
+      [current.productName, next.productName],
+      [current.displayName, next.displayName],
+    ]);
+    for (const change of plan) {
+      renamedFiles += 1;
+      renamedOccurrences += change.count;
+      if (apply) writeFileSync(join(ROOT, change.file), change.next);
+    }
+    if (renamedFiles > 0) {
+      console.log(
+        `  ${GREEN}✓${RESET} ${renamedFiles} more file(s)  ${DIM}(${renamedOccurrences} prose/config occurrences of "${current.name}" / "${current.productName}")${RESET}`,
+      );
+      changed += renamedFiles;
+    }
+
+    // Record the retired names LAST. Written after planRename because the pass
+    // above rewrites every occurrence of the old name in every text file — and
+    // this list is the one place that must keep it, so the guard can detect the
+    // old name coming back through a merge or a copy-paste.
+    if (apply) {
+      const retired = [
+        ...new Set([...(current.previousNames ?? []), current.name, current.productName]),
+      ].filter((entry) => entry !== next.name && entry !== next.productName);
+      const configNow = readFileSync(configPath, 'utf8');
+      writeFileSync(
+        configPath,
+        configNow.replace(
+          /("previousNames":\s*)\[[^\]]*\]/,
+          `$1${JSON.stringify(retired)}`,
+        ),
+      );
+      console.log(
+        `  ${GREEN}✓${RESET} tooling/setup/setup.config.json  ${DIM}(previousNames: ${retired.join(', ')})${RESET}`,
+      );
+    }
+  }
+
   if (changed === 0) {
     console.log(
       `  ${DIM}Everything already matches the identity block — nothing to do.${RESET}\n`,
@@ -253,8 +296,10 @@ See docs/getting-started/new-project.md.`);
   4. ${BOLD}Reinstall + verify${RESET} — the package name changed:
        pnpm install && pnpm health && pnpm validate:identity
 
-  ${DIM}Docs and agent-os prose still say "${next.platformName}" on purpose — that is the
-  platform this product is built on, and keeping it makes upstream merges clean.${RESET}
+  ${DIM}"${current.name}" is now recorded in previousNames, so pnpm validate:identity fails if
+  it ever reappears. Note the trade-off you have taken on: prose was rewritten too, so
+  a future \`git merge upstream/main\` will conflict across the renamed doc files.
+  "core-be" was left alone on purpose — it names the backend service, not this product.${RESET}
 `);
 }
 
