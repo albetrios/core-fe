@@ -246,10 +246,24 @@ export function derivedSurfaces(identity, root = ROOT) {
     {
       file: '.github/environments/production.json',
       label: 'production reviewer',
-      apply: replaceValue(
-        /("users":\s*)\[[^\]]*\]/,
-        () => `["${ownerHandle.replace(/^@/, '')}"]`,
-      ),
+      // GitHub Environments keep user reviewers and TEAM reviewers in separate
+      // lists, and `governance-mode.policy.test.ts` counts only individual `@user`
+      // handles as CODEOWNERS users. Writing an `@org/team` handle into `users`
+      // therefore fails its subset check — caught by running a real rename with a
+      // team owner in a clean clone.
+      apply: (text) => {
+        const bare = ownerHandle.replace(/^@/, '');
+        const isTeam = bare.includes('/');
+        return text
+          .replace(
+            /("users":\s*)\[[^\]]*\]/,
+            `$1${isTeam ? '[]' : JSON.stringify([bare])}`,
+          )
+          .replace(
+            /("teams":\s*)\[[^\]]*\]/,
+            `$1${isTeam ? JSON.stringify([bare]) : '[]'}`,
+          );
+      },
     },
     {
       file: '.github/workflows/reusable-netlify-deploy.yml',

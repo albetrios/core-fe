@@ -281,11 +281,7 @@ See docs/getting-started/new-project.md.`);
       // ("Core Principles", "Core Layer"), so guarding on it would flag dozens of
       // legitimate sentences and get the gate switched off.
       const retired = [
-        ...new Set([
-          ...(current.previousNames ?? []),
-          current.name,
-          current.backendName,
-        ]),
+        ...new Set([...(current.previousNames ?? []), current.name, current.backendName]),
       ].filter((entry) => entry !== next.name && entry !== next.backendName);
       const configNow = readFileSync(configPath, 'utf8');
       writeFileSync(
@@ -335,8 +331,10 @@ See docs/getting-started/new-project.md.`);
   3. ${BOLD}Deploy + observability${RESET} — create the Netlify site, Sentry project and
      PostHog project, then set NETLIFY_SITE_ID / SENTRY_* / VITE_POSTHOG_* in the
      GitHub Environments (never in a committed file).
-  4. ${BOLD}Reinstall + verify${RESET} — the package name changed:
-       pnpm install && pnpm health && pnpm validate:identity
+  4. ${BOLD}Re-lock agent-os + reinstall${RESET} — the prose sweep edited skill files, so the
+     agent-os skills-lock hashes are stale (agent-os-lock.policy.test.ts fails until
+     you regenerate them). The package name changed too:
+       pnpm install && pnpm agent-os:lock && pnpm health && pnpm validate:identity
 
   ${DIM}"${current.name}" and "${current.backendName}" are recorded in previousNames, so
   pnpm validate:identity fails if either reappears. Two things to know:
