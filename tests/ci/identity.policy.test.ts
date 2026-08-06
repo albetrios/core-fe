@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  backendDirEnvVar,
   derivedSurfaces,
   findDrift,
   findIncompleteTransforms,
@@ -155,10 +156,28 @@ describe('product identity', () => {
       }
     };
 
-    it('never renames core-be — a separate backend service, not our brand', () => {
-      // Renaming it would break contracts:drift (it reads ../core-be/docs/routes.txt)
-      // and leave comments describing a backend that does not exist.
-      preservedEverywhere('core-be');
+    it('renames the sibling backend with the product', () => {
+      // A derived product normally forks the backend too, so the frontend's ~450
+      // references must follow — including contracts:drift, which resolves
+      // ../<backendName>/docs/routes.txt, and the uppercase env-var spelling, which
+      // is a distinct token the slug pass cannot see.
+      const plan = planRename(ROOT, [
+        [identity.backendName, 'zzslug-be'],
+        [backendDirEnvVar(identity.backendName), backendDirEnvVar('zzslug-be')],
+      ]);
+      const files = plan.map((change) => change.file);
+      expect(files).toContain('tooling/ci/check-api-contract-drift.mjs');
+      const drift = plan.find(
+        (change) => change.file === 'tooling/ci/check-api-contract-drift.mjs',
+      );
+      expect(drift?.next).toContain('../zzslug-be');
+      expect(drift?.next).toContain('ZZSLUG_BE_DIR');
+      expect(drift?.next).not.toContain('CORE_BE_DIR');
+    });
+
+    it('derives the backend env-var name from the backend slug', () => {
+      expect(backendDirEnvVar('core-be')).toBe('CORE_BE_DIR');
+      expect(backendDirEnvVar('romio-be')).toBe('ROMIO_BE_DIR');
     });
 
     it('preserves phrases that merely contain the product name', () => {

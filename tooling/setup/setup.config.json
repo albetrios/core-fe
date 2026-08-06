@@ -8,6 +8,7 @@
     "themeColor": "#0a0a0a",
     "backgroundColor": "#ffffff",
     "codeowner": "@nikunjmavani",
+    "backendName": "core-be",
     "previousNames": []
   },
   "git": {

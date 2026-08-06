@@ -11,10 +11,13 @@
  *       --owner @acme/frontend --apply
  *   pnpm identity:sync                                re-derive files, no rename
  *
+ * The sibling backend is renamed too (`core-be` -> `<product>-be`), on the
+ * assumption a derived product forks the backend as well. That means the renamed
+ * repo expects a sibling checkout under the NEW name — `contracts:drift` resolves
+ * `../<backendName>/docs/routes.txt`. Keep a differently-named backend with
+ * `--backend <repo-name>`.
+ *
  * What it deliberately does NOT touch:
- *   - `core-be` — a separate backend SERVICE this app calls, not this product's
- *     name. Renaming it would break `contracts:drift` and describe a backend
- *     that does not exist; point it elsewhere with `$CORE_BE_DIR` instead.
  *   - `CHANGELOG.md` and git history — the release history of the upstream
  *     platform is a fact, not branding.
  *   - Anything requiring credentials (Netlify, GitHub, Sentry, PostHog) or a
@@ -24,7 +27,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { derivedSurfaces, loadIdentity, planRename, ROOT } from './identity.mjs';
+import {
+  backendDirEnvVar,
+  derivedSurfaces,
+  loadIdentity,
+  planRename,
+  ROOT,
+} from './identity.mjs';
 
 const BOLD = '[1m';
 const DIM = '[2m';
@@ -97,6 +106,7 @@ function main() {
   --repo <owner/repo>     GitHub slug               (default: keep current owner)
   --owner <@handle>       CODEOWNERS handle         (default: keep current)
   --description "<text>"  product description       (default: keep current)
+  --backend <repo-name>   sibling backend repo      (default: <name> with -fe -> -be)
   --apply                 write changes (default is a dry run)
 
 Current identity: ${current.productName} (${current.name}) — ${current.repository}
@@ -122,8 +132,22 @@ See docs/getting-started/new-project.md.`);
       ? flags.description
       : current.productDescription;
 
+  // The backend repo is renamed with the product: a derived product normally forks
+  // the backend too, and this frontend names it in ~450 places (envelope comments,
+  // the E2E readiness probe, and contracts:drift's ../<backend>/docs/routes.txt).
+  // Pass --backend to keep pointing at a differently-named backend.
+  const backendName =
+    typeof flags.backend === 'string'
+      ? flags.backend
+      : sync
+        ? current.backendName
+        : name.replace(/-fe$/, '-be') === name
+          ? `${name}-be`
+          : name.replace(/-fe$/, '-be');
+
   const next = {
     ...current,
+    backendName,
     name,
     displayName: sync ? current.displayName : `${productName} Frontend`,
     productName,
@@ -178,6 +202,7 @@ See docs/getting-started/new-project.md.`);
         block = setString(block, 'productName', next.productName);
         block = setString(block, 'productDescription', next.productDescription);
         block = setString(block, 'codeowner', next.codeowner);
+        block = setString(block, 'backendName', next.backendName);
         return `${open}${block}${close}`;
       },
       // `repository` lives under `providers.github` and is a unique key, so it is
@@ -231,6 +256,9 @@ See docs/getting-started/new-project.md.`);
     const plan = planRename(ROOT, [
       [current.name, next.name],
       [current.displayName, next.displayName],
+      [current.backendName, next.backendName],
+      // The uppercase env-var spelling is a distinct token the slug pass cannot see.
+      [backendDirEnvVar(current.backendName), backendDirEnvVar(next.backendName)],
     ]);
     for (const change of plan) {
       renamedFiles += 1;
@@ -253,8 +281,12 @@ See docs/getting-started/new-project.md.`);
       // ("Core Principles", "Core Layer"), so guarding on it would flag dozens of
       // legitimate sentences and get the gate switched off.
       const retired = [
-        ...new Set([...(current.previousNames ?? []), current.name]),
-      ].filter((entry) => entry !== next.name);
+        ...new Set([
+          ...(current.previousNames ?? []),
+          current.name,
+          current.backendName,
+        ]),
+      ].filter((entry) => entry !== next.name && entry !== next.backendName);
       const configNow = readFileSync(configPath, 'utf8');
       writeFileSync(
         configPath,
@@ -306,10 +338,12 @@ See docs/getting-started/new-project.md.`);
   4. ${BOLD}Reinstall + verify${RESET} — the package name changed:
        pnpm install && pnpm health && pnpm validate:identity
 
-  ${DIM}"${current.name}" is now recorded in previousNames, so pnpm validate:identity fails if
-  it ever reappears. Note the trade-off you have taken on: prose was rewritten too, so
-  a future \`git merge upstream/main\` will conflict across the renamed doc files.
-  "core-be" was left alone on purpose — it names the backend service, not this product.${RESET}
+  ${DIM}"${current.name}" and "${current.backendName}" are recorded in previousNames, so
+  pnpm validate:identity fails if either reappears. Two things to know:
+   - the backend was renamed to "${next.backendName}" — clone/rename your backend repo to match,
+     or contracts:drift will not find ../${next.backendName}/docs/routes.txt (override: $${backendDirEnvVar(next.backendName)});
+   - prose was rewritten too, so a future \`git merge upstream/main\` will conflict
+     across the renamed doc files. That trade-off was chosen deliberately.${RESET}
 `);
 }
 

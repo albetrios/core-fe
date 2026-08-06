@@ -24,6 +24,8 @@ export interface Identity {
   codeowner: string;
   /** GitHub `owner/repo` slug. */
   repository: string;
+  /** Sibling backend repo this app calls (`core-be`) — renamed with the product. */
+  backendName: string;
   /** Every name this repo has carried; `validate:identity` fails if one reappears. */
   previousNames: string[];
 }
@@ -55,6 +57,9 @@ export function renderProductIdentityModule(identity: Identity): string;
 
 /** Every file whose content is derived from the identity block. */
 export function derivedSurfaces(identity: Identity, root?: string): DerivedSurface[];
+
+/** `core-be` → `CORE_BE_DIR` — the env var that relocates the sibling checkout. */
+export function backendDirEnvVar(backendName: string): string;
 
 /** Match a name as a whole word, bounded by ASCII word characters only. */
 export function wholeWord(value: string): RegExp;

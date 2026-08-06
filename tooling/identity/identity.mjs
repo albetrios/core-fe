@@ -23,11 +23,11 @@
  * The alternative (keeping a separate platform name in prose) was rejected: a repo
  * that half-says the old name reads as a mistake.
  *
- * Three things are still NOT rewritten, for reasons that are not branding:
- *   - `core-be` — a separate backend SERVICE this app calls. Renaming it would
- *     break `contracts:drift` (it reads `../core-be/docs/routes.txt`) and leave
- *     comments describing a backend that does not exist. Point it elsewhere with
- *     `$CORE_BE_DIR`, don't rename it.
+ * The sibling backend name is renamed alongside the product (`backendName`), since
+ * a derived product normally forks the backend too. The renamed repo then expects a
+ * sibling checkout under the new name.
+ *
+ * Two things are still NOT rewritten, for reasons that are not branding:
  *   - `CHANGELOG.md` — the release history actually happened under the old name.
  *   - {@link PROTECTED_PHRASES} — "Core Web Vitals" is Google's metric, not this
  *     product; a blanket rename invented a metric that does not exist.
@@ -54,8 +54,14 @@ const SETUP_CONFIG = 'tooling/setup/setup.config.json';
  * @property {string} themeColor      PWA / browser-chrome theme colour.
  * @property {string} backgroundColor PWA splash background colour.
  * @property {string} codeowner       Default CODEOWNERS handle (`@user` or `@org/team`).
+ * @property {string} backendName     Sibling backend repo (`core-be`).
  * @property {string} repository      GitHub `owner/repo` slug.
  */
+
+/** `core-be` → `CORE_BE_DIR` — the env var that relocates the sibling checkout. */
+export function backendDirEnvVar(backendName) {
+  return `${backendName.toUpperCase().replace(/-/g, '_')}_DIR`;
+}
 
 /** Load and validate the identity block from `setup.config.json`. */
 export function loadIdentity(root = ROOT) {
@@ -70,6 +76,11 @@ export function loadIdentity(root = ROOT) {
     themeColor: project.themeColor,
     backgroundColor: project.backgroundColor,
     codeowner: project.codeowner,
+    // The sibling backend repo this app talks to. Part of identity because a
+    // derived product usually forks the backend too, and the frontend names it in
+    // ~450 places: the `{ data, meta }` envelope comments, the E2E readiness probe,
+    // and `contracts:drift`, which resolves `../<backendName>/docs/routes.txt`.
+    backendName: project.backendName,
     repository: raw.providers?.github?.repository,
   };
 
