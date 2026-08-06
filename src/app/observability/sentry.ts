@@ -3,6 +3,7 @@ import type { AnyRouter } from '@tanstack/react-router';
 
 import { platformConfig } from '@/core/config/env.ts';
 import { scrubEventUrls } from '@/lib/telemetry-scrub.ts';
+import { HttpError } from '@/shared/errors/HttpError.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
@@ -91,9 +92,22 @@ export async function initSentry(router: AnyRouter): Promise<void> {
     replaysSessionSampleRate: platformConfig.sentryReplaysSessionSampleRate,
     replaysOnErrorSampleRate: platformConfig.sentryReplaysOnErrorSampleRate,
 
-    ignoreErrors: [/Object \[object Object\] has no method 'updateFrom'/],
+    ignoreErrors: [
+      /Object \[object Object\] has no method 'updateFrom'/,
+      // Console-captured duplicates of errors already reported through their
+      // real paths (HttpError capture, retry logic) — and dev-server HMR noise.
+      /^\[Query Error\]/,
+      /^\[Mutation Error\]/,
+      /^\[HTTP\] Retry attempt/,
+      /^\[vite\]/,
+    ],
 
-    beforeSend(event) {
+    beforeSend(event, hint) {
+      // Expected client outcomes (validation 400/422, auth 401/403, missing
+      // 404/409/429) are handled UX states, not defects — only transport
+      // failures and 5xx responses are signal.
+      const cause = hint?.originalException;
+      if (cause instanceof HttpError && cause.status < 500) return null;
       if (event.breadcrumbs) {
         event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
           if (breadcrumb.category === 'ui.input') {
