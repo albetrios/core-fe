@@ -220,9 +220,16 @@ See docs/getting-started/new-project.md.`);
   let renamedFiles = 0;
   let renamedOccurrences = 0;
   if (!sync) {
+    // Only UNAMBIGUOUS tokens are swept: the slug (`core-fe`) and the display name
+    // ("Core Frontend"). The bare product word is deliberately NOT swept in prose.
+    //
+    // "Core" is ordinary English, and sweeping it corrupted meaning across
+    // agent-os docs: "Core Philosophy", "Core Concepts", "Core Pattern" — and worst,
+    // "Core Layer", which names the `src/core/` architecture layer, became
+    // "<Product> Layer". User-visible branding does not rely on this pass: it comes
+    // from the 17 structural surfaces and the {{productName}} i18n variable.
     const plan = planRename(ROOT, [
       [current.name, next.name],
-      [current.productName, next.productName],
       [current.displayName, next.displayName],
     ]);
     for (const change of plan) {
@@ -242,9 +249,12 @@ See docs/getting-started/new-project.md.`);
     // this list is the one place that must keep it, so the guard can detect the
     // old name coming back through a merge or a copy-paste.
     if (apply) {
+      // Only the slug is tracked. The bare product word is ordinary English
+      // ("Core Principles", "Core Layer"), so guarding on it would flag dozens of
+      // legitimate sentences and get the gate switched off.
       const retired = [
-        ...new Set([...(current.previousNames ?? []), current.name, current.productName]),
-      ].filter((entry) => entry !== next.name && entry !== next.productName);
+        ...new Set([...(current.previousNames ?? []), current.name]),
+      ].filter((entry) => entry !== next.name);
       const configNow = readFileSync(configPath, 'utf8');
       writeFileSync(
         configPath,

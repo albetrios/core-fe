@@ -374,6 +374,7 @@ const TEXT_EXTENSIONS = [
   '.sh',
   '.py',
   '.properties',
+  '.toml',
   '.webmanifest',
   '.example',
 ];
