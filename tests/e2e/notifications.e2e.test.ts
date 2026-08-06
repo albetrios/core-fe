@@ -23,7 +23,7 @@ test.describe('Notification center (empty inbox)', () => {
     await registerNewUserAndGoToDashboard(page);
   });
 
-  test('a fresh account shows the empty-inbox state with mark-all disabled', async ({
+  test('a fresh account shows the empty-inbox state with mark-all hidden', async ({
     page,
   }) => {
     // No unread items → the header badge is absent.
@@ -32,8 +32,9 @@ test.describe('Notification center (empty inbox)', () => {
     await page.getByTestId('notification-bell').click();
     await expect(page.getByTestId('notification-popover')).toBeVisible();
     await expect(page.getByTestId('empty-state')).toBeVisible();
-    // Nothing to mark read → the action is disabled.
-    await expect(page.getByTestId('notification-mark-all')).toBeDisabled();
+    // MarkAllReadButton renders null when the inbox is empty (hidden entirely,
+    // not merely disabled) — assert absence to match that contract.
+    await expect(page.getByTestId('notification-mark-all')).toHaveCount(0);
     // The settings-link footer only renders when there ARE items, so it is
     // absent on an empty inbox.
     await expect(page.getByTestId('notification-settings-link')).toHaveCount(0);
