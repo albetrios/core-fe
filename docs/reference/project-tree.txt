@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~544 src files · ~301 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~545 src files · ~301 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -202,6 +202,7 @@ core-fe/
 │   │   ├── requirements/
 │   │   │   ├── sample-requirement.md
 │   │   │   └── unified-auth-otp-requirement.md
+│   │   ├── new-project.md
 │   │   ├── requirement-format.md
 │   │   ├── requirement-intake.md
 │   │   ├── route-island-template.md
@@ -260,6 +261,7 @@ core-fe/
 ├── plugins/
 │   ├── csp-api-origin.ts
 │   ├── i18n-build.ts
+│   ├── product-identity-html.ts
 │   ├── test-env.ts
 │   └── version-json.ts
 ├── public/
@@ -409,6 +411,7 @@ core-fe/
 │   │   ├── parse-list-tolerant.ts
 │   │   ├── password-breach.ts
 │   │   ├── password-strength.ts
+│   │   ├── product-identity.ts
 │   │   ├── responsive-grid.ts
 │   │   ├── sensitive-clipboard.ts
 │   │   ├── telemetry-scrub.ts
@@ -1255,7 +1258,7 @@ core-fe/
 │   └── vite-env.d.ts
 ├── tests/
 │   ├── ci/
-│   │   └── [24 test files]
+│   │   └── [25 test files]
 │   ├── cross-browser/
 │   │   └── [2 test files]
 │   ├── e2e/
@@ -1319,6 +1322,10 @@ core-fe/
 │   │   └── [1 test file]
 │   ├── env-registry/
 │   │   └── env-registry.ts
+│   ├── identity/
+│   │   ├── identity.d.mts
+│   │   ├── identity.mjs
+│   │   └── rebrand.mjs
 │   ├── reports/
 │   │   ├── code-review-report.mjs
 │   │   └── generate-project-tree.py
@@ -1356,6 +1363,8 @@ core-fe/
 │   │   ├── health-check.sh
 │   │   ├── i18n-keys.mjs
 │   │   ├── i18n-locale-parity.mjs
+│   │   ├── identity-allowlist.txt
+│   │   ├── identity.mjs
 │   │   ├── lockfile-sync.sh
 │   │   ├── logical-css.sh
 │   │   ├── no-bare-intl.mjs
