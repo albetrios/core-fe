@@ -17,6 +17,15 @@ function mockNewVersion(page: Page) {
 }
 
 test.describe('version update notification', () => {
+  // The production preview registers a service worker. Once it controls the page
+  // it proxies `version.json`, and a service-worker-originated request is outside
+  // `page.route()` in WebKit — the mock never applied there, so the app compared
+  // the real build id against itself and no toast ever appeared. Blocking the
+  // worker keeps the fetch on the page, where the route interception lives.
+  // (The app itself is unaffected: version.json is never precached and
+  // `check.ts` fetches it with `cache: 'no-store'`.)
+  test.use({ serviceWorkers: 'block' });
+
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       try {
