@@ -50,6 +50,19 @@ describe('parseSettingsHash', () => {
     expect(parseSettingsHash('#settingsx/account/profile')).toBeNull();
   });
 
+  it('remaps legacy organization-scoped hashes to their account section', () => {
+    // Billing lived under organization/ before it moved to the Account scope;
+    // old deep links must keep landing on the moved section.
+    expect(parseSettingsHash('#settings/organization/billing')).toEqual({
+      scope: 'account',
+      section: 'billing',
+    });
+    expect(parseSettingsHash('settings/organization/sessions')).toEqual({
+      scope: 'account',
+      section: 'sessions',
+    });
+  });
+
   it('falls back to account/profile for a bare settings hash', () => {
     expect(parseSettingsHash('settings')).toEqual({
       scope: 'account',

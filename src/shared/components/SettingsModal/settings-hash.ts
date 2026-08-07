@@ -44,6 +44,11 @@ export function parseSettingsHash(hash: string): SettingsSectionRef | null {
     if (section && isSectionOf(scope, section)) {
       return { scope, section };
     }
+    // Legacy remap: sections that moved scope keep old deep links working —
+    // billing lived under `organization/` before it moved to Account.
+    if (section && isSectionOf('account', section)) {
+      return { scope: 'account', section };
+    }
   }
   return DEFAULT_SETTINGS;
 }

@@ -157,5 +157,21 @@ export async function createSessionViaEmailCode(
   }
 
   const body = (await login.json()) as { data: { access_token: string } };
-  return { email, accessToken: body.data.access_token };
+  const accessToken = body.data.access_token;
+
+  // Stamp onboarding complete (idempotent) — mirrors the wizard's finish step.
+  // Without it the fail-closed workspace guard bounces API-minted sessions to
+  // `/onboarding` instead of the dashboard the specs navigate to.
+  const complete = await withApiRetry(() =>
+    api.post(`${API}${API_ENDPOINTS.AUTH.ONBOARDING_COMPLETE}`, {
+      headers: { ...e2eAuthHeaders(), Authorization: `Bearer ${accessToken}` },
+    }),
+  );
+  if (!complete.ok()) {
+    throw new Error(
+      `onboarding/complete failed: ${complete.status()} ${await complete.text()}`,
+    );
+  }
+
+  return { email, accessToken };
 }

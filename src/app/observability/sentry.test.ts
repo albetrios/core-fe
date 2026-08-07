@@ -70,6 +70,29 @@ describe('initSentry', () => {
     );
   });
 
+  it('beforeSend drops expected 4xx HttpErrors and keeps 5xx', async () => {
+    const { HttpError } = await import('@/shared/errors/HttpError.ts');
+    const mockRouter = {} as Parameters<typeof initSentry>[0];
+    await initSentry(mockRouter);
+    const options = vi.mocked(Sentry.init).mock.calls.at(-1)?.[0] as {
+      beforeSend: (
+        event: Record<string, unknown>,
+        hint?: { originalException?: unknown },
+      ) => unknown;
+    };
+
+    const forbidden = new HttpError('Forbidden', 403, '/api/v1/x', 'GET');
+    expect(options.beforeSend({}, { originalException: forbidden })).toBeNull();
+
+    const serverError = new HttpError('Internal', 500, '/api/v1/x', 'GET');
+    expect(options.beforeSend({}, { originalException: serverError })).not.toBeNull();
+
+    // Non-HttpError exceptions keep flowing.
+    expect(
+      options.beforeSend({}, { originalException: new Error('boom') }),
+    ).not.toBeNull();
+  });
+
   it('registers full observability integrations when DSN is set', async () => {
     const mockRouter = {} as Parameters<typeof initSentry>[0];
     await initSentry(mockRouter);
