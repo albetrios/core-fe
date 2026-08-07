@@ -22,8 +22,10 @@ export function DashboardKpiTile({
 }: DashboardKpiTileProps) {
   const { formatNumber } = useLocaleFormat();
   const numericValue = typeof value === 'number' ? value : null;
-  const animated = useAnimeCountUp(numericValue ?? 0, 720);
-  const displayValue = numericValue !== null ? formatNumber(Math.round(animated)) : value;
+  const formatCount = (count: number) => formatNumber(Math.round(count));
+  // React renders the final value; the tween only overwrites the node while running.
+  const countRef = useAnimeCountUp<HTMLParagraphElement>(numericValue, formatCount, 720);
+  const displayValue = numericValue !== null ? formatCount(numericValue) : value;
 
   return (
     <article
@@ -42,7 +44,10 @@ export function DashboardKpiTile({
         </div>
       </div>
       <div>
-        <p className="text-foreground text-2xl font-semibold tracking-tight tabular-nums">
+        <p
+          ref={countRef}
+          className="text-foreground text-2xl font-semibold tracking-tight tabular-nums"
+        >
           {displayValue}
         </p>
         {hint ? <p className="text-muted-foreground mt-1 text-xs">{hint}</p> : null}
