@@ -33,6 +33,7 @@ import {
   kebabToCamel,
   kebabToUpperSnake,
   loadIdentity,
+  NAMESPACE_KEY_SUFFIXES,
   planRename,
   ROOT,
 } from './identity.mjs';
@@ -280,10 +281,15 @@ See docs/getting-started/new-project.md.`);
       [kebabToUpperSnake(current.backendName), kebabToUpperSnake(next.backendName)],
       // camelCase: coreFeTestEnv, __coreFeRouter, __coreFeEstablishSession.
       [kebabToCamel(current.name), kebabToCamel(next.name)],
-      // Namespace prefix — storage/channel/Web-Lock keys. App code derives these
-      // from PRODUCT_NAMESPACE; this catches the remaining literals in docs and
-      // Playwright storage-state fixtures.
-      [`${current.namespace}-`, `${next.namespace}-`],
+      // Namespaced runtime keys, one explicit pair each. App code derives these
+      // from PRODUCT_NAMESPACE; these pairs catch the remaining LITERALS in docs,
+      // overview tables and Playwright storage fixtures. Explicit rather than a
+      // blanket `core-` rule, which would also rewrite ordinary hyphenated English
+      // like `core-concepts` in the vendored skills and break doc anchors.
+      ...NAMESPACE_KEY_SUFFIXES.map((suffix) => [
+        `${current.namespace}-${suffix}`,
+        `${next.namespace}-${suffix}`,
+      ]),
     ]);
     for (const change of plan) {
       renamedFiles += 1;

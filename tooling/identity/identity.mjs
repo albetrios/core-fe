@@ -461,7 +461,14 @@ export function upperSnakePrefix(value) {
  * are `__`-prefixed, and `_` is a word character.
  */
 export function camelPrefix(value) {
-  return new RegExp(`${esc(value)}(?=[A-Z])`, 'g');
+  // Only the FIRST character is case-flexible: `[cC]oreFe`. A blanket /i flag would
+  // make the `[A-Z]` lookahead case-insensitive too, so `corefetch` would match.
+  // PascalCase type aliases (`type CoreFeRouter`) live in tests/utils/e2e-auth.ts.
+  const first = value.charAt(0);
+  return new RegExp(
+    `[${first.toLowerCase()}${first.toUpperCase()}]${esc(value.slice(1))}(?=[A-Z])`,
+    'g',
+  );
 }
 
 /** `core-fe` → `coreFe` — the camelCase spelling of a kebab slug. */
@@ -473,6 +480,23 @@ export function kebabToCamel(value) {
 export function kebabToUpperSnake(value) {
   return value.toUpperCase().replace(/-/g, '_');
 }
+
+/**
+ * Runtime identifiers namespaced with {@link Identity.namespace}. App code derives
+ * these from `PRODUCT_NAMESPACE`; this list exists so the sweep can also fix the
+ * remaining LITERALS in docs, overview tables and Playwright storage fixtures.
+ *
+ * Deliberately an explicit list rather than a blanket `core-` prefix rule: that rule
+ * would also rewrite ordinary hyphenated English such as `core-concepts` in the
+ * vendored agent-os skills, and break doc anchors.
+ */
+export const NAMESPACE_KEY_SUFFIXES = [
+  'auth',
+  'consent',
+  'onboarding',
+  'last-organization',
+  'recovery-codes',
+];
 
 /** Carry the matched text's leading capitalisation onto the replacement. */
 function matchCase(source, replacement) {
@@ -492,6 +516,14 @@ export function patternFor(from) {
     return { regex: upperSnakePrefix(from), preserveCase: false };
   if (/^[a-z]+[A-Z]/.test(from)) return { regex: camelPrefix(from), preserveCase: false };
   if (from.includes('-')) return { regex: slugWordCI(from), preserveCase: true };
+  // Multi-word display name — case-insensitive, because prose lowercases the
+  // second word: "Core frontend project architecture" never matched "Core Frontend".
+  if (from.includes(' ')) {
+    return {
+      regex: new RegExp(`(?<![\\w-])${esc(from)}(?![\\w-])`, 'gi'),
+      preserveCase: true,
+    };
+  }
   return { regex: wholeWord(from), preserveCase: false };
 }
 
