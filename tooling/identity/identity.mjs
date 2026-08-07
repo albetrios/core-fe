@@ -462,7 +462,8 @@ export function upperSnakePrefix(value) {
  */
 export function camelPrefix(value) {
   // Only the FIRST character is case-flexible: `[cC]oreFe`. A blanket /i flag would
-  // make the `[A-Z]` lookahead case-insensitive too, so `corefetch` would match.
+  // make the `[A-Z]` lookahead case-insensitive too, so a longer all-lowercase word
+  // beginning with the slug would match.
   // PascalCase type aliases (`type CoreFeRouter`) live in tests/utils/e2e-auth.ts.
   const first = value.charAt(0);
   return new RegExp(
