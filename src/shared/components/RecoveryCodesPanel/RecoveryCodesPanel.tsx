@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PRODUCT_NAME } from '@/lib/product-identity.ts';
+import { PRODUCT_NAME, PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import { copySensitiveText } from '@/lib/sensitive-clipboard.ts';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -59,7 +59,7 @@ export function RecoveryCodesPanel({
     const url = URL.createObjectURL(buildDownloadBlob(codes));
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'core-recovery-codes.txt';
+    anchor.download = `${PRODUCT_NAMESPACE}-recovery-codes.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
     notify.info(t(keys.downloadStarted));

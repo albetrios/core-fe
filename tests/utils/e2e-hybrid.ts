@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import { installE2eCaptchaHeadersOnAuthApi } from '@/tests/utils/e2e-captcha.ts';
 
 /**
@@ -89,9 +90,11 @@ export async function gotoApp(
   path: string,
   opts?: { timeout?: number },
 ): Promise<void> {
-  await page.addInitScript(() => {
-    sessionStorage.setItem('core-auth-skip-auto-google', '1');
-  });
+  // Passed as an arg: addInitScript serialises the callback into the browser, so
+  // it cannot close over a Node-side import.
+  await page.addInitScript((key: string) => {
+    sessionStorage.setItem(key, '1');
+  }, `${PRODUCT_NAMESPACE}-auth-skip-auto-google`);
   if (path === '/login' || path.startsWith('/login?')) {
     await installE2eCaptchaHeadersOnAuthApi(page);
   }

@@ -1,3 +1,5 @@
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 /**
  * Same-origin path guard for post-auth redirects (the `?redirect=` / `returnTo`
  * target). Shared by every auth flow (login, MFA, …) — pages can't import from
@@ -51,7 +53,7 @@ export function isSafeExternalHttpsUrl(value: unknown): value is string {
   }
 }
 
-const RETURN_TO_KEY = 'core-auth:return-to';
+const RETURN_TO_KEY = `${PRODUCT_NAMESPACE}-auth:return-to`;
 
 /**
  * Persist a `returnTo` across an OAuth provider round-trip (full-page redirect

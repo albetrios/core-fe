@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@/core/config/constants.ts';
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import { registerNewUserAndGoToDashboard } from '@/tests/utils/e2e-auth.ts';
 import { uniqueE2eEmail } from '@/tests/utils/e2e-faker.ts';
 import {
@@ -74,9 +75,9 @@ test.describe('Authentication', () => {
   });
 
   test('redirects unauthenticated users to login', async ({ page }) => {
-    await page.addInitScript(() => {
-      sessionStorage.setItem('core-auth-skip-auto-google', '1');
-    });
+    await page.addInitScript((key: string) => {
+      sessionStorage.setItem(key, '1');
+    }, `${PRODUCT_NAMESPACE}-auth-skip-auto-google`);
     await page.goto('/');
     await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
     await expectAuthScreenReady(page);

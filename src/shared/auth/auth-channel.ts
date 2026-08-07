@@ -1,3 +1,5 @@
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 /**
  * Cross-tab auth synchronization over the BroadcastChannel API.
  *
@@ -14,7 +16,7 @@
  * Degrades silently where BroadcastChannel is unavailable (older browsers,
  * jsdom): every export becomes a no-op, so callers need no feature checks.
  */
-const CHANNEL_NAME = 'core-auth';
+const CHANNEL_NAME = `${PRODUCT_NAMESPACE}-auth`;
 
 interface AuthBroadcast {
   readonly type: 'logout';

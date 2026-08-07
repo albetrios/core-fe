@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 /** Ordered steps of the post-signup onboarding wizard. */
 export const ONBOARDING_STEPS = [
   'welcome',
@@ -133,6 +135,6 @@ export const useOnboardingStore = create<OnboardingStore>()(
               },
         ),
     }),
-    { name: 'core-onboarding' },
+    { name: `${PRODUCT_NAMESPACE}-onboarding` },
   ),
 );

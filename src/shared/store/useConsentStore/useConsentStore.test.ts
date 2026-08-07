@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 import { hasAnalyticsConsent, useConsentStore } from './useConsentStore.ts';
 
 describe('useConsentStore', () => {
@@ -26,7 +28,7 @@ describe('useConsentStore', () => {
 
   it('persists the decision to localStorage', () => {
     useConsentStore.getState().setAnalyticsConsent('granted');
-    expect(localStorage.getItem('core-consent')).toContain('granted');
+    expect(localStorage.getItem(`${PRODUCT_NAMESPACE}-consent`)).toContain('granted');
   });
 
   it('reset returns to undecided', () => {

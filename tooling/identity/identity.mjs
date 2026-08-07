@@ -55,6 +55,7 @@ const SETUP_CONFIG = 'tooling/setup/setup.config.json';
  * @property {string} backgroundColor PWA splash background colour.
  * @property {string} codeowner       Default CODEOWNERS handle (`@user` or `@org/team`).
  * @property {string} backendName     Sibling backend repo (`core-be`).
+ * @property {string} namespace       Prefix for storage keys / channel names (`core`).
  * @property {string} repository      GitHub `owner/repo` slug.
  */
 
@@ -81,6 +82,10 @@ export function loadIdentity(root = ROOT) {
     // ~450 places: the `{ data, meta }` envelope comments, the E2E readiness probe,
     // and `contracts:drift`, which resolves `../<backendName>/docs/routes.txt`.
     backendName: project.backendName,
+    // Prefix for runtime identifiers a user can see in devtools — localStorage
+    // keys, the BroadcastChannel name, Web Lock names, the recovery-codes
+    // filename. Part of identity so app code derives them instead of hardcoding.
+    namespace: project.namespace,
     repository: raw.providers?.github?.repository,
   };
 
@@ -131,6 +136,14 @@ export const PRODUCT_THEME_COLOR = ${tsString(identity.themeColor)};
 
 /** PWA splash \`background_color\`. */
 export const PRODUCT_BACKGROUND_COLOR = ${tsString(identity.backgroundColor)};
+
+/**
+ * Prefix for runtime identifiers the user can see: localStorage keys, the
+ * cross-tab BroadcastChannel, Web Lock names, the recovery-codes filename.
+ * Derive these — never hardcode \`'core-…'\`, or a renamed product ships the
+ * previous brand in devtools and in downloaded files.
+ */
+export const PRODUCT_NAMESPACE = ${tsString(identity.namespace)};
 `;
 }
 
@@ -417,6 +430,71 @@ export function slugWord(value) {
   );
 }
 
+/** Escape a value for literal use inside a RegExp. */
+const esc = (value) => value.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&');
+
+/**
+ * Case-INSENSITIVE slug matcher.
+ *
+ * Prose capitalises at the start of a sentence — "Core-fe uses PostHog for…" — and
+ * a case-sensitive sweep walks straight past it. Three such occurrences survived a
+ * full rename (two integration docs plus an `errorHandler.ts` docstring saying
+ * "Core-be error envelope") and were reported as clean, because the audit was
+ * case-sensitive too.
+ */
+export function slugWordCI(value) {
+  return new RegExp(`(?<!\\w)${esc(value)}(?!\\w)`, 'gi');
+}
+
+/**
+ * Match an UPPER_SNAKE token plus anything suffixed onto it: `CORE_BE` hits both
+ * `CORE_BE_DIR` and `CORE_BE_READY_URL`, which a whole-word matcher misses because
+ * `_` is a word character.
+ */
+export function upperSnakePrefix(value) {
+  return new RegExp(`(?<!\\w)${esc(value)}(?=_|\\b)`, 'g');
+}
+
+/**
+ * Match a camelCase identifier prefix: `coreFe` hits `coreFeTestEnv` and
+ * `__coreFeRouter`. Deliberately no left word-boundary — the dev hooks on `window`
+ * are `__`-prefixed, and `_` is a word character.
+ */
+export function camelPrefix(value) {
+  return new RegExp(`${esc(value)}(?=[A-Z])`, 'g');
+}
+
+/** `core-fe` → `coreFe` — the camelCase spelling of a kebab slug. */
+export function kebabToCamel(value) {
+  return value.replace(/-([a-z])/g, (_m, character) => character.toUpperCase());
+}
+
+/** `core-be` → `CORE_BE` — the UPPER_SNAKE spelling of a kebab slug. */
+export function kebabToUpperSnake(value) {
+  return value.toUpperCase().replace(/-/g, '_');
+}
+
+/** Carry the matched text's leading capitalisation onto the replacement. */
+function matchCase(source, replacement) {
+  const first = source.charAt(0);
+  const isUpper = first === first.toUpperCase() && first !== first.toLowerCase();
+  return isUpper
+    ? replacement.charAt(0).toUpperCase() + replacement.slice(1)
+    : replacement;
+}
+
+/**
+ * Pick the matcher for a replacement token by its shape, so callers pass plain
+ * strings and the rules stay in one place.
+ */
+export function patternFor(from) {
+  if (/^[A-Z\d_]+$/.test(from))
+    return { regex: upperSnakePrefix(from), preserveCase: false };
+  if (/^[a-z]+[A-Z]/.test(from)) return { regex: camelPrefix(from), preserveCase: false };
+  if (from.includes('-')) return { regex: slugWordCI(from), preserveCase: true };
+  return { regex: wholeWord(from), preserveCase: false };
+}
+
 /**
  * Walk every text file eligible for a repo-wide rename.
  *
@@ -492,11 +570,11 @@ export function planRename(root, replacements) {
     let count = 0;
     for (const [from, to] of replacements) {
       if (!from || from === to) continue;
-      const pattern = from.includes('-') ? slugWord(from) : wholeWord(from);
-      const matches = next.match(pattern);
+      const { regex, preserveCase } = patternFor(from);
+      const matches = next.match(regex);
       if (!matches) continue;
       count += matches.length;
-      next = next.replace(pattern, to);
+      next = next.replace(regex, preserveCase ? (match) => matchCase(match, to) : to);
     }
     next = unmaskProtected(next);
     if (count > 0 && next !== before) changes.push({ file, count, next });
@@ -524,8 +602,11 @@ export function findPreviousNames(identity, root = ROOT) {
     let text = maskProtected(readFileSync(join(root, file), 'utf8'));
     text = text.replace(/("previousNames":\s*)\[[^\]]*\]/, '$1[]');
     for (const name of previous) {
-      const pattern = name.includes('-') ? slugWord(name) : wholeWord(name);
-      const count = (text.match(pattern) ?? []).length;
+      // Same shape-based matching the sweep uses, so the guard catches a retired
+      // name in any spelling the sweep would have rewritten — including the
+      // sentence-capitalised "Core-fe" that a case-sensitive check missed.
+      const { regex } = patternFor(name);
+      const count = (text.match(regex) ?? []).length;
       if (count > 0) found.push({ file, name, count });
     }
   }

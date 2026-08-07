@@ -1,4 +1,6 @@
-const SKIP_AUTO_GOOGLE_KEY = 'core-auth-skip-auto-google';
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
+const SKIP_AUTO_GOOGLE_KEY = `${PRODUCT_NAMESPACE}-auth-skip-auto-google`;
 
 /** User cancelled auto Google or a prior attempt failed — skip until tab closes. */
 export function skipAutoGoogleSignIn(): void {

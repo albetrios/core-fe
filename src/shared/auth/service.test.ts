@@ -1,5 +1,6 @@
 import { type Mock, vi } from 'vitest';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -263,7 +264,7 @@ describe('auth/service', () => {
         await refreshAccessToken();
 
         expect(lockRequest).toHaveBeenCalledTimes(1);
-        expect(lockRequest.mock.calls[0]?.[0]).toBe('core-auth:refresh');
+        expect(lockRequest.mock.calls[0]?.[0]).toBe(`${PRODUCT_NAMESPACE}-auth:refresh`);
         expect(getAccessToken()).toBe(VALID_TOKEN);
       } finally {
         delete (navigator as { locks?: unknown }).locks;

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import type { MeContext } from './me-context.ts';
@@ -51,9 +52,9 @@ describe('organization context (URL → derived store)', () => {
     expect(useOrganizationStore.getState().organizationId).toBe('org_acme');
     expect(useOrganizationStore.getState().organizationSlug).toBe('acme');
     // The active org lives in the URL + derived store only — never localStorage.
-    // A persisted `core-last-organization` pointer used to survive logout and
+    // A persisted `${PRODUCT_NAMESPACE}-last-organization` pointer used to survive logout and
     // expose the previous user's org to the next sign-in on this browser.
-    expect(localStorage.getItem('core-last-organization')).toBeNull();
+    expect(localStorage.getItem(`${PRODUCT_NAMESPACE}-last-organization`)).toBeNull();
   });
 
   it('does not reset the store when the organization is unchanged', () => {

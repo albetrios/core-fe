@@ -26,6 +26,8 @@ export interface Identity {
   repository: string;
   /** Sibling backend repo this app calls (`core-be`) — renamed with the product. */
   backendName: string;
+  /** Prefix for storage keys / channel names (`core`). */
+  namespace: string;
   /** Every name this repo has carried; `validate:identity` fails if one reappears. */
   previousNames: string[];
 }
@@ -60,6 +62,24 @@ export function derivedSurfaces(identity: Identity, root?: string): DerivedSurfa
 
 /** `core-be` → `CORE_BE_DIR` — the env var that relocates the sibling checkout. */
 export function backendDirEnvVar(backendName: string): string;
+
+/** Case-insensitive slug matcher — catches sentence-capitalised "Core-fe". */
+export function slugWordCI(value: string): RegExp;
+
+/** Match an UPPER_SNAKE token plus suffixes (`CORE_BE` hits `CORE_BE_DIR`). */
+export function upperSnakePrefix(value: string): RegExp;
+
+/** Match a camelCase identifier prefix (`coreFe` hits `__coreFeRouter`). */
+export function camelPrefix(value: string): RegExp;
+
+/** `core-fe` → `coreFe`. */
+export function kebabToCamel(value: string): string;
+
+/** `core-be` → `CORE_BE`. */
+export function kebabToUpperSnake(value: string): string;
+
+/** Pick the matcher for a token by its shape. */
+export function patternFor(from: string): { regex: RegExp; preserveCase: boolean };
 
 /** Match a name as a whole word, bounded by ASCII word characters only. */
 export function wholeWord(value: string): RegExp;

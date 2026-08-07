@@ -9,6 +9,7 @@
     "backgroundColor": "#ffffff",
     "codeowner": "@nikunjmavani",
     "backendName": "core-be",
+    "namespace": "core",
     "previousNames": []
   },
   "git": {

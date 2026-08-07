@@ -21,3 +21,11 @@ export const PRODUCT_THEME_COLOR = '#0a0a0a';
 
 /** PWA splash `background_color`. */
 export const PRODUCT_BACKGROUND_COLOR = '#ffffff';
+
+/**
+ * Prefix for runtime identifiers the user can see: localStorage keys, the
+ * cross-tab BroadcastChannel, Web Lock names, the recovery-codes filename.
+ * Derive these — never hardcode `'core-…'`, or a renamed product ships the
+ * previous brand in devtools and in downloaded files.
+ */
+export const PRODUCT_NAMESPACE = 'core';

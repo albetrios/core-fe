@@ -30,6 +30,8 @@ import { join } from 'node:path';
 import {
   backendDirEnvVar,
   derivedSurfaces,
+  kebabToCamel,
+  kebabToUpperSnake,
   loadIdentity,
   planRename,
   ROOT,
@@ -107,6 +109,7 @@ function main() {
   --owner <@handle>       CODEOWNERS handle         (default: keep current)
   --description "<text>"  product description       (default: keep current)
   --backend <repo-name>   sibling backend repo      (default: <name> with -fe -> -be)
+  --namespace <prefix>    storage/channel key prefix (default: first word of <name>)
   --apply                 write changes (default is a dry run)
 
 Current identity: ${current.productName} (${current.name}) — ${current.repository}
@@ -145,9 +148,19 @@ See docs/getting-started/new-project.md.`);
           ? `${name}-be`
           : name.replace(/-fe$/, '-be');
 
+  // Runtime-identifier prefix: the slug's leading word, so `twilio-fe` yields
+  // `twilio` and storage keys stay aligned with the product.
+  const namespace =
+    typeof flags.namespace === 'string'
+      ? flags.namespace
+      : sync
+        ? current.namespace
+        : (name.split('-')[0] ?? name);
+
   const next = {
     ...current,
     backendName,
+    namespace,
     name,
     displayName: sync ? current.displayName : `${productName} Frontend`,
     productName,
@@ -203,6 +216,7 @@ See docs/getting-started/new-project.md.`);
         block = setString(block, 'productDescription', next.productDescription);
         block = setString(block, 'codeowner', next.codeowner);
         block = setString(block, 'backendName', next.backendName);
+        block = setString(block, 'namespace', next.namespace);
         return `${open}${block}${close}`;
       },
       // `repository` lives under `providers.github` and is a unique key, so it is
@@ -253,12 +267,23 @@ See docs/getting-started/new-project.md.`);
     // "Core Layer", which names the `src/core/` architecture layer, became
     // "<Product> Layer". User-visible branding does not rely on this pass: it comes
     // from the 17 structural surfaces and the {{productName}} i18n variable.
+    // Each pair's matcher is chosen by token SHAPE (see patternFor): kebab slugs
+    // match case-INSENSITIVELY and preserve capitalisation, UPPER_SNAKE matches
+    // suffixed forms, camelCase matches identifier prefixes.
     const plan = planRename(ROOT, [
+      // Case-insensitive, so sentence-capitalised "Core-fe uses PostHog…" in prose
+      // is caught. Three such lines survived a rename before this was fixed.
       [current.name, next.name],
-      [current.displayName, next.displayName],
       [current.backendName, next.backendName],
-      // The uppercase env-var spelling is a distinct token the slug pass cannot see.
-      [backendDirEnvVar(current.backendName), backendDirEnvVar(next.backendName)],
+      [current.displayName, next.displayName],
+      // UPPER_SNAKE: one pair covers CORE_BE_DIR and CORE_BE_READY_URL.
+      [kebabToUpperSnake(current.backendName), kebabToUpperSnake(next.backendName)],
+      // camelCase: coreFeTestEnv, __coreFeRouter, __coreFeEstablishSession.
+      [kebabToCamel(current.name), kebabToCamel(next.name)],
+      // Namespace prefix — storage/channel/Web-Lock keys. App code derives these
+      // from PRODUCT_NAMESPACE; this catches the remaining literals in docs and
+      // Playwright storage-state fixtures.
+      [`${current.namespace}-`, `${next.namespace}-`],
     ]);
     for (const change of plan) {
       renamedFiles += 1;
@@ -282,6 +307,8 @@ See docs/getting-started/new-project.md.`);
       // legitimate sentences and get the gate switched off.
       const retired = [
         ...new Set([...(current.previousNames ?? []), current.name, current.backendName]),
+        // The bare namespace is deliberately NOT tracked: it is a common word
+        // ("core"), and guarding on it would flag src/core/ and 208 @/core/ imports.
       ].filter((entry) => entry !== next.name && entry !== next.backendName);
       const configNow = readFileSync(configPath, 'utf8');
       writeFileSync(
