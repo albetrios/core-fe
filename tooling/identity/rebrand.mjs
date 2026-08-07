@@ -149,8 +149,8 @@ See docs/getting-started/new-project.md.`);
           ? `${name}-be`
           : name.replace(/-fe$/, '-be');
 
-  // Runtime-identifier prefix: the slug's leading word, so `twilio-fe` yields
-  // `twilio` and storage keys stay aligned with the product.
+  // Runtime-identifier prefix: the slug's leading word, so `acme-fe` yields
+  // `acme` and storage keys stay aligned with the product.
   const namespace =
     typeof flags.namespace === 'string'
       ? flags.namespace
