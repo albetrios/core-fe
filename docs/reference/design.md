@@ -10,7 +10,7 @@ fonts/brand. Craft is elevated inside those rails, never around them.
 
 ## 1. Point of view
 
-Core is a **quiet, neutral control surface that turns expressive on
+This product is a **quiet, neutral control surface that turns expressive on
 demand.** The default look is monochrome and content-first — the chrome recedes
 so data and actions lead. Personality (accent hue, fonts, density, icon set) is
 **opt-in** through the Appearance studio and Shuffle, never forced onto a fresh
@@ -128,7 +128,7 @@ on its surface, in both modes.
      locally, not on admin shells.
 
 - **Not Claude-width by default.** Chat products cap ~720–768px for long answers.
-  Core is a control surface — width is for tables and panels; constrain
+  This product is a control surface — width is for tables and panels; constrain
   copy, not chrome. Full rules: [preset-product-design-rules.md § Layout](preset-product-design-rules.md#layout--grid-shell-vs-page-vs-prose).
 
 ## 5. Motion
