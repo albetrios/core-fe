@@ -63,19 +63,19 @@ export function derivedSurfaces(identity: Identity, root?: string): DerivedSurfa
 /** `core-be` → `CORE_BE_DIR` — the env var that relocates the sibling checkout. */
 export function backendDirEnvVar(backendName: string): string;
 
-/** Case-insensitive slug matcher — catches sentence-capitalised "Core-fe". */
+/** Case-insensitive slug matcher — catches a sentence-capitalised slug. */
 export function slugWordCI(value: string): RegExp;
 
-/** Match an UPPER_SNAKE token plus suffixes (`CORE_BE` hits `CORE_BE_DIR`). */
+/** Match an UPPER_SNAKE token plus suffixes (`<SLUG>_BE` hits `<SLUG>_BE_DIR`). */
 export function upperSnakePrefix(value: string): RegExp;
 
-/** Match a camelCase identifier prefix (`coreFe` hits `__coreFeRouter`). */
+/** Match a camelCase identifier prefix — `<slug>Fe` hits `__<slug>FeRouter`. */
 export function camelPrefix(value: string): RegExp;
 
-/** `core-fe` → `coreFe`. */
+/** Kebab slug to its camelCase spelling. */
 export function kebabToCamel(value: string): string;
 
-/** `core-be` → `CORE_BE`. */
+/** Kebab slug to its UPPER_SNAKE spelling. */
 export function kebabToUpperSnake(value: string): string;
 
 /** Pick the matcher for a token by its shape. */

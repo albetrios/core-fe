@@ -419,8 +419,8 @@ const TEXT_EXTENSIONS = [
 
 /**
  * Match a slug as a whole word where a hyphen counts as a boundary, so
- * `core-fe-dist.tgz` and `development--core-fe.netlify.app` both match while
- * `core-fetch` does not. Distinct from {@link wholeWord}, which treats `-` as part
+ * `<slug>-dist.tgz` and `development--<slug>.netlify.app` both match, while a
+ * longer word that merely starts with the slug does not. Distinct from {@link wholeWord}, which treats `-` as part
  * of the word — correct for a display name, wrong for a hyphenated slug.
  */
 export function slugWord(value) {
@@ -456,8 +456,8 @@ export function upperSnakePrefix(value) {
 }
 
 /**
- * Match a camelCase identifier prefix: `coreFe` hits `coreFeTestEnv` and
- * `__coreFeRouter`. Deliberately no left word-boundary — the dev hooks on `window`
+ * Match a camelCase identifier prefix — the camelCase spelling of the slug hits
+ * `…TestEnv` and `__…Router`. Deliberately no left word-boundary — the dev hooks on `window`
  * are `__`-prefixed, and `_` is a word character.
  */
 export function camelPrefix(value) {
@@ -471,12 +471,12 @@ export function camelPrefix(value) {
   );
 }
 
-/** `core-fe` → `coreFe` — the camelCase spelling of a kebab slug. */
+/** Kebab slug to its camelCase spelling. */
 export function kebabToCamel(value) {
   return value.replace(/-([a-z])/g, (_m, character) => character.toUpperCase());
 }
 
-/** `core-be` → `CORE_BE` — the UPPER_SNAKE spelling of a kebab slug. */
+/** Kebab slug to its UPPER_SNAKE spelling. */
 export function kebabToUpperSnake(value) {
   return value.toUpperCase().replace(/-/g, '_');
 }
