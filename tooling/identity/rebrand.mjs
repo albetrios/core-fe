@@ -24,7 +24,8 @@
  *     binary toolchain (PNG icon regeneration) — those are printed as a
  *     checklist instead of being half-done silently.
  */
-import { renameSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, renameSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -365,6 +366,45 @@ See docs/getting-started/new-project.md.`);
   if (sync) {
     console.log(`  ${DIM}Run pnpm validate:identity to confirm.${RESET}\n`);
     return;
+  }
+
+  // Derived artifacts that a rename invalidates. Both were previously left to the
+  // checklist, which meant `pnpm sync:check` was RED on a freshly renamed product —
+  // the project tree because a FILE was renamed, and the agent-os lock because the
+  // prose sweep rewrote every vendored SKILL.md. Run them here so an adoption starts
+  // green instead of "green once you remember two commands".
+  const regenerations = [
+    {
+      label: 'project tree (tool:project-structure-tree)',
+      command: 'python3',
+      args: ['tooling/reports/generate-project-tree.py'],
+      available: true,
+    },
+    {
+      label: 'agent-os skills-lock (agent-os:lock)',
+      command: 'pnpm',
+      args: ['agent-os:lock'],
+      // Needs tsx from node_modules; on a fresh clone it is not installed yet.
+      available: existsSync(join(ROOT, 'node_modules')),
+    },
+  ];
+  const deferred = [];
+  for (const step of regenerations) {
+    if (!step.available) {
+      deferred.push(step.label);
+      continue;
+    }
+    const result = spawnSync(step.command, step.args, { cwd: ROOT, stdio: 'ignore' });
+    if (result.status === 0) {
+      console.log(`  ${GREEN}✓${RESET} regenerated ${DIM}${step.label}${RESET}`);
+    } else {
+      deferred.push(step.label);
+    }
+  }
+  if (deferred.length > 0) {
+    console.log(
+      `  ${YELLOW}!${RESET} still to regenerate after ${BOLD}pnpm install${RESET}: ${deferred.join(', ')}`,
+    );
   }
 
   console.log(`\n${BOLD}Manual steps this script cannot do${RESET} ${DIM}(credentials or binary tooling)${RESET}
