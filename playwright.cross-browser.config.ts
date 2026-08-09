@@ -26,9 +26,18 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
-    command: 'pnpm preview --port 4173 --strictPort',
+    // Builds its own bundle with VITE_VERSION_CHECK on. The version-update specs assert
+    // the "Update available" toast, and that flag is inlined at BUILD time while
+    // envProfiles.local.defaults pins it false — so the documented `pnpm build && pnpm
+    // preview` flow baked the feature out and produced 9 identical false failures across
+    // all three engines. Test-runner env belongs to the harness, never the developer's
+    // .env.local.
+    command:
+      'VITE_VERSION_CHECK=true pnpm build && pnpm preview --port 4173 --strictPort',
     url: 'http://localhost:4173',
-    reuseExistingServer: true,
-    timeout: 120_000,
+    // false: a stale flag-less preview left running would silently reintroduce the
+    // false failures this config exists to prevent.
+    reuseExistingServer: false,
+    timeout: 240_000,
   },
 });

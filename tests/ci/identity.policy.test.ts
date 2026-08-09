@@ -11,6 +11,7 @@ import {
   findPreviousNames,
   loadIdentity,
   planRename,
+  renamedFiles,
   renderProductIdentityModule,
   wholeWord,
 } from '../../tooling/identity/identity.mjs';
@@ -190,6 +191,25 @@ describe('product identity', () => {
       const files = rename().map((change) => change.file);
       expect(files).not.toContain('CHANGELOG.md');
       expect(files).not.toContain('pnpm-lock.yaml');
+    });
+
+    it('renames files whose NAME embeds the identity', () => {
+      // Contents-only rewriting left a derived product with files literally named
+      // after the previous product, reddening tool:project-structure-tree:check on
+      // every adoption. Nothing renamed files before this.
+      expect(renamedFiles(identity, ROOT)).toEqual([]);
+      const renamed = { ...identity, backendName: 'zzslug-be' };
+      const pending = renamedFiles(renamed, ROOT);
+      expect(pending.length).toBeGreaterThan(0);
+      expect(pending[0]?.to).toContain('zzslug-be-sample-responses.json');
+    });
+
+    it('runs the rebrand script without a scope error', () => {
+      // A local `let renamedFiles` once shadowed the imported function for the whole
+      // function scope, so the on-disk rename hit a temporal-dead-zone ReferenceError
+      // and crashed the whole script. Assert the identifier is not re-bound locally.
+      const script = read('tooling/identity/rebrand.mjs');
+      expect(script).not.toMatch(/\b(?:let|const|var)\s+renamedFiles\b/);
     });
 
     it('has no retired name still present', () => {

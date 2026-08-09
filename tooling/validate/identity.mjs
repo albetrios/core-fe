@@ -37,6 +37,7 @@ import {
   findIncompleteTransforms,
   findPreviousNames,
   loadIdentity,
+  renamedFiles,
   wholeWord,
 } from '../identity/identity.mjs';
 
@@ -199,6 +200,17 @@ function main() {
   occurrence genuinely is not product branding, add the path with a reason to
   tooling/validate/identity-allowlist.txt.
 `);
+  }
+
+  // ── 3b. Files whose NAME still embeds the identity ────────────────────────
+  const pendingRenames = renamedFiles(identity, ROOT);
+  if (pendingRenames.length > 0) {
+    failed = true;
+    console.error(`\nidentity: ${pendingRenames.length} file(s) need renaming on disk:\n`);
+    for (const { from, to } of pendingRenames) {
+      console.error(`  ✖ ${from}  →  ${to}`);
+    }
+    console.error('\n  Fix: pnpm identity:sync\n');
   }
 
   // ── 4. A retired name coming back ─────────────────────────────────────────

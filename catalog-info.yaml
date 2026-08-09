@@ -32,5 +32,5 @@ spec:
   owner: team-frontend
   system: core-platform
   dependsOn:
-    - component:core-api
+    - component:core-be
   providesApis: []

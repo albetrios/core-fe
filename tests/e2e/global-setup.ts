@@ -1,5 +1,6 @@
 import pg from 'pg';
 
+import { PRODUCT_NAME, PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import {
   probeE2eAuthHeaders,
   writeCachedE2eAuthHeaders,
@@ -11,11 +12,20 @@ import {
  */
 const CORE_BE_READY_URL = 'http://localhost:3000/readyz';
 
+/**
+ * Local-compose fallbacks, derived from {@link PRODUCT_NAMESPACE} rather than hardcoded.
+ *
+ * The backend's compose file provisions `POSTGRES_USER/PASSWORD/DB` from the product
+ * stem, so a derived product's database is named after ITS namespace. Hardcoding
+ * `core` here meant a renamed product could never auto-detect Postgres — and because
+ * the failure path below only warned, the suite then passed green while every
+ * authenticated journey silently no-oped.
+ */
 const DATABASE_URL_CANDIDATES = [
   process.env.DATABASE_URL,
   process.env.E2E_DATABASE_URL,
-  'postgresql://core:core@localhost:5432/core',
-  'postgresql://postgres:postgres@localhost:5432/core',
+  `postgresql://${PRODUCT_NAMESPACE}:${PRODUCT_NAMESPACE}@localhost:5432/${PRODUCT_NAMESPACE}`,
+  `postgresql://postgres:postgres@localhost:5432/${PRODUCT_NAMESPACE}`,
 ].filter((url): url is string => Boolean(url));
 
 async function detectDatabaseUrl(): Promise<string | undefined> {
@@ -57,13 +67,33 @@ export default async function globalSetup(): Promise<void> {
     if (detected) {
       process.env.DATABASE_URL = detected;
       console.info(`E2E: using Postgres at ${detected} for email-code helpers`);
-    } else {
+    } else if (process.env.E2E_ALLOW_NO_DATABASE === 'true') {
       console.warn(
         [
-          'WARNING: Could not connect to Postgres for auth.mail_outbox.',
-          'Email-code UI/API E2E will skip authenticated flows.',
-          'Set DATABASE_URL or E2E_DATABASE_URL (local core-be docker: postgresql://core:core@localhost:5432/core).',
+          'WARNING: no Postgres — running with E2E_ALLOW_NO_DATABASE=true.',
+          'Every authenticated journey (email-code sign-in, logout, org switch, invite)',
+          'will SKIP. This run does not cover auth.',
         ].join(' '),
+      );
+    } else {
+      // Deliberately fatal. This used to warn and continue, so a run with no database
+      // reported GREEN while silently skipping every authenticated journey — the worst
+      // possible failure mode for a suite whose job is to prove auth works. Opt out
+      // explicitly with E2E_ALLOW_NO_DATABASE=true when you only want anonymous specs.
+      throw new Error(
+        [
+          `E2E could not connect to Postgres for auth.mail_outbox (${PRODUCT_NAME} email-code helpers).`,
+          '',
+          'Without it every authenticated journey silently skips, so this is fatal',
+          'rather than a warning — a green run would misreport auth coverage.',
+          '',
+          'Fix one of:',
+          `  • start the backend's local Postgres (compose provisions ${PRODUCT_NAMESPACE}/${PRODUCT_NAMESPACE}/${PRODUCT_NAMESPACE})`,
+          '  • export DATABASE_URL or E2E_DATABASE_URL',
+          '  • export E2E_ALLOW_NO_DATABASE=true to accept an auth-free run',
+          '',
+          `Tried: ${[...new Set(DATABASE_URL_CANDIDATES)].join(', ')}`,
+        ].join('\n'),
       );
     }
   }

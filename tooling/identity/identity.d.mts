@@ -96,6 +96,12 @@ export function planRename(
   replacements: Array<[string, string]>,
 ): Array<{ file: string; count: number; next: string }>;
 
+/** Files whose NAME embeds the identity and must be renamed on disk. */
+export function renamedFiles(
+  identity: Identity,
+  root?: string,
+): Array<{ from: string; to: string }>;
+
 /** Occurrences of a name this repo used to carry — must always be empty. */
 export function findPreviousNames(
   identity: Identity,

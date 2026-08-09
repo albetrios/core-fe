@@ -36,7 +36,7 @@
  * `pnpm validate:identity` fails if any of them reappears — so the old name cannot
  * creep back in through a merge or a copy-paste.
  */
-import { lstatSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -236,6 +236,11 @@ export function derivedSurfaces(identity, root = ROOT) {
             `$1${repository}`,
           )
           .replace(/^(\s*sentry\.io\/project-slug:\s*).*$/m, `$1${name}`)
+          // The `spec` block was missed originally, so Backstage filed a derived
+          // product under the PREVIOUS product's system and declared a dependency on
+          // a component that does not exist.
+          .replace(/^(\s*system:\s*).*$/m, `$1${identity.namespace}-platform`)
+          .replace(/^(\s*- component:).*$/m, `$1${identity.backendName}`)
           .replace(
             /^(\s*- url:\s*https:\/\/github\.com\/).*(\/actions)$/m,
             `$1${repository}$2`,
@@ -694,6 +699,37 @@ export function findIncompleteTransforms(identity, root = ROOT) {
     }
   }
   return incomplete;
+}
+
+/**
+ * Files whose NAME embeds the identity and must be renamed on disk, not just rewritten.
+ *
+ * The sweep only ever edited file CONTENTS, so a derived product kept files literally
+ * named after the previous product. That produced a specific, repeatable failure: the
+ * committed project tree and a TSDoc citation both said `<backend>-sample-responses.json`
+ * while the file on disk still said `core-be-…`, so `tool:project-structure-tree:check`
+ * — a pre-commit step and a `sync:check` member — went red on every adoption.
+ *
+ * @returns {Array<{ from: string, to: string }>} pending renames (empty when in sync).
+ */
+export function renamedFiles(identity, root = ROOT) {
+  const pending = [];
+  const candidates = [
+    {
+      dir: 'docs/reference/api',
+      match: /^(.*)-sample-responses\.json$/,
+      to: `${identity.backendName}-sample-responses.json`,
+    },
+  ];
+  for (const { dir, match, to } of candidates) {
+    const absolute = join(root, dir);
+    if (!existsSync(absolute)) continue;
+    for (const entry of readdirSync(absolute)) {
+      if (!match.test(entry) || entry === to) continue;
+      pending.push({ from: `${dir}/${entry}`, to: `${dir}/${to}` });
+    }
+  }
+  return pending;
 }
 
 /**

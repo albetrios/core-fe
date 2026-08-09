@@ -24,7 +24,7 @@
  *     binary toolchain (PNG icon regeneration) — those are printed as a
  *     checklist instead of being half-done silently.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { renameSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -34,6 +34,7 @@ import {
   kebabToUpperSnake,
   loadIdentity,
   NAMESPACE_KEY_SUFFIXES,
+  renamedFiles,
   planRename,
   ROOT,
 } from './identity.mjs';
@@ -253,12 +254,25 @@ See docs/getting-started/new-project.md.`);
     }
   }
 
+  // Files whose NAME embeds the identity. Contents-only rewriting left a derived
+  // product with files literally named after the previous product, which reddened
+  // tool:project-structure-tree:check on every adoption.
+  for (const { from, to } of renamedFiles(next)) {
+    changed += 1;
+    console.log(`  ${GREEN}✓${RESET} ${from}  ${DIM}→ ${to} (renamed on disk)${RESET}`);
+    if (apply) renameSync(join(ROOT, from), join(ROOT, to));
+  }
+
   // Repo-wide prose rename. Structural transforms cannot reach sentences like
   // "core-fe is trunk-based" — there is no anchor to hook — so this pass replaces
   // the old name everywhere, skipping CHANGELOG history and generated artifacts.
   // Not run for `--sync`: no rename happened, so there is no old name to replace.
-  let renamedFiles = 0;
-  let renamedOccurrences = 0;
+  // Deliberately NOT named after the imported rename helper: a local binding of that
+  // same identifier shadows the import for the whole function scope, so the on-disk
+  // rename loop above hit a temporal-dead-zone ReferenceError and crashed the script.
+  // Pinned by a regression assertion in tests/ci/identity.policy.test.ts.
+  let proseFilesChanged = 0;
+  let proseOccurrences = 0;
   if (!sync) {
     // Only UNAMBIGUOUS tokens are swept: the slug (`core-fe`) and the display name
     // ("Core Frontend"). The bare product word is deliberately NOT swept in prose.
@@ -292,15 +306,15 @@ See docs/getting-started/new-project.md.`);
       ]),
     ]);
     for (const change of plan) {
-      renamedFiles += 1;
-      renamedOccurrences += change.count;
+      proseFilesChanged += 1;
+      proseOccurrences += change.count;
       if (apply) writeFileSync(join(ROOT, change.file), change.next);
     }
-    if (renamedFiles > 0) {
+    if (proseFilesChanged > 0) {
       console.log(
-        `  ${GREEN}✓${RESET} ${renamedFiles} more file(s)  ${DIM}(${renamedOccurrences} prose/config occurrences of "${current.name}" / "${current.productName}")${RESET}`,
+        `  ${GREEN}✓${RESET} ${proseFilesChanged} more file(s)  ${DIM}(${proseOccurrences} prose/config occurrences of "${current.name}" / "${current.productName}")${RESET}`,
       );
-      changed += renamedFiles;
+      changed += proseFilesChanged;
     }
 
     // Record the retired names LAST. Written after planRename because the pass
@@ -364,7 +378,11 @@ See docs/getting-started/new-project.md.`);
   3. ${BOLD}Deploy + observability${RESET} — create the Netlify site, Sentry project and
      PostHog project, then set NETLIFY_SITE_ID / SENTRY_* / VITE_POSTHOG_* in the
      GitHub Environments (never in a committed file).
-  4. ${BOLD}Re-lock agent-os + reinstall${RESET} — the prose sweep edited skill files, so the
+  4. ${BOLD}Regenerate visual baselines${RESET} — the 5 Playwright snapshots still show the
+     PREVIOUS brand. Only the dark ones exceed maxDiffPixelRatio, so the rest pass while
+     silently encoding the old logo:
+       pnpm test:visual:update      ${DIM}(needs the backend running)${RESET}
+  5. ${BOLD}Re-lock agent-os + reinstall${RESET} — the prose sweep edited skill files, so the
      agent-os skills-lock hashes are stale (agent-os-lock.policy.test.ts fails until
      you regenerate them). The package name changed too:
        pnpm install && pnpm agent-os:lock && pnpm health && pnpm validate:identity

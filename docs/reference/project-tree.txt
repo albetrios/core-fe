@@ -1425,7 +1425,6 @@ core-fe/
 ├── README.md
 ├── SECURITY.md
 ├── SETUP.md
-├── skills-lock.json
 ├── sonar-project.properties
 ├── stryker.config.json
 ├── stryker.config.mjs

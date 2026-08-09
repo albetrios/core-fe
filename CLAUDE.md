@@ -437,7 +437,7 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
 - Protected routes use TanStack Router `beforeLoad` guards in `routeTree.tsx` — the `$organizationSlug` shell runs `requireAuth → requireTeamDeployment → requireProvisionedWorkspace → resolveActiveOrg` (context sync from the URL); leaf routes then run `gatewayFromManifest` (session → module → permission) followed by `requireOrgStatus`; see `src/app/guards/GUARDS.OVERVIEW.md`.
 - RBAC enforcement in `routeTree.tsx` `beforeLoad` via `gatewayFromManifest(manifest)` (+ tenancy guards).
 - Every manifest-backed route sets `head: manifestHead(manifest)` (`lib/routes/page-head.ts`) — app-shell routes without a manifest (`/unauthorized`, the `$` 404 splat) use inline `composePageTitle`; the document
-  title comes from `manifest.title` as `"<title> · Core"`; the root-mounted
+  title comes from `manifest.title` as `` `<title> · <PRODUCT_NAME>` `` (`APP_TITLE = PRODUCT_NAME`); the root-mounted
   `RouteAnnouncer` announces it to screen readers on SPA navigations.
 
 ## New-deployment detection
