@@ -1,17 +1,18 @@
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useTable } from '@tanstack/react-table';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { DataTable } from './DataTable.tsx';
+import { dataTableFeatures } from './table-features.ts';
 
 const COLUMNS = [{ accessorKey: 'name', header: 'Name' }];
 const DATA = [{ name: 'Ada' }, { name: 'Grace' }];
 
 function Harness() {
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data: DATA,
     columns: COLUMNS,
-    getCoreRowModel: getCoreRowModel(),
   });
   return <DataTable table={table} />;
 }

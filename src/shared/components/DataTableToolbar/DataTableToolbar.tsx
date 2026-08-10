@@ -1,8 +1,9 @@
-import type { Table } from '@tanstack/react-table';
+import type { ReactTable, RowData } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
+import type { DataTableFeatures } from '@/shared/components/DataTable/index.ts';
 import { TABLE_KEYS } from '@/shared/components/DataTableToolbar/data-table.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
@@ -16,8 +17,8 @@ import {
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Search, SlidersHorizontal, X } from '@/shared/icons/index.ts';
 
-interface DataTableToolbarProps<TData> {
-  table: Table<TData>;
+interface DataTableToolbarProps<TData extends RowData> {
+  table: ReactTable<DataTableFeatures, TData>;
   /** Column id to bind the global search/filter input to. */
   searchColumnId?: string;
   /** Placeholder for the search input. */
@@ -26,14 +27,14 @@ interface DataTableToolbarProps<TData> {
   children?: React.ReactNode;
 }
 
-export function DataTableToolbar<TData>({
+export function DataTableToolbar<TData extends RowData>({
   table,
   searchColumnId,
   searchPlaceholder,
   children,
 }: DataTableToolbarProps<TData>) {
   const { t } = useTranslation(LOCALE_NS);
-  const isFiltered = useMemo(() => table.getState().columnFilters.length > 0, [table]);
+  const isFiltered = useMemo(() => table.state.columnFilters.length > 0, [table]);
 
   const searchColumn = useMemo(
     () => (searchColumnId ? table.getColumn(searchColumnId) : undefined),

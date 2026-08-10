@@ -1,13 +1,9 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  type ColumnVisibilityState,
   type SortingState,
-  useReactTable,
-  type VisibilityState,
+  useTable,
 } from '@tanstack/react-table';
 import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +11,11 @@ import { useTranslation } from 'react-i18next';
 import { downloadCsv, toCsv } from '@/lib/csv.ts';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import type { Member, OrgRole } from '@/shared/api/organization-contracts.ts';
-import { DataTable } from '@/shared/components/DataTable/index.ts';
+import {
+  DataTable,
+  type DataTableFeatures,
+  dataTableFeatures,
+} from '@/shared/components/DataTable/index.ts';
 import { DataTableColumnHeader } from '@/shared/components/DataTableColumnHeader/index.ts';
 import { DataTablePagination } from '@/shared/components/DataTablePagination/index.ts';
 import { DataTableToolbar } from '@/shared/components/DataTableToolbar/index.ts';
@@ -176,7 +176,7 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
 function buildColumns(
   canManage: boolean,
   tCommon: (key: string) => string,
-): ColumnDef<Member>[] {
+): ColumnDef<DataTableFeatures, Member>[] {
   return [
     {
       id: 'select',
@@ -271,7 +271,7 @@ export function MembersTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     url.initialFilters,
   );
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: url.initialPageIndex,
@@ -308,8 +308,10 @@ export function MembersTable({
     });
   };
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns non-memoizable functions by design
-  const table = useReactTable({
+  const table = useTable({
+    // v9 moved features and row models out of the table options and onto a
+    // shared `features` object — see `dataTableFeatures`.
+    features: dataTableFeatures,
     data: members,
     columns,
     state: { sorting, columnFilters, columnVisibility, rowSelection, pagination },
@@ -319,10 +321,6 @@ export function MembersTable({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   const roleFilter = (table.getColumn('role')?.getFilterValue() as string) ?? 'all';

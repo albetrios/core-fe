@@ -1,7 +1,8 @@
-import type { Table } from '@tanstack/react-table';
+import type { ReactTable, RowData } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
+import type { DataTableFeatures } from '@/shared/components/DataTable/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   ChevronLeft,
@@ -10,12 +11,12 @@ import {
   ChevronsRight,
 } from '@/shared/icons/index.ts';
 
-interface DataTablePaginationProps<TData> {
-  table: Table<TData>;
+interface DataTablePaginationProps<TData extends RowData> {
+  table: ReactTable<DataTableFeatures, TData>;
   pageSizeOptions?: number[];
 }
 
-export function DataTablePagination<TData>({
+export function DataTablePagination<TData extends RowData>({
   table,
   pageSizeOptions = [10, 20, 30, 50],
 }: DataTablePaginationProps<TData>) {
@@ -39,7 +40,7 @@ export function DataTablePagination<TData>({
             aria-label={t(LOCALE_KEYS.rowsPerPage)}
             data-slot="select-trigger"
             className="border-input bg-background h-8 border px-2 text-sm focus-visible:outline-hidden"
-            value={table.getState().pagination.pageSize}
+            value={table.state.pagination.pageSize}
             onChange={(e) => table.setPageSize(Number(e.target.value))}
           >
             {pageSizeOptions.map((size) => (
@@ -51,7 +52,7 @@ export function DataTablePagination<TData>({
         </div>
 
         <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()}
         </div>
 
         <div className="flex items-center space-x-2">
