@@ -50,7 +50,7 @@
       }
     },
     "useCase": {
-      "label": "Core를 주로 어디에 사용하시나요?",
+      "label": "{{productName}}를 주로 어디에 사용하시나요?",
       "options": {
         "customerManagement": "고객 관리",
         "teamCollaboration": "팀 협업",

@@ -1,12 +1,14 @@
+import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from '@/lib/product-identity.ts';
+
 import type { PageManifest } from './page-manifest.ts';
 
 /** Product name — the title suffix on every page (and the `/` fallback). */
-export const APP_TITLE = 'Core';
+export const APP_TITLE = PRODUCT_NAME;
 
 /** Default meta description for the app shell. */
-export const APP_DESCRIPTION = 'Enterprise multi-tenant admin dashboard';
+export const APP_DESCRIPTION = PRODUCT_DESCRIPTION;
 
-/** "Sign in · Core" — the one composition rule for document titles. */
+/** "Sign in · <product>" — the one composition rule for document titles. */
 export function composePageTitle(pageTitle: string): string {
   return `${pageTitle} · ${APP_TITLE}`;
 }

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 /**
  * jsdom ships no BroadcastChannel, so we install a minimal in-memory stand-in
  * that delivers each message to all OTHER channels of the same name — exactly
@@ -45,7 +47,7 @@ describe('auth-channel (cross-tab logout)', () => {
 
   it("a tab's logout broadcast reaches another tab", async () => {
     const thisTab = await loadModule();
-    const otherTab = new FakeBroadcastChannel('core-auth');
+    const otherTab = new FakeBroadcastChannel(`${PRODUCT_NAMESPACE}-auth`);
     const received = vi.fn();
     otherTab.addEventListener('message', received);
 
@@ -60,7 +62,7 @@ describe('auth-channel (cross-tab logout)', () => {
     const onLogout = vi.fn();
     thisTab.subscribeToAuthBroadcast(onLogout);
 
-    new FakeBroadcastChannel('core-auth').postMessage({ type: 'logout' });
+    new FakeBroadcastChannel(`${PRODUCT_NAMESPACE}-auth`).postMessage({ type: 'logout' });
 
     expect(onLogout).toHaveBeenCalledTimes(1);
   });
@@ -70,7 +72,9 @@ describe('auth-channel (cross-tab logout)', () => {
     const onLogout = vi.fn();
     thisTab.subscribeToAuthBroadcast(onLogout);
 
-    new FakeBroadcastChannel('core-auth').postMessage({ type: 'something-else' });
+    new FakeBroadcastChannel(`${PRODUCT_NAMESPACE}-auth`).postMessage({
+      type: 'something-else',
+    });
 
     expect(onLogout).not.toHaveBeenCalled();
   });
@@ -81,7 +85,7 @@ describe('auth-channel (cross-tab logout)', () => {
     const unsubscribe = thisTab.subscribeToAuthBroadcast(onLogout);
     unsubscribe();
 
-    new FakeBroadcastChannel('core-auth').postMessage({ type: 'logout' });
+    new FakeBroadcastChannel(`${PRODUCT_NAMESPACE}-auth`).postMessage({ type: 'logout' });
 
     expect(onLogout).not.toHaveBeenCalled();
   });

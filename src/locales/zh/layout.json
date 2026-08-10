@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Core"
+    "name": "{{productName}}"
   },
   "a11y": {
     "skipToMain": "跳至主要内容",
@@ -45,7 +45,7 @@
     "settings": "设置",
     "logOut": "退出登录",
     "toggleSidebar": "切换侧边栏",
-    "footerCopyright": "© {{year}} Core Platform",
+    "footerCopyright": "© {{year}} {{productName}} Platform",
     "nav": {
       "dashboard": "控制台"
     },

@@ -1,5 +1,9 @@
-# CODEOWNERS — auto-assign reviewers based on file paths
-# TODO: Replace @nikunjmavani with @core/frontend when team grows (single team ownership).
+# CODEOWNERS — auto-assign reviewers based on file paths.
+#
+# Owner handles are DERIVED from `tooling/setup/setup.config.json` →
+# `project.codeowner`. To change them (a single user, or an `@org/team` once the
+# team grows), edit that field and run `pnpm identity:sync` — do not hand-edit the
+# rules below, or `pnpm validate:identity` will fail on the drift.
 
 # Default — all files
 * @nikunjmavani

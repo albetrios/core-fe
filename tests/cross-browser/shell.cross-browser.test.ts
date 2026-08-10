@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { PRODUCT_NAME } from '@/lib/product-identity.ts';
+
 test.describe('production shell', () => {
   test('login page renders with manifest and theme', async ({ page }) => {
     await page.goto('/login');
@@ -20,7 +22,7 @@ test.describe('production shell', () => {
       theme_color: string;
       icons: Array<{ src: string }>;
     };
-    expect(body.name).toContain('Core');
+    expect(body.name).toContain(PRODUCT_NAME);
     expect(body.theme_color).toBe('#0a0a0a');
     expect(body.icons.some((i) => i.src.includes('app-icon'))).toBeTruthy();
   });

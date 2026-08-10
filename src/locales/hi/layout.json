@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Core"
+    "name": "{{productName}}"
   },
   "a11y": {
     "skipToMain": "मुख्य सामग्री पर जाएँ",
@@ -45,7 +45,7 @@
     "settings": "सेटिंग्स",
     "logOut": "लॉग आउट",
     "toggleSidebar": "साइडबार टॉगल करें",
-    "footerCopyright": "© {{year}} Core Platform",
+    "footerCopyright": "© {{year}} {{productName}} Platform",
     "nav": {
       "dashboard": "डैशबोर्ड"
     },

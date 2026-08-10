@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { VERSION_CHECK_RELOADED_FOR_KEY } from './version-check.constants.ts';
+
 describe('startVersionCheck', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -96,7 +98,7 @@ describe('startVersionCheck', () => {
       await vi.advanceTimersByTimeAsync(60_000); // cross the idle threshold
 
       expect(reload).toHaveBeenCalledTimes(1);
-      expect(sessionStorage.getItem('core:version-check:reloaded-for')).toBe('build-NEW');
+      expect(sessionStorage.getItem(VERSION_CHECK_RELOADED_FOR_KEY)).toBe('build-NEW');
       cleanup?.();
     });
 
@@ -160,7 +162,7 @@ describe('startVersionCheck', () => {
     });
 
     it('does NOT reload again while stuck on the same advertised buildId', async () => {
-      sessionStorage.setItem('core:version-check:reloaded-for', 'build-NEW');
+      sessionStorage.setItem(VERSION_CHECK_RELOADED_FOR_KEY, 'build-NEW');
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       mockVersionResponse('build-NEW');
       const { startVersionCheck } = await import('./check.ts');
@@ -176,7 +178,7 @@ describe('startVersionCheck', () => {
     });
 
     it('reloads again when an even NEWER buildId ships', async () => {
-      sessionStorage.setItem('core:version-check:reloaded-for', 'build-NEW');
+      sessionStorage.setItem(VERSION_CHECK_RELOADED_FOR_KEY, 'build-NEW');
       mockVersionResponse('build-NEWER');
       const { startVersionCheck } = await import('./check.ts');
       const cleanup = startVersionCheck();
@@ -185,9 +187,7 @@ describe('startVersionCheck', () => {
       await vi.advanceTimersByTimeAsync(60_000); // idle → apply the deferred reload
 
       expect(reload).toHaveBeenCalledTimes(1);
-      expect(sessionStorage.getItem('core:version-check:reloaded-for')).toBe(
-        'build-NEWER',
-      );
+      expect(sessionStorage.getItem(VERSION_CHECK_RELOADED_FOR_KEY)).toBe('build-NEWER');
       cleanup?.();
     });
     it('does not re-notify while snoozed', async () => {

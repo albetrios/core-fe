@@ -8,6 +8,7 @@ Guides are grouped by **use case**. Use this index to find the right doc quickly
 flowchart TB
   subgraph getting_started["Getting started"]
     direction TB
+    g0[new-project]
     g1[setup]
     g2[requirement-intake]
     g3[requirement-format]
@@ -44,6 +45,7 @@ flowchart TB
 
 | Doc                                                                                                          | Purpose                                                                       |
 | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| [new-project.md](getting-started/new-project.md)                                                             | Derive a NEW product from this repo: fork path, `pnpm rebrand`, upstream sync |
 | [setup.md](getting-started/setup.md)                                                                         | Local development: clone, env, run the app                                    |
 | [setup-detailed.md](getting-started/setup-detailed.md)                                                       | Platform-specific detailed setup companion to setup.md                        |
 | [requirement-intake.md](getting-started/requirement-intake.md)                                               | How to submit a requirement so the AI can implement it in one go              |

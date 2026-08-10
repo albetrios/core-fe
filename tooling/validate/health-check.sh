@@ -204,6 +204,13 @@ else
   TOTAL_FAILS=$((TOTAL_FAILS + 1))
 fi
 
+if pnpm validate:identity >/dev/null 2>&1; then
+  echo "  $PASS  pnpm validate:identity"
+else
+  echo "  $FAIL  pnpm validate:identity"
+  TOTAL_FAILS=$((TOTAL_FAILS + 1))
+fi
+
 echo ""
 echo "Phase 14: Route-island structure"
 if pnpm validate:structure >/dev/null 2>&1; then

@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.0",
   "engines": {
-    "node": ">=24",
+    "node": ">=24.15",
     "pnpm": ">=9"
   },
   "scripts": {
@@ -66,6 +66,8 @@
     "sbom:generate": "npx -y @cyclonedx/cdxgen -t js --no-recurse -o sbom.cyclonedx.json .",
     "deploy:netlify": "pnpm build && netlify deploy",
     "deploy:netlify:prod": "pnpm build && netlify deploy --prod",
+    "rebrand": "node tooling/identity/rebrand.mjs",
+    "identity:sync": "node tooling/identity/rebrand.mjs --sync --apply",
     "setup:local": "tsx tooling/dev/setup-local.ts",
     "setup:mac-tools": "bash tooling/dev/setup-mac-tools.sh",
     "mcp:setup": "tsx tooling/dev/setup-mcp.ts",
@@ -96,6 +98,7 @@
     "validate:i18n-parity": "node tooling/validate/i18n-locale-parity.mjs",
     "validate:vite-env": "node tooling/validate/vite-env-reads.mjs",
     "validate:no-static-branch-name": "node --import tsx tooling/validate/no-static-branch-name.ts",
+    "validate:identity": "node tooling/validate/identity.mjs",
     "validate:client-env": "node --import tsx tooling/validate/client-env.ts",
     "validate:lockfile": "./tooling/validate/lockfile-sync.sh",
     "health": "./tooling/validate/health-check.sh",
@@ -121,6 +124,8 @@
       "esbuild": ">=0.28.1",
       "protobufjs": ">=7.6.4 <8",
       "minimatch": ">=10.2.5 <11",
+      "nanoid@3": ">=3.3.18 <4",
+      "nanoid@5": ">=5.1.16 <6",
       "multiparty": ">=4.3.0",
       "tmp": ">=0.2.6",
       "dompurify": ">=3.4.7",

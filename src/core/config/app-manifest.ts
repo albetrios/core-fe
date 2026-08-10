@@ -1,3 +1,9 @@
+import {
+  PRODUCT_BACKGROUND_COLOR,
+  PRODUCT_DESCRIPTION,
+  PRODUCT_NAME,
+  PRODUCT_THEME_COLOR,
+} from '@/lib/product-identity.ts';
 import { APP_TITLE } from '@/lib/routes/page-head.ts';
 
 /**
@@ -5,19 +11,21 @@ import { APP_TITLE } from '@/lib/routes/page-head.ts';
  * `src/index.css` (@theme light: `--color-background`, `--color-primary`) and
  * `docs/reference/preset-product-design-rules.md` global defaults.
  *
+ * Branding values come from `@/lib/product-identity.ts` (generated from
+ * `tooling/setup/setup.config.json`) so a rebrand touches one config block.
  * `public/manifest.webmanifest` must stay in sync — guarded by
  * `app-manifest.test.ts`.
  */
-export const APP_MANIFEST_SHORT_NAME = 'Core';
+export const APP_MANIFEST_SHORT_NAME = PRODUCT_NAME;
 
 /** Matches index.html `<meta name="description">` and manifest `description`. */
-export const APP_MANIFEST_DESCRIPTION = 'Enterprise multi-tenant admin dashboard';
+export const APP_MANIFEST_DESCRIPTION = PRODUCT_DESCRIPTION;
 
 /** Light-mode `--color-background` (oklch(1 0 0)). */
-export const APP_MANIFEST_BACKGROUND_COLOR = '#ffffff';
+export const APP_MANIFEST_BACKGROUND_COLOR = PRODUCT_BACKGROUND_COLOR;
 
 /** Shell / browser chrome — matches index.html `theme-color` and brand tile. */
-export const APP_MANIFEST_THEME_COLOR = '#0a0a0a';
+export const APP_MANIFEST_THEME_COLOR = PRODUCT_THEME_COLOR;
 
 export const APP_MANIFEST_DISPLAY = 'standalone';
 export const APP_MANIFEST_ORIENTATION = 'portrait-primary';

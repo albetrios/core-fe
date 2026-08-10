@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Core"
+    "name": "{{productName}}"
   },
   "a11y": {
     "skipToMain": "Aller au contenu principal",
@@ -45,7 +45,7 @@
     "settings": "Paramètres",
     "logOut": "Se déconnecter",
     "toggleSidebar": "Afficher/masquer la barre latérale",
-    "footerCopyright": "© {{year}} Core Platform",
+    "footerCopyright": "© {{year}} {{productName}} Platform",
     "nav": {
       "dashboard": "Tableau de bord"
     },

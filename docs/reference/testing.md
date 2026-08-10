@@ -163,7 +163,7 @@ CI: `.github/workflows/cross-browser.yml` (weekly).
 ```bash
 # core-be on :3000, DATABASE_URL for email codes
 pnpm build   # CI uses preview; local dev can use `pnpm dev` via config reuseExistingServer
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/core pnpm test:e2e:integration:cross-browser
+DATABASE_URL=postgresql://core:core@localhost:5432/core pnpm test:e2e:integration:cross-browser
 ```
 
 CI: none — live FE ↔ BE integration runs are local-only (CI never boots core-be).  

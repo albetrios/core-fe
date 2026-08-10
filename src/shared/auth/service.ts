@@ -6,6 +6,7 @@ import {
 } from '@/core/config/constants.ts';
 import { platformConfig } from '@/core/config/env.ts';
 import { queryClient } from '@/core/http/queryClient.ts';
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { broadcastLogout } from '@/shared/auth/auth-channel.ts';
@@ -138,7 +139,9 @@ export async function refreshAccessToken(): Promise<void> {
 
 async function runExclusiveRefresh(): Promise<void> {
   if (typeof navigator !== 'undefined' && navigator.locks) {
-    return navigator.locks.request('core-auth:refresh', () => doTokenRefresh());
+    return navigator.locks.request(`${PRODUCT_NAMESPACE}-auth:refresh`, () =>
+      doTokenRefresh(),
+    );
   }
   return doTokenRefresh();
 }

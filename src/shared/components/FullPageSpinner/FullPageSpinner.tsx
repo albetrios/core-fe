@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { isAppSplashActive, onAppSplashDismissed } from '@/lib/app-splash.ts';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { iconChipClassName, iconOnPrimarySurface } from '@/lib/icon-surface.ts';
+import { PRODUCT_NAME } from '@/lib/product-identity.ts';
 import { cn } from '@/lib/utils.ts';
 import { Boxes } from '@/shared/icons/index.ts';
 
@@ -43,7 +44,7 @@ export function FullPageSpinner() {
           <Boxes className={cn('size-6', iconOnPrimarySurface)} />
         </span>
         <span className="text-foreground text-base font-semibold tracking-tight">
-          Core
+          {PRODUCT_NAME}
         </span>
       </div>
       <span

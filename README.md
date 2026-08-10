@@ -7,6 +7,7 @@ Enterprise-grade multi-tenant admin dashboard built with **React 19 + TypeScript
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+- [Start a new product from this repo](docs/getting-started/new-project.md)
 - [Where to Run & Scripts](#where-to-run--scripts)
 - [Code Structure](#code-structure)
 - [Git branch & PR workflow](#git-branch--pr-workflow)
@@ -26,14 +27,14 @@ Enterprise-grade multi-tenant admin dashboard built with **React 19 + TypeScript
 
 ## Quick Start
 
-**Path:** Run all commands from the **project root**:
+> **Building a different product on this platform?** Start with
+> [docs/getting-started/new-project.md](docs/getting-started/new-project.md) — how to derive a
+> new repo, rename it with `pnpm rebrand`, and keep receiving platform updates.
 
-```text
-/Users/nikunjmavani/projects/core/core-fe
-```
+Run all commands from the **project root** (the directory this README is in):
 
 ```bash
-cd /Users/nikunjmavani/projects/core/core-fe   # or your clone path
+cd /path/to/your/clone
 pnpm install
 pnpm dev
 ```

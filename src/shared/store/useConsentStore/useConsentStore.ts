@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 /**
  * Analytics-consent decision. `null` = undecided (the banner is shown);
  * `granted`/`denied` are explicit user choices.
@@ -30,7 +32,7 @@ export const useConsentStore = create<ConsentStore>()(
       setAnalyticsConsent: (analyticsConsent) => set({ analyticsConsent }),
       resetAnalyticsConsent: () => set({ analyticsConsent: null }),
     }),
-    { name: 'core-consent' },
+    { name: `${PRODUCT_NAMESPACE}-consent` },
   ),
 );
 

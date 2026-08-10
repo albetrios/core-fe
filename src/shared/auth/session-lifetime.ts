@@ -1,4 +1,5 @@
 import { SESSION } from '@/core/config/constants.ts';
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 
 /**
  * Absolute session-lifetime cap. The idle timeout logs out *inactive* users;
@@ -13,7 +14,11 @@ import { SESSION } from '@/core/config/constants.ts';
  * the real cap; this is UX/defense-in-depth.
  */
 
-const SESSION_STARTED_AT_KEY = 'core:session-started-at';
+// Derived from `PRODUCT_NAMESPACE`, not hardcoded — a renamed product would
+// otherwise leak the previous brand into localStorage. For this repo the
+// namespace IS `core`, so the key string is unchanged and no live session is
+// reset; a renamed product has no prior users to migrate.
+const SESSION_STARTED_AT_KEY = `${PRODUCT_NAMESPACE}:session-started-at`;
 
 /** Stamp the start of a freshly authenticated session (interactive auth only). */
 export function markSessionStart(): void {

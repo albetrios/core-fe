@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { platformConfig } from '@/core/config/env.ts';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
+import { PRODUCT_NAME } from '@/lib/product-identity.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { useConsentStore } from '@/shared/store/useConsentStore/index.ts';
 
@@ -42,8 +43,8 @@ export function ConsentBanner() {
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-muted-foreground text-sm">
-          We use cookies for product analytics to improve Core. Essential functionality
-          and error monitoring work without them.
+          We use cookies for product analytics to improve {PRODUCT_NAME}. Essential
+          functionality and error monitoring work without them.
           {platformConfig.privacyPolicyUrl ? (
             <>
               {' '}

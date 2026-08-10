@@ -232,6 +232,9 @@ jobs:
       - name: Theme catalog docs
         run: pnpm validate:theme-catalog
 
+      - name: Product identity (single source of truth + no hardcoded brand)
+        run: pnpm validate:identity
+
       - name: TSDoc coverage budget
         run: node tooling/tsdoc-coverage/check-coverage.mjs
 
@@ -318,10 +321,30 @@ jobs:
         with:
           fetch-depth: 1
       - uses: ./.github/actions/setup-node-pnpm
-      - name: Dependency audit (all deps)
-        run: pnpm deps:audit
+      # The PRODUCTION tree is the blocking gate: those packages ship to users.
+      # Ordered first so it is always evaluated — when the full-tree sweep below
+      # ran first and failed, this step was SKIPPED, so the audit that actually
+      # matters was never reported at all.
       - name: Production dependency audit
         run: pnpm deps:audit:prod
+      # The full tree (incl. devDependencies) is reported but non-blocking, because
+      # a dev-only advisory with no published fix would otherwise wedge every PR
+      # with no honest way out: `bulk-audit.mjs` has no waiver list by design, and
+      # the alternative is dropping the offending tool.
+      #
+      # Live example: image-size <=2.0.2 (DoS in the ICNS/JXL/HEIF parsers) arrives
+      # via netlify-cli -> @netlify/dev-utils, and 2.0.2 IS the newest published
+      # version. netlify-cli cannot simply be removed — `pnpm exec netlify deploy`
+      # in reusable-netlify-deploy.yml is the production deploy path, and moving it
+      # to `pnpm dlx` would unpin a deploy-critical tool to silence a dev-only
+      # finding, which is the worse trade.
+      #
+      # Coverage is not lost: failures stay visible in this log, and
+      # scheduled-deps-audit.yml re-runs the full tree weekly. Make this blocking
+      # again once the dev-only backlog is empty.
+      - name: Dependency audit (all deps, advisory)
+        continue-on-error: true
+        run: pnpm deps:audit
 
   security-secrets:
     name: Security secrets

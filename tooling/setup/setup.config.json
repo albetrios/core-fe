@@ -1,8 +1,16 @@
 {
   "project": {
     "name": "core-fe",
-    "displayName": "core-fe",
-    "organization": "albetrios"
+    "displayName": "Core Frontend",
+    "organization": "albetrios",
+    "productName": "Core",
+    "productDescription": "Enterprise multi-tenant admin dashboard",
+    "themeColor": "#0a0a0a",
+    "backgroundColor": "#ffffff",
+    "codeowner": "@nikunjmavani",
+    "backendName": "core-be",
+    "namespace": "core",
+    "previousNames": []
   },
   "git": {
     "protectedBranches": ["main"],

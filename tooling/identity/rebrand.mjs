@@ -1,0 +1,459 @@
+/**
+ * `pnpm rebrand` — rename the product this repo builds.
+ *
+ * Rewrites every file that embeds product identity, driven entirely by
+ * `tooling/setup/setup.config.json` → `project.*` and the surface list in
+ * `./identity.mjs`. Dry-run by default: nothing is written without `--apply`.
+ *
+ *   pnpm rebrand "Acme Portal"                        preview every change
+ *   pnpm rebrand "Acme Portal" --apply                write them
+ *   pnpm rebrand "Acme Portal" --repo acme/acme-fe \
+ *       --owner @acme/frontend --apply
+ *   pnpm identity:sync                                re-derive files, no rename
+ *
+ * The sibling backend is renamed too (`core-be` -> `<product>-be`), on the
+ * assumption a derived product forks the backend as well. That means the renamed
+ * repo expects a sibling checkout under the NEW name — `contracts:drift` resolves
+ * `../<backendName>/docs/routes.txt`. Keep a differently-named backend with
+ * `--backend <repo-name>`.
+ *
+ * What it deliberately does NOT touch:
+ *   - `CHANGELOG.md` and git history — the release history of the upstream
+ *     platform is a fact, not branding.
+ *   - Anything requiring credentials (Netlify, GitHub, Sentry, PostHog) or a
+ *     binary toolchain (PNG icon regeneration) — those are printed as a
+ *     checklist instead of being half-done silently.
+ */
+import { spawnSync } from 'node:child_process';
+import { existsSync, renameSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import {
+  backendDirEnvVar,
+  derivedSurfaces,
+  kebabToCamel,
+  kebabToUpperSnake,
+  loadIdentity,
+  localDatabaseUrl,
+  NAMESPACE_KEY_SUFFIXES,
+  renamedFiles,
+  planRename,
+  staleBaselines,
+  ROOT,
+} from './identity.mjs';
+
+const BOLD = '\u001B[1m';
+const DIM = '\u001B[2m';
+const GREEN = '\u001B[32m';
+const YELLOW = '\u001B[33m';
+const RESET = '\u001B[0m';
+
+/** Parse `--flag value` pairs and bare `--flag` switches. */
+function parseArgs(argv) {
+  const positional = [];
+  const flags = {};
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (!arg.startsWith('--')) {
+      positional.push(arg);
+      continue;
+    }
+    const key = arg.slice(2);
+    const next = argv[i + 1];
+    if (next && !next.startsWith('--')) {
+      flags[key] = next;
+      i += 1;
+    } else {
+      flags[key] = true;
+    }
+  }
+  return { positional, flags };
+}
+
+/** "Acme Portal" → "acme-portal" */
+const kebab = (value) =>
+  value
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^\dA-Za-z]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+
+/**
+ * Default repo/package name for a product, preserving the current suffix
+ * convention (`core-fe` → `acme-portal-fe`).
+ */
+function defaultRepoName(productName, currentName) {
+  const slug = kebab(productName);
+  const suffix = /-(fe|ui|web|app)$/.exec(currentName);
+  return suffix && !slug.endsWith(suffix[0]) ? `${slug}${suffix[0]}` : slug;
+}
+
+/** First differing line of each side, for a compact dry-run preview. */
+function previewChange(before, after) {
+  const a = before.split('\n');
+  const b = after.split('\n');
+  const changes = [];
+  for (let i = 0; i < Math.max(a.length, b.length) && changes.length < 3; i += 1) {
+    if (a[i] !== b[i]) changes.push({ line: i + 1, before: a[i], after: b[i] });
+  }
+  return changes;
+}
+
+function main() {
+  const { positional, flags } = parseArgs(process.argv.slice(2));
+  const sync = Boolean(flags.sync);
+  const apply = Boolean(flags.apply);
+  const current = loadIdentity();
+
+  if (!sync && positional.length === 0) {
+    console.error(`${BOLD}pnpm rebrand "<Product Name>" [options]${RESET}
+
+  --name <repo-name>      package + repo name       (default: derived from product name)
+  --repo <owner/repo>     GitHub slug               (default: keep current owner)
+  --owner <@handle>       CODEOWNERS handle         (default: keep current)
+  --description "<text>"  product description       (default: keep current)
+  --backend <repo-name>   sibling backend repo      (default: <name> with -fe -> -be)
+  --namespace <prefix>    storage/channel key prefix (default: first word of <name>)
+  --apply                 write changes (default is a dry run)
+
+Current identity: ${current.productName} (${current.name}) — ${current.repository}
+See docs/getting-started/new-project.md.`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const productName = sync ? current.productName : positional[0];
+  const name =
+    typeof flags.name === 'string'
+      ? flags.name
+      : sync
+        ? current.name
+        : defaultRepoName(productName, current.name);
+  const repository =
+    typeof flags.repo === 'string'
+      ? flags.repo
+      : `${current.repository.split('/')[0]}/${name}`;
+  const codeowner = typeof flags.owner === 'string' ? flags.owner : current.codeowner;
+  const productDescription =
+    typeof flags.description === 'string'
+      ? flags.description
+      : current.productDescription;
+
+  // The backend repo is renamed with the product: a derived product normally forks
+  // the backend too, and this frontend names it in ~450 places (envelope comments,
+  // the E2E readiness probe, and contracts:drift's ../<backend>/docs/routes.txt).
+  // Pass --backend to keep pointing at a differently-named backend.
+  const backendName =
+    typeof flags.backend === 'string'
+      ? flags.backend
+      : sync
+        ? current.backendName
+        : name.replace(/-fe$/, '-be') === name
+          ? `${name}-be`
+          : name.replace(/-fe$/, '-be');
+
+  // Runtime-identifier prefix: the slug's leading word, so `acme-fe` yields
+  // `acme` and storage keys stay aligned with the product.
+  const namespace =
+    typeof flags.namespace === 'string'
+      ? flags.namespace
+      : sync
+        ? current.namespace
+        : (name.split('-')[0] ?? name);
+
+  const next = {
+    ...current,
+    backendName,
+    namespace,
+    name,
+    displayName: sync ? current.displayName : `${productName} Frontend`,
+    productName,
+    productDescription,
+    codeowner: codeowner.startsWith('@') ? codeowner : `@${codeowner}`,
+    repository,
+  };
+
+  console.log(
+    `\n${BOLD}${sync ? 'Identity sync' : 'Rebrand'}${RESET} — ${
+      apply
+        ? `${GREEN}applying${RESET}`
+        : `${YELLOW}dry run${RESET} (pass --apply to write)`
+    }\n`,
+  );
+
+  if (!sync) {
+    console.log(
+      `  product      ${current.productName}  →  ${BOLD}${next.productName}${RESET}`,
+    );
+    console.log(`  package/repo ${current.name}  →  ${BOLD}${next.name}${RESET}`);
+    console.log(
+      `  github       ${current.repository}  →  ${BOLD}${next.repository}${RESET}`,
+    );
+    console.log(
+      `  codeowner    ${current.codeowner}  →  ${BOLD}${next.codeowner}${RESET}`,
+    );
+    console.log('');
+  }
+
+  // The identity block must land first: every surface derives from it.
+  //
+  // Edited structurally rather than via a JSON round-trip — `JSON.stringify`
+  // expands short arrays that Prettier keeps inline (`"protectedBranches":
+  // ["main"]`), so a round-trip would reformat unrelated config on every run and
+  // fight `pnpm format:check`.
+  const configPath = join(ROOT, 'tooling/setup/setup.config.json');
+  const configText = readFileSync(configPath, 'utf8');
+  const setString = (text, key, value) =>
+    text.replace(
+      new RegExp(`("${key}":\\s*)"[^"]*"`),
+      (_match, prefix) => `${prefix}${JSON.stringify(value)}`,
+    );
+
+  const nextConfigText = configText
+    .replace(
+      /("project":\s*\{)([\S\s]*?)(\n {2}\},)/,
+      (_match, open, body, close) => {
+        let block = body;
+        block = setString(block, 'name', next.name);
+        block = setString(block, 'displayName', next.displayName);
+        block = setString(block, 'productName', next.productName);
+        block = setString(block, 'productDescription', next.productDescription);
+        block = setString(block, 'codeowner', next.codeowner);
+        block = setString(block, 'backendName', next.backendName);
+        block = setString(block, 'namespace', next.namespace);
+        return `${open}${block}${close}`;
+      },
+      // `repository` lives under `providers.github` and is a unique key, so it is
+      // safe to set outside the project block.
+    )
+    .replace(/("repository":\s*)"[^"]*"/, `$1${JSON.stringify(next.repository)}`);
+
+  let changed = 0;
+  if (nextConfigText !== configText) {
+    changed += 1;
+    console.log(
+      `  ${GREEN}✓${RESET} tooling/setup/setup.config.json  ${DIM}(identity block)${RESET}`,
+    );
+    if (apply) writeFileSync(configPath, nextConfigText);
+  }
+
+  for (const surface of derivedSurfaces(next)) {
+    const path = join(ROOT, surface.file);
+    const before = readFileSync(path, 'utf8');
+    const after = surface.apply(before, next);
+    if (after === before) continue;
+    changed += 1;
+    console.log(`  ${GREEN}✓${RESET} ${surface.file}  ${DIM}(${surface.label})${RESET}`);
+    if (apply) {
+      writeFileSync(path, after);
+    } else {
+      for (const change of previewChange(before, after)) {
+        console.log(`      ${DIM}${change.line}:${RESET} ${change.before?.trim()}`);
+        console.log(
+          `      ${DIM}${change.line}:${RESET} ${GREEN}${change.after?.trim()}${RESET}`,
+        );
+      }
+    }
+  }
+
+  // Files whose NAME embeds the identity. Contents-only rewriting left a derived
+  // product with files literally named after the previous product, which reddened
+  // tool:project-structure-tree:check on every adoption.
+  for (const { from, to } of renamedFiles(next)) {
+    changed += 1;
+    console.log(`  ${GREEN}✓${RESET} ${from}  ${DIM}→ ${to} (renamed on disk)${RESET}`);
+    if (apply) renameSync(join(ROOT, from), join(ROOT, to));
+  }
+
+  // Visual baselines RENDER the brand, and no text rewrite can touch a PNG. Left in
+  // place they fail SILENTLY: at maxDiffPixelRatio 0.02 the light baselines still
+  // pass while encoding the previous logo, so a derived product fixes the 2 dark
+  // failures and keeps 3 baselines asserting the old brand is correct. Deleting them
+  // turns that into a loud "snapshot doesn't exist" on the next `pnpm test:visual`.
+  // Not for `--sync`: no rename happened, so the baselines are still valid.
+  for (const file of sync ? [] : staleBaselines(ROOT)) {
+    changed += 1;
+    console.log(
+      `  ${GREEN}✓${RESET} ${file}  ${DIM}(deleted — renders the previous brand)${RESET}`,
+    );
+    if (apply) rmSync(join(ROOT, file));
+  }
+
+  // Repo-wide prose rename. Structural transforms cannot reach sentences like
+  // "core-fe is trunk-based" — there is no anchor to hook — so this pass replaces
+  // the old name everywhere, skipping CHANGELOG history and generated artifacts.
+  // Not run for `--sync`: no rename happened, so there is no old name to replace.
+  // Deliberately NOT named after the imported rename helper: a local binding of that
+  // same identifier shadows the import for the whole function scope, so the on-disk
+  // rename loop above hit a temporal-dead-zone ReferenceError and crashed the script.
+  // Pinned by a regression assertion in tests/ci/identity.policy.test.ts.
+  let proseFilesChanged = 0;
+  let proseOccurrences = 0;
+  if (!sync) {
+    // Only UNAMBIGUOUS tokens are swept: the slug (`core-fe`) and the display name
+    // ("Core Frontend"). The bare product word is deliberately NOT swept in prose.
+    //
+    // "Core" is ordinary English, and sweeping it corrupted meaning across
+    // agent-os docs: "Core Philosophy", "Core Concepts", "Core Pattern" — and worst,
+    // "Core Layer", which names the `src/core/` architecture layer, became
+    // "<Product> Layer". User-visible branding does not rely on this pass: it comes
+    // from the 17 structural surfaces and the {{productName}} i18n variable.
+    // Each pair's matcher is chosen by token SHAPE (see patternFor): kebab slugs
+    // match case-INSENSITIVELY and preserve capitalisation, UPPER_SNAKE matches
+    // suffixed forms, camelCase matches identifier prefixes.
+    const plan = planRename(ROOT, [
+      // Case-insensitive, so sentence-capitalised "Core-fe uses PostHog…" in prose
+      // is caught. Three such lines survived a rename before this was fixed.
+      [current.name, next.name],
+      [current.backendName, next.backendName],
+      [current.displayName, next.displayName],
+      // UPPER_SNAKE: one pair covers CORE_BE_DIR and CORE_BE_READY_URL.
+      [kebabToUpperSnake(current.backendName), kebabToUpperSnake(next.backendName)],
+      // camelCase: coreFeTestEnv, __coreFeRouter, __coreFeEstablishSession.
+      [kebabToCamel(current.name), kebabToCamel(next.name)],
+      // Namespaced runtime keys, one explicit pair each. App code derives these
+      // from PRODUCT_NAMESPACE; these pairs catch the remaining LITERALS in docs,
+      // overview tables and Playwright storage fixtures. Explicit rather than a
+      // blanket `core-` rule, which would also rewrite ordinary hyphenated English
+      // like `core-concepts` in the vendored skills and break doc anchors.
+      ...NAMESPACE_KEY_SUFFIXES.map((suffix) => [
+        `${current.namespace}-${suffix}`,
+        `${next.namespace}-${suffix}`,
+      ]),
+      // The local Postgres URL in documented commands. A bare `core` used as a
+      // DATABASE NAME matches neither the slug nor the product-name pass, so these
+      // copy-pasteable lines kept naming the previous product's database.
+      [localDatabaseUrl(current.namespace), localDatabaseUrl(next.namespace)],
+    ]);
+    for (const change of plan) {
+      proseFilesChanged += 1;
+      proseOccurrences += change.count;
+      if (apply) writeFileSync(join(ROOT, change.file), change.next);
+    }
+    if (proseFilesChanged > 0) {
+      console.log(
+        `  ${GREEN}✓${RESET} ${proseFilesChanged} more file(s)  ${DIM}(${proseOccurrences} prose/config occurrences of "${current.name}" / "${current.productName}")${RESET}`,
+      );
+      changed += proseFilesChanged;
+    }
+
+    // Record the retired names LAST. Written after planRename because the pass
+    // above rewrites every occurrence of the old name in every text file — and
+    // this list is the one place that must keep it, so the guard can detect the
+    // old name coming back through a merge or a copy-paste.
+    if (apply) {
+      // Only the slug is tracked. The bare product word is ordinary English
+      // ("Core Principles", "Core Layer"), so guarding on it would flag dozens of
+      // legitimate sentences and get the gate switched off.
+      const retired = [
+        ...new Set([...(current.previousNames ?? []), current.name, current.backendName]),
+        // The bare namespace is deliberately NOT tracked: it is a common word
+        // ("core"), and guarding on it would flag src/core/ and 208 @/core/ imports.
+      ].filter((entry) => entry !== next.name && entry !== next.backendName);
+      const configNow = readFileSync(configPath, 'utf8');
+      writeFileSync(
+        configPath,
+        configNow.replace(
+          /("previousNames":\s*)\[[^\]]*\]/,
+          `$1${JSON.stringify(retired)}`,
+        ),
+      );
+      console.log(
+        `  ${GREEN}✓${RESET} tooling/setup/setup.config.json  ${DIM}(previousNames: ${retired.join(', ')})${RESET}`,
+      );
+    }
+  }
+
+  if (changed === 0) {
+    console.log(
+      `  ${DIM}Everything already matches the identity block — nothing to do.${RESET}\n`,
+    );
+    return;
+  }
+
+  console.log(
+    `\n  ${BOLD}${changed}${RESET} file(s) ${apply ? 'written' : 'would change'}.`,
+  );
+
+  if (!apply) {
+    console.log(`  Re-run with ${BOLD}--apply${RESET} to write.\n`);
+    return;
+  }
+
+  // `--sync` only re-derives files from the CURRENT identity — no rename
+  // happened, so the external-systems checklist would be misleading noise.
+  if (sync) {
+    console.log(`  ${DIM}Run pnpm validate:identity to confirm.${RESET}\n`);
+    return;
+  }
+
+  // Derived artifacts that a rename invalidates. Both were previously left to the
+  // checklist, which meant `pnpm sync:check` was RED on a freshly renamed product —
+  // the project tree because a FILE was renamed, and the agent-os lock because the
+  // prose sweep rewrote every vendored SKILL.md. Run them here so an adoption starts
+  // green instead of "green once you remember two commands".
+  const regenerations = [
+    {
+      label: 'project tree (tool:project-structure-tree)',
+      command: 'python3',
+      args: ['tooling/reports/generate-project-tree.py'],
+      available: true,
+    },
+    {
+      label: 'agent-os skills-lock (agent-os:lock)',
+      command: 'pnpm',
+      args: ['agent-os:lock'],
+      // Needs tsx from node_modules; on a fresh clone it is not installed yet.
+      available: existsSync(join(ROOT, 'node_modules')),
+    },
+  ];
+  const deferred = [];
+  for (const step of regenerations) {
+    if (!step.available) {
+      deferred.push(step.label);
+      continue;
+    }
+    const result = spawnSync(step.command, step.args, { cwd: ROOT, stdio: 'ignore' });
+    if (result.status === 0) {
+      console.log(`  ${GREEN}✓${RESET} regenerated ${DIM}${step.label}${RESET}`);
+    } else {
+      deferred.push(step.label);
+    }
+  }
+  if (deferred.length > 0) {
+    console.log(
+      `  ${YELLOW}!${RESET} still to regenerate after ${BOLD}pnpm install${RESET}: ${deferred.join(', ')}`,
+    );
+  }
+
+  console.log(`\n${BOLD}Manual steps this script cannot do${RESET} ${DIM}(credentials or binary tooling)${RESET}
+
+  1. ${BOLD}PWA icons${RESET} — public/app-icon.svg carries the new name, but the PNGs do not.
+     Replace the artwork, then regenerate both sizes:
+       rsvg-convert -w 192 -h 192 public/app-icon.svg -o public/pwa-192x192.png
+       rsvg-convert -w 512 -h 512 public/app-icon.svg -o public/pwa-512x512.png
+  2. ${BOLD}GitHub${RESET} — rename the repo, set its description + homepage, then
+     re-sync branch protection and environments:  pnpm github:sync
+  3. ${BOLD}Deploy + observability${RESET} — create the Netlify site, Sentry project and
+     PostHog project, then set NETLIFY_SITE_ID / SENTRY_* / VITE_POSTHOG_* in the
+     GitHub Environments (never in a committed file).
+  4. ${BOLD}Regenerate visual baselines${RESET} — the old snapshots were DELETED above,
+     because at maxDiffPixelRatio 0.02 the light ones would otherwise pass while still
+     encoding the previous logo. \`pnpm test:visual\` fails until you regenerate them:
+       pnpm test:visual:update      ${DIM}(needs the backend running)${RESET}
+  5. ${BOLD}Re-lock agent-os + reinstall${RESET} — the prose sweep edited skill files, so the
+     agent-os skills-lock hashes are stale (agent-os-lock.policy.test.ts fails until
+     you regenerate them). The package name changed too:
+       pnpm install && pnpm agent-os:lock && pnpm health && pnpm validate:identity
+
+  ${DIM}"${current.name}" and "${current.backendName}" are recorded in previousNames, so
+  pnpm validate:identity fails if either reappears. Two things to know:
+   - the backend was renamed to "${next.backendName}" — clone/rename your backend repo to match,
+     or contracts:drift will not find ../${next.backendName}/docs/routes.txt (override: $${backendDirEnvVar(next.backendName)});
+   - prose was rewritten too, so a future \`git merge upstream/main\` will conflict
+     across the renamed doc files. That trade-off was chosen deliberately.${RESET}
+`);
+}
+
+main();

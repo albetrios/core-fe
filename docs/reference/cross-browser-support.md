@@ -52,7 +52,7 @@ Live integration (requires core-be on `:3000` and `DATABASE_URL`):
 
 ```bash
 pnpm build
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/core pnpm test:e2e:integration:cross-browser
+DATABASE_URL=postgresql://core:core@localhost:5432/core pnpm test:e2e:integration:cross-browser
 ```
 
 Optional HTTPS local QA (closer to Netlify):
