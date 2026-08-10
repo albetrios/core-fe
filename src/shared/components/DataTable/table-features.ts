@@ -4,11 +4,10 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
-  filterFns,
+  filterFn_includesString,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
   tableFeatures,
 } from '@tanstack/react-table';
 
@@ -24,6 +23,16 @@ import {
  *
  * Add a feature here when a table needs it; the row model that powers it goes
  * in the same object (v9 moved row models out of the table options).
+ *
+ * `filterFns` registers one comparator rather than the whole built-in registry:
+ * registering the registry object is deprecated precisely because it opts the
+ * bundle out of tree-shaking, pulling in every built-in comparator. Only
+ * `includesString` is listed because only it is load-bearing — the members
+ * search column resolves to it, and dropping it silently stops filtering
+ * (covered by MembersTable's filter test). No `sortFns` slot is registered:
+ * sorting resolves to a built-in default, verified by removing the slot and
+ * confirming the sorting tests still pass. Register a comparator here the
+ * moment a column names one.
  */
 export const dataTableFeatures = tableFeatures({
   columnFilteringFeature,
@@ -34,8 +43,7 @@ export const dataTableFeatures = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: { includesString: filterFn_includesString },
 });
 
 /** Feature set backing every shared `DataTable*` component. */

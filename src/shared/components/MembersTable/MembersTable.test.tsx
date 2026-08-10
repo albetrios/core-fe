@@ -74,6 +74,26 @@ describe('MembersTable', () => {
       expect(renderedNames()[0]).toBe('Member 03');
     });
 
+    it('sorts the joined-at column, which uses a different comparator', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <MembersTable
+          members={[
+            member(1, { joinedAt: '2025-03-01T09:00:00.000Z' }),
+            member(2, { joinedAt: '2025-01-01T09:00:00.000Z' }),
+            member(3, { joinedAt: '2025-02-01T09:00:00.000Z' }),
+          ]}
+        />,
+      );
+
+      await screen.findByTestId('members-table');
+
+      await user.click(screen.getByRole('button', { name: /joined/i }));
+      await user.click(await screen.findByRole('menuitem', { name: /asc/i }));
+
+      expect(renderedNames()).toEqual(['Member 02', 'Member 03', 'Member 01']);
+    });
+
     it('filters rows through the search input', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MembersTable members={[member(1), member(2), member(3)]} />);
