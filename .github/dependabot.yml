@@ -51,6 +51,17 @@ updates:
         update-types:
           - 'version-update:semver-minor'
           - 'version-update:semver-major'
+      # Majors go through a deliberate migration, never an auto-opened PR:
+      # v9 (#228) was a full API rewrite — features became opt-in via
+      # `tableFeatures()`, `useReactTable` -> `useTable`, row models moved off
+      # the table options onto the feature set, and every generic gained a
+      # leading `TFeatures`. It broke type-check, the unit suite and the build,
+      # and shipped as a hand-written migration (#233) touching 11 files rather
+      # than as a version bump. Minors and patches still flow. Lift this when
+      # the next major is scheduled work rather than a surprise PR.
+      - dependency-name: '@tanstack/react-table'
+        update-types:
+          - 'version-update:semver-major'
     groups:
       # Low risk: patch + minor across production and development dependencies.
       # Auto-merged (after approval) by dependabot-auto-merge.yml.
