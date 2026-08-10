@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.6.0](https://github.com/nikunjmavani/core-fe/compare/v1.5.0...v1.6.0) (2026-08-10)
+
+
+### Added
+
+* **identity:** fork onboarding guide and single-source product identity ([#222](https://github.com/nikunjmavani/core-fe/issues/222)) ([48e7349](https://github.com/nikunjmavani/core-fe/commit/48e7349a6d0fc2470561f3b350f498a45df371a7))
+* **shared:** migrate the DataTable stack to TanStack Table v9 ([#233](https://github.com/nikunjmavani/core-fe/issues/233)) ([4c50960](https://github.com/nikunjmavani/core-fe/commit/4c5096095e6ee21a9d1d53c801448164bd176620))
+
+
+### Fixed
+
+* **dashboard:** DOM-driven KPI count-up + WebKit cross-browser interception ([#226](https://github.com/nikunjmavani/core-fe/issues/226)) ([b9182f1](https://github.com/nikunjmavani/core-fe/commit/b9182f1d39153d5fca90bce20f94fbfb569d7494))
+* locale-store hydration TDZ blank screen, Sentry noise filters, E2E session parity ([#224](https://github.com/nikunjmavani/core-fe/issues/224)) ([a2a2c2f](https://github.com/nikunjmavani/core-fe/commit/a2a2c2f2dfffa6e13fa58ae45650faa8da01b977))
+
+
+### Documentation
+
+* **agent-os:** encode PR-review findings as skills and rules ([#221](https://github.com/nikunjmavani/core-fe/issues/221)) ([f087ed5](https://github.com/nikunjmavani/core-fe/commit/f087ed5498ed4e50e99f7cd222743152863c2525))
+* **github:** restructure the PR template around what reviewers need ([#225](https://github.com/nikunjmavani/core-fe/issues/225)) ([5bb5841](https://github.com/nikunjmavani/core-fe/commit/5bb584186b589aafeec22f5e493e980b70547855))
+
 ## [1.5.0](https://github.com/nikunjmavani/core-fe/compare/v1.4.0...v1.5.0) (2026-08-05)
 
 
