@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
+
 import {
   clearSessionStart,
   getSessionAge,
@@ -8,7 +10,9 @@ import {
   startSessionLifetimeWatch,
 } from './session-lifetime.ts';
 
-const KEY = 'core:session-started-at';
+// Derived, not hardcoded: a renamed product uses its own namespace, and a literal
+// here would assert the previous brand's key.
+const KEY = `${PRODUCT_NAMESPACE}:session-started-at`;
 
 describe('session-lifetime', () => {
   beforeEach(() => {

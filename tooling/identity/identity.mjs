@@ -504,6 +504,20 @@ export const NAMESPACE_KEY_SUFFIXES = [
   'recovery-codes',
 ];
 
+/**
+ * The local-compose Postgres URL for a namespace.
+ *
+ * The backend's compose provisions `POSTGRES_USER/PASSWORD/DB` from the product stem,
+ * so all three segments are the namespace. Documented invocations embed this URL, and
+ * a bare `core` used as a DATABASE NAME is not matched by the slug or product-name
+ * passes — so without an explicit pair the copy-pasteable commands in
+ * cross-browser-support.md and testing.md kept pointing at the previous product's
+ * database, failing with `28P01: password authentication failed`.
+ */
+export function localDatabaseUrl(namespace) {
+  return `postgresql://${namespace}:${namespace}@localhost:5432/${namespace}`;
+}
+
 /** Carry the matched text's leading capitalisation onto the replacement. */
 function matchCase(source, replacement) {
   const first = source.charAt(0);
@@ -571,12 +585,12 @@ export function renameableFiles(root = ROOT, dir = root, out = []) {
  */
 const PROTECTED_PHRASES = ['Core Web Vitals'];
 
-const PROTECT_SENTINEL = ' PROTECTED';
+const PROTECT_SENTINEL = '\u0000PROTECTED';
 
 /** Mask protected phrases so a rename cannot rewrite them. */
 function maskProtected(text) {
   return PROTECTED_PHRASES.reduce(
-    (acc, phrase, index) => acc.split(phrase).join(`${PROTECT_SENTINEL}${index} `),
+    (acc, phrase, index) => acc.split(phrase).join(`${PROTECT_SENTINEL}${index}\u0000`),
     text,
   );
 }
@@ -584,7 +598,7 @@ function maskProtected(text) {
 /** Restore masked phrases. */
 function unmaskProtected(text) {
   return PROTECTED_PHRASES.reduce(
-    (acc, phrase, index) => acc.split(`${PROTECT_SENTINEL}${index} `).join(phrase),
+    (acc, phrase, index) => acc.split(`${PROTECT_SENTINEL}${index}\u0000`).join(phrase),
     text,
   );
 }
@@ -730,6 +744,32 @@ export function renamedFiles(identity, root = ROOT) {
     }
   }
   return pending;
+}
+
+/**
+ * Visual-regression baselines — PNGs that RENDER the product's brand.
+ *
+ * A rename cannot rewrite a PNG, and the failure mode is silent rather than loud:
+ * at `maxDiffPixelRatio: 0.02` the wordmark is a small enough fraction of the page
+ * that the LIGHT baselines still pass while encoding the previous brand. Only the
+ * dark ones cross the threshold, so a derived product sees 2 failures, fixes those,
+ * and ships 3 baselines that assert the old logo is correct.
+ *
+ * They are therefore treated as derived artifacts of the previous brand and DELETED
+ * on rename. A missing snapshot makes Playwright fail loudly — "A snapshot doesn't
+ * exist at …" — which is the outcome we want: an explicit regeneration step instead
+ * of a green suite guarding the wrong image.
+ *
+ * @returns {string[]} repo-relative baseline paths (empty when none exist).
+ */
+export function staleBaselines(root = ROOT) {
+  const dir = 'tests/e2e/visual.e2e.test.ts-snapshots';
+  const absolute = join(root, dir);
+  if (!existsSync(absolute)) return [];
+  return readdirSync(absolute)
+    .filter((entry) => entry.endsWith('.png'))
+    .sort()
+    .map((entry) => `${dir}/${entry}`);
 }
 
 /**

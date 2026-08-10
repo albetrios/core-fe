@@ -25,7 +25,7 @@
  *     checklist instead of being half-done silently.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, renameSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, renameSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -34,17 +34,19 @@ import {
   kebabToCamel,
   kebabToUpperSnake,
   loadIdentity,
+  localDatabaseUrl,
   NAMESPACE_KEY_SUFFIXES,
   renamedFiles,
   planRename,
+  staleBaselines,
   ROOT,
 } from './identity.mjs';
 
-const BOLD = '[1m';
-const DIM = '[2m';
-const GREEN = '[32m';
-const YELLOW = '[33m';
-const RESET = '[0m';
+const BOLD = '\u001B[1m';
+const DIM = '\u001B[2m';
+const GREEN = '\u001B[32m';
+const YELLOW = '\u001B[33m';
+const RESET = '\u001B[0m';
 
 /** Parse `--flag value` pairs and bare `--flag` switches. */
 function parseArgs(argv) {
@@ -264,6 +266,20 @@ See docs/getting-started/new-project.md.`);
     if (apply) renameSync(join(ROOT, from), join(ROOT, to));
   }
 
+  // Visual baselines RENDER the brand, and no text rewrite can touch a PNG. Left in
+  // place they fail SILENTLY: at maxDiffPixelRatio 0.02 the light baselines still
+  // pass while encoding the previous logo, so a derived product fixes the 2 dark
+  // failures and keeps 3 baselines asserting the old brand is correct. Deleting them
+  // turns that into a loud "snapshot doesn't exist" on the next `pnpm test:visual`.
+  // Not for `--sync`: no rename happened, so the baselines are still valid.
+  for (const file of sync ? [] : staleBaselines(ROOT)) {
+    changed += 1;
+    console.log(
+      `  ${GREEN}✓${RESET} ${file}  ${DIM}(deleted — renders the previous brand)${RESET}`,
+    );
+    if (apply) rmSync(join(ROOT, file));
+  }
+
   // Repo-wide prose rename. Structural transforms cannot reach sentences like
   // "core-fe is trunk-based" — there is no anchor to hook — so this pass replaces
   // the old name everywhere, skipping CHANGELOG history and generated artifacts.
@@ -305,6 +321,10 @@ See docs/getting-started/new-project.md.`);
         `${current.namespace}-${suffix}`,
         `${next.namespace}-${suffix}`,
       ]),
+      // The local Postgres URL in documented commands. A bare `core` used as a
+      // DATABASE NAME matches neither the slug nor the product-name pass, so these
+      // copy-pasteable lines kept naming the previous product's database.
+      [localDatabaseUrl(current.namespace), localDatabaseUrl(next.namespace)],
     ]);
     for (const change of plan) {
       proseFilesChanged += 1;
@@ -418,9 +438,9 @@ See docs/getting-started/new-project.md.`);
   3. ${BOLD}Deploy + observability${RESET} — create the Netlify site, Sentry project and
      PostHog project, then set NETLIFY_SITE_ID / SENTRY_* / VITE_POSTHOG_* in the
      GitHub Environments (never in a committed file).
-  4. ${BOLD}Regenerate visual baselines${RESET} — the 5 Playwright snapshots still show the
-     PREVIOUS brand. Only the dark ones exceed maxDiffPixelRatio, so the rest pass while
-     silently encoding the old logo:
+  4. ${BOLD}Regenerate visual baselines${RESET} — the old snapshots were DELETED above,
+     because at maxDiffPixelRatio 0.02 the light ones would otherwise pass while still
+     encoding the previous logo. \`pnpm test:visual\` fails until you regenerate them:
        pnpm test:visual:update      ${DIM}(needs the backend running)${RESET}
   5. ${BOLD}Re-lock agent-os + reinstall${RESET} — the prose sweep edited skill files, so the
      agent-os skills-lock hashes are stale (agent-os-lock.policy.test.ts fails until

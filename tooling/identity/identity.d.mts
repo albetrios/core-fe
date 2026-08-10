@@ -96,6 +96,12 @@ export function planRename(
   replacements: Array<[string, string]>,
 ): Array<{ file: string; count: number; next: string }>;
 
+/** Local-compose Postgres URL for a namespace (user = password = db = stem). */
+export function localDatabaseUrl(namespace: string): string;
+
+/** Visual-regression baselines that render the brand — deleted on rename. */
+export function staleBaselines(root?: string): string[];
+
 /** Files whose NAME embeds the identity and must be renamed on disk. */
 export function renamedFiles(
   identity: Identity,

@@ -13,6 +13,7 @@ import {
   planRename,
   renamedFiles,
   renderProductIdentityModule,
+  staleBaselines,
   wholeWord,
 } from '../../tooling/identity/identity.mjs';
 
@@ -210,6 +211,21 @@ describe('product identity', () => {
       // and crashed the whole script. Assert the identifier is not re-bound locally.
       const script = read('tooling/identity/rebrand.mjs');
       expect(script).not.toMatch(/\b(?:let|const|var)\s+renamedFiles\b/);
+    });
+
+    it('deletes visual baselines, which no text rewrite can rebrand', () => {
+      // The baselines RENDER the brand. Left in place after a rename they fail
+      // SILENTLY: at maxDiffPixelRatio 0.02 the light ones still pass while
+      // encoding the previous logo, so a derived product fixes the 2 dark failures
+      // and ships 3 baselines asserting the old brand is correct. `pnpm rebrand`
+      // deletes them so the next `test:visual` fails loudly instead.
+      const baselines = staleBaselines(ROOT);
+      expect(baselines.length).toBeGreaterThan(0);
+      for (const file of baselines) {
+        expect(file).toMatch(/^tests\/e2e\/visual\.e2e\.test\.ts-snapshots\/.+\.png$/);
+      }
+      // Pins the wiring: the helper existing is useless if rebrand never calls it.
+      expect(read('tooling/identity/rebrand.mjs')).toContain('staleBaselines(ROOT)');
     });
 
     it('has no retired name still present', () => {
