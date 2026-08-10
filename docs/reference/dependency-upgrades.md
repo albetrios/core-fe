@@ -65,6 +65,23 @@ in dev-only trees. Treat **production `dependencies`** first (`pnpm deps:audit:p
 audits the prod-reachable graph only); document accepted risk for dev-only
 transitives if no patched upgrade exists yet.
 
+### CI posture — which audit blocks a merge
+
+The `Security audit` lane runs both, in this order:
+
+| Step                          |   Blocking    | Why                                                                                                                                                                                                                                                                                                     |
+| ----------------------------- | :-----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm deps:audit:prod`        |    **Yes**    | These packages ship to users. Runs **first** so it is always reported — when the full-tree sweep ran first and failed, this step was skipped, so the audit that matters was never evaluated.                                                                                                            |
+| `pnpm deps:audit` (full tree) | No — advisory | A dev-only advisory with **no published fix** would otherwise wedge every PR with no honest exit: `bulk-audit.mjs` has no waiver list by design, and the alternative is dropping the offending tool. Failures stay visible in the job log, and `scheduled-deps-audit.yml` re-runs the full tree weekly. |
+
+Make the full-tree step blocking again once the accepted-risk list below is empty.
+
+### Accepted risk — dev-only, no upgrade available
+
+| Advisory                                                                                                                                  | Path                                 | Why accepted                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `image-size` **<=2.0.2** — DoS via infinite loops in the ICNS parser (GHSA-w3rx-r6r6-pgpr) and the JXL/HEIF parsers (GHSA-5p2g-fcmc-qvqq) | `netlify-cli` → `@netlify/dev-utils` | **2.0.2 is the newest published version** — there is nothing to upgrade or pin to. Dev/deploy-CLI only: `pnpm deps:audit:prod` is clean, so it never reaches a client bundle. `netlify-cli` cannot simply be dropped — `pnpm exec netlify deploy` in `reusable-netlify-deploy.yml` **is** the production deploy path, and moving it to `pnpm dlx` would unpin a deploy-critical tool to silence a dev-only finding. Re-check when `image-size` publishes >2.0.2. |
+
 ## Upgrade decisions log
 
 ### npm-major group — web-vitals 6, jest-dom 7, netlify-cli 27, size-limit 13 (2026-08-01) — ADOPTED
