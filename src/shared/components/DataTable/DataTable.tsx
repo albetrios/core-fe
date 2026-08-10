@@ -1,4 +1,4 @@
-import { flexRender, type Table as TanstackTable } from '@tanstack/react-table';
+import { flexRender, type ReactTable, type RowData } from '@tanstack/react-table';
 import { memo } from 'react';
 
 import {
@@ -10,8 +10,10 @@ import {
   TableRow,
 } from '@/shared/components/ui/table.tsx';
 
-interface DataTableProps<TData> {
-  table: TanstackTable<TData>;
+import type { DataTableFeatures } from './table-features.ts';
+
+interface DataTableProps<TData extends RowData> {
+  table: ReactTable<DataTableFeatures, TData>;
   /** Message shown when the table has no rows. */
   emptyMessage?: string;
 }
@@ -21,11 +23,11 @@ interface DataTableProps<TData> {
  *
  * Usage:
  * ```tsx
- * const table = useReactTable({ data, columns, ... });
+ * const table = useTable({ features: dataTableFeatures, data, columns, ... });
  * <DataTable table={table} />
  * ```
  */
-function DataTableInner<TData>({
+function DataTableInner<TData extends RowData>({
   table,
   emptyMessage = 'No results.',
 }: DataTableProps<TData>) {

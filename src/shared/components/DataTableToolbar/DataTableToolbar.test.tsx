@@ -1,19 +1,16 @@
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { useTable } from '@tanstack/react-table';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+
+import { dataTableFeatures } from '@/shared/components/DataTable/index.ts';
 
 import { DataTableToolbar } from './DataTableToolbar.tsx';
 
 function Harness() {
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data: [{ name: 'Ada' }],
     columns: [{ accessorKey: 'name', header: 'Name' }],
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   });
   return <DataTableToolbar table={table} searchColumnId="name" />;
 }

@@ -1,0 +1,42 @@
+import {
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFns,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  sortFns,
+  tableFeatures,
+} from '@tanstack/react-table';
+
+/**
+ * The single feature set every table in the app is built from.
+ *
+ * TanStack Table v9 makes features opt-in for tree-shaking: a table only has
+ * `getCanSort()`, `toggleVisibility()` etc. if the matching feature was passed
+ * in. Declaring one shared set — rather than a per-table set — is what lets the
+ * shared `DataTable*` components stay generic over `TData` alone. Generic over
+ * an open `TFeatures` they could not call any feature method, because the
+ * compiler cannot know the feature is present.
+ *
+ * Add a feature here when a table needs it; the row model that powers it goes
+ * in the same object (v9 moved row models out of the table options).
+ */
+export const dataTableFeatures = tableFeatures({
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  filterFns,
+  sortFns,
+});
+
+/** Feature set backing every shared `DataTable*` component. */
+export type DataTableFeatures = typeof dataTableFeatures;

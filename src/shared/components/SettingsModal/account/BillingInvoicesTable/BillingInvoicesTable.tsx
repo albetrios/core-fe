@@ -1,8 +1,12 @@
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { type ColumnDef, useTable } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 import type { BillingInvoice } from '@/shared/api/billing-contracts.ts';
-import { DataTable } from '@/shared/components/DataTable/index.ts';
+import {
+  DataTable,
+  type DataTableFeatures,
+  dataTableFeatures,
+} from '@/shared/components/DataTable/index.ts';
 import { QueryBoundary } from '@/shared/components/QueryBoundary/index.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -25,7 +29,7 @@ function invoiceStatusVariant(status: BillingInvoice['status']) {
 function InvoicesTable({ invoices }: { invoices: BillingInvoice[] }) {
   const { formatCurrency, formatDate } = useLocaleFormat();
 
-  const columns = useMemo<ColumnDef<BillingInvoice>[]>(
+  const columns = useMemo<ColumnDef<DataTableFeatures, BillingInvoice>[]>(
     () => [
       {
         accessorKey: 'createdAt',
@@ -71,10 +75,10 @@ function InvoicesTable({ invoices }: { invoices: BillingInvoice[] }) {
     [formatCurrency, formatDate],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data: invoices,
     columns,
-    getCoreRowModel: getCoreRowModel(),
   });
 
   return (

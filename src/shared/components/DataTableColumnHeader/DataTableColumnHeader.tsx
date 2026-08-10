@@ -1,6 +1,7 @@
-import type { Column } from '@tanstack/react-table';
+import type { Column, RowData } from '@tanstack/react-table';
 
 import { cn } from '@/lib/utils.ts';
+import type { DataTableFeatures } from '@/shared/components/DataTable/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   DropdownMenu,
@@ -11,12 +12,15 @@ import {
 } from '@/shared/components/ui/dropdown-menu.tsx';
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from '@/shared/icons/index.ts';
 
-interface DataTableColumnHeaderProps<TData, TValue> extends React.ComponentProps<'div'> {
-  column: Column<TData, TValue>;
+interface DataTableColumnHeaderProps<
+  TData extends RowData,
+  TValue,
+> extends React.ComponentProps<'div'> {
+  column: Column<DataTableFeatures, TData, TValue>;
   title: string;
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   title,
   className,
