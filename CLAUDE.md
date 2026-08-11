@@ -466,3 +466,27 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
 - Unit/security: Vitest; E2E: Playwright (Chromium). Component tests require `vitest-axe`; portaled dialogs use `axeForDialog`.
 
 **Dev API:** In development, Vite proxies `/api` to `VITE_DEV_API_URL` (default `http://localhost:3000`). The FE always uses `apiClient` / `authFetch` against **core-be**. Unit tests stub modules with `vi.mock()` — no HTTP server.
+
+## Git branch naming
+
+Working branches are `<type>/<short-description>`; `main` is the only long-lived branch. Enforced by [`.husky/pre-push`](.husky/pre-push) (rule: `agent-os/rules/git-branch-naming.mdc`, owner: **code-quality-security**).
+
+**AI web sessions start on a throwaway name.** Claude Code web assigns `claude/<platform-slug>` (e.g. `claude/session-request-wx3euu`) before the container boots. The slug is generated platform-side and is **not configurable from this repo** — no file here changes it. Rename it to a meaningful name rather than shipping it.
+
+**Name the branch before the first push.** The cloud git proxy accepts a push to _any_ branch name but **rejects every form of delete** (`git push --delete`, `git push :ref`, and `DELETE /git/refs/...` → 403, even for a ref that does not exist). A `claude/*` branch that has already been pushed therefore cannot be cleaned up from inside the session. Renaming first means the throwaway name never reaches the remote:
+
+```sh
+git branch -m docs/branch-naming-guidance      # rename in place, BEFORE any push
+git push -u origin docs/branch-naming-guidance
+```
+
+Already pushed as `claude/*`? Leave it — it disappears when the PR squash-merges. Never open a second PR just to fix a branch name.
+
+**Deriving the name** — `<type>` is the change's conventional-commit type (`feat`, `feature`, `fix`, `hotfix`, `chore`, `ci`, `docs`, `refactor`, `test`, `perf`, `build`, `style`, `revert`, matching the accepted-prefix regex in `.husky/pre-push`); `<short-description>` is kebab-case, 2–5 words, ≤ 40 chars, naming the change itself (never a ticket id or a date). Keep it aligned with the commit subject and PR title.
+
+| Change                                | Branch                                |
+| ------------------------------------- | ------------------------------------- |
+| Fix British spelling in a doc         | `docs/american-spelling-organization` |
+| Add the billing invoices route island | `feat/billing-invoice-route`          |
+| Org guard drops the slug on refresh   | `fix/org-slug-guard-refresh`          |
+| Bump Vite to 8.1                      | `chore/bump-vite-8-1`                 |

@@ -173,6 +173,7 @@ core-fe/
 │   │   ├── engineering-principles.mdc
 │   │   ├── env-schema-add-sync.mdc
 │   │   ├── file-structure.mdc
+│   │   ├── git-branch-naming.mdc
 │   │   ├── platform-hygiene-sync.mdc
 │   │   ├── pr-review-prevention.mdc
 │   │   ├── preset-product-design.mdc
