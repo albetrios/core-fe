@@ -61,6 +61,7 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 | **Preset product rules** — type scale/density/contrast/motion floors, shuffle policy, WCAG | preset-product-design (doc + rule) | `docs/reference/preset-product-design-rules.md` · `agent-os/rules/preset-product-design.mdc` |
 | **PWA manifest / app icon / favicon / theme_color** — install surface, Boxes icon, manifest sync | pwa-manifest | `agent-os/skills/pwa-manifest/SKILL.md` |
 | **Local production perf** — bundle size, Lighthouse on built app (not dev server) | local-production-perf (doc) · project-health-check | `docs/reference/local-production-perf.md` |
+| **Naming a git branch** — creating a branch, renaming a `claude/*` session branch before pushing | git-branch-naming (rule) · code-quality-security | `agent-os/rules/git-branch-naming.mdc` · `docs/process/trunk-based-workflow.md` |
 
 ## Auto-Invocation Rules
 
