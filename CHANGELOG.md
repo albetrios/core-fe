@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.1](https://github.com/nikunjmavani/core-fe/compare/v1.6.0...v1.6.1) (2026-08-11)
+
+
+### Fixed
+
+* **cloud-env:** install pinned Node deterministically for cloud agents ([#239](https://github.com/nikunjmavani/core-fe/issues/239)) ([3b049e0](https://github.com/nikunjmavani/core-fe/commit/3b049e005ba19923d9689f4f05d4499604967726))
+
+
+### Documentation
+
+* **git:** add branch-naming guidance and correct the proxy pin claim ([#242](https://github.com/nikunjmavani/core-fe/issues/242)) ([d71d39e](https://github.com/nikunjmavani/core-fe/commit/d71d39e51132ccacb158a180b1d4a5c33a0b5162))
+
 ## [1.6.0](https://github.com/nikunjmavani/core-fe/compare/v1.5.0...v1.6.0) (2026-08-10)
 
 
