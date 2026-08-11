@@ -24,12 +24,22 @@ env files, so the suite is hermetic on a fresh checkout.
 
 ## What `install.sh` does (cached, idempotent)
 
-1. Pins Node to the `.nvmrc` major (24) when a version manager is present.
+1. [`install-node.sh`](./install-node.sh) — downloads the pinned Node (`.nvmrc`,
+   major 24) into `/opt/node24`, then activates it on `PATH` and persists that
+   for the session via `$CLAUDE_ENV_FILE`. It does **not** probe for a version
+   manager: cloud images ship Node 20/21/22 and no working one (`fnm` absent,
+   the `nvm` shell function reports `N/A` with no `~/.nvm` tree), so probing
+   silently leaves Node 22 in place and step 2 then hard-fails on
+   `engine-strict`. `.nvmrc` pins `24.19` (a major.minor), so the exact patch
+   release is resolved from `nodejs.org/dist/index.json` at install time rather
+   than hardcoded — that keeps the pin authoritative.
 2. `corepack enable` + `pnpm install --frozen-lockfile`.
 3. `pnpm mcp:setup:default` — writes the default MCP pair (codegraph + headroom)
    to `.mcp.json`.
-4. `pnpm setup:local` — scaffolds `.env.local` (schema defaults; no
-   secrets).
+4. `pnpm setup:local --only-env` — scaffolds `.env.local` (schema defaults; no
+   secrets). The `--only-env` flag is required: a bare `pnpm setup:local` runs
+   through to phase 5/5 and spawns a long-lived `pnpm dev`, which would hang
+   this script.
 
 It does **not** download Playwright browsers or start any service — a heavy
 browser download or a missing backend must not fail the whole environment.
@@ -59,7 +69,10 @@ fresh session. On-demand servers: `pnpm mcp:setup <name>`.
 
 Minimum Custom allowlist entries beyond defaults:
 
-- `nodejs.org` — Node install via a version manager.
+- `nodejs.org` — **required**; `install-node.sh` resolves and downloads the Node
+  tarball from `nodejs.org/dist`. It is not in the default Trusted list, so
+  without it the install is blocked and every later step fails on the wrong
+  Node major.
 - `registry.npmjs.org` — `pnpm install`.
 - `playwright.azureedge.net` (and `cdn.playwright.dev`) — only when installing
   Playwright browsers on demand.
