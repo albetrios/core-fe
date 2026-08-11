@@ -1333,7 +1333,16 @@ core-fe/
 │   │   └── generate-project-tree.py
 │   ├── setup/
 │   │   ├── agent/
-│   │   │   └── install-node.sh
+│   │   │   ├── bootstrap.sh
+│   │   │   ├── healthcheck.sh
+│   │   │   ├── install-apt-tools.sh
+│   │   │   ├── install-gh.sh
+│   │   │   ├── install-gitleaks.sh
+│   │   │   ├── install-headroom.sh
+│   │   │   ├── install-node.sh
+│   │   │   ├── install-playwright.sh
+│   │   │   ├── lib.sh
+│   │   │   └── README.md
 │   │   ├── github/
 │   │   │   ├── check-environments-drift.mjs
 │   │   │   ├── env-sync-plan.mjs
