@@ -104,7 +104,6 @@ core-fe/
 │   ├── cloud-environment/
 │   │   ├── agents-cloud.md
 │   │   ├── environment.json
-│   │   ├── install-node.sh
 │   │   ├── install.sh
 │   │   └── skills-and-mcps.md
 │   ├── commands/
@@ -1333,6 +1332,8 @@ core-fe/
 │   │   ├── code-review-report.mjs
 │   │   └── generate-project-tree.py
 │   ├── setup/
+│   │   ├── agent/
+│   │   │   └── install-node.sh
 │   │   ├── github/
 │   │   │   ├── check-environments-drift.mjs
 │   │   │   ├── env-sync-plan.mjs
