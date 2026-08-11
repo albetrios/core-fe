@@ -24,12 +24,33 @@ env files, so the suite is hermetic on a fresh checkout.
 
 ## What `install.sh` does (cached, idempotent)
 
-1. Pins Node to the `.nvmrc` major (24) when a version manager is present.
+1. [`install-node.sh`](install-node.sh) installs the pinned Node: it resolves the
+   `.nvmrc` pin to an exact `x.y.z` against the official release index,
+   downloads the tarball, verifies its SHA-256 against `SHASUMS256.txt` **before**
+   unpacking, and lays it down at `/opt/node24` — the same layout
+   [`agent-os/hooks/session-start.sh`](../hooks/session-start.sh) searches.
+   `install.sh` then puts it on `PATH` and persists that via `$CLAUDE_ENV_FILE`
+   so the rest of the session inherits it.
+
+   It deliberately does **not** probe for a version manager. On these images fnm
+   is absent and nvm is a shell function with no `~/.nvm` tree behind it, so both
+   probes fall through to the image's Node 22 — and `engines.node` is `>=24.15`
+   with `engine-strict=true`, so `pnpm install --frozen-lockfile` then hard-fails
+   ("Expected version: >=24.15, Got: v22.22.2") and the session ends up with no
+   `node_modules` at all.
+
 2. `corepack enable` + `pnpm install --frozen-lockfile`.
 3. `pnpm mcp:setup:default` — writes the default MCP pair (codegraph + headroom)
    to `.mcp.json`.
-4. `pnpm setup:local` — scaffolds `.env.local` (schema defaults; no
-   secrets).
+4. `pnpm setup:local --only-env` — scaffolds `.env.local` (schema defaults; no
+   secrets). The flag is **required**: without it the script runs to phase 5/5 and
+   spawns `pnpm dev`, a long-lived server that hangs a Setup script which must
+   terminate.
+
+> **`.nvmrc` pins `major.minor` (`24.19`), not a bare major — keep the dot.**
+> `tr -dc '0-9'` collapses it to `2419`, which sends any `/opt/node<major>`
+> lookup to a path that can never exist. Both `install.sh` and
+> `session-start.sh` parse it as `tr -dc '0-9.' | cut -d. -f1`.
 
 It does **not** download Playwright browsers or start any service — a heavy
 browser download or a missing backend must not fail the whole environment.
@@ -59,7 +80,8 @@ fresh session. On-demand servers: `pnpm mcp:setup <name>`.
 
 Minimum Custom allowlist entries beyond defaults:
 
-- `nodejs.org` — Node install via a version manager.
+- `nodejs.org` — **required**: `install-node.sh` fetches the release index
+  (`/dist/index.tab`), the tarball, and `SHASUMS256.txt` from this one host.
 - `registry.npmjs.org` — `pnpm install`.
 - `playwright.azureedge.net` (and `cdn.playwright.dev`) — only when installing
   Playwright browsers on demand.
