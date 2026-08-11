@@ -5,8 +5,10 @@
 # (parity with core-be). The trunk and a detached HEAD are exempt. The trunk is
 # resolved from tooling/setup/setup.config.json (git.defaultBranch), never
 # hardcoded, so a renamed trunk stays exempt automatically. Claude Code web
-# session branches (claude/*) are allowlisted (the cloud git proxy pins a web
-# session to push only its claude/* branch). Bypass once with:
+# session branches (claude/*) are allowlisted as a FALLBACK — the cloud git proxy
+# does NOT pin a session to its claude/* branch (a push under any conventional
+# name succeeds), but it does refuse every form of branch delete, so rename
+# before the first push. See agent-os/rules/git-branch-naming.mdc. Bypass once:
 #   SKIP_BRANCH_CHECK=1 git push
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD)
 DEFAULT_BRANCH=$(node -e "const fs=require('fs');try{const c=JSON.parse(fs.readFileSync('tooling/setup/setup.config.json','utf8'));process.stdout.write((c.git&&c.git.defaultBranch)||'main')}catch(e){process.stdout.write('main')}" 2>/dev/null || echo main)

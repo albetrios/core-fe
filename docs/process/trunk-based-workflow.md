@@ -45,10 +45,19 @@ Use the format **type/short-description**.
 `feature` · `feat` · `fix` · `hotfix` · `refactor` · `docs` · `test` · `chore` · `ci` · `perf` ·
 `build` · `style` · `revert`
 
-Claude Code web session branches (`claude/*`) are allowlisted — the cloud git
-proxy pins a web session to push only its own `claude/*` branch. One-off bypass:
-`SKIP_BRANCH_CHECK=1 git push`. Enforced by [`.husky/pre-push`](../../.husky/pre-push)
-(parity with core-be).
+Name the branch after the change: `<type>` is its conventional-commit type, `<short-description>`
+is 2–5 kebab-case words (≤ 40 chars) matching the commit subject and PR title —
+`docs/american-spelling-organization`, `feat/billing-invoice-route`,
+`fix/org-slug-guard-refresh`.
+
+Claude Code web session branches (`claude/*`) are allowlisted as a **fallback**. A web session
+boots on a platform-generated `claude/<slug>` that carries no meaning; rename it with
+`git branch -m <type>/<short-description>` **before** the first push. The cloud git proxy does
+**not** pin a session to that branch — a push under any conventional name succeeds — but it does
+refuse every form of branch **delete** (403), so a `claude/*` branch that has already been pushed
+cannot be removed from inside the session. One-off bypass of the name check:
+`SKIP_BRANCH_CHECK=1 git push`. Enforced by [`.husky/pre-push`](../../.husky/pre-push) and the
+[`git-branch-naming`](../../agent-os/rules/git-branch-naming.mdc) rule (parity with core-be).
 
 Hotfixes are **fix-forward on `main`** (no release branches) — see below.
 
