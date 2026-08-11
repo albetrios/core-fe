@@ -14,8 +14,8 @@
 # SessionStart hook switches PATH to it and runs `pnpm install` automatically.
 # No repo files change; nothing depends on a version manager being present.
 #
-# Usage (called by install.sh; also runnable on its own):
-#   bash agent-os/cloud-environment/install-node.sh
+# Usage (called by bootstrap.sh; also runnable on its own):
+#   bash tooling/setup/agent/install-node.sh
 #
 # Network: needs egress to nodejs.org, which is NOT in the default "Trusted"
 # allowlist. Set Network access to "Custom", add `nodejs.org`, and keep
@@ -35,7 +35,7 @@ readonly FALLBACK_VERSION="24.19.0"
 readonly DIST_INDEX="https://nodejs.org/dist/index.json"
 readonly INSTALL_PREFIX="${NODE_INSTALL_PREFIX:-/opt}"
 
-repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 log() { printf 'install-node: %s\n' "$*" >&2; }
 

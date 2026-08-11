@@ -104,7 +104,6 @@ core-fe/
 │   ├── cloud-environment/
 │   │   ├── agents-cloud.md
 │   │   ├── environment.json
-│   │   ├── install-node.sh
 │   │   ├── install.sh
 │   │   └── skills-and-mcps.md
 │   ├── commands/
@@ -1334,6 +1333,17 @@ core-fe/
 │   │   ├── code-review-report.mjs
 │   │   └── generate-project-tree.py
 │   ├── setup/
+│   │   ├── agent/
+│   │   │   ├── bootstrap.sh
+│   │   │   ├── healthcheck.sh
+│   │   │   ├── install-apt-tools.sh
+│   │   │   ├── install-gh.sh
+│   │   │   ├── install-gitleaks.sh
+│   │   │   ├── install-headroom.sh
+│   │   │   ├── install-node.sh
+│   │   │   ├── install-playwright.sh
+│   │   │   ├── lib.sh
+│   │   │   └── README.md
 │   │   ├── github/
 │   │   │   ├── check-environments-drift.mjs
 │   │   │   ├── env-sync-plan.mjs
