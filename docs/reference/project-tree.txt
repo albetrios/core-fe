@@ -104,6 +104,7 @@ core-fe/
 │   ├── cloud-environment/
 │   │   ├── agents-cloud.md
 │   │   ├── environment.json
+│   │   ├── install-node.sh
 │   │   ├── install.sh
 │   │   └── skills-and-mcps.md
 │   ├── commands/
