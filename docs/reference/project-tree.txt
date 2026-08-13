@@ -1279,6 +1279,11 @@ core-fe/
 │   │   └── README.md
 │   ├── fixtures/
 │   │   └── notification-fixtures.ts
+│   ├── live-contract/
+│   │   ├── browser-globals.ts
+│   │   ├── live-providers.ts
+│   │   ├── README.md
+│   │   └── [3 test files]
 │   ├── performance/
 │   │   └── README.md
 │   ├── security/
@@ -1435,6 +1440,7 @@ core-fe/
 ├── playwright.config.ts
 ├── playwright.cross-browser.config.ts
 ├── playwright.integration-cross-browser.config.ts
+├── playwright.live-contract.config.ts
 ├── README.md
 ├── SECURITY.md
 ├── SETUP.md
@@ -1446,7 +1452,8 @@ core-fe/
 ├── tsconfig.node.json
 ├── typedoc.json
 ├── vite.config.ts
-└── vitest.config.ts
+├── vitest.config.ts
+└── vitest.live-contract.config.ts
 ================================================================================
 §3  KEY CONVENTIONS
 ================================================================================
