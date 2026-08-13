@@ -116,7 +116,9 @@
     "agent-os:lock": "tsx tooling/agent-os/lock.ts",
     "test:visual": "rm -rf test-results && playwright test tests/e2e/visual.e2e.test.ts",
     "test:visual:update": "rm -rf test-results && playwright test tests/e2e/visual.e2e.test.ts --update-snapshots",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:live-contract": "vitest run --config vitest.live-contract.config.ts",
+    "test:live-contract:e2e": "playwright test --config playwright.live-contract.config.ts"
   },
   "pnpm": {
     "overrides": {
