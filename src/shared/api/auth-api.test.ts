@@ -21,7 +21,7 @@ describe('authApi.mfaVerify second factor', () => {
       vi.fn(async (_url: unknown, init: RequestInit) => {
         body = JSON.parse(init.body as string) as Record<string, unknown>;
         return new Response(JSON.stringify({ data: { access_token: 'acc' } }), {
-          status: 201,
+          status: 200,
         });
       }),
     );
@@ -58,7 +58,7 @@ describe('authApi.login MFA handoff', () => {
             JSON.stringify({
               data: { mfa_required: true, mfa_session_token: 'mfa_sess_pw' },
             }),
-            { status: 201 },
+            { status: 200 },
           ),
       ),
     );
@@ -82,7 +82,7 @@ describe('authApi.emailLogin MFA handoff', () => {
             JSON.stringify({
               data: { mfa_required: true, mfa_session_token: 'mfa_sess_123' },
             }),
-            { status: 201 },
+            { status: 200 },
           ),
       ),
     );
@@ -101,7 +101,7 @@ describe('authApi.emailLogin MFA handoff', () => {
       vi.fn(async (_url: unknown, init: RequestInit) => {
         body = JSON.parse(init.body as string) as Record<string, unknown>;
         return new Response(JSON.stringify({ data: { access_token: 'acc' } }), {
-          status: 201,
+          status: 200,
         });
       }),
     );
@@ -128,7 +128,7 @@ describe('authApi.emailVerificationCodeSend', () => {
                 debug_verification_code: '135790',
               },
             }),
-            { status: 201 },
+            { status: 200 },
           ),
       ),
     );
@@ -143,7 +143,7 @@ describe('authApi.emailVerificationCodeSend', () => {
         async () =>
           new Response(
             JSON.stringify({ data: { message: 'sent', expires_in_minutes: 15 } }),
-            { status: 201 },
+            { status: 200 },
           ),
       ),
     );
@@ -291,7 +291,7 @@ describe('authApi.completeOnboarding', () => {
   });
 
   it('POSTs to the onboarding-complete route with the bearer token', async () => {
-    const fetchMock = vi.fn(async () => new Response(null, { status: 201 }));
+    const fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
     await authApi.completeOnboarding('tok_123');

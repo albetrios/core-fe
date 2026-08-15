@@ -27,7 +27,7 @@ export const API_ENDPOINTS = {
     GOOGLE: '/auth/oauth/google',
     /** GET → which social providers are configured (e.g. ["google","github"]). */
     OAUTH_PROVIDERS: '/auth/oauth/providers',
-    /** Passwordless sign-in: POST { email } → uniform 201 (auto-signup on unknown email). */
+    /** Passwordless sign-in: POST { email } → uniform 200 (auto-signup on unknown email). */
     EMAIL_CODE_SEND: '/auth/email/send-code',
     /** Passwordless sign-in: POST { email, code } → session (or MFA challenge). */
     EMAIL_CODE_LOGIN: '/auth/email/login',
