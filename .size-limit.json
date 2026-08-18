@@ -3,8 +3,7 @@
     "name": "Initial JS (entry + vendor)",
     "path": "dist/assets/index-*.js",
     "limit": "260 kB",
-    "gzip": true,
-    "running": false
+    "gzip": true
   },
   {
     "name": "Initial CSS",

@@ -35,13 +35,17 @@ if (jsPaths.length === 0) {
 // above the measured first-paint size (JS ~216 kB gz, CSS ~22 kB gz) so any
 // regression trips CI immediately — lower as the bundle shrinks, never raise
 // to absorb growth.
+//
+// No `running` key: it is an option contributed by @size-limit/time, which this
+// repo does not install (it never measured runtime here — `running` was only
+// ever set to false). Re-adding it without that plugin fails the run outright
+// with "Config option running needs @size-limit/time plugin".
 const config = [
   {
     name: 'Initial JS (entry + vendor)',
     path: jsPaths,
     limit: '225 kB',
     gzip: true,
-    running: false,
   },
   ...(cssPaths.length
     ? [
