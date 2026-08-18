@@ -332,12 +332,17 @@ jobs:
       # with no honest way out: `bulk-audit.mjs` has no waiver list by design, and
       # the alternative is dropping the offending tool.
       #
-      # Live example: image-size <=2.0.2 (DoS in the ICNS/JXL/HEIF parsers) arrives
-      # via netlify-cli -> @netlify/dev-utils, and 2.0.2 IS the newest published
-      # version. netlify-cli cannot simply be removed — `pnpm exec netlify deploy`
-      # in reusable-netlify-deploy.yml is the production deploy path, and moving it
-      # to `pnpm dlx` would unpin a deploy-critical tool to silence a dev-only
-      # finding, which is the worse trade.
+      # Live examples: image-size <=2.0.2 (DoS in the ICNS/JXL/HEIF parsers) and
+      # extract-zip <=2.0.1 (symlink path traversal) — in both cases the locked
+      # version IS the newest published one, so there is nothing to upgrade or pin
+      # to. Both reach the tree through netlify-cli (extract-zip also through
+      # @size-limit/preset-app), and netlify-cli cannot simply be removed: `pnpm
+      # exec netlify deploy` in reusable-netlify-deploy.yml is the production
+      # deploy path, and moving it to `pnpm dlx` would unpin a deploy-critical
+      # tool to silence a dev-only finding, which is the worse trade.
+      #
+      # The full accepted-risk list (path + rationale per advisory) lives in
+      # docs/reference/dependency-upgrades.md — keep the two in sync.
       #
       # Coverage is not lost: failures stay visible in this log, and
       # scheduled-deps-audit.yml re-runs the full tree weekly. Make this blocking
