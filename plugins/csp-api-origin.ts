@@ -19,9 +19,12 @@ const HEADERS_CSP_PLACEHOLDER = "Content-Security-Policy: frame-ancestors 'none'
  * Injects the production API origin into the Content-Security-Policy in two places:
  *
  *  - `index.html`'s meta CSP (transformIndexHtml) — the parse-time fallback.
+ *    ONLY the API origin is injected here; every other token is hand-written in
+ *    `index.html`, so parity with the canonical policy is not automatic — it is
+ *    asserted by `tests/security/static-security-config.security.test.ts`.
  *  - `dist/_headers`'s `Content-Security-Policy` line (writeBundle) — the
- *    authoritative, header-delivered policy built from the same canonical
- *    source (`buildContentSecurityPolicy`), so the two never drift.
+ *    authoritative, header-delivered policy, generated in full from
+ *    `buildContentSecurityPolicy`.
  *
  * `reportUri` (VITE_CSP_REPORT_URI) is optional: when set, the header policy
  * carries `report-uri`/`report-to` + a `Reporting-Endpoints` header so
