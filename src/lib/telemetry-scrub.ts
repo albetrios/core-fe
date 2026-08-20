@@ -14,6 +14,12 @@
 // they would reach PostHog/Sentry.
 const SENSITIVE_QUERY_PARAMS = [
   'token',
+  // OAuth authorization grant, on the SPA `/callback` URL. `code` is a single-use
+  // credential and `state` the single-use CSRF nonce; telemetry booted in the same
+  // window records the URL as `$current_url` / the Sentry pageload URL before the
+  // page can strip it.
+  'code',
+  'state',
   'payment_intent_client_secret',
   'setup_intent_client_secret',
 ];
@@ -27,6 +33,10 @@ const FILTERED = '[Filtered]';
 // lint forbids dynamically-built RegExps).
 const PARAM_PATTERNS = [
   /([?&#]token=)[^&#]*/gi,
+  // The `[?&#]` anchor is what keeps these from over-matching: `error_code=` and
+  // `zipcode=` do not start at a param boundary, so neither matches the `code` rule.
+  /([?&#]code=)[^&#]*/gi,
+  /([?&#]state=)[^&#]*/gi,
   /([?&#]payment_intent_client_secret=)[^&#]*/gi,
   /([?&#]setup_intent_client_secret=)[^&#]*/gi,
 ];

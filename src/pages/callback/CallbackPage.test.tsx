@@ -36,7 +36,7 @@ import {
   popOauthProvider,
   stashOauthProvider,
 } from '@/shared/auth/oauth-provider-handoff.ts';
-import { stashReturnTo } from '@/shared/auth/redirect-safety.ts';
+import { popReturnTo, stashReturnTo } from '@/shared/auth/redirect-safety.ts';
 
 import { CallbackPage } from './CallbackPage.tsx';
 
@@ -130,6 +130,61 @@ describe('CallbackPage', () => {
     });
   });
 
+  describe('address-bar hygiene', () => {
+    it('has already stripped code/state by the time the exchange fires', async () => {
+      // The invariant that matters: the grant is out of the address bar BEFORE the
+      // two network round-trips, so no telemetry capture can race them. Sampling
+      // inside the mock proves ordering rather than mere eventual cleanup.
+      let searchAtExchange: string | null = null;
+      oauthCallbackMock.mockImplementation(async () => {
+        searchAtExchange = window.location.search;
+        return { accessToken: 'access-token-value' };
+      });
+
+      arriveFromProvider('?code=auth-code&state=state-token');
+      renderWithProviders(<CallbackPage />);
+
+      await waitFor(() => expect(oauthCallbackMock).toHaveBeenCalled());
+      expect(searchAtExchange).toBe('');
+    });
+
+    it('strips the params even when the provider returned an error', async () => {
+      window.history.pushState({}, '', '/callback?error=access_denied');
+      renderWithProviders(<CallbackPage />);
+      await waitFor(() => expect(window.location.search).toBe(''));
+    });
+
+    it('keeps the user on /callback while stripping', async () => {
+      arriveFromProvider('?code=auth-code&state=state-token');
+      renderWithProviders(<CallbackPage />);
+      await waitFor(() => expect(window.location.search).toBe(''));
+      expect(window.location.pathname).toBe('/callback');
+    });
+  });
+
+  describe('provider-side refusal', () => {
+    it('sends a declined consent to /login without attempting an exchange', async () => {
+      window.history.pushState({}, '', '/callback?error=access_denied');
+      renderWithProviders(<CallbackPage />);
+
+      await waitFor(() =>
+        expect(navigateMock).toHaveBeenCalledWith({ to: '/login', replace: true }),
+      );
+      expect(oauthCallbackMock).not.toHaveBeenCalled();
+      // Must not fall through to silentRefresh — there is no session to pick up.
+      expect(silentRefreshMock).not.toHaveBeenCalled();
+    });
+
+    it('preserves returnTo across a declined consent', async () => {
+      window.history.pushState({}, '', '/callback?error=access_denied');
+      stashReturnTo('/settings');
+      renderWithProviders(<CallbackPage />);
+
+      await waitFor(() => expect(navigateMock).toHaveBeenCalled());
+      expect(popReturnTo()).toBe('/settings');
+    });
+  });
+
   describe('fallbacks and failures', () => {
     it('falls back to silentRefresh when the provider id is missing', async () => {
       window.history.pushState({}, '', '/callback?code=auth-code&state=state-token');
@@ -155,6 +210,16 @@ describe('CallbackPage', () => {
       await waitFor(() =>
         expect(navigateMock).toHaveBeenCalledWith({ to: '/login', replace: true }),
       );
+    });
+
+    it('preserves returnTo when the exchange fails, so re-login lands correctly', async () => {
+      oauthCallbackMock.mockRejectedValue(new Error('invalid_grant'));
+      arriveFromProvider('?code=bad-code&state=state-token');
+      stashReturnTo('/settings');
+      renderWithProviders(<CallbackPage />);
+
+      await waitFor(() => expect(navigateMock).toHaveBeenCalled());
+      expect(popReturnTo()).toBe('/settings');
     });
 
     it('routes to /mfa when the account requires a second factor', async () => {

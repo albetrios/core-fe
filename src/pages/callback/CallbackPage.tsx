@@ -7,7 +7,7 @@ import { authApi, MfaRequiredError } from '@/shared/api/auth-api.ts';
 import { skipAutoGoogleSignIn } from '@/shared/auth/auto-google-sign-in.ts';
 import { stashMfaHandoff } from '@/shared/auth/mfa-handoff.ts';
 import { popOauthProvider } from '@/shared/auth/oauth-provider-handoff.ts';
-import { popReturnTo } from '@/shared/auth/redirect-safety.ts';
+import { popReturnTo, stashReturnTo } from '@/shared/auth/redirect-safety.ts';
 import { establishSession, silentRefresh } from '@/shared/auth/service.ts';
 import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
 
@@ -19,6 +19,25 @@ function readAuthorizationGrant(): { code: string; state: string } | null {
   const code = params.get('code');
   const state = params.get('state');
   return code && state ? { code, state } : null;
+}
+
+/**
+ * RFC 6749 §4.1.2.1 — the provider returns `error` *instead of* `code` when the user
+ * declines consent. Must be read before {@link stripAuthorizationGrantFromUrl}.
+ */
+function readOauthError(): string | null {
+  return new URLSearchParams(window.location.search).get('error');
+}
+
+/**
+ * Drop the provider's params from the address bar before anything can observe them.
+ * `code` is a single-use credential and telemetry boots in this same window, so this
+ * runs synchronously — before the first `await` — and cannot be raced by the two
+ * network round-trips the exchange needs. `telemetry-scrub.ts` filters the same params
+ * as defence in depth for whatever is captured before this point.
+ */
+function stripAuthorizationGrantFromUrl(): void {
+  window.history.replaceState(window.history.state, '', window.location.pathname);
 }
 
 /**
@@ -44,8 +63,21 @@ export function CallbackPage() {
 
     void (async () => {
       const grant = readAuthorizationGrant();
+      const oauthError = readOauthError();
+      stripAuthorizationGrantFromUrl();
       const provider = popOauthProvider();
       const returnTo = popReturnTo();
+
+      // The user declined at the provider (or the provider refused). There is nothing to
+      // redeem and no session to pick up, so do not fall through to silentRefresh() —
+      // that would report a generic failure indistinguishable from a real one.
+      // `error_description` is provider-controlled text and is deliberately not surfaced.
+      if (oauthError) {
+        skipAutoGoogleSignIn();
+        if (returnTo) stashReturnTo(returnTo);
+        void navigate({ to: '/login', replace: true });
+        return;
+      }
 
       try {
         if (grant && provider) {
@@ -70,6 +102,10 @@ export function CallbackPage() {
           return;
         }
         skipAutoGoogleSignIn();
+        // returnTo is popped before the try because the MFA branch needs it. It is a
+        // navigation target already validated by isSafeRedirectPath, not a grant —
+        // nothing about replay prevention requires discarding it here.
+        if (returnTo) stashReturnTo(returnTo);
         void navigate({ to: '/login', replace: true });
         return;
       }
