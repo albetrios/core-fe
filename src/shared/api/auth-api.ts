@@ -273,6 +273,41 @@ export const authApi = {
     return redirectUrl;
   },
 
+  /**
+   * Completes an OAuth sign-in by handing the provider's `code` / `state` to the API.
+   *
+   * The identity provider redirects the browser back to the SPA (`/callback`), not to
+   * the API — the API is JSON-only and issues no redirects. This call is what actually
+   * exchanges the authorization code: the API validates `state` against the httpOnly
+   * nonce cookie it set during {@link authApi.oauthStart}, then sets the session cookie
+   * and returns the access token.
+   *
+   * `authFetch` sends `credentials: 'include'`, so the nonce cookie rides along.
+   *
+   * @throws {MfaRequiredError} When the account requires a second factor.
+   */
+  oauthCallback: async (
+    provider: string,
+    code: string,
+    state: string,
+  ): Promise<AuthTokenResponse> => {
+    const query = new URLSearchParams({ code, state });
+    const response = await authFetch(
+      `${authBase()}/auth/oauth/${encodeURIComponent(provider)}/callback?${query.toString()}`,
+      { method: 'GET' },
+    );
+    const json = (await response.json()) as unknown;
+    if (!response.ok)
+      throwOnNotOk(
+        response,
+        json,
+        `Could not complete ${provider} sign-in (${response.status})`,
+      );
+    const mfa = parseMfaRequired(json);
+    if (mfa) throw mfa;
+    return extractAccessToken(json, `Authentication failed (${response.status})`);
+  },
+
   emailVerificationCodeSend: async (
     email: string,
     captchaToken?: string,

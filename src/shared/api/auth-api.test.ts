@@ -211,6 +211,52 @@ describe('authApi.oauthStart redirect URL', () => {
   });
 });
 
+describe('authApi.oauthCallback code exchange', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubFetch(body: unknown, status = 200) {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(body), { status }));
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  }
+
+  it('sends code and state to the provider callback endpoint with credentials', async () => {
+    const fetchMock = stubFetch({ data: { access_token: 'token-value' } });
+
+    await expect(
+      authApi.oauthCallback('google', 'auth-code', 'state-token'),
+    ).resolves.toEqual(expect.objectContaining({ accessToken: 'token-value' }));
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/auth/oauth/google/callback');
+    expect(url).toContain('code=auth-code');
+    expect(url).toContain('state=state-token');
+    // The httpOnly nonce cookie the API set during oauthStart must ride along.
+    expect(init.credentials).toBe('include');
+  });
+
+  it('percent-encodes the provider segment', async () => {
+    const fetchMock = stubFetch({ data: { access_token: 'token-value' } });
+    await authApi.oauthCallback('goo/gle', 'c', 's');
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('/auth/oauth/goo%2Fgle/callback');
+  });
+
+  it('throws MfaRequiredError carrying the session token when a second factor is due', async () => {
+    stubFetch({ data: { mfa_required: true, mfa_session_token: 'mfa-token' } });
+    await expect(authApi.oauthCallback('google', 'c', 's')).rejects.toMatchObject({
+      name: 'MfaRequiredError',
+      mfaSessionToken: 'mfa-token',
+    });
+  });
+
+  it('surfaces a failed exchange as an error rather than a silent success', async () => {
+    stubFetch({ error: { message: 'invalid_grant' } }, 401);
+    await expect(authApi.oauthCallback('google', 'bad', 's')).rejects.toThrow();
+  });
+});
+
 describe('authApi.updateProfile wire mapping', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
