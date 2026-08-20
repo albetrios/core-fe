@@ -1284,7 +1284,7 @@ core-fe/
 │   │   └── README.md
 │   ├── security/
 │   │   ├── README.md
-│   │   └── [8 test files]
+│   │   └── [9 test files]
 │   ├── utils/
 │   │   ├── auth-api-paths.ts
 │   │   ├── axe-for-dialog.ts
