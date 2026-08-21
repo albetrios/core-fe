@@ -357,7 +357,16 @@ export function AuthEmailPanel({
         <TotpCodeInput
           value={verificationCode}
           onChange={setVerificationCode}
-          onComplete={(value) => void verifyCode(value)}
+          onComplete={(value) => {
+            // Auto-submit must honour the SAME captcha gate as the verify button below.
+            // Turnstile tokens are single-use: `send-code` consumed the previous one and the
+            // widget re-mints asynchronously, so a fast typist completes the code before the
+            // replacement token exists and the request posts with no `x-captcha-token` —
+            // core-be then rejects it with `captchaRequired`. The button was already gated
+            // (`captchaGated`); this path was not, which is why only auto-submit failed.
+            if (!turnstileReady) return;
+            void verifyCode(value);
+          }}
           disabled={emailBlocked || emailVerifyLoading}
           shake={codeShake}
           charset="alphanumeric"
