@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.2](https://github.com/nikunjmavani/core-fe/compare/v1.6.1...v1.6.2) (2026-08-22)
+
+
+### Fixed
+
+* **auth:** gate the email-code auto-submit on a fresh captcha token ([#255](https://github.com/nikunjmavani/core-fe/issues/255)) ([a7f00c2](https://github.com/nikunjmavani/core-fe/commit/a7f00c25a70f1c2b9cd4cfcebed9fec5ea5dc35c))
+* **csp:** allow blob: workers so the Turnstile challenge can run ([#257](https://github.com/nikunjmavani/core-fe/issues/257)) ([8a72d89](https://github.com/nikunjmavani/core-fe/commit/8a72d89e7c8b4a2488625db5d691cd6f06384e3d))
+
 ## [1.6.1](https://github.com/nikunjmavani/core-fe/compare/v1.6.0...v1.6.1) (2026-08-11)
 
 
