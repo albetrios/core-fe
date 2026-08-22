@@ -101,7 +101,12 @@ export function buildContentSecurityPolicy(
     `connect-src ${connectSrc.join(' ')}`,
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    "worker-src 'self'",
+    // Cloudflare Turnstile runs its challenge in a Web Worker created from a `blob:` URL.
+    // With `worker-src 'self'` the browser blocks that worker and the challenge cannot
+    // complete, so the widget renders "Verification failed" and never mints a token —
+    // every captcha-gated auth request then 401s with `captchaRequired`. Sentry's session
+    // replay worker is created the same way.
+    "worker-src 'self' blob:",
     `frame-src ${TURNSTILE_ORIGIN} ${STRIPE_ORIGINS[0]} ${STRIPE_ORIGINS[1]}`,
     "object-src 'none'",
     "base-uri 'self'",
