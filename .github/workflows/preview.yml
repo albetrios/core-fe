@@ -77,6 +77,7 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_CAPTCHA_DISABLED: ${{ vars.VITE_CAPTCHA_DISABLED }}
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_DEBUG_LOGGING: ${{ vars.VITE_DEBUG_LOGGING }}
           VITE_DEVTOOLS: ${{ vars.VITE_DEVTOOLS }}
           VITE_E2E_HOOKS: ${{ vars.VITE_E2E_HOOKS }}
@@ -106,6 +107,7 @@ jobs:
           VITE_APP_VERSION: ${{ steps.version.outputs.vite_app_version }}
           VITE_CAPTCHA_DISABLED: ${{ vars.VITE_CAPTCHA_DISABLED }}
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
           VITE_PRIVACY_POLICY_URL: ${{ secrets.VITE_PRIVACY_POLICY_URL }}
@@ -118,7 +120,7 @@ jobs:
           set -euo pipefail
           : > .env.production.local
           for key in VITE_API_BASE_URL VITE_APP_ENV VITE_APP_VERSION VITE_CAPTCHA_DISABLED \
-            VITE_TURNSTILE_SITE_KEY VITE_POSTHOG_KEY VITE_POSTHOG_HOST \
+            VITE_TURNSTILE_SITE_KEY VITE_STRIPE_PUBLISHABLE_KEY VITE_POSTHOG_KEY VITE_POSTHOG_HOST \
             VITE_PRIVACY_POLICY_URL VITE_CSP_REPORT_URI \
             VITE_DEBUG_LOGGING VITE_DEVTOOLS VITE_E2E_HOOKS VITE_VERSION_CHECK; do
             value="${!key}"
