@@ -6,6 +6,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import { buildContentSecurityPolicy } from '@/lib/csp-api-origin.ts';
+
 import indexHtml from '../../index.html?raw';
 import pkg from '../../package.json';
 import headers from '../../public/_headers?raw';
@@ -100,6 +102,96 @@ describe('content security policy (index.html meta)', () => {
     );
     expect(match?.[1]).toBeDefined();
     expect(match?.[1]).not.toMatch(/upgrade-insecure-requests/);
+  });
+});
+
+/**
+ * Directive-level parity between the meta CSP in `index.html` and the canonical
+ * header policy from `buildContentSecurityPolicy()`.
+ *
+ * Only the API origin is injected into the meta at build time (the
+ * `<!-- CSP_API_CONNECT_SRC -->` placeholder); every other token there is
+ * hand-written, while `dist/_headers` is generated wholesale from the canonical
+ * source. `csp-api-origin.ts` says the two are "kept in lock step" and that
+ * "the static security test asserts they agree on shared directives" — this is
+ * that test. Nothing enforced it before, and `connect-src` had already drifted.
+ *
+ * Why it matters: a browser given both a header and a meta CSP enforces the
+ * INTERSECTION, so the narrower meta is what actually binds. A directive the
+ * header allows but the meta omits is blocked in production.
+ */
+describe('content security policy (meta ↔ canonical header parity)', () => {
+  /** Directives that only work as a real header, deliberately absent from meta. */
+  const HEADER_ONLY_DIRECTIVES = new Set([
+    'frame-ancestors', // browsers ignore it in a meta CSP
+    'upgrade-insecure-requests', // upgrades http://localhost and breaks Safari preview
+    'report-uri',
+    'report-to',
+  ]);
+
+  /**
+   * Origins the canonical header allows in `connect-src` that the meta does not
+   * list, so they are blocked in production today. Closing this gap WIDENS what
+   * production permits — a deliberate decision, not a drive-by test fix.
+   * Shrink this set; never grow it.
+   */
+  const META_CONNECT_SRC_GAP = new Set([
+    'https://js.stripe.com',
+    'https://hooks.stripe.com',
+  ]);
+
+  function parseDirectives(policy: string): Map<string, string[]> {
+    const parsed = new Map<string, string[]>();
+    for (const clause of policy.split(';')) {
+      const tokens = clause.trim().split(/\s+/).filter(Boolean);
+      const name = tokens[0];
+      if (!name) continue;
+      parsed.set(name, tokens.slice(1).sort());
+    }
+    return parsed;
+  }
+
+  // No API base URL on either side: the meta placeholder is unsubstituted at
+  // rest, so the canonical policy is built without one too.
+  const canonical = parseDirectives(buildContentSecurityPolicy(undefined));
+  const metaContent = indexHtml
+    .match(/http-equiv="Content-Security-Policy"[\s\S]*?content="([^"]*)"/)?.[1]
+    ?.replace('<!-- CSP_API_CONNECT_SRC -->', ' ');
+  const meta = parseDirectives(metaContent ?? '');
+
+  const sharedDirectives = [...canonical.keys()].filter(
+    (d) => !HEADER_ONLY_DIRECTIVES.has(d),
+  );
+
+  it('extracts both policies (guards the regex above from silently matching nothing)', () => {
+    expect(metaContent).toBeDefined();
+    expect(canonical.size).toBeGreaterThan(5);
+    expect(meta.size).toBeGreaterThan(5);
+  });
+
+  it('meta declares every directive the canonical policy does, minus header-only ones', () => {
+    expect([...meta.keys()].sort()).toEqual([...sharedDirectives].sort());
+  });
+
+  it.each(sharedDirectives.filter((d) => d !== 'connect-src'))(
+    '%s is identical in meta and canonical header',
+    (directive) => {
+      expect(meta.get(directive)).toEqual(canonical.get(directive));
+    },
+  );
+
+  it('connect-src differs from the canonical header only by the documented gap', () => {
+    const expected = (canonical.get('connect-src') ?? [])
+      .filter((origin) => !META_CONNECT_SRC_GAP.has(origin))
+      .sort();
+    expect(meta.get('connect-src')).toEqual(expected);
+  });
+
+  it('every documented gap entry is actually in the canonical policy (prunes stale entries)', () => {
+    const canonicalConnectSrc = new Set(canonical.get('connect-src') ?? []);
+    for (const origin of META_CONNECT_SRC_GAP) {
+      expect(canonicalConnectSrc.has(origin)).toBe(true);
+    }
   });
 });
 
