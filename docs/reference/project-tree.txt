@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~546 src files · ~303 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~547 src files · ~304 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -521,8 +521,9 @@ core-fe/
 │   │   │   ├── callback.manifest.ts
 │   │   │   ├── CALLBACK.OVERVIEW.md
 │   │   │   ├── callback.route.tsx
+│   │   │   ├── callback.search.ts
 │   │   │   ├── CallbackPage.tsx
-│   │   │   └── [1 test file]
+│   │   │   └── [2 test files]
 │   │   ├── login/
 │   │   │   ├── login.constants.ts
 │   │   │   ├── login.manifest.ts

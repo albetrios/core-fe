@@ -273,6 +273,36 @@ export const authApi = {
     return redirectUrl;
   },
 
+  /**
+   * Forward the provider's `code`+`state` (landed on the SPA's /callback page)
+   * to core-be's callback route. The backend consumes the CSRF state (bound to
+   * the `oauth_nonce` cookie this XHR carries), exchanges the code, and sets
+   * the refresh-session cookie on this response. Throws {@link MfaRequiredError}
+   * when the account needs a second factor.
+   */
+  oauthCallback: async (
+    provider: string,
+    params: { code: string; state: string },
+  ): Promise<AuthTokenResponse> => {
+    const query = new URLSearchParams({ code: params.code, state: params.state });
+    const response = await authFetch(
+      `${authBase()}/auth/oauth/${encodeURIComponent(provider)}/callback?${query.toString()}`,
+    );
+    const json = (await response.json()) as unknown;
+    if (!response.ok)
+      throwOnNotOk(
+        response,
+        json,
+        `Could not complete ${provider} sign-in (${response.status})`,
+      );
+    const mfa = parseMfaRequired(json);
+    if (mfa) throw mfa;
+    return extractAccessToken(
+      json,
+      `Could not complete ${provider} sign-in (${response.status})`,
+    );
+  },
+
   emailVerificationCodeSend: async (
     email: string,
     captchaToken?: string,

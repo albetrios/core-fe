@@ -28,9 +28,10 @@ import {
   composePageTitle,
   manifestHead,
 } from '@/lib/routes/page-head.ts';
-import { parseInvitationIdParam } from '@/lib/routes/params.ts';
+import { parseInvitationIdParam, parseOAuthProviderParam } from '@/lib/routes/params.ts';
 import { manifest as acceptInviteManifest } from '@/pages/accept-invite/accept-invite.manifest.ts';
 import { manifest as callbackManifest } from '@/pages/callback/callback.manifest.ts';
+import { validateCallbackSearch } from '@/pages/callback/callback.search.ts';
 import { manifest as loginManifest } from '@/pages/login/login.manifest.ts';
 import { validateLoginSearch } from '@/pages/login/login.search.ts';
 import { manifest as mfaManifest } from '@/pages/mfa/mfa.manifest.ts';
@@ -192,8 +193,8 @@ const mfaRoute = createRoute({
   errorComponent: RouteErrorBoundary,
 });
 
-// One provider-agnostic OAuth return URL for all third parties —
-// the backend brokers each provider's dance and lands every flow on /callback.
+// One provider-specific OAuth return URL per third party (/callback/google,
+// /callback/github, …) — the landing page forwards code+state to the backend.
 
 // ── Public shell ──
 // Pathless layout for callback, onboarding, accept-invite, and unauthorized —
@@ -211,8 +212,12 @@ const publicShellRoute = createRoute({
 
 const callbackRoute = createRoute({
   getParentRoute: () => publicShellRoute,
-  path: '/callback',
+  path: '/callback/$provider',
   head: manifestHead(callbackManifest),
+  validateSearch: validateCallbackSearch,
+  beforeLoad: ({ params }) => {
+    if (!parseOAuthProviderParam(params.provider)) throw notFound();
+  },
   component: CallbackPage,
   errorComponent: RouteErrorBoundary,
 });

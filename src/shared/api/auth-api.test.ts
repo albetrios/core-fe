@@ -211,6 +211,68 @@ describe('authApi.oauthStart redirect URL', () => {
   });
 });
 
+describe('authApi.oauthCallback code exchange', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('forwards code+state to the provider callback route and returns the access token', async () => {
+    let requestedUrl = '';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: unknown) => {
+        requestedUrl = String(url);
+        return new Response(JSON.stringify({ data: { access_token: 'oauth-acc' } }), {
+          status: 200,
+        });
+      }),
+    );
+    await expect(
+      authApi.oauthCallback('google', { code: '4/ab+c', state: 'st 1' }),
+    ).resolves.toEqual({ accessToken: 'oauth-acc' });
+    expect(requestedUrl).toContain('/auth/oauth/google/callback?');
+    const query = new URL(requestedUrl, 'http://localhost').searchParams;
+    expect(query.get('code')).toBe('4/ab+c');
+    expect(query.get('state')).toBe('st 1');
+  });
+
+  it('throws MfaRequiredError carrying the session token on the MFA branch', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              data: { mfa_required: true, mfa_session_token: 'mfa_sess' },
+            }),
+            { status: 200 },
+          ),
+      ),
+    );
+    const attempt = authApi.oauthCallback('google', { code: 'c', state: 's' });
+    await expect(attempt).rejects.toBeInstanceOf(MfaRequiredError);
+    await attempt.catch((error: unknown) => {
+      expect((error as MfaRequiredError).mfaSessionToken).toBe('mfa_sess');
+    });
+  });
+
+  it('surfaces the backend error detail on a rejected exchange', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({ error: { detail: 'OAuth state is invalid or expired.' } }),
+            { status: 401 },
+          ),
+      ),
+    );
+    await expect(
+      authApi.oauthCallback('google', { code: 'c', state: 's' }),
+    ).rejects.toThrow('OAuth state is invalid or expired.');
+  });
+});
+
 describe('authApi.updateProfile wire mapping', () => {
   afterEach(() => {
     vi.unstubAllGlobals();

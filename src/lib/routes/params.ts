@@ -40,3 +40,27 @@ export function parseInvitationIdParam(raw: string): string | null {
   const result = invitationIdParamSchema.safeParse(raw);
   return result.success ? result.data : null;
 }
+
+/* ── OAuth provider param ────────────────────────────────────────── */
+
+/**
+ * OAuth provider slug shape shared by the `$provider` route guard and the
+ * callback page's own input validation: lowercase kebab, ≤ 32 chars.
+ */
+export const OAUTH_PROVIDER_SLUG_PATTERN = /^[a-z][a-z0-9-]{0,31}$/;
+
+/**
+ * OAuth provider slug as it appears in the provider-specific callback URL
+ * (`/callback/google`, `/callback/github`): lowercase kebab, ≤ 32 chars.
+ * Format-only gate — whether the provider is actually wired is core-be's
+ * decision (its callback route 501s on an unknown provider).
+ */
+export const oauthProviderParamSchema = z
+  .string()
+  .regex(OAUTH_PROVIDER_SLUG_PATTERN, 'invalid oauth provider');
+
+/** Parse a raw `$provider` param; `null` when malformed. */
+export function parseOAuthProviderParam(raw: string): string | null {
+  const result = oauthProviderParamSchema.safeParse(raw);
+  return result.success ? result.data : null;
+}
