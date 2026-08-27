@@ -128,6 +128,15 @@ describe('CallbackPage', () => {
     expect(oauthCallbackSpy).not.toHaveBeenCalled();
   });
 
+  it('never forwards a malformed provider slug (falls back to silentRefresh)', async () => {
+    routeParamsHolder.value = { provider: 'Not A Slug' };
+    window.history.pushState({}, '', '/callback/google?code=auth-code&state=state-token');
+    const oauthCallbackSpy = vi.spyOn(authApi, 'oauthCallback');
+    renderWithProviders(<CallbackPage />);
+    await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
+    expect(oauthCallbackSpy).not.toHaveBeenCalled();
+  });
+
   it('does not read an email OTP token from the URL (code-entry flow only)', async () => {
     routeParamsHolder.value = { provider: 'google' };
     window.history.pushState({}, '', '/callback/google?token=should_be_ignored');
