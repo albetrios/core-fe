@@ -13,6 +13,15 @@ import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
 
 import { CALLBACK_TEST_IDS } from './callback.constants.ts';
 
+/** Longest `code` / `state` values core-be's callback DTO accepts. */
+const MAX_OAUTH_CODE_LENGTH = 2048;
+const MAX_OAUTH_STATE_LENGTH = 512;
+
+/** Narrow a provider-supplied query value to a non-empty string within `max`. */
+function boundedParam(value: string | null, max: number): string | null {
+  return value && value.length <= max ? value : null;
+}
+
 /**
  * Provider-specific OAuth landing page (`/callback/$provider`, e.g.
  * `/callback/google`). Each provider registers its own URL, so the path itself
@@ -23,15 +32,6 @@ import { CALLBACK_TEST_IDS } from './callback.constants.ts';
  * denial) it falls back to `silentRefresh()` so an already-signed-in visitor
  * still lands in the app.
  */
-/** Longest `code` / `state` values core-be's callback DTO accepts. */
-const MAX_OAUTH_CODE_LENGTH = 2048;
-const MAX_OAUTH_STATE_LENGTH = 512;
-
-/** Narrow a provider-supplied query value to a non-empty string within `max`. */
-function boundedParam(value: string | null, max: number): string | null {
-  return value && value.length <= max ? value : null;
-}
-
 export function CallbackPage() {
   const navigate = useNavigate();
   const { provider: rawProvider } = useParams({ strict: false });
