@@ -55,7 +55,7 @@ test.describe('Authentication', () => {
   });
 
   test('OAuth callback without session redirects to login', async ({ page }) => {
-    await page.goto('/callback');
+    await page.goto('/callback/google');
     await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
     await expectAuthScreenReady(page);
   });

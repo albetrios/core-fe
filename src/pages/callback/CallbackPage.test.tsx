@@ -8,12 +8,24 @@ const {
   silentRefreshMock,
   stashMfaHandoffMock,
   skipAutoGoogleSignInMock,
+  routeParamsHolder,
 } = vi.hoisted(() => ({
   establishSessionMock: vi.fn().mockResolvedValue(undefined),
   silentRefreshMock: vi.fn().mockResolvedValue(undefined),
   stashMfaHandoffMock: vi.fn(),
   skipAutoGoogleSignInMock: vi.fn(),
+  routeParamsHolder: { value: {} as Record<string, string> },
 }));
+
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    // The test router mounts the page at '/', so the $provider param is
+    // injected here instead of via a real /callback/$provider match.
+    useParams: () => routeParamsHolder.value,
+  };
+});
 
 vi.mock('@/shared/auth/service.ts', () => ({
   establishSession: establishSessionMock,
@@ -29,26 +41,25 @@ vi.mock('@/shared/auth/auto-google-sign-in.ts', () => ({
 }));
 
 import { authApi, MfaRequiredError } from '@/shared/api/auth-api.ts';
-import { stashOAuthProvider } from '@/shared/auth/oauth-provider.ts';
 
 import { CallbackPage } from './CallbackPage.tsx';
 
 beforeEach(() => {
   vi.clearAllMocks();
-  window.history.pushState({}, '', '/callback');
-  sessionStorage.clear();
+  routeParamsHolder.value = {};
+  window.history.pushState({}, '', '/callback/google');
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
-  window.history.pushState({}, '', '/callback');
-  sessionStorage.clear();
+  routeParamsHolder.value = {};
+  window.history.pushState({}, '', '/callback/google');
 });
 
-/** Seed the provider stash + the code/state the provider redirect would carry. */
+/** Arrange the provider param + the code/state the provider redirect carries. */
 function arrangeProviderReturn() {
-  stashOAuthProvider('google');
-  window.history.pushState({}, '', '/callback?code=auth-code&state=state-token');
+  routeParamsHolder.value = { provider: 'google' };
+  window.history.pushState({}, '', '/callback/google?code=auth-code&state=state-token');
 }
 
 describe('CallbackPage', () => {
@@ -57,7 +68,7 @@ describe('CallbackPage', () => {
     expect(await screen.findByTestId('callback-page')).toBeInTheDocument();
   });
 
-  it('forwards code+state to the stashed provider callback and establishes the session', async () => {
+  it('forwards code+state to the provider named by the route and establishes the session', async () => {
     arrangeProviderReturn();
     const oauthCallbackSpy = vi
       .spyOn(authApi, 'oauthCallback')
@@ -101,15 +112,16 @@ describe('CallbackPage', () => {
     expect(establishSessionMock).not.toHaveBeenCalled();
   });
 
-  it('falls back to silentRefresh when no code+state+provider are present', async () => {
+  it('falls back to silentRefresh when code+state are absent', async () => {
+    routeParamsHolder.value = { provider: 'google' };
     const oauthCallbackSpy = vi.spyOn(authApi, 'oauthCallback');
     renderWithProviders(<CallbackPage />);
     await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
     expect(oauthCallbackSpy).not.toHaveBeenCalled();
   });
 
-  it('falls back to silentRefresh when the provider stash is missing', async () => {
-    window.history.pushState({}, '', '/callback?code=auth-code&state=state-token');
+  it('falls back to silentRefresh when the route carries no provider param', async () => {
+    window.history.pushState({}, '', '/callback/google?code=auth-code&state=state-token');
     const oauthCallbackSpy = vi.spyOn(authApi, 'oauthCallback');
     renderWithProviders(<CallbackPage />);
     await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
@@ -117,7 +129,8 @@ describe('CallbackPage', () => {
   });
 
   it('does not read an email OTP token from the URL (code-entry flow only)', async () => {
-    window.history.pushState({}, '', '/callback?token=should_be_ignored');
+    routeParamsHolder.value = { provider: 'google' };
+    window.history.pushState({}, '', '/callback/google?token=should_be_ignored');
     renderWithProviders(<CallbackPage />);
     expect(await screen.findByTestId('callback-page')).toBeInTheDocument();
     await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));

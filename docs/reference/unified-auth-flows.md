@@ -25,9 +25,9 @@ Implementation: [`src/shared/forms/AuthForm/`](../../src/shared/forms/AuthForm/)
 | Method          | Env flag(s)                                                                 | FE surface                        | Backend (target)                                         | Login + signup unified?            |
 | --------------- | --------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------------- | ---------------------------------- |
 | **Email OTP**   | `VITE_AUTH_EMAIL`                                                           | Default panel — email → code      | `POST /auth/email/send-code`, `POST /auth/email/login`   | Yes — auto-signup on unknown email |
-| **Google**      | `VITE_AUTH_OAUTH_GOOGLE`                                                    | OAuth button → `/callback`        | `GET /auth/oauth/google`, callback                       | Yes — OAuth creates/links user     |
-| **GitHub**      | `VITE_AUTH_OAUTH_GITHUB`                                                    | OAuth button → `/callback`        | `GET /auth/oauth/github`, callback                       | Yes                                |
-| **Apple**       | `VITE_AUTH_OAUTH_APPLE`                                                     | OAuth button → `/callback`        | `GET /auth/oauth/apple`, callback _(when core-be wired)_ | Yes                                |
+| **Google**      | `VITE_AUTH_OAUTH_GOOGLE`                                                    | OAuth button → `/callback/google` | `GET /auth/oauth/google`, callback                       | Yes — OAuth creates/links user     |
+| **GitHub**      | `VITE_AUTH_OAUTH_GITHUB`                                                    | OAuth button → `/callback/github` | `GET /auth/oauth/github`, callback                       | Yes                                |
+| **Apple**       | `VITE_AUTH_OAUTH_APPLE`                                                     | OAuth button → `/callback/apple`  | `GET /auth/oauth/apple`, callback _(when core-be wired)_ | Yes                                |
 | **Passkey**     | `VITE_AUTH_PASSKEY`                                                         | Passkey button                    | WebAuthn routes (501 until wired)                        | Yes                                |
 | **Auto Google** | `VITE_AUTH_OAUTH_AUTO_GOOGLE` (requires `VITE_AUTH_OAUTH_GOOGLE` not false) | Delayed redirect unless cancelled | Same as Google OAuth                                     | Yes                                |
 
@@ -101,12 +101,12 @@ Constants: [`src/core/config/constants.ts`](../../src/core/config/constants.ts) 
 
 ## Route map (FE pages vs APIs)
 
-| FE route      | Role                       | Status                     |
-| ------------- | -------------------------- | -------------------------- |
-| `/login`      | Unified auth (all methods) | **Keep** — single entry    |
-| `/callback`   | OAuth return only          | **Keep** — not for OTP     |
-| `/onboarding` | Post-signup wizard         | **Keep** — after OTP/OAuth |
-| `/mfa`        | Second factor              | **Keep**                   |
+| FE route              | Role                       | Status                     |
+| --------------------- | -------------------------- | -------------------------- |
+| `/login`              | Unified auth (all methods) | **Keep** — single entry    |
+| `/callback/$provider` | OAuth return only          | **Keep** — not for OTP     |
+| `/onboarding`         | Post-signup wizard         | **Keep** — after OTP/OAuth |
+| `/mfa`                | Second factor              | **Keep**                   |
 
 ---
 

@@ -5,7 +5,7 @@ import { AUTH_NS, CALLBACK_MANIFEST } from './callback.constants.ts';
 
 export const manifest = {
   segment: 'callback',
-  path: '/callback',
+  path: '/callback/$provider',
   title: i18n.t(CALLBACK_MANIFEST.titleKey, { ns: AUTH_NS }),
   testId: CALLBACK_MANIFEST.testId,
   permission: null,
