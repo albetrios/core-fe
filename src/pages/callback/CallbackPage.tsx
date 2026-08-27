@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 
-import { parseOAuthProviderParam } from '@/lib/routes/params.ts';
+import { OAUTH_PROVIDER_SLUG_PATTERN } from '@/lib/routes/params.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { authApi, MfaRequiredError } from '@/shared/api/auth-api.ts';
@@ -13,14 +13,14 @@ import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
 
 import { CALLBACK_TEST_IDS } from './callback.constants.ts';
 
-/** Longest `code` / `state` values core-be's callback DTO accepts. */
-const MAX_OAUTH_CODE_LENGTH = 2048;
-const MAX_OAUTH_STATE_LENGTH = 512;
+/**
+ * `state` is core-be's own mint — 32 random bytes hex-encoded by
+ * `createOAuthState` — so anything but 64 lowercase hex chars is not ours.
+ */
+const OAUTH_STATE_PATTERN = /^[0-9a-f]{64}$/;
 
-/** Narrow a provider-supplied query value to a non-empty string within `max`. */
-function boundedParam(value: string | null, max: number): string | null {
-  return value && value.length <= max ? value : null;
-}
+/** Provider authorization codes: visible ASCII, bounded to the callback DTO limit. */
+const OAUTH_CODE_PATTERN = /^[!-~]{1,2048}$/;
 
 /**
  * Provider-specific OAuth landing page (`/callback/$provider`, e.g.
@@ -44,16 +44,22 @@ export function CallbackPage() {
     void (async () => {
       // Read from window.location, not router state: the params come straight
       // from the provider's full-page redirect, before any SPA navigation.
-      // All three inputs are provider/user-supplied, so they are validated
-      // here before selecting the exchange path — the slug re-checked (not
-      // trusting the route guard across files), code/state bounded to the
-      // backend DTO limits. The server remains the real gate either way:
-      // single-use CSRF state, browser-nonce binding, and PKCE all verify
-      // server-side before any session is minted.
+      // All three inputs are provider/user-supplied, so each is validated
+      // against its exact expected shape before selecting the exchange path —
+      // the slug re-checked (not trusting the route guard across files), the
+      // state against our own 64-hex mint, the code against the DTO bound.
+      // The server remains the real gate either way: single-use CSRF state,
+      // browser-nonce binding, and PKCE all verify before a session is minted.
       const params = new URLSearchParams(window.location.search);
-      const code = boundedParam(params.get('code'), MAX_OAUTH_CODE_LENGTH);
-      const state = boundedParam(params.get('state'), MAX_OAUTH_STATE_LENGTH);
-      const provider = parseOAuthProviderParam(rawProvider ?? '');
+      const rawCode = params.get('code');
+      const rawState = params.get('state');
+      const code = rawCode !== null && OAUTH_CODE_PATTERN.test(rawCode) ? rawCode : null;
+      const state =
+        rawState !== null && OAUTH_STATE_PATTERN.test(rawState) ? rawState : null;
+      const provider =
+        typeof rawProvider === 'string' && OAUTH_PROVIDER_SLUG_PATTERN.test(rawProvider)
+          ? rawProvider
+          : null;
 
       const finishSignIn = () => {
         captureAnalyticsEvent(ANALYTICS_EVENTS.authOauthCompleted);

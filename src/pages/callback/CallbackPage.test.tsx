@@ -56,10 +56,13 @@ afterEach(() => {
   window.history.pushState({}, '', '/callback/google');
 });
 
+/** A well-formed `state` — core-be mints 32 random bytes hex-encoded (64 hex chars). */
+const TEST_STATE = 'deadbeef'.repeat(8);
+
 /** Arrange the provider param + the code/state the provider redirect carries. */
 function arrangeProviderReturn() {
   routeParamsHolder.value = { provider: 'google' };
-  window.history.pushState({}, '', '/callback/google?code=auth-code&state=state-token');
+  window.history.pushState({}, '', `/callback/google?code=auth-code&state=${TEST_STATE}`);
 }
 
 describe('CallbackPage', () => {
@@ -79,7 +82,7 @@ describe('CallbackPage', () => {
     await waitFor(() =>
       expect(oauthCallbackSpy).toHaveBeenCalledWith('google', {
         code: 'auth-code',
-        state: 'state-token',
+        state: TEST_STATE,
       }),
     );
     await waitFor(() =>
@@ -121,7 +124,11 @@ describe('CallbackPage', () => {
   });
 
   it('falls back to silentRefresh when the route carries no provider param', async () => {
-    window.history.pushState({}, '', '/callback/google?code=auth-code&state=state-token');
+    window.history.pushState(
+      {},
+      '',
+      `/callback/google?code=auth-code&state=${TEST_STATE}`,
+    );
     const oauthCallbackSpy = vi.spyOn(authApi, 'oauthCallback');
     renderWithProviders(<CallbackPage />);
     await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
@@ -130,7 +137,24 @@ describe('CallbackPage', () => {
 
   it('never forwards a malformed provider slug (falls back to silentRefresh)', async () => {
     routeParamsHolder.value = { provider: 'Not A Slug' };
-    window.history.pushState({}, '', '/callback/google?code=auth-code&state=state-token');
+    window.history.pushState(
+      {},
+      '',
+      `/callback/google?code=auth-code&state=${TEST_STATE}`,
+    );
+    const oauthCallbackSpy = vi.spyOn(authApi, 'oauthCallback');
+    renderWithProviders(<CallbackPage />);
+    await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
+    expect(oauthCallbackSpy).not.toHaveBeenCalled();
+  });
+
+  it('never forwards a state that is not our 64-hex mint (falls back to silentRefresh)', async () => {
+    routeParamsHolder.value = { provider: 'google' };
+    window.history.pushState(
+      {},
+      '',
+      '/callback/google?code=auth-code&state=forged-state',
+    );
     const oauthCallbackSpy = vi.spyOn(authApi, 'oauthCallback');
     renderWithProviders(<CallbackPage />);
     await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
