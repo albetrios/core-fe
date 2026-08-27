@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0](https://github.com/nikunjmavani/core-fe/compare/v1.6.2...v1.7.0) (2026-08-27)
+
+
+### Added
+
+* **billing:** wire VITE_STRIPE_PUBLISHABLE_KEY into the deploy path ([#261](https://github.com/nikunjmavani/core-fe/issues/261)) ([62e03b0](https://github.com/nikunjmavani/core-fe/commit/62e03b04c3681a0c50270ef50ba4914264a14e1d))
+
+
+### Fixed
+
+* **auth:** complete OAuth sign-in via provider-specific /callback pages ([#264](https://github.com/nikunjmavani/core-fe/issues/264)) ([7fde947](https://github.com/nikunjmavani/core-fe/commit/7fde9471d7f1f923a25e0b7a4fc71151513766d4))
+* **captcha:** raise the Turnstile challenge above the auth card ([#258](https://github.com/nikunjmavani/core-fe/issues/258)) ([2ad4bad](https://github.com/nikunjmavani/core-fe/commit/2ad4bad89baae8511c45a62905146d1c3f6508ba))
+
 ## [1.6.2](https://github.com/nikunjmavani/core-fe/compare/v1.6.1...v1.6.2) (2026-08-22)
 
 
