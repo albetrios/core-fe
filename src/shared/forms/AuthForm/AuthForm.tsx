@@ -12,6 +12,7 @@ import {
   skipAutoGoogleSignIn,
 } from '@/shared/auth/auto-google-sign-in.ts';
 import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
+import { stashOAuthProvider } from '@/shared/auth/oauth-provider.ts';
 import { signInWithPasskey } from '@/shared/auth/passkey-sign-in.ts';
 import { isSafeExternalHttpsUrl, stashReturnTo } from '@/shared/auth/redirect-safety.ts';
 import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
@@ -113,6 +114,8 @@ export function AuthForm() {
     cancelAutoGoogle();
     setPending({ method: 'oauth', provider });
     stashReturnTo((location.search as { redirect?: unknown }).redirect);
+    // /callback is provider-agnostic — remember which provider this round-trip is for.
+    stashOAuthProvider(provider);
     try {
       captureAnalyticsEvent(ANALYTICS_EVENTS.authOauthStarted, { provider });
       const url = await authApi.oauthStart(provider);
