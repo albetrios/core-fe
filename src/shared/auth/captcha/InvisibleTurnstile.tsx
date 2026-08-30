@@ -118,21 +118,27 @@ export function InvisibleTurnstile(): ReactElement | null {
 
   if (!isInvisibleTurnstileActive()) return null;
   // `interaction-only` manages its own visibility; the container is empty (zero-size) until a
-  // challenge is required, and pinned out of the layout flow if one ever appears.
+  // challenge is required. It sits centered on the viewport (out of the layout flow) so an
+  // interactive challenge appears mid-screen rather than tucked in a corner.
   //
   // The z-index is load-bearing, not cosmetic. When Turnstile escalates to an INTERACTIVE
   // challenge it renders that overlay inside this container. With no stacking order the
   // container sits at `z-index: auto`, i.e. beneath the auth card (z-50) and the toast region
   // (z-70): the challenge paints behind the login form, cannot be completed, so no token is
   // ever minted and every captcha-gated button spins indefinitely. 10000 clears both the app's
-  // own scale (which tops out at z-[90]) and the Sentry feedback widget (z-9999) that renders
-  // in this same bottom-right corner.
+  // own scale (which tops out at z-[90]) and the Sentry feedback widget (z-9999).
   return (
     <div
       ref={containerRef}
       aria-hidden="true"
       data-testid="auth-captcha-widget"
-      style={{ position: 'fixed', right: 0, bottom: 0, zIndex: 10_000 }}
+      style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10_000,
+      }}
     />
   );
 }
