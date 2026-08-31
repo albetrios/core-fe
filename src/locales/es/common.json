@@ -154,6 +154,9 @@
     "layoutTitle": "Diseño",
     "layoutDescription": "Ancho del área de trabajo principal: estándar para paneles, lectura para texto enfocado.",
     "contentWidth": "Ancho del contenido",
+    "dashboardTitle": "Panel",
+    "dashboardDescription": "Cómo organiza el panel sus secciones.",
+    "dashboardArrangement": "Disposición",
     "surfaceTitle": "Superficie y movimiento",
     "surfaceDescription": "Espaciado, profundidad, contraste y cómo se mueve.",
     "density": "Densidad",
@@ -176,6 +179,7 @@
     "sectionColour": "color",
     "sectionType": "tipografía y forma",
     "sectionSurface": "superficie y movimiento",
+    "sectionDashboard": "diseño del panel",
     "sectionNotifications": "estilo de notificación",
     "custom": "Personalizado",
     "customWith": "Personalizado — {{look}}"

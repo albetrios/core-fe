@@ -154,6 +154,9 @@
     "layoutTitle": "التخطيط",
     "layoutDescription": "عرض مساحة العمل الرئيسية — القياسي للوحات المعلومات، وعرض القراءة للنصوص المركّزة.",
     "contentWidth": "عرض المحتوى",
+    "dashboardTitle": "لوحة المعلومات",
+    "dashboardDescription": "كيف تُرتّب لوحة المعلومات أقسامها.",
+    "dashboardArrangement": "الترتيب",
     "surfaceTitle": "السطح والحركة",
     "surfaceDescription": "التباعد والعمق والتباين وطريقة الحركة.",
     "density": "الكثافة",
@@ -176,6 +179,7 @@
     "sectionColour": "اللون",
     "sectionType": "الخطوط والأشكال",
     "sectionSurface": "السطح والحركة",
+    "sectionDashboard": "تخطيط لوحة المعلومات",
     "sectionNotifications": "نمط الإشعارات",
     "custom": "مخصص",
     "customWith": "مخصص — {{look}}"

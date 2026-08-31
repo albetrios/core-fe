@@ -121,6 +121,128 @@
     },
     "error": "تعذّر تحميل الأعضاء."
   },
+  "trends": {
+    "heading": "اتجاهات الاستخدام",
+    "description": "التغيّر أسبوعًا بعد أسبوع"
+  },
+  "usageBars": {
+    "heading": "الاستخدام الأسبوعي",
+    "description": "الجلسات ونداءات API أسبوعيًا"
+  },
+  "heatmap": {
+    "heading": "خريطة النشاط الحرارية",
+    "description": "اثنا عشر أسبوعًا من النشاط اليومي",
+    "less": "أقل",
+    "more": "أكثر"
+  },
+  "funnel": {
+    "heading": "قمع الاكتساب",
+    "description": "من أول زيارة حتى التفعيل",
+    "stages": {
+      "visited": "زاروا",
+      "signedUp": "سجّلوا",
+      "onboarded": "أكملوا الإعداد",
+      "activated": "مفعّلون"
+    }
+  },
+  "radar": {
+    "heading": "صحة مساحة العمل",
+    "description": "خمسة أبعاد بنظرة واحدة",
+    "axes": {
+      "activity": "النشاط",
+      "growth": "النمو",
+      "security": "الأمان",
+      "automation": "الأتمتة",
+      "engagement": "التفاعل"
+    }
+  },
+  "leaderboard": {
+    "heading": "أفضل الأتمتة",
+    "description": "الأكثر تشغيلًا هذا الشهر",
+    "runs": "تشغيلات",
+    "items": {
+      "welcomeEmail": "بريد الترحيب",
+      "weeklyDigest": "الملخص الأسبوعي",
+      "slackSync": "مزامنة Slack",
+      "backupJob": "مهمة النسخ الاحتياطي"
+    }
+  },
+  "focus": {
+    "heading": "مؤقّت التركيز",
+    "description": "جلسة عمل عميق لمدة 25 دقيقة",
+    "start": "ابدأ",
+    "pause": "إيقاف مؤقت",
+    "reset": "إعادة ضبط"
+  },
+  "meters": {
+    "heading": "استخدام الخطة",
+    "description": "مقدار المستخدم من الخطة"
+  },
+  "billingCard": {
+    "heading": "ملخص الفوترة",
+    "description": "الخطة والتجديد والدفع",
+    "plan": "الخطة",
+    "nextInvoice": "الفاتورة التالية",
+    "payment": "الدفع"
+  },
+  "ai": {
+    "heading": "اسأل مساحة عملك",
+    "description": "ابحث ونفّذ إجراءات وانتقل لأي مكان",
+    "placeholder": "اسأل أي شيء…",
+    "chips": {
+      "usage": "عرض الاستخدام",
+      "members": "دعوة أعضاء",
+      "appearance": "تغيير السمة"
+    }
+  },
+  "map": {
+    "heading": "النشاط العالمي",
+    "description": "الجلسات حسب المنطقة هذا الأسبوع",
+    "regions": {
+      "americas": "الأمريكتان",
+      "europe": "أوروبا",
+      "asia": "آسيا",
+      "oceania": "أوقيانوسيا"
+    }
+  },
+  "donut": {
+    "heading": "الجلسات حسب المصدر",
+    "description": "مصدر جلسات هذا الأسبوع",
+    "segments": {
+      "web": "الويب",
+      "mobile": "الجوال",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "استخدام الميزات",
+    "description": "التقدم نحو أهداف الأسبوع"
+  },
+  "timeline": {
+    "heading": "هذا الشهر",
+    "description": "التواريخ المهمة في الشهر",
+    "today": "اليوم"
+  },
+  "activity": {
+    "heading": "النشاط الأخير",
+    "description": "أحدث التغييرات في مساحة العمل هذه",
+    "events": {
+      "inviteAccepted": "قبل عضو جديد دعوته",
+      "roleUpdated": "تم تحديث دور أحد الأعضاء",
+      "planRenewed": "تم تجديد الخطة بنجاح",
+      "settingsChanged": "تم تحديث إعدادات مساحة العمل"
+    }
+  },
+  "pulse": {
+    "heading": "نبض مساحة العمل",
+    "description": "النشاط الأسبوعي في مساحة العمل هذه",
+    "score": "من الهدف الأسبوعي",
+    "metrics": {
+      "sessions": "الجلسات",
+      "automations": "الأتمتة",
+      "reviews": "المراجعات"
+    }
+  },
   "schedule": {
     "ariaLabel": "الجدول",
     "heading": "الجدول",

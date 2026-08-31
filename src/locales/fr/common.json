@@ -154,6 +154,9 @@
     "layoutTitle": "Mise en page",
     "layoutDescription": "Largeur de l'espace de travail principal — standard pour les tableaux de bord, lecture pour les textes longs.",
     "contentWidth": "Largeur du contenu",
+    "dashboardTitle": "Tableau de bord",
+    "dashboardDescription": "Comment le tableau de bord organise ses sections.",
+    "dashboardArrangement": "Disposition",
     "surfaceTitle": "Surface et mouvement",
     "surfaceDescription": "Espacement, profondeur, contraste et animation.",
     "density": "Densité",
@@ -176,6 +179,7 @@
     "sectionColour": "couleur",
     "sectionType": "typographie et formes",
     "sectionSurface": "surface et mouvement",
+    "sectionDashboard": "disposition du tableau de bord",
     "sectionNotifications": "style de notification",
     "custom": "Personnalisé",
     "customWith": "Personnalisé — {{look}}"

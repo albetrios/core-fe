@@ -24,6 +24,7 @@ import {
   type LayoutWidthId,
   nextAppVariant,
   nextAuthVariant,
+  nextDashboardVariant,
   nextPublicVariant,
   nextToastPosition,
   nextToastVariant,
@@ -59,6 +60,8 @@ interface ThemeStore {
   appVariant: number;
   /** TEMP: PublicLayout preview shell index (0..2); rolled by shuffle. */
   publicVariant: number;
+  /** TEMP: Dashboard arrangement index (0..2); rolled by shuffle. */
+  dashboardVariant: number;
   /** TEMP: custom-toast design index (0..N-1); rolled by shuffle + the picker. */
   toastVariant: number;
   /** TEMP: toast position (sonner Position subset); rolled by shuffle + the picker. */
@@ -81,6 +84,8 @@ interface ThemeStore {
   setToastVariant: (index: number) => void;
   /** TEMP: set the toast position (Appearance preview). */
   setToastPosition: (position: string) => void;
+  /** TEMP: set the Dashboard arrangement index (Appearance preview). */
+  setDashboardVariant: (index: number) => void;
   /** Set app main content width (contained | full | reading). */
   setLayoutWidth: (id: LayoutWidthId) => void;
   /** Apply a specific seed's look (shareable `?theme=<seed>` / reproducible). */
@@ -114,6 +119,7 @@ export const useThemeStore = create<ThemeStore>()(
       authVariant: 0,
       appVariant: 0,
       publicVariant: 0,
+      dashboardVariant: 0,
       toastVariant: DEFAULT_TOAST_VARIANT,
       toastPosition: DEFAULT_TOAST_POSITION,
       seed: null,
@@ -156,6 +162,7 @@ export const useThemeStore = create<ThemeStore>()(
       },
       setToastVariant: (index) => set({ toastVariant: index }),
       setToastPosition: (position) => set({ toastPosition: position }),
+      setDashboardVariant: (index) => set({ dashboardVariant: index }),
       setLayoutWidth: (id) => {
         set({ layoutWidth: normalizeLayoutWidthId(id) });
       },
@@ -198,6 +205,9 @@ export const useThemeStore = create<ThemeStore>()(
           publicVariant: SHUFFLE_TEMP.publicLayout
             ? nextPublicVariant(get().publicVariant)
             : get().publicVariant,
+          dashboardVariant: SHUFFLE_TEMP.dashboard
+            ? nextDashboardVariant(get().dashboardVariant)
+            : get().dashboardVariant,
           toastVariant: SHUFFLE_TEMP.toastVariant
             ? nextToastVariant(get().toastVariant)
             : get().toastVariant,

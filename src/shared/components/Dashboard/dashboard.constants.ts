@@ -130,6 +130,128 @@ export const DASHBOARD_KEYS = {
     shuffledTitle: 'themeShowcase.shuffledTitle',
     shuffledDescription: 'themeShowcase.shuffledDescription',
   },
+  trends: {
+    heading: 'trends.heading',
+    description: 'trends.description',
+  },
+  usageBars: {
+    heading: 'usageBars.heading',
+    description: 'usageBars.description',
+  },
+  heatmap: {
+    heading: 'heatmap.heading',
+    description: 'heatmap.description',
+    less: 'heatmap.less',
+    more: 'heatmap.more',
+  },
+  funnel: {
+    heading: 'funnel.heading',
+    description: 'funnel.description',
+    stages: {
+      visited: 'funnel.stages.visited',
+      signedUp: 'funnel.stages.signedUp',
+      onboarded: 'funnel.stages.onboarded',
+      activated: 'funnel.stages.activated',
+    },
+  },
+  radar: {
+    heading: 'radar.heading',
+    description: 'radar.description',
+    axes: {
+      activity: 'radar.axes.activity',
+      growth: 'radar.axes.growth',
+      security: 'radar.axes.security',
+      automation: 'radar.axes.automation',
+      engagement: 'radar.axes.engagement',
+    },
+  },
+  leaderboard: {
+    heading: 'leaderboard.heading',
+    description: 'leaderboard.description',
+    runs: 'leaderboard.runs',
+    items: {
+      welcomeEmail: 'leaderboard.items.welcomeEmail',
+      weeklyDigest: 'leaderboard.items.weeklyDigest',
+      slackSync: 'leaderboard.items.slackSync',
+      backupJob: 'leaderboard.items.backupJob',
+    },
+  },
+  focus: {
+    heading: 'focus.heading',
+    description: 'focus.description',
+    start: 'focus.start',
+    pause: 'focus.pause',
+    reset: 'focus.reset',
+  },
+  meters: {
+    heading: 'meters.heading',
+    description: 'meters.description',
+  },
+  billingCard: {
+    heading: 'billingCard.heading',
+    description: 'billingCard.description',
+    plan: 'billingCard.plan',
+    nextInvoice: 'billingCard.nextInvoice',
+    payment: 'billingCard.payment',
+  },
+  ai: {
+    heading: 'ai.heading',
+    description: 'ai.description',
+    placeholder: 'ai.placeholder',
+    chips: {
+      usage: 'ai.chips.usage',
+      members: 'ai.chips.members',
+      appearance: 'ai.chips.appearance',
+    },
+  },
+  map: {
+    heading: 'map.heading',
+    description: 'map.description',
+    regions: {
+      americas: 'map.regions.americas',
+      europe: 'map.regions.europe',
+      asia: 'map.regions.asia',
+      oceania: 'map.regions.oceania',
+    },
+  },
+  donut: {
+    heading: 'donut.heading',
+    description: 'donut.description',
+    segments: {
+      web: 'donut.segments.web',
+      mobile: 'donut.segments.mobile',
+      api: 'donut.segments.api',
+    },
+  },
+  ranking: {
+    heading: 'ranking.heading',
+    description: 'ranking.description',
+  },
+  timeline: {
+    heading: 'timeline.heading',
+    description: 'timeline.description',
+    today: 'timeline.today',
+  },
+  activity: {
+    heading: 'activity.heading',
+    description: 'activity.description',
+    events: {
+      inviteAccepted: 'activity.events.inviteAccepted',
+      roleUpdated: 'activity.events.roleUpdated',
+      planRenewed: 'activity.events.planRenewed',
+      settingsChanged: 'activity.events.settingsChanged',
+    },
+  },
+  pulse: {
+    heading: 'pulse.heading',
+    description: 'pulse.description',
+    score: 'pulse.score',
+    metrics: {
+      sessions: 'pulse.metrics.sessions',
+      automations: 'pulse.metrics.automations',
+      reviews: 'pulse.metrics.reviews',
+    },
+  },
   schedule: {
     ariaLabel: 'schedule.ariaLabel',
     heading: 'schedule.heading',

@@ -121,6 +121,128 @@
     },
     "error": "सदस्य लोड नहीं हो सके।"
   },
+  "trends": {
+    "heading": "उपयोग रुझान",
+    "description": "सप्ताह-दर-सप्ताह बदलाव"
+  },
+  "usageBars": {
+    "heading": "साप्ताहिक उपयोग",
+    "description": "प्रति सप्ताह सत्र और API कॉल"
+  },
+  "heatmap": {
+    "heading": "गतिविधि हीटमैप",
+    "description": "बारह सप्ताह की दैनिक गतिविधि",
+    "less": "कम",
+    "more": "अधिक"
+  },
+  "funnel": {
+    "heading": "अधिग्रहण फ़नल",
+    "description": "पहली विज़िट से सक्रियण तक",
+    "stages": {
+      "visited": "विज़िट",
+      "signedUp": "साइन अप",
+      "onboarded": "ऑनबोर्ड",
+      "activated": "सक्रिय"
+    }
+  },
+  "radar": {
+    "heading": "वर्कस्पेस स्वास्थ्य",
+    "description": "पाँच आयाम एक नज़र में",
+    "axes": {
+      "activity": "गतिविधि",
+      "growth": "वृद्धि",
+      "security": "सुरक्षा",
+      "automation": "स्वचालन",
+      "engagement": "सहभागिता"
+    }
+  },
+  "leaderboard": {
+    "heading": "शीर्ष स्वचालन",
+    "description": "इस महीने सबसे अधिक रन",
+    "runs": "रन",
+    "items": {
+      "welcomeEmail": "स्वागत ईमेल",
+      "weeklyDigest": "साप्ताहिक डाइजेस्ट",
+      "slackSync": "Slack सिंक",
+      "backupJob": "बैकअप जॉब"
+    }
+  },
+  "focus": {
+    "heading": "फोकस टाइमर",
+    "description": "25 मिनट का डीप-वर्क स्प्रिंट",
+    "start": "शुरू करें",
+    "pause": "रोकें",
+    "reset": "रीसेट"
+  },
+  "meters": {
+    "heading": "प्लान उपयोग",
+    "description": "प्लान का कितना उपयोग हुआ"
+  },
+  "billingCard": {
+    "heading": "बिलिंग सारांश",
+    "description": "प्लान, नवीनीकरण और भुगतान",
+    "plan": "प्लान",
+    "nextInvoice": "अगला चालान",
+    "payment": "भुगतान"
+  },
+  "ai": {
+    "heading": "अपने वर्कस्पेस से पूछें",
+    "description": "खोजें, कार्य चलाएँ या कहीं भी जाएँ",
+    "placeholder": "कुछ भी पूछें…",
+    "chips": {
+      "usage": "उपयोग देखें",
+      "members": "सदस्य आमंत्रित करें",
+      "appearance": "थीम बदलें"
+    }
+  },
+  "map": {
+    "heading": "वैश्विक गतिविधि",
+    "description": "इस सप्ताह क्षेत्र के अनुसार सत्र",
+    "regions": {
+      "americas": "अमेरिका",
+      "europe": "यूरोप",
+      "asia": "एशिया",
+      "oceania": "ओशिनिया"
+    }
+  },
+  "donut": {
+    "heading": "स्रोत के अनुसार सत्र",
+    "description": "इस सप्ताह के सत्र कहाँ से आए",
+    "segments": {
+      "web": "वेब",
+      "mobile": "मोबाइल",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "फ़ीचर उपयोग",
+    "description": "साप्ताहिक लक्ष्यों की ओर प्रगति"
+  },
+  "timeline": {
+    "heading": "इस महीने",
+    "description": "महीने की प्रमुख तिथियाँ",
+    "today": "आज"
+  },
+  "activity": {
+    "heading": "हाल की गतिविधि",
+    "description": "इस वर्कस्पेस में नवीनतम बदलाव",
+    "events": {
+      "inviteAccepted": "एक नए सदस्य ने आमंत्रण स्वीकार किया",
+      "roleUpdated": "एक सदस्य की भूमिका अपडेट की गई",
+      "planRenewed": "प्लान सफलतापूर्वक नवीनीकृत हुआ",
+      "settingsChanged": "वर्कस्पेस सेटिंग्स अपडेट की गईं"
+    }
+  },
+  "pulse": {
+    "heading": "वर्कस्पेस पल्स",
+    "description": "इस वर्कस्पेस की साप्ताहिक गतिविधि",
+    "score": "साप्ताहिक लक्ष्य का",
+    "metrics": {
+      "sessions": "सत्र",
+      "automations": "स्वचालन",
+      "reviews": "समीक्षाएँ"
+    }
+  },
   "schedule": {
     "ariaLabel": "अनुसूची",
     "heading": "अनुसूची",

@@ -47,6 +47,7 @@ import {
   ACCENT_INTENSITIES,
   BASE_COLORS,
   CONTRAST_MODES,
+  DASHBOARD_VARIANTS_CATALOG,
   DENSITY_SCALES,
   ELEVATION_LEVELS,
   FOCUS_RINGS,
@@ -61,6 +62,7 @@ import {
   LAYOUT_WIDTHS,
   MENU_STYLES,
   MOTION_PRESETS,
+  nextDashboardVariant,
   nextToastVariant,
   normalizeLook,
   oklchToHex,
@@ -372,6 +374,8 @@ export function AppearancePanel() {
   const setToastPosition = useThemeStore((s) => s.setToastPosition);
   const layoutWidth = useThemeStore((s) => s.layoutWidth);
   const setLayoutWidth = useThemeStore((s) => s.setLayoutWidth);
+  const dashboardVariant = useThemeStore((s) => s.dashboardVariant);
+  const setDashboardVariant = useThemeStore((s) => s.setDashboardVariant);
   const seed = useThemeStore((s) => s.seed);
   const applyThemeSeed = useThemeStore((s) => s.applyThemeSeed);
   const [seedInput, setSeedInput] = useState('');
@@ -381,6 +385,8 @@ export function AppearancePanel() {
   const shuffleColour = () => updateLook(rollColour());
   const shuffleTypography = () => updateLook(rollTypography());
   const shuffleSurface = () => updateLook(rollSurface());
+  const shuffleDashboard = () =>
+    setDashboardVariant(nextDashboardVariant(dashboardVariant));
   const shuffleNotifications = () => {
     const next = nextToastVariant(toastVariant);
     setToastVariant(next);
@@ -785,6 +791,54 @@ export function AppearancePanel() {
           </CardContent>
         </Card>
       ) : null}
+
+      <Card data-testid="dashboard-variant-card">
+        <CardHeader>
+          <CardTitle className="text-base">
+            {tAppearance(APPEARANCE_KEYS.dashboardTitle)}
+          </CardTitle>
+          <CardDescription>
+            {tAppearance(APPEARANCE_KEYS.dashboardDescription)}
+          </CardDescription>
+          <CardAction>
+            <SectionShuffle
+              onClick={shuffleDashboard}
+              label={tAppearance(APPEARANCE_KEYS.sectionDashboard)}
+              testId="shuffle-dashboard"
+            />
+          </CardAction>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.dashboardArrangement)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.dashboardArrangement)}
+            value={
+              (
+                DASHBOARD_VARIANTS_CATALOG[dashboardVariant] ??
+                DASHBOARD_VARIANTS_CATALOG[0]
+              ).id
+            }
+            options={DASHBOARD_VARIANTS_CATALOG.map(({ id, label }) => ({ id, label }))}
+            onPick={(value) =>
+              setDashboardVariant(
+                Math.max(
+                  0,
+                  DASHBOARD_VARIANTS_CATALOG.findIndex((option) => option.id === value),
+                ),
+              )
+            }
+            testPrefix="dashboard-variant"
+          />
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            {
+              (
+                DASHBOARD_VARIANTS_CATALOG[dashboardVariant] ??
+                DASHBOARD_VARIANTS_CATALOG[0]
+              ).description
+            }
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

@@ -154,6 +154,9 @@
     "layoutTitle": "Esquema",
     "layoutDescription": "Largura da área de trabalho principal — padrão para painéis, leitura para texto focado.",
     "contentWidth": "Largura do conteúdo",
+    "dashboardTitle": "Painel",
+    "dashboardDescription": "Como o painel organiza suas seções.",
+    "dashboardArrangement": "Disposição",
     "surfaceTitle": "Superfície e movimento",
     "surfaceDescription": "Espaçamento, profundidade, contraste e como se move.",
     "density": "Densidade",
@@ -176,6 +179,7 @@
     "sectionColour": "cor",
     "sectionType": "tipografia e forma",
     "sectionSurface": "superfície e movimento",
+    "sectionDashboard": "layout do painel",
     "sectionNotifications": "estilo de notificação",
     "custom": "Personalizado",
     "customWith": "Personalizado — {{look}}"

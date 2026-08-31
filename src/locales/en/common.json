@@ -154,6 +154,9 @@
     "layoutTitle": "Layout",
     "layoutDescription": "How wide the main workspace is — standard for dashboards, reading for focused copy.",
     "contentWidth": "Content width",
+    "dashboardTitle": "Dashboard",
+    "dashboardDescription": "How the dashboard arranges its sections.",
+    "dashboardArrangement": "Arrangement",
     "surfaceTitle": "Surface & motion",
     "surfaceDescription": "Spacing, depth, contrast, and how it moves.",
     "density": "Density",
@@ -176,6 +179,7 @@
     "sectionColour": "colour",
     "sectionType": "type & shape",
     "sectionSurface": "surface & motion",
+    "sectionDashboard": "dashboard layout",
     "sectionNotifications": "notification style",
     "custom": "Custom",
     "customWith": "Custom — {{look}}"
