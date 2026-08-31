@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { composePageTitle } from '@/lib/routes/page-head.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
 
 export function Component() {
@@ -28,6 +29,10 @@ export function Component() {
       <Button asChild className="mt-4">
         <Link to="/">{t(ERRORS_KEYS.route.goHome)}</Link>
       </Button>
+
+      {/* An escalated background Turnstile challenge renders here, below the action,
+          instead of floating anywhere on its own. */}
+      <CaptchaSlot testId="not-found-captcha-slot" />
     </div>
   );
 }

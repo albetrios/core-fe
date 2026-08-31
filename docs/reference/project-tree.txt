@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~588 src files · ~321 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
+Stats: ~590 src files · ~323 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -650,10 +650,12 @@ core-fe/
 │   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── auth-captcha-headers.ts
 │   │   │   │   ├── captcha-config.ts
+│   │   │   │   ├── captcha-slot.ts
 │   │   │   │   ├── captcha.constants.ts
+│   │   │   │   ├── CaptchaSlot.tsx
 │   │   │   │   ├── InvisibleTurnstile.tsx
 │   │   │   │   ├── turnstile-token-store.ts
-│   │   │   │   └── [5 test files]
+│   │   │   │   └── [7 test files]
 │   │   │   ├── auth-channel.ts
 │   │   │   ├── auth-shell.constants.ts
 │   │   │   ├── AUTH.OVERVIEW.md
