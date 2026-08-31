@@ -52,4 +52,18 @@ describe('PublicLayout', () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId('child')).toHaveTextContent('child content');
   });
+
+  it('renders the brand preview variant (2) with its header chrome', async () => {
+    useThemeStore.setState({ publicVariant: 2 });
+    renderInRouter();
+    expect(
+      await screen.findByTestId('public-layout', {}, { timeout: 15_000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('child')).toHaveTextContent('child content');
+    // Brand chrome: the header carries a link back to /login (plus the skip link).
+    const loginLinks = screen
+      .getAllByRole('link')
+      .filter((a) => a.getAttribute('href') === '/login');
+    expect(loginLinks).toHaveLength(1);
+  });
 });

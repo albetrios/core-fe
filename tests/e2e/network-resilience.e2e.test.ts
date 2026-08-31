@@ -83,6 +83,49 @@ test.describe('Network resilience', () => {
     ).toHaveLength(0);
   });
 
+  test('a 429 from send-code surfaces feedback instead of hanging the form', async ({
+    page,
+  }) => {
+    // Rate-limit the sign-in request unconditionally — even the client's single
+    // honored-Retry-After retry lands on another 429, so the error must surface.
+    await page.route('**/auth/email/send-code', (route) =>
+      route.fulfill({
+        status: 429,
+        contentType: 'application/json',
+        headers: { 'retry-after': '1' },
+        body: JSON.stringify({
+          error: {
+            type: 'rate_limit_error',
+            code: 'rate_limited',
+            detail: 'Too many requests',
+          },
+          meta: { request_id: 'e2e-429' },
+        }),
+      }),
+    );
+    const pageErrors: Error[] = [];
+    page.on('pageerror', (error) => pageErrors.push(error));
+
+    await page.goto('/login');
+    await expectLoginFormReady(page);
+    await fillTestId(page, 'auth-email', uniqueE2eEmail('rate-limited'));
+    await clickTestId(page, 'auth-email-submit');
+
+    // The flow must not falsely advance, and the user must SEE the failure —
+    // a silent spinner on persistent 429s is the bug this test pins down.
+    await expect(page.getByTestId('auth-email-error-banner')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId('auth-email-verify-panel')).toBeHidden();
+
+    // The form stays interactive for a later retry once the window passes.
+    await expect(page.getByTestId('auth-email')).toBeEnabled();
+    expect(
+      pageErrors,
+      `uncaught page errors: ${pageErrors.map((e) => e.message).join(', ')}`,
+    ).toHaveLength(0);
+  });
+
   test('the offline indicator survives rapid connectivity flapping', async ({
     page,
     context,

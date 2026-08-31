@@ -87,14 +87,15 @@ export default defineConfig({
         'tests/**',
         'src/vite-env.d.ts',
       ],
-      // Coverage RATCHET — pinned ~1% under measured coverage so CI fails on
-      // regression, never on ambition. Raise (never lower) when coverage rises;
-      // target is 80 as the auth/organization modules get rebuilt with tests.
+      // Coverage RATCHET — pinned just under measured coverage so CI fails on
+      // regression, never on ambition. Raise (never lower) when coverage rises.
+      // Measured 2026-08-31: statements 87.00, branches 76.88, functions 85.74,
+      // lines 88.40 (full unit + security + ci-policy run).
       thresholds: {
-        branches: 59,
-        functions: 61,
-        lines: 66,
-        statements: 66,
+        branches: 76,
+        functions: 85,
+        lines: 88,
+        statements: 86,
       },
     },
   },

@@ -8,14 +8,24 @@ vi.mock('@/shared/auth/token.ts', () => ({
   getTokenExpiry: vi.fn().mockReturnValue(null),
 }));
 
+import { silentRefresh } from '@/shared/auth/service.ts';
 import { getTokenExpiry } from '@/shared/auth/token.ts';
 
 import { cancelTokenRefresh, scheduleTokenRefresh } from './refresh-timer.ts';
+
+/** Overrides `document.hidden` (read-only in jsdom) for the defer-path tests. */
+function setDocumentHidden(hidden: boolean): void {
+  Object.defineProperty(document, 'hidden', {
+    configurable: true,
+    get: () => hidden,
+  });
+}
 
 describe('refresh-timer', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     cancelTokenRefresh();
+    vi.mocked(silentRefresh).mockClear();
   });
 
   afterEach(() => {
@@ -72,5 +82,50 @@ describe('refresh-timer', () => {
 
     // Timer should still be set with MIN_DELAY_MS
     expect(vi.getTimerCount()).toBeGreaterThan(0);
+  });
+
+  it('fires silentRefresh when the timer elapses and reschedules for the new token', async () => {
+    setDocumentHidden(false);
+    const futureExp = Math.floor(Date.now() / 1000) + 300;
+    vi.mocked(getTokenExpiry).mockReturnValue(futureExp);
+    vi.mocked(silentRefresh).mockResolvedValue(undefined);
+
+    scheduleTokenRefresh();
+    await vi.advanceTimersByTimeAsync(240_000); // 300s exp − 60s buffer
+
+    expect(silentRefresh).toHaveBeenCalledTimes(1);
+    // Success path reschedules from the (mocked) fresh token's expiry.
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it('defers the refresh while the tab is hidden and runs it on visibilitychange', async () => {
+    setDocumentHidden(true);
+    const futureExp = Math.floor(Date.now() / 1000) + 300;
+    vi.mocked(getTokenExpiry).mockReturnValue(futureExp);
+    vi.mocked(silentRefresh).mockResolvedValue(undefined);
+
+    scheduleTokenRefresh();
+    await vi.advanceTimersByTimeAsync(240_000);
+    expect(silentRefresh).not.toHaveBeenCalled();
+
+    setDocumentHidden(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    await vi.advanceTimersByTimeAsync(0); // flush the deferred refresh promise
+
+    expect(silentRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('swallows a failed proactive refresh and does not reschedule', async () => {
+    setDocumentHidden(false);
+    const futureExp = Math.floor(Date.now() / 1000) + 300;
+    vi.mocked(getTokenExpiry).mockReturnValue(futureExp);
+    vi.mocked(silentRefresh).mockRejectedValue(new Error('refresh down'));
+
+    scheduleTokenRefresh();
+    await vi.advanceTimersByTimeAsync(240_000);
+
+    // Failure falls back to the 401 interceptor: no crash, no new timer.
+    expect(silentRefresh).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
