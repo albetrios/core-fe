@@ -26,6 +26,7 @@ export const AUTH_FORM_TEST_IDS = {
   emailResend: 'auth-email-resend',
   emailChange: 'auth-email-change',
   autoGooglePending: 'auth-auto-google-pending',
+  captchaSlot: 'auth-captcha-slot',
   skipAutoGoogle: 'auth-skip-auto-google',
   /** Fallback selector for providers without a dedicated `continue*` id. */
   continueProvider: (provider: string) => `auth-continue-${provider}`,

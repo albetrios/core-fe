@@ -11,6 +11,7 @@ import {
   shouldAttemptAutoGoogleSignIn,
   skipAutoGoogleSignIn,
 } from '@/shared/auth/auto-google-sign-in.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
 import { signInWithPasskey } from '@/shared/auth/passkey-sign-in.ts';
 import { isSafeExternalHttpsUrl, stashReturnTo } from '@/shared/auth/redirect-safety.ts';
@@ -302,6 +303,10 @@ export function AuthForm() {
           />
         </div>
       ) : null}
+
+      {/* Inline anchor: the app-global Turnstile widget portals an escalated challenge
+          here, inside the form, instead of the centered-overlay fallback. */}
+      <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
     </div>
   );
 }

@@ -1,9 +1,11 @@
-import type { ReactElement } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 
 import { platformConfig } from '@/core/config/env.ts';
 
 import { isCaptchaEnabled, resolveCaptchaProvider } from './captcha-config.ts';
+import { getCaptchaSlot, subscribeCaptchaSlot } from './captcha-slot.ts';
 import { setTurnstileResetHandler, setTurnstileToken } from './turnstile-token-store.ts';
 
 const TURNSTILE_SCRIPT_SRC =
@@ -80,10 +82,14 @@ export function InvisibleTurnstile(): ReactElement | null {
   const widgetIdRef = useRef<string | null>(null);
   // Whether the current token came from a completed interactive solve. Cloudflare's
   // `interaction-only` appearance auto-hides the widget BEFORE a solve, but after one it
-  // leaves a persistent "Success!" receipt on screen — centered, that receipt would sit over
-  // the auth card forever, so we hide the container ourselves the moment the token is minted
-  // and show it again whenever a fresh solve may need interaction (expiry, error, reset).
+  // leaves a persistent "Success!" receipt on screen — so we hide the container ourselves
+  // the moment the token is minted and show it again whenever a fresh solve may need
+  // interaction (expiry, error, reset).
   const [challengeSolved, setChallengeSolved] = useState(false);
+  // Inline anchor registered by the auth form ({@link CaptchaSlot}). When present the
+  // container portals into it so a challenge appears inside the form; otherwise it falls
+  // back to a viewport-centered overlay for captcha-gated actions outside auth screens.
+  const slot = useSyncExternalStore(subscribeCaptchaSlot, getCaptchaSlot, () => null);
 
   useEffect(() => {
     if (!(isInvisibleTurnstileActive() && TURNSTILE_SITE_KEY)) return;
@@ -125,37 +131,55 @@ export function InvisibleTurnstile(): ReactElement | null {
       cancelled = true;
       setTurnstileResetHandler(undefined);
       setTurnstileToken(undefined);
+      setChallengeSolved(false);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
       }
       widgetIdRef.current = null;
     };
-  }, []);
+    // The widget cannot survive its container moving in the DOM (the challenge iframe
+    // resets on reparent), so a slot change tears the widget down and renders a fresh one
+    // into the new container; the replacement mints a fresh token in the background.
+  }, [slot]);
 
   if (!isInvisibleTurnstileActive()) return null;
   // `interaction-only` manages its own visibility; the container is empty (zero-size) until a
-  // challenge is required. It sits centered on the viewport (out of the layout flow) so an
-  // interactive challenge appears mid-screen rather than tucked in a corner.
+  // challenge is required.
   //
-  // The z-index is load-bearing, not cosmetic. When Turnstile escalates to an INTERACTIVE
-  // challenge it renders that overlay inside this container. With no stacking order the
-  // container sits at `z-index: auto`, i.e. beneath the auth card (z-50) and the toast region
-  // (z-70): the challenge paints behind the login form, cannot be completed, so no token is
-  // ever minted and every captcha-gated button spins indefinitely. 10000 clears both the app's
-  // own scale (which tops out at z-[90]) and the Sentry feedback widget (z-9999).
-  return (
+  // Placement: with an auth form mounted, the container portals into its registered slot and
+  // an interactive challenge renders inline where the user is already looking — solved, the
+  // slot collapses (height 0) so the form keeps no dead gap. Without a slot it falls back to
+  // a viewport-centered fixed overlay.
+  //
+  // The overlay z-index is load-bearing, not cosmetic. When Turnstile escalates to an
+  // INTERACTIVE challenge it renders that overlay inside this container. With no stacking
+  // order the container sits at `z-index: auto`, i.e. beneath the auth card (z-50) and the
+  // toast region (z-70): the challenge paints behind the login form, cannot be completed, so
+  // no token is ever minted and every captcha-gated button spins indefinitely. 10000 clears
+  // both the app's own scale (which tops out at z-[90]) and the Sentry feedback widget
+  // (z-9999).
+  let style: CSSProperties;
+  if (slot) {
+    style = challengeSolved
+      ? { visibility: 'hidden', height: 0, overflow: 'hidden' }
+      : { display: 'flex', justifyContent: 'center' };
+  } else {
+    style = {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: 10_000,
+      visibility: challengeSolved ? 'hidden' : undefined,
+    };
+  }
+  const container = (
     <div
       ref={containerRef}
       aria-hidden="true"
       data-testid="auth-captcha-widget"
-      style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 10_000,
-        visibility: challengeSolved ? 'hidden' : undefined,
-      }}
+      style={style}
     />
   );
+  return slot ? createPortal(container, slot) : container;
 }

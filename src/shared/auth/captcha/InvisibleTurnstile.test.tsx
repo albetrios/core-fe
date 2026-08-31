@@ -18,6 +18,7 @@ vi.mock('@/core/config/env.ts', () => ({
   },
 }));
 
+import { setCaptchaSlot } from './captcha-slot.ts';
 import { InvisibleTurnstile } from './InvisibleTurnstile.tsx';
 import {
   consumeTurnstileToken,
@@ -48,6 +49,7 @@ describe('InvisibleTurnstile', () => {
     cleanup();
     envRef.captchaDisabled = false;
     setTurnstileToken(undefined);
+    setCaptchaSlot(null);
     delete window.turnstile;
     vi.clearAllMocks();
   });
@@ -146,6 +148,35 @@ describe('InvisibleTurnstile', () => {
     expect(consumed).toBe('token-once');
     expect(api.reset).toHaveBeenCalledWith('widget-1');
     expect(peekTurnstileToken()).toBeUndefined();
+  });
+
+  it('renders inline inside a registered slot and falls back to the overlay without one', async () => {
+    const { api, rendered } = stubTurnstileApi();
+    const slot = document.createElement('div');
+    document.body.appendChild(slot);
+    setCaptchaSlot(slot);
+
+    render(<InvisibleTurnstile />);
+    const inline = screen.getByTestId('auth-captcha-widget');
+    expect(slot.contains(inline)).toBe(true);
+    expect(inline.style.position).toBe('');
+    expect(inline).toHaveStyle({ display: 'flex' });
+    await waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
+
+    // Solved inline, the slot collapses so the form keeps no dead gap.
+    act(() => rendered[0]?.callback?.('token-inline'));
+    expect(inline).toHaveStyle({ visibility: 'hidden', height: '0px' });
+
+    // Slot unregisters (auth form unmounts): the widget is torn down and re-rendered
+    // into the viewport-centered overlay fallback.
+    act(() => setCaptchaSlot(null));
+    await waitFor(() => expect(api.render).toHaveBeenCalledTimes(2));
+    expect(api.remove).toHaveBeenCalledWith('widget-1');
+    const overlay = screen.getByTestId('auth-captcha-widget');
+    expect(slot.contains(overlay)).toBe(false);
+    expect(overlay).toHaveStyle({ position: 'fixed', top: '50%', left: '50%' });
+
+    slot.remove();
   });
 
   it('removes the widget and clears the token on unmount', async () => {
