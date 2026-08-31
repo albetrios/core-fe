@@ -1,0 +1,263 @@
+---
+description: Seven standing UI-resilience rules — writes must be single-flight (no double submit / double charge), a component crash must stay contained to that component, the completion message must match the work that actually happened, no flow may be derived from state that has not loaded, local optimistic state must be rolled back like the cache is, a failed follow-up step must never route the user backwards, and a repeatable confirmation must replace itself instead of stacking. Applies to every mutating control, every composed surface, every success toast, every screen whose shape comes from a query, every optimistic edit held outside the cache, every multi-step flow that ends in a redirect, and every repeat-fire control.
+alwaysApply: true
+---
+
+# Resilient Interactions
+
+Seven failure modes cost real money, a whole screen, or the user's trust. Each has a house
+answer; use it rather than re-solving per feature.
+
+## 1. Writes are single-flight — never trust `disabled` alone
+
+**Rule: no user gesture may produce two writes.** Checkout, plan change, add-payment-method,
+invite, delete — one click, one server write.
+
+`disabled={isPending}` is the **affordance**, not the guarantee. `isPending` only turns true
+after React re-renders, so the control stays live for the frame after the first click. A
+double-click, a bouncing touch target, or a "did that register?" second tap all fire the
+handler again inside that window. On checkout that is a second charge.
+
+**Use `useAppMutation` for every write.** It carries a synchronous ref guard: a second
+`mutate` / `mutateAsync` while the first is in flight joins that promise instead of starting
+a second request. Keep `disabled={isPending}` for the visible state — the guard is the
+correctness net underneath it.
+
+```tsx
+const selectPlan = useSelectBillingPlan(); // built on useAppMutation
+
+<Button disabled={selectPlan.isPending} onClick={() => void handlePlanSelect(plan.id)}>
+  Choose {plan.name}
+</Button>;
+```
+
+**Hand-rolled async handlers must guard themselves.** A `useState` flag is not enough — pair
+it with a ref that flips synchronously:
+
+```tsx
+const isAddingRef = useRef(false);
+
+async function handleAddPaymentMethod() {
+  if (isAddingRef.current) return;
+  isAddingRef.current = true;
+  setIsAdding(true); // visible state
+  try {
+    await billingApi.createPaymentMethodSetup();
+  } finally {
+    isAddingRef.current = false;
+    setIsAdding(false);
+  }
+}
+```
+
+The fetch client already attaches an `X-Idempotency-Key` per logical write, so the backend
+can collapse a retry — that is defence in depth for the network layer, **not** a substitute
+for this guard, which stops the second request being made at all.
+
+**Testing a double submit properly.** `fireEvent.click` flushes React between calls, so the
+disable lands and the test passes even with no guard. Dispatch both clicks inside one `act()`
+batch to reproduce the real window:
+
+```tsx
+act(() => {
+  button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+});
+expect(createPaymentMethodSetup).toHaveBeenCalledTimes(1);
+```
+
+## 2. A component crash stays inside that component
+
+**Rule: a throw in one widget must never blank the page or the app.** Wrap each independently
+failing surface so the rest of the screen survives.
+
+The ladder, outermost to innermost — each already exists, so reach for it rather than adding
+a new boundary type:
+
+| Scope                          | Use                                        |
+| ------------------------------ | ------------------------------------------ |
+| Whole app (last resort)        | `ErrorBoundary` in `src/App.tsx`           |
+| One route                      | `RouteErrorBoundary` via `errorComponent`  |
+| One panel / widget / section   | `SectionErrorBoundary` (`WidgetErrorBoundary/`) |
+| A failing **query**, not a throw | `QueryBoundary`                          |
+
+```tsx
+<SectionErrorBoundary title="Billing" testId="settings-panel-error-billing">
+  <AccountBillingPanel />
+</SectionErrorBoundary>
+```
+
+Wrap a surface when it renders independent data, is one of several siblings, or is fed by a
+third party (Stripe, charts, embeds). Do **not** wrap every leaf — a boundary around a button
+just hides bugs. `SectionErrorBoundary` renders a retry affordance and reports through the
+same `notify` / logging surface, so a contained failure is still visible, never silent.
+
+New composed surfaces (a dashboard widget, a settings panel, a route island section) ship
+with their boundary in the same change — not as a follow-up.
+
+## 3. A success message never outruns the work
+
+**Rule: the toast must describe what actually happened.** If a step was skipped, the user is
+told — silence is worse than an error, because the user walks away believing it is done.
+
+The failure shape is always the same: a multi-step submit gates one of its steps on a value
+that is legitimately empty in some flow, the step is skipped, and the success path runs
+anyway because "no failures" and "no attempts" are the same number.
+
+```tsx
+// WRONG — `failed` is 0 both when every invite succeeded and when none were tried.
+const failed = targetId ? await sendInvites(emails) : 0;
+
+// RIGHT — nothing sent is a partial failure, not a success.
+const failed = targetId ? await sendInvites(emails) : emails.length;
+```
+
+Checklist for any submit that fans out into several writes:
+
+- Every branch that **skips** work reports it — reuse the partial-failure path the flow
+  already has rather than inventing new copy.
+- Gate the work on the value it is actually scoped by. Onboarding invites are scoped by the
+  **active-org** token, so the created org id was never the right gate (ONB-1).
+- A regression test asserts the *count* of requests that left the client, not just that the
+  flow completed. `expect(inviteMember).toHaveBeenCalledTimes(3)` is the assertion that
+  fails on this bug; "navigates to the dashboard" passes either way.
+
+## 4. Never derive a flow from state that has not loaded
+
+**Rule: if a query decides what the user sees or what a submit does, gate on it.** Render the
+query state instead of the screen — never a screen built on a fallback.
+
+A "sensible default" for missing data is the trap. `useDeploymentFlags` falls back to the
+permissive `DEFAULT_DEPLOYMENT_FLAGS`, so a failed `me/context` did not look broken — it
+looked like a *different deployment*. The onboarding wizard then showed the wrong step list,
+skipped creating the workspace, and still let the user press the finish button, which stamps
+`onboarding_completed` on the backend (ONB-2). Not reversible from the UI.
+
+```tsx
+const query = useMeContext();
+const ready = !(query.isPending || query.isError) && Boolean(query.data);
+
+// Steps derived ONLY from a loaded context — never from the fallback.
+const steps = ready ? deriveSteps(flags, query.data) : EMPTY_STEPS;
+
+if (!ready) {
+  return (
+    <QueryBoundary query={query} errorMessage={t(KEYS.session.loadError)}>
+      {() => null}
+    </QueryBoundary>
+  );
+}
+```
+
+- **`isError` counts even when stale `data` is still cached.** A background refetch that failed
+  means the context you would submit against is one you already know is out of date.
+- **The submit needs its own guard, not just `disabled`.** Same shape as rule 1: the disabled
+  button is the affordance; `if (!ready) return;` at the top of the handler is the correctness
+  net. Irreversible writes (completion flags, provisioning, charges) earn both.
+- **Reach for `QueryBoundary`, not a bespoke spinner** — skeleton while pending, retry on
+  failure, in place. A wizard that strands the user is worse than one that says "try again".
+- Ask of every fallback default: *would the user notice if this were wrong?* If not, it is not
+  a default, it is a silent bug.
+
+## 5. Local optimistic state gets rolled back too
+
+**Rule: an optimistic edit you hold outside the query cache is yours to revert.**
+`useAppMutation`'s `optimistic` / `optimisticInfinite` rollback restores the **cache**. A
+`useState` map of local overrides is invisible to it, so nothing puts it back.
+
+The shape to watch for is "derive the view from server data + a local edit map":
+
+```tsx
+const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+const value = overrides[key] ?? serverValue; // local edit wins
+```
+
+That map needs the full lifecycle, or the control silently misreports state:
+
+| Moment      | What must happen                                                            |
+| ----------- | --------------------------------------------------------------------------- |
+| on error    | restore the key to what it was — `undefined` means **delete it**, not write the old value back |
+| on success  | **clear the committed keys** — the cache now holds server truth, and a leftover override shadows every later refetch |
+| while saving| disable the control (`isPending`) **and** guard the handler with a ref (rule 1) |
+
+```tsx
+update.mutate(buildPayload(server, next), {
+  onSuccess: () => setOverrides((o) => withoutCommitted(o, committedKeys)),
+  onError: () => setOverrides((o) => withRestoredOverride(o, key, previous)),
+});
+```
+
+The clear-on-success half is the one that gets forgotten: the toggle keeps working, so nothing
+looks broken — until the server changes underneath it and the control stops following (SET-1).
+
+**Prefer not to hold the state at all.** If the cache can carry the optimistic value
+(`optimistic` / `optimisticInfinite` on `useAppMutation`), use that and delete the local map —
+one rollback path instead of two.
+
+**Test it against server truth, not against itself.** Assert the control matches what the fake
+backend actually stored, and that it still follows a *later* server change. "The toggle flipped"
+passes on this bug; "the toggle agrees with the server" does not.
+
+## 6. A failed follow-up step never routes the user backwards
+
+**Rule: when step A succeeded and step B failed, keep A's result, say what B cost, and land
+somewhere forward.** Never let a `catch` around the follow-up throw away the work that already
+committed on the server.
+
+The shape is a two-step flow — *do the thing*, then *put the user where the thing lives* — with
+one `try` around both:
+
+```tsx
+// WRONG — the accept already committed; this reports success and signs them out anyway.
+try {
+  await switchToOrganization(accepted.organizationId);
+  await silentRefresh();
+  setStatus('success');
+  redirect(dashboard);
+} catch {
+  setStatus('success'); // the lie
+  redirect('/login'); // the harm — and the error is never logged
+}
+```
+
+Accept-invite did exactly this: a green check and "You've joined!", then 900 ms later the
+sign-in page, with no explanation and nothing in Sentry (INV-1).
+
+- **A bare `catch {}` with no binding is the tell.** If you are not naming the error, you are not
+  reporting it. Every swallowed failure gets `reportError(err, { scope, …ids })`.
+- **Separate what committed from what did not.** Fire the analytics/success signal for the step
+  that actually landed, and give the degraded outcome its own state (`partial`), its own copy,
+  and its own `notify.warning` — not the happy-path string.
+- **Recovery goes forward, never back to the door.** `/` (the resolver) or the nearest surface the
+  user can act from. Sending a signed-in user to `/login` because a *secondary* call failed
+  destroys the thing they just did.
+- **Test the destination, not the icon.** `expect(navigate).not.toHaveBeenCalledWith({to: '/login'})`
+  is the assertion that fails on this bug; "shows the success check" passes either way.
+
+## 7. A repeatable confirmation replaces itself
+
+**Rule: if a user can fire the same write several times in a few seconds, its toast carries a
+stable id.** Sonner **replaces** a toast that reuses an id and **stacks** one that does not.
+
+Any grid of switches, row of toggles, or inline-save field is a repeat-fire control. Four flicks
+in the notifications grid stacked four copies of "Notification preferences saved" over the
+screen the user was still working in (SET-2) — the app shouting the same sentence four times.
+
+```tsx
+export const PREFS_TOAST_ID = 'notification-preferences-saved';
+
+useAppMutation({
+  mutationFn: savePreferences,
+  successMessage: t(KEYS.saved),
+  toastId: PREFS_TOAST_ID, // success AND error reuse it
+});
+```
+
+- **Give the id to the error toast too.** A failure should replace a stale "saved", not land
+  underneath one that is still claiming success.
+- **Omit it for one-off writes** — "Invitation sent to sam@" and "Invitation sent to kai@" are
+  different facts and both deserve to be read.
+- **A toast is not the only answer.** For a control that saves constantly, an inline "Saved"
+  next to the field beats any toast; reach for the id when a toast is still the right surface.
+- **Test the rendered count, not the call count.** `notify.success` firing four times is correct
+  and expected — the assertion that catches this is how many toasts are in the DOM.
