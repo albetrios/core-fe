@@ -1,9 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
-const { navigateMock } = vi.hoisted(() => ({ navigateMock: vi.fn() }));
+const { navigateMock, createPaymentMethodSetupMock } = vi.hoisted(() => ({
+  navigateMock: vi.fn(),
+  createPaymentMethodSetupMock: vi.fn(),
+}));
+
+vi.mock('@/shared/api/billing-api.ts', () => ({
+  createPaymentMethodSetup: createPaymentMethodSetupMock,
+}));
 
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => navigateMock,
@@ -46,6 +53,7 @@ function renderMethods() {
 
 afterEach(() => {
   navigateMock.mockClear();
+  createPaymentMethodSetupMock.mockReset();
   window.history.replaceState({}, '', '/');
 });
 
@@ -92,5 +100,36 @@ describe('BillingPaymentMethods', () => {
       </QueryClientProvider>,
     );
     expect(queryByTestId('billing-payment-methods-card')).not.toBeInTheDocument();
+  });
+
+  // A second click before React re-renders would open a second Stripe setup
+  // intent — `disabled={isAdding}` cannot land in that frame.
+  it('opens only one Stripe setup intent when the add button is double-clicked', async () => {
+    let release: ((value: { clientSecret: string | null }) => void) | undefined;
+    createPaymentMethodSetupMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
+    );
+
+    renderMethods();
+    const button = screen.getByTestId('billing-add-payment-method');
+    // Dispatched inside ONE act() batch, so React has not re-rendered between
+    // them and `disabled={isAdding}` has not reached the DOM yet — the real
+    // double-click window. fireEvent flushes after each call, so it cannot
+    // reproduce this.
+    act(() => {
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(createPaymentMethodSetupMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      release?.({ clientSecret: null });
+    });
+    expect(createPaymentMethodSetupMock).toHaveBeenCalledTimes(1);
   });
 });

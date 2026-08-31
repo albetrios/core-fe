@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   omitStripeReturnParams,
@@ -66,6 +66,8 @@ export function BillingPaymentMethods({
   const query = useBillingPaymentMethods(enabled && isStripeEnabled());
   const [setupSecret, setSetupSecret] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  // Synchronous twin of `isAdding` — see handleAddPaymentMethod.
+  const isAddingRef = useRef(false);
 
   useEffect(() => {
     const { setupIntentClientSecret, redirectStatus } = readStripeBillingReturnParams();
@@ -90,6 +92,11 @@ export function BillingPaymentMethods({
   }, [queryClient, navigate, orgId]);
 
   async function handleAddPaymentMethod() {
+    // `isAdding` only disables the button after React re-renders, so a second
+    // click in the same frame would open a second Stripe setup intent. This ref
+    // flips synchronously, so the duplicate is dropped before the request.
+    if (isAddingRef.current) return;
+    isAddingRef.current = true;
     setIsAdding(true);
     try {
       const setup = await billingApi.createPaymentMethodSetup();
@@ -97,6 +104,7 @@ export function BillingPaymentMethods({
         setSetupSecret(setup.clientSecret);
       }
     } finally {
+      isAddingRef.current = false;
       setIsAdding(false);
     }
   }

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -207,5 +207,151 @@ describe('useAppMutation', () => {
         ?.rows,
     ).toEqual([{ id: 'a' }, { id: 'b' }]);
     expect(errorMock).toHaveBeenCalledWith('nope');
+  });
+
+  // Double-submit protection. `disabled={isPending}` only takes effect after React
+  // re-renders, so a second click in the same frame still reaches the handler — on
+  // a checkout that is a second charge. The guard is a ref, so it holds synchronously.
+  describe('single-flight guard', () => {
+    it('does not start a second write when fired twice before the first settles', async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      let release: ((value: string) => void) | undefined;
+      const mutationFn = vi.fn(
+        () =>
+          new Promise<string>((resolve) => {
+            release = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useAppMutation({ mutationFn }), {
+        wrapper: makeWrapper(client),
+      });
+
+      // Both calls happen before any re-render — exactly the double-click window.
+      const first = result.current.mutateAsync();
+      const second = result.current.mutateAsync();
+
+      // TanStack dispatches mutationFn asynchronously, so let it start before counting.
+      await vi.waitFor(() => expect(mutationFn).toHaveBeenCalledTimes(1));
+
+      release?.('charged-once');
+      // The duplicate joins the in-flight request instead of starting its own.
+      await expect(first).resolves.toBe('charged-once');
+      await expect(second).resolves.toBe('charged-once');
+      expect(mutationFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('guards the fire-and-forget mutate() path too', async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      let release: ((value: string) => void) | undefined;
+      const mutationFn = vi.fn(
+        () =>
+          new Promise<string>((resolve) => {
+            release = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useAppMutation({ mutationFn }), {
+        wrapper: makeWrapper(client),
+      });
+
+      act(() => {
+        result.current.mutate();
+        result.current.mutate();
+        result.current.mutate();
+      });
+
+      await vi.waitFor(() => expect(mutationFn).toHaveBeenCalledTimes(1));
+      await act(async () => {
+        release?.('ok');
+      });
+      expect(mutationFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('allows a genuine retry once the first attempt has settled', async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      const mutationFn = vi.fn(async (n: number) => n + 1);
+      const { result } = renderHook(() => useAppMutation({ mutationFn }), {
+        wrapper: makeWrapper(client),
+      });
+
+      await result.current.mutateAsync(1);
+      await result.current.mutateAsync(2);
+
+      expect(mutationFn).toHaveBeenCalledTimes(2);
+    });
+
+    it('releases the guard after a failure so the user can try again', async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      const mutationFn = vi
+        .fn<() => Promise<string>>()
+        .mockRejectedValueOnce(new Error('network down'))
+        .mockResolvedValueOnce('ok');
+      const { result } = renderHook(
+        () => useAppMutation({ mutationFn, notifyOnError: false }),
+        { wrapper: makeWrapper(client) },
+      );
+
+      await expect(result.current.mutateAsync()).rejects.toThrow('network down');
+      await expect(result.current.mutateAsync()).resolves.toBe('ok');
+      expect(mutationFn).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the rest of the TanStack mutation surface intact', async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      const { result } = renderHook(
+        () => useAppMutation({ mutationFn: async (n: number) => n + 1 }),
+        { wrapper: makeWrapper(client) },
+      );
+
+      expect(result.current.isPending).toBe(false);
+      expect(typeof result.current.reset).toBe('function');
+      await act(async () => {
+        await result.current.mutateAsync(1);
+      });
+      await vi.waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+        expect(result.current.data).toBe(2);
+      });
+    });
+  });
+
+  // ── SET-2: a repeated confirmation replaces itself ─────────────────────────
+
+  it('passes a stable toast id through to the success and error toasts', async () => {
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    const { result } = renderHook(
+      () =>
+        useAppMutation({
+          mutationFn: async (fail: boolean) => {
+            if (fail) throw new Error('boom');
+            return 'ok';
+          },
+          successMessage: 'Saved',
+          toastId: 'prefs',
+        }),
+      { wrapper: makeWrapper(client) },
+    );
+
+    await result.current.mutateAsync(false);
+    // Sonner replaces a toast that reuses an id, so four saves show one toast.
+    expect(successMock).toHaveBeenCalledWith('Saved', { id: 'prefs' });
+
+    await result.current.mutateAsync(true).catch(() => undefined);
+    expect(errorMock).toHaveBeenCalledWith(expect.any(String), { id: 'prefs' });
+  });
+
+  it('omits the options argument entirely when no toast id is set', async () => {
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    const { result } = renderHook(
+      () =>
+        useAppMutation({
+          mutationFn: async () => 'ok',
+          successMessage: 'Saved',
+        }),
+      { wrapper: makeWrapper(client) },
+    );
+
+    await result.current.mutateAsync(undefined as never);
+    // Not `('Saved', undefined)` — a one-off write keeps the old call shape.
+    expect(successMock).toHaveBeenCalledWith('Saved');
   });
 });
