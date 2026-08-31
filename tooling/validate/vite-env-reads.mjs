@@ -10,7 +10,7 @@
  * Test files are exempt (they stub env via `vi.stubEnv`, not runtime reads).
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 
@@ -52,7 +52,8 @@ const ENV_COMPARE = /\.(?:environment|MODE)\s*===/;
 /** @type {{file: string, kind: string}[]} */
 const violations = [];
 for (const file of walkTs(resolve(ROOT, 'src'))) {
-  const rel = relative(ROOT, file);
+  // POSIX separators so the ALLOWLIST matches on Windows too.
+  const rel = relative(ROOT, file).split(sep).join('/');
   const content = readFileSync(file, 'utf8');
   const allowlisted = ALLOWLIST.has(rel);
   if (VITE_READ.test(content) && !allowlisted)
