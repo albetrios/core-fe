@@ -16,6 +16,7 @@ import {
   AUTH_KEYS,
   AUTH_NS,
 } from '@/shared/auth/auth-shell.constants.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
 import { stashMfaHandoff } from '@/shared/auth/mfa-handoff.ts';
 import { isSafeRedirectPath } from '@/shared/auth/redirect-safety.ts';
@@ -296,6 +297,11 @@ export function AuthEmailPanel({
               ) : null}
             </div>
 
+            {/* Escalated Turnstile challenge renders here — between the last field and the
+                submit button, the conventional captcha position — so the user meets the check
+                before the gated action. */}
+            <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+
             <AuthMethodButton
               type="submit"
               variant="default"
@@ -375,6 +381,9 @@ export function AuthEmailPanel({
           className="justify-start"
         />
       </div>
+
+      {/* Same conventional position on the verify step: challenge above the gated button. */}
+      <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
 
       <AuthMethodButton
         variant="default"

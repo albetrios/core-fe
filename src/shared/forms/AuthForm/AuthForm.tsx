@@ -304,9 +304,12 @@ export function AuthForm() {
         </div>
       ) : null}
 
-      {/* Inline anchor: the app-global Turnstile widget portals an escalated challenge
-          here, inside the form, instead of the centered-overlay fallback. */}
-      <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+      {/* The email panel owns the captcha slot (between its last field and the submit
+          button — the conventional captcha position). This form-level slot exists only for
+          OAuth-only deployments, where no email panel mounts but the provider buttons are
+          still captcha-gated. Never render both: the registry is last-mounted-wins and the
+          challenge must sit in the email flow whenever it exists. */}
+      {showEmail ? null : <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />}
     </div>
   );
 }
