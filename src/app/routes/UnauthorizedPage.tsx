@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { logout } from '@/shared/auth/service.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 
@@ -34,6 +35,10 @@ export function Component() {
           Sign out
         </Button>
       </div>
+
+      {/* An escalated background Turnstile challenge renders here, below the actions,
+          instead of floating anywhere on its own. */}
+      <CaptchaSlot testId="unauthorized-captcha-slot" />
     </div>
   );
 }

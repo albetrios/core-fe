@@ -9,7 +9,13 @@ import { getCaptchaSlot, setCaptchaSlot } from './captcha-slot.ts';
  * clears the registration when this slot is still the registered one — so a newer slot
  * mounted before an older one unmounts is not knocked out by the older cleanup.
  */
-export function CaptchaSlot({ testId }: { testId?: string }): ReactElement {
+export function CaptchaSlot({
+  testId,
+  className,
+}: {
+  testId?: string;
+  className?: string;
+}): ReactElement {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -23,5 +29,5 @@ export function CaptchaSlot({ testId }: { testId?: string }): ReactElement {
     };
   }, []);
 
-  return <div ref={ref} data-testid={testId} />;
+  return <div ref={ref} className={className} data-testid={testId} />;
 }

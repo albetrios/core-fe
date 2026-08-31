@@ -61,30 +61,18 @@ describe('InvisibleTurnstile', () => {
   });
 
   /**
-   * Regression guard. Turnstile renders an INTERACTIVE challenge into this container when
-   * Cloudflare escalates. At `z-index: auto` that overlay paints beneath the auth card (z-50)
-   * and the toast region (z-70), so it cannot be completed: no token is minted and every
-   * captcha-gated button spins forever. The container must outrank the app's own scale, which
-   * tops out at z-[90].
+   * Without a registered slot there is no floating pin or overlay: the container stays
+   * hidden and inert, deferring any escalated challenge until a surface mounts a slot.
+   * (This supersedes the old #258 z-index overlay guard — with no overlay left, stacking
+   * cannot bury the challenge; placement correctness is the slot tests' job.)
    */
-  it('pins the challenge container above the app top layer', () => {
+  it('keeps the no-slot container hidden and inert', () => {
     stubTurnstileApi();
     render(<InvisibleTurnstile />);
 
     const container = screen.getByTestId('auth-captcha-widget');
-    expect(container.style.position).toBe('fixed');
-    expect(Number(container.style.zIndex)).toBeGreaterThan(90);
-  });
-
-  it('pins the no-slot fallback to the bottom-right corner, out of the layout flow', () => {
-    stubTurnstileApi();
-    render(<InvisibleTurnstile />);
-
-    expect(screen.getByTestId('auth-captcha-widget')).toHaveStyle({
-      position: 'fixed',
-      right: '0px',
-      bottom: '0px',
-    });
+    expect(container.style.position).toBe('');
+    expect(container).toHaveStyle({ visibility: 'hidden', height: '0px' });
   });
 
   it('renders the Turnstile widget into the container and stores minted tokens', async () => {
@@ -109,6 +97,9 @@ describe('InvisibleTurnstile', () => {
 
   it('hides the container after a successful solve and shows it again for the next one', async () => {
     const { api, rendered } = stubTurnstileApi();
+    const slot = document.createElement('div');
+    document.body.appendChild(slot);
+    setCaptchaSlot(slot);
     render(<InvisibleTurnstile />);
     await waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
 
@@ -131,6 +122,8 @@ describe('InvisibleTurnstile', () => {
       consumeTurnstileToken();
     });
     expect(widget).toHaveStyle({ visibility: 'visible' });
+
+    slot.remove();
   });
 
   it('resets the widget for a fresh solve when the token is consumed', async () => {
@@ -169,13 +162,14 @@ describe('InvisibleTurnstile', () => {
     expect(inline).toHaveStyle({ visibility: 'hidden', height: '0px' });
 
     // Slot unregisters (auth form unmounts): the widget is torn down and re-rendered
-    // into the bottom-right corner fallback.
+    // into the hidden, inert no-slot container — deferred until the next slot mounts.
     act(() => setCaptchaSlot(null));
     await waitFor(() => expect(api.render).toHaveBeenCalledTimes(2));
     expect(api.remove).toHaveBeenCalledWith('widget-1');
-    const overlay = screen.getByTestId('auth-captcha-widget');
-    expect(slot.contains(overlay)).toBe(false);
-    expect(overlay).toHaveStyle({ position: 'fixed', right: '0px', bottom: '0px' });
+    const deferred = screen.getByTestId('auth-captcha-widget');
+    expect(slot.contains(deferred)).toBe(false);
+    expect(deferred.style.position).toBe('');
+    expect(deferred).toHaveStyle({ visibility: 'hidden', height: '0px' });
 
     slot.remove();
   });
