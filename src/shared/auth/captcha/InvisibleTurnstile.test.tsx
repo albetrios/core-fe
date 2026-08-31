@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const envRef = vi.hoisted(() => ({
@@ -99,11 +99,37 @@ describe('InvisibleTurnstile', () => {
       }),
     );
 
-    rendered[0]?.callback?.('token-abc');
+    act(() => rendered[0]?.callback?.('token-abc'));
     expect(peekTurnstileToken()).toBe('token-abc');
 
-    rendered[0]?.['expired-callback']?.();
+    act(() => rendered[0]?.['expired-callback']?.());
     expect(peekTurnstileToken()).toBeUndefined();
+  });
+
+  it('hides the container after a successful solve and shows it again for the next one', async () => {
+    const { api, rendered } = stubTurnstileApi();
+    render(<InvisibleTurnstile />);
+    await waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
+
+    const widget = screen.getByTestId('auth-captcha-widget');
+    expect(widget).toHaveStyle({ visibility: 'visible' });
+
+    // Success mints a token; Cloudflare leaves a persistent "Success!" receipt, so the
+    // container must hide itself the moment the token lands.
+    act(() => rendered[0]?.callback?.('token-solved'));
+    expect(widget).toHaveStyle({ visibility: 'hidden' });
+
+    // Expiry may require a new interactive solve — the container must be visible for it.
+    act(() => rendered[0]?.['expired-callback']?.());
+    expect(widget).toHaveStyle({ visibility: 'visible' });
+
+    // Same cycle via consumption: token spent → reset asks for a fresh solve.
+    act(() => rendered[0]?.callback?.('token-spent'));
+    expect(widget).toHaveStyle({ visibility: 'hidden' });
+    act(() => {
+      consumeTurnstileToken();
+    });
+    expect(widget).toHaveStyle({ visibility: 'visible' });
   });
 
   it('resets the widget for a fresh solve when the token is consumed', async () => {
@@ -111,9 +137,13 @@ describe('InvisibleTurnstile', () => {
     render(<InvisibleTurnstile />);
 
     await waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
-    rendered[0]?.callback?.('token-once');
+    act(() => rendered[0]?.callback?.('token-once'));
 
-    expect(consumeTurnstileToken()).toBe('token-once');
+    let consumed: string | undefined;
+    act(() => {
+      consumed = consumeTurnstileToken();
+    });
+    expect(consumed).toBe('token-once');
     expect(api.reset).toHaveBeenCalledWith('widget-1');
     expect(peekTurnstileToken()).toBeUndefined();
   });
@@ -123,7 +153,7 @@ describe('InvisibleTurnstile', () => {
     const { unmount } = render(<InvisibleTurnstile />);
 
     await waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
-    rendered[0]?.callback?.('token-live');
+    act(() => rendered[0]?.callback?.('token-live'));
 
     unmount();
     expect(api.remove).toHaveBeenCalledWith('widget-1');

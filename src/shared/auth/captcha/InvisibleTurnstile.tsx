@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { platformConfig } from '@/core/config/env.ts';
 
@@ -78,6 +78,12 @@ function loadTurnstileScript(): Promise<void> {
 export function InvisibleTurnstile(): ReactElement | null {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
+  // Whether the current token came from a completed interactive solve. Cloudflare's
+  // `interaction-only` appearance auto-hides the widget BEFORE a solve, but after one it
+  // leaves a persistent "Success!" receipt on screen — centered, that receipt would sit over
+  // the auth card forever, so we hide the container ourselves the moment the token is minted
+  // and show it again whenever a fresh solve may need interaction (expiry, error, reset).
+  const [challengeSolved, setChallengeSolved] = useState(false);
 
   useEffect(() => {
     if (!(isInvisibleTurnstileActive() && TURNSTILE_SITE_KEY)) return;
@@ -89,12 +95,22 @@ export function InvisibleTurnstile(): ReactElement | null {
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
           appearance: 'interaction-only',
-          callback: (token) => setTurnstileToken(token),
-          'expired-callback': () => setTurnstileToken(undefined),
-          'error-callback': () => setTurnstileToken(undefined),
+          callback: (token) => {
+            setTurnstileToken(token);
+            setChallengeSolved(true);
+          },
+          'expired-callback': () => {
+            setTurnstileToken(undefined);
+            setChallengeSolved(false);
+          },
+          'error-callback': () => {
+            setTurnstileToken(undefined);
+            setChallengeSolved(false);
+          },
         });
         setTurnstileResetHandler(() => {
           setTurnstileToken(undefined);
+          setChallengeSolved(false);
           if (widgetIdRef.current && window.turnstile) {
             window.turnstile.reset(widgetIdRef.current);
           }
@@ -138,6 +154,7 @@ export function InvisibleTurnstile(): ReactElement | null {
         left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 10_000,
+        visibility: challengeSolved ? 'hidden' : undefined,
       }}
     />
   );
