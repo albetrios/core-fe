@@ -21,6 +21,12 @@ const LazyThemeShowcase = lazy(() =>
     default: m.ThemeShowcase,
   })),
 );
+const LazySourceDonut = lazy(() =>
+  import('./SourceDonut/index.ts').then((m) => ({ default: m.SourceDonut })),
+);
+const LazyUsageBars = lazy(() =>
+  import('./UsageBars/index.ts').then((m) => ({ default: m.UsageBars })),
+);
 
 function DeferredSection({
   fallback,
@@ -70,6 +76,24 @@ export function DeferredThemeShowcase() {
   return (
     <DeferredSection fallback={<SkeletonShimmer className="h-56 w-full rounded-xl" />}>
       <LazyThemeShowcase />
+    </DeferredSection>
+  );
+}
+
+/** Lazily loads the weekly usage bars (recharts stays off first paint). */
+export function DeferredUsageBars() {
+  return (
+    <DeferredSection fallback={<SkeletonShimmer className="h-72 w-full rounded-xl" />}>
+      <LazyUsageBars />
+    </DeferredSection>
+  );
+}
+
+/** Lazily loads the sessions-by-source donut (recharts stays off first paint). */
+export function DeferredSourceDonut() {
+  return (
+    <DeferredSection fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}>
+      <LazySourceDonut />
     </DeferredSection>
   );
 }

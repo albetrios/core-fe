@@ -121,6 +121,128 @@
     },
     "error": "No se pudieron cargar los miembros."
   },
+  "trends": {
+    "heading": "Tendencias de uso",
+    "description": "Variación semana a semana"
+  },
+  "usageBars": {
+    "heading": "Uso semanal",
+    "description": "Sesiones y llamadas API por semana"
+  },
+  "heatmap": {
+    "heading": "Mapa de actividad",
+    "description": "Doce semanas de actividad diaria",
+    "less": "Menos",
+    "more": "Más"
+  },
+  "funnel": {
+    "heading": "Embudo de adquisición",
+    "description": "De la primera visita a la activación",
+    "stages": {
+      "visited": "Visitaron",
+      "signedUp": "Registrados",
+      "onboarded": "Incorporados",
+      "activated": "Activados"
+    }
+  },
+  "radar": {
+    "heading": "Salud del espacio",
+    "description": "Cinco dimensiones de un vistazo",
+    "axes": {
+      "activity": "Actividad",
+      "growth": "Crecimiento",
+      "security": "Seguridad",
+      "automation": "Automatización",
+      "engagement": "Compromiso"
+    }
+  },
+  "leaderboard": {
+    "heading": "Mejores automatizaciones",
+    "description": "Más ejecuciones este mes",
+    "runs": "ejecuciones",
+    "items": {
+      "welcomeEmail": "Correo de bienvenida",
+      "weeklyDigest": "Resumen semanal",
+      "slackSync": "Sincronización Slack",
+      "backupJob": "Copia de seguridad"
+    }
+  },
+  "focus": {
+    "heading": "Temporizador de enfoque",
+    "description": "Un sprint de trabajo profundo de 25 minutos",
+    "start": "Iniciar",
+    "pause": "Pausar",
+    "reset": "Reiniciar"
+  },
+  "meters": {
+    "heading": "Uso del plan",
+    "description": "Cuánto del plan está en uso"
+  },
+  "billingCard": {
+    "heading": "Resumen de facturación",
+    "description": "Plan, renovación y pago",
+    "plan": "Plan",
+    "nextInvoice": "Próxima factura",
+    "payment": "Pago"
+  },
+  "ai": {
+    "heading": "Pregunta a tu espacio",
+    "description": "Busca, ejecuta acciones o salta a donde sea",
+    "placeholder": "Pregunta lo que quieras…",
+    "chips": {
+      "usage": "Ver uso",
+      "members": "Invitar miembros",
+      "appearance": "Cambiar tema"
+    }
+  },
+  "map": {
+    "heading": "Actividad global",
+    "description": "Sesiones por región esta semana",
+    "regions": {
+      "americas": "América",
+      "europe": "Europa",
+      "asia": "Asia",
+      "oceania": "Oceanía"
+    }
+  },
+  "donut": {
+    "heading": "Sesiones por origen",
+    "description": "De dónde vinieron las sesiones esta semana",
+    "segments": {
+      "web": "Web",
+      "mobile": "Móvil",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "Uso de funciones",
+    "description": "Progreso hacia las metas semanales"
+  },
+  "timeline": {
+    "heading": "Este mes",
+    "description": "Fechas clave del mes",
+    "today": "Hoy"
+  },
+  "activity": {
+    "heading": "Actividad reciente",
+    "description": "Últimos cambios en este espacio de trabajo",
+    "events": {
+      "inviteAccepted": "Un nuevo miembro aceptó su invitación",
+      "roleUpdated": "Se actualizó el rol de un miembro",
+      "planRenewed": "El plan se renovó correctamente",
+      "settingsChanged": "Se actualizó la configuración del espacio"
+    }
+  },
+  "pulse": {
+    "heading": "Pulso del espacio",
+    "description": "Actividad semanal en este espacio de trabajo",
+    "score": "del objetivo semanal",
+    "metrics": {
+      "sessions": "Sesiones",
+      "automations": "Automatizaciones",
+      "reviews": "Revisiones"
+    }
+  },
   "schedule": {
     "ariaLabel": "Agenda",
     "heading": "Agenda",

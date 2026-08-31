@@ -19,6 +19,7 @@ describe('AppearancePanel', () => {
       iconColor: 'default',
       iconLibrary: 'lucide',
       layoutWidth: 'contained',
+      dashboardVariant: 0,
     });
     const root = document.documentElement;
     delete root.dataset.theme;
@@ -112,5 +113,25 @@ describe('AppearancePanel', () => {
     await user.click(screen.getByTestId('shuffle-colour'));
     expect(useThemeStore.getState().preset).toBe('custom');
     expect(useThemeStore.getState().customTheme).not.toBeNull();
+  });
+
+  it('picking a dashboard arrangement updates the theme store', async () => {
+    const user = userEvent.setup();
+    render(<AppearancePanel />);
+    expect(screen.getByTestId('dashboard-variant-card')).toBeInTheDocument();
+    await user.click(screen.getByTestId('dashboard-variant-pulse'));
+    expect(useThemeStore.getState().dashboardVariant).toBe(2);
+    await user.click(screen.getByTestId('dashboard-variant-bento'));
+    expect(useThemeStore.getState().dashboardVariant).toBe(3);
+    await user.click(screen.getByTestId('dashboard-variant-classic'));
+    expect(useThemeStore.getState().dashboardVariant).toBe(0);
+  });
+
+  it('dashboard shuffle rolls to a different arrangement', async () => {
+    const user = userEvent.setup();
+    render(<AppearancePanel />);
+    await user.click(screen.getByTestId('shuffle-dashboard'));
+    const variant = useThemeStore.getState().dashboardVariant;
+    expect([1, 2, 3]).toContain(variant); // never re-rolls the current (0)
   });
 });

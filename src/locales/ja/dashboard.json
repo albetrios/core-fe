@@ -121,6 +121,128 @@
     },
     "error": "メンバーを読み込めませんでした。"
   },
+  "trends": {
+    "heading": "利用トレンド",
+    "description": "週ごとの推移"
+  },
+  "usageBars": {
+    "heading": "週間利用状況",
+    "description": "週ごとのセッションとAPI呼び出し"
+  },
+  "heatmap": {
+    "heading": "アクティビティヒートマップ",
+    "description": "12週間の日次アクティビティ",
+    "less": "少ない",
+    "more": "多い"
+  },
+  "funnel": {
+    "heading": "獲得ファネル",
+    "description": "初回訪問からアクティブ化まで",
+    "stages": {
+      "visited": "訪問",
+      "signedUp": "登録",
+      "onboarded": "オンボーディング完了",
+      "activated": "アクティブ化"
+    }
+  },
+  "radar": {
+    "heading": "ワークスペースの健全性",
+    "description": "5つの側面をひと目で",
+    "axes": {
+      "activity": "アクティビティ",
+      "growth": "成長",
+      "security": "セキュリティ",
+      "automation": "自動化",
+      "engagement": "エンゲージメント"
+    }
+  },
+  "leaderboard": {
+    "heading": "トップ自動化",
+    "description": "今月の実行回数上位",
+    "runs": "実行",
+    "items": {
+      "welcomeEmail": "ウェルカムメール",
+      "weeklyDigest": "週間ダイジェスト",
+      "slackSync": "Slack同期",
+      "backupJob": "バックアップジョブ"
+    }
+  },
+  "focus": {
+    "heading": "フォーカスタイマー",
+    "description": "25分の集中スプリント",
+    "start": "開始",
+    "pause": "一時停止",
+    "reset": "リセット"
+  },
+  "meters": {
+    "heading": "プラン使用状況",
+    "description": "プランの使用量"
+  },
+  "billingCard": {
+    "heading": "請求サマリー",
+    "description": "プラン・更新・支払い",
+    "plan": "プラン",
+    "nextInvoice": "次回請求",
+    "payment": "支払い方法"
+  },
+  "ai": {
+    "heading": "ワークスペースに質問",
+    "description": "検索・アクション実行・どこへでも移動",
+    "placeholder": "何でも聞いてください…",
+    "chips": {
+      "usage": "利用状況を見る",
+      "members": "メンバーを招待",
+      "appearance": "テーマを変更"
+    }
+  },
+  "map": {
+    "heading": "グローバルアクティビティ",
+    "description": "今週の地域別セッション",
+    "regions": {
+      "americas": "南北アメリカ",
+      "europe": "ヨーロッパ",
+      "asia": "アジア",
+      "oceania": "オセアニア"
+    }
+  },
+  "donut": {
+    "heading": "ソース別セッション",
+    "description": "今週のセッションの内訳",
+    "segments": {
+      "web": "Web",
+      "mobile": "モバイル",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "機能の利用状況",
+    "description": "週間目標への進捗"
+  },
+  "timeline": {
+    "heading": "今月",
+    "description": "今月の重要な日程",
+    "today": "今日"
+  },
+  "activity": {
+    "heading": "最近のアクティビティ",
+    "description": "このワークスペースの最新の変更",
+    "events": {
+      "inviteAccepted": "新しいメンバーが招待を承認しました",
+      "roleUpdated": "メンバーのロールが更新されました",
+      "planRenewed": "プランが更新されました",
+      "settingsChanged": "ワークスペース設定が更新されました"
+    }
+  },
+  "pulse": {
+    "heading": "ワークスペースパルス",
+    "description": "今週のワークスペースアクティビティ",
+    "score": "週間目標の達成率",
+    "metrics": {
+      "sessions": "セッション",
+      "automations": "自動化",
+      "reviews": "レビュー"
+    }
+  },
   "schedule": {
     "ariaLabel": "スケジュール",
     "heading": "スケジュール",

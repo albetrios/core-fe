@@ -120,6 +120,128 @@
     },
     "error": "无法加载成员。"
   },
+  "trends": {
+    "heading": "使用趋势",
+    "description": "周环比变化"
+  },
+  "usageBars": {
+    "heading": "每周用量",
+    "description": "每周的会话与 API 调用"
+  },
+  "heatmap": {
+    "heading": "活动热力图",
+    "description": "十二周的每日活动",
+    "less": "少",
+    "more": "多"
+  },
+  "funnel": {
+    "heading": "获客漏斗",
+    "description": "从首次访问到激活",
+    "stages": {
+      "visited": "访问",
+      "signedUp": "注册",
+      "onboarded": "完成引导",
+      "activated": "已激活"
+    }
+  },
+  "radar": {
+    "heading": "工作区健康度",
+    "description": "五个维度一目了然",
+    "axes": {
+      "activity": "活跃度",
+      "growth": "增长",
+      "security": "安全",
+      "automation": "自动化",
+      "engagement": "参与度"
+    }
+  },
+  "leaderboard": {
+    "heading": "热门自动化",
+    "description": "本月运行次数最多",
+    "runs": "次运行",
+    "items": {
+      "welcomeEmail": "欢迎邮件",
+      "weeklyDigest": "每周摘要",
+      "slackSync": "Slack 同步",
+      "backupJob": "备份任务"
+    }
+  },
+  "focus": {
+    "heading": "专注计时器",
+    "description": "25 分钟深度工作冲刺",
+    "start": "开始",
+    "pause": "暂停",
+    "reset": "重置"
+  },
+  "meters": {
+    "heading": "套餐用量",
+    "description": "套餐使用情况"
+  },
+  "billingCard": {
+    "heading": "账单摘要",
+    "description": "套餐、续订与支付",
+    "plan": "套餐",
+    "nextInvoice": "下次账单",
+    "payment": "支付方式"
+  },
+  "ai": {
+    "heading": "询问你的工作区",
+    "description": "搜索、执行操作或快速跳转",
+    "placeholder": "随便问点什么…",
+    "chips": {
+      "usage": "查看用量",
+      "members": "邀请成员",
+      "appearance": "更换主题"
+    }
+  },
+  "map": {
+    "heading": "全球活动",
+    "description": "本周按地区的会话",
+    "regions": {
+      "americas": "美洲",
+      "europe": "欧洲",
+      "asia": "亚洲",
+      "oceania": "大洋洲"
+    }
+  },
+  "donut": {
+    "heading": "按来源的会话",
+    "description": "本周会话的来源分布",
+    "segments": {
+      "web": "网页",
+      "mobile": "移动端",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "功能使用",
+    "description": "周目标进度"
+  },
+  "timeline": {
+    "heading": "本月",
+    "description": "本月关键日期",
+    "today": "今天"
+  },
+  "activity": {
+    "heading": "最近动态",
+    "description": "本工作区的最新变更",
+    "events": {
+      "inviteAccepted": "新成员已接受邀请",
+      "roleUpdated": "成员角色已更新",
+      "planRenewed": "套餐已成功续订",
+      "settingsChanged": "工作区设置已更新"
+    }
+  },
+  "pulse": {
+    "heading": "工作区脉搏",
+    "description": "本工作区的每周活动",
+    "score": "周目标完成度",
+    "metrics": {
+      "sessions": "会话",
+      "automations": "自动化",
+      "reviews": "审核"
+    }
+  },
   "schedule": {
     "ariaLabel": "日程",
     "heading": "日程",

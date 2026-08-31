@@ -154,6 +154,9 @@
     "layoutTitle": "레이아웃",
     "layoutDescription": "기본 작업 영역의 너비 — 대시보드에는 표준, 집중해서 읽는 글에는 읽기 너비.",
     "contentWidth": "콘텐츠 너비",
+    "dashboardTitle": "대시보드",
+    "dashboardDescription": "대시보드 섹션 배치 방식을 선택합니다.",
+    "dashboardArrangement": "배치",
     "surfaceTitle": "표면 및 모션",
     "surfaceDescription": "간격, 깊이, 대비, 그리고 움직임.",
     "density": "밀도",
@@ -176,6 +179,7 @@
     "sectionColour": "색상",
     "sectionType": "서체 및 형태",
     "sectionSurface": "표면 및 모션",
+    "sectionDashboard": "대시보드 레이아웃",
     "sectionNotifications": "알림 스타일",
     "custom": "사용자 지정",
     "customWith": "사용자 지정 — {{look}}"
