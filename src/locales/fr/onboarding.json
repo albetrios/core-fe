@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "Espace prêt — {{count}} invitation n'a pas pu être envoyée. Vous pouvez la renvoyer depuis Membres.",
     "invitePartialFailure_other": "Espace prêt — {{count}} invitations n'ont pas pu être envoyées. Vous pouvez les renvoyer depuis Membres."
   },
+  "session": {
+    "loadError": "Impossible de charger la configuration de votre compte. Vérifiez votre connexion et réessayez."
+  },
   "guard": {
     "title": "Quitter l'onboarding ?",
     "description": "Votre progression est enregistrée localement, mais partir maintenant peut interrompre la configuration.",

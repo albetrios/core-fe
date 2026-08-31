@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "Arbeitsbereich bereit — {{count}} Einladung konnte nicht gesendet werden. Sie können sie unter Mitglieder erneut senden.",
     "invitePartialFailure_other": "Arbeitsbereich bereit — {{count}} Einladungen konnten nicht gesendet werden. Sie können sie unter Mitglieder erneut senden."
   },
+  "session": {
+    "loadError": "Deine Kontoeinrichtung konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut."
+  },
   "guard": {
     "title": "Onboarding verlassen?",
     "description": "Ihr Fortschritt wird lokal gespeichert, aber jetzt zu verlassen kann die Einrichtung unterbrechen.",

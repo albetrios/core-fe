@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "Workspace ready — {{count}} invite couldn't be sent. You can resend from Members.",
     "invitePartialFailure_other": "Workspace ready — {{count}} invites couldn't be sent. You can resend from Members."
   },
+  "session": {
+    "loadError": "We couldn't load your account setup. Check your connection and try again."
+  },
   "guard": {
     "title": "Leave onboarding?",
     "description": "Your progress is saved locally, but leaving now may interrupt setup.",

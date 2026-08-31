@@ -7,10 +7,12 @@ import { notificationQueryKeys } from '@/shared/api/notification-query-keys.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
+  NOTIFICATION_PREFERENCES_TOAST_ID,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
   useUnreadCount,
+  useUpdateNotificationPreferences,
 } from './useNotifications.ts';
 
 const { listMock, countMock, markReadMock, markAllMock } = vi.hoisted(() => ({
@@ -24,9 +26,14 @@ vi.mock('@/shared/api/notifications-api.ts', () => ({
   getUnreadCount: countMock,
   markNotificationRead: markReadMock,
   markAllNotificationsRead: markAllMock,
+  updateNotificationPreferences: updatePrefsMock,
+}));
+const { updatePrefsMock, successMock } = vi.hoisted(() => ({
+  updatePrefsMock: vi.fn(),
+  successMock: vi.fn(),
 }));
 vi.mock('@/shared/notify/index.ts', () => ({
-  notify: { error: vi.fn(), success: vi.fn() },
+  notify: { error: vi.fn(), success: successMock },
 }));
 
 const ITEM = {
@@ -103,5 +110,28 @@ describe('useNotifications', () => {
     expect(client.getQueryData(notificationQueryKeys.list('org_a'))).toEqual([
       { ...ITEM, id: 'ntf_org_a' },
     ]);
+  });
+
+  // SET-2: the grid saves on every flick, so four flicks fired four toasts and
+  // stacked them. A stable id makes sonner replace the previous one instead.
+  it('saves preferences under one stable toast id', async () => {
+    updatePrefsMock.mockResolvedValue([]);
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const { result } = renderHook(() => useUpdateNotificationPreferences(), { wrapper });
+
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+
+    expect(successMock).toHaveBeenCalledTimes(4);
+    for (const call of successMock.mock.calls) {
+      expect(call[1]).toEqual({ id: NOTIFICATION_PREFERENCES_TOAST_ID });
+    }
   });
 });

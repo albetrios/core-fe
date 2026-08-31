@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "Espacio listo — no se pudo enviar {{count}} invitación. Puedes reenviarla desde Miembros.",
     "invitePartialFailure_other": "Espacio listo — no se pudieron enviar {{count}} invitaciones. Puedes reenviarlas desde Miembros."
   },
+  "session": {
+    "loadError": "No pudimos cargar la configuración de tu cuenta. Comprueba tu conexión e inténtalo de nuevo."
+  },
   "guard": {
     "title": "¿Salir de la incorporación?",
     "description": "Tu progreso se guarda localmente, pero salir ahora puede interrumpir la configuración.",

@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "Espaço pronto — {{count}} convite não pôde ser enviado. Você pode reenviar em Membros.",
     "invitePartialFailure_other": "Espaço pronto — {{count}} convites não puderam ser enviados. Você pode reenviá-los em Membros."
   },
+  "session": {
+    "loadError": "Não foi possível carregar a configuração da sua conta. Verifique a ligação e tente novamente."
+  },
   "guard": {
     "title": "Sair do onboarding?",
     "description": "Seu progresso é salvo localmente, mas sair agora pode interromper a configuração.",

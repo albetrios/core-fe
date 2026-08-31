@@ -67,6 +67,9 @@ export const ONBOARDING_KEYS = {
     finishError: 'toast.finishError',
     invitePartialFailure: 'toast.invitePartialFailure',
   },
+  session: {
+    loadError: 'session.loadError',
+  },
   guard: {
     title: 'guard.title',
     description: 'guard.description',
@@ -102,6 +105,8 @@ export const ONBOARDING_TEST_IDS = {
   next: 'onboarding-next',
   finish: 'onboarding-finish',
   stepMotion: 'onboarding-step-motion',
+  stepError: 'onboarding-step-error',
+  contextGate: 'onboarding-context-gate',
   firstName: 'onboarding-first-name',
   lastName: 'onboarding-last-name',
   organizationName: 'onboarding-organization-name',

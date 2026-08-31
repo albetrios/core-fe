@@ -1,5 +1,6 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
@@ -8,8 +9,25 @@ vi.mock('@/shared/hooks/useUnsavedChangesGuard/index.ts', () => ({
   useUnsavedChangesGuard: () => ({ guardDialog: null, isBlocked: false }),
 }));
 
+/**
+ * The live `me/context` the wizard itself reads. It is what `deriveOnboardingSteps`
+ * runs on and what the readiness gate checks, so every test drives it through this
+ * ref: `data: null` now renders the gate, not a wizard.
+ */
+const liveContextRef = vi.hoisted(() => ({
+  value: null as unknown,
+  isPending: false,
+  isError: false,
+}));
+const refetchMeContext = vi.hoisted(() => vi.fn(() => Promise.resolve(undefined)));
 vi.mock('@/shared/hooks/useMeContext/index.ts', () => ({
-  useMeContext: vi.fn(() => ({ data: null, isPending: false, isError: false })),
+  useMeContext: vi.fn(() => ({
+    data: liveContextRef.value,
+    isPending: liveContextRef.isPending,
+    isError: liveContextRef.isError,
+    isFetching: false,
+    refetch: refetchMeContext,
+  })),
   meContextQueryKey: ['auth', 'me-context'],
 }));
 
@@ -84,6 +102,22 @@ function memberRole(id = 'rol_member') {
   };
 }
 
+/**
+ * `DoneStep` that can be made to throw on demand — the containment test needs a
+ * real render-time crash inside a step body, not a stubbed one.
+ */
+const doneStepThrows = vi.hoisted(() => ({ value: false }));
+vi.mock('./components/DoneStep/index.ts', async (importOriginal) => {
+  const actual = await importOriginal<{ DoneStep: () => ReactNode }>();
+  return {
+    ...actual,
+    DoneStep: () => {
+      if (doneStepThrows.value) throw new Error('DoneStep crashed');
+      return actual.DoneStep();
+    },
+  };
+});
+
 vi.mock('@/shared/api/auth-api.ts', () => ({
   authApi: {
     updateProfile: vi.fn().mockResolvedValue(undefined),
@@ -91,17 +125,24 @@ vi.mock('@/shared/api/auth-api.ts', () => ({
   },
 }));
 
-import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
+import { notify } from '@/shared/notify/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 
 import { OnboardingPage } from './OnboardingPage.tsx';
 
-/** Drop the wizard on the final step with a chosen org name + invites. */
+const SESSION_USER_ID = 'usr_1';
+
+/**
+ * Drop the wizard on the final step with a chosen org name + invites. The store
+ * is claimed for the session user FIRST: the mount effect claims it too, and an
+ * unclaimed store is wiped — taking the seed with it.
+ */
 function seedDoneStep(invites: string[] = []) {
   const store = useOnboardingStore.getState();
   store.reset();
+  store.claimForUser(SESSION_USER_ID);
   store.patch({ organizationName: 'Acme Inc.', invites });
-  store.setStepIndex(5); // 'done'
+  store.setStepIndex(5); // team-only: welcome/profile/questions/workspace/invite/done
 }
 
 const TS = '2026-01-01T00:00:00.000Z';
@@ -127,6 +168,57 @@ function teamOrg(slug: string) {
     updatedAt: TS,
   };
 }
+/**
+ * A loaded me/context for the wizard to derive its step list from. Only
+ * `organizations` matters to `deriveOnboardingSteps` (the deployment flags come
+ * from the separately-mocked `useDeploymentFlags`), but the rest is filled in so
+ * the shape matches what the component actually consumes.
+ */
+function makeLiveContext(
+  input: {
+    userId?: string;
+    organizations?: unknown[];
+    flags?: { personalOrganizations: boolean; teamOrganizations: boolean };
+    personalOrganizationId?: string | null;
+  } = {},
+) {
+  return {
+    user: {
+      id: input.userId ?? SESSION_USER_ID,
+      email: 'a@b.test',
+      firstName: 'A',
+      lastName: null,
+      onboardingCompleted: false,
+    },
+    activeOrganization: null,
+    myPermissions: ['organization:read'],
+    globalRole: null,
+    organizations: input.organizations ?? [],
+    deploymentFlags: input.flags ?? {
+      personalOrganizations: false,
+      teamOrganizations: true,
+    },
+    personalOrganizationId: input.personalOrganizationId ?? null,
+  };
+}
+
+/** Switch both the deployment flags and the live context to a hybrid session. */
+function useHybridSession(organizations: unknown[] = []) {
+  const flags = { personalOrganizations: true, teamOrganizations: true };
+  deploymentFlagsRef.value = flags;
+  hydratedContextRef.value = {
+    ...hydratedContextRef.value,
+    deploymentFlags: flags,
+    organizations,
+    personalOrganizationId: 'org_personal_1',
+  };
+  liveContextRef.value = makeLiveContext({
+    organizations,
+    flags,
+    personalOrganizationId: 'org_personal_1',
+  });
+}
+
 function personalOrg() {
   return {
     id: 'org_personal_1',
@@ -144,6 +236,11 @@ describe('OnboardingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     deploymentFlagsRef.value = { personalOrganizations: false, teamOrganizations: true };
+    // Default: team-only deployment, context LOADED. Without this the readiness
+    // gate renders instead of the wizard — which is the whole point of ONB-2.
+    liveContextRef.value = makeLiveContext();
+    liveContextRef.isPending = false;
+    liveContextRef.isError = false;
     hydratedContextRef.value = {
       user: {
         id: 'usr_1',
@@ -194,27 +291,9 @@ describe('OnboardingPage', () => {
     store.setStepIndex(2);
 
     // User B signs in on the same browser — me/context resolves with THEIR id.
-    vi.mocked(useMeContext).mockReturnValue({
-      data: {
-        user: {
-          id: 'usr_next',
-          email: 'next@example.test',
-          firstName: null,
-          lastName: null,
-          onboardingCompleted: false,
-        },
-        activeOrganization: null,
-        myPermissions: ['organization:read'],
-        globalRole: null,
-        organizations: [],
-        deploymentFlags: { personalOrganizations: false, teamOrganizations: true },
-        personalOrganizationId: null,
-      },
-      isPending: false,
-      isError: false,
-    } as unknown as ReturnType<typeof useMeContext>);
+    liveContextRef.value = makeLiveContext({ userId: 'usr_next' });
 
-    try {
+    {
       renderWithProviders(<OnboardingPage />);
 
       // The claim wipes user A's progress and binds the store to user B — the
@@ -226,13 +305,6 @@ describe('OnboardingPage', () => {
       expect(state.stepIndex).toBe(0);
       expect(state.data.firstName).toBe('');
       expect(state.data.teamSize).toBe('');
-    } finally {
-      // Restore the suite default (clearAllMocks does not undo mockReturnValue).
-      vi.mocked(useMeContext).mockReturnValue({
-        data: null,
-        isPending: false,
-        isError: false,
-      } as unknown as ReturnType<typeof useMeContext>);
     }
   });
 
@@ -280,15 +352,10 @@ describe('OnboardingPage', () => {
     const user = userEvent.setup();
     // Hybrid deployment; the wizard creates nothing. The user ALREADY belongs
     // to one team (invited or seeded) and has a personal org provisioned.
-    deploymentFlagsRef.value = { personalOrganizations: true, teamOrganizations: true };
-    hydratedContextRef.value = {
-      ...hydratedContextRef.value,
-      deploymentFlags: { personalOrganizations: true, teamOrganizations: true },
-      organizations: [teamOrg('acme')],
-      personalOrganizationId: 'org_personal_1',
-    };
+    useHybridSession([teamOrg('acme')]);
     const store = useOnboardingStore.getState();
     store.reset();
+    store.claimForUser(SESSION_USER_ID);
     store.setStepIndex(4); // hybrid+team steps: welcome/profile/questions/invite/done
     renderWithProviders(<OnboardingPage />);
 
@@ -307,15 +374,10 @@ describe('OnboardingPage', () => {
 
   it('falls back to personal when several teams exist (no unambiguous destination)', async () => {
     const user = userEvent.setup();
-    deploymentFlagsRef.value = { personalOrganizations: true, teamOrganizations: true };
-    hydratedContextRef.value = {
-      ...hydratedContextRef.value,
-      deploymentFlags: { personalOrganizations: true, teamOrganizations: true },
-      organizations: [teamOrg('acme'), teamOrg('beta')],
-      personalOrganizationId: 'org_personal_1',
-    };
+    useHybridSession([teamOrg('acme'), teamOrg('beta')]);
     const store = useOnboardingStore.getState();
     store.reset();
+    store.claimForUser(SESSION_USER_ID);
     store.setStepIndex(4);
     renderWithProviders(<OnboardingPage />);
 
@@ -495,15 +557,11 @@ describe('OnboardingPage', () => {
   });
 
   it('finishes both mode to personal dashboard without creating a team org', async () => {
-    deploymentFlagsRef.value = { personalOrganizations: true, teamOrganizations: true };
-    hydratedContextRef.value.deploymentFlags = {
-      personalOrganizations: true,
-      teamOrganizations: true,
-    };
-    hydratedContextRef.value.personalOrganizationId = 'org_personal_1';
+    useHybridSession();
     const user = userEvent.setup();
     const store = useOnboardingStore.getState();
     store.reset();
+    store.claimForUser(SESSION_USER_ID);
     store.patch({ firstName: 'Ada', lastName: 'Lovelace' });
     store.setStepIndex(3);
     renderWithProviders(<OnboardingPage />);
@@ -525,15 +583,12 @@ describe('OnboardingPage', () => {
   // NOT fire `switch-to-personal` (it would 404 and trap the user), and should
   // still land on the `/` resolver.
   it('skips switch-to-personal when the deployment enables personal but the user has none', async () => {
-    deploymentFlagsRef.value = { personalOrganizations: true, teamOrganizations: true };
-    hydratedContextRef.value.deploymentFlags = {
-      personalOrganizations: true,
-      teamOrganizations: true,
-    };
+    useHybridSession();
     hydratedContextRef.value.personalOrganizationId = null;
     const user = userEvent.setup();
     const store = useOnboardingStore.getState();
     store.reset();
+    store.claimForUser(SESSION_USER_ID);
     store.patch({ firstName: 'Ada', lastName: 'Lovelace' });
     store.setStepIndex(3);
     renderWithProviders(<OnboardingPage />);
@@ -554,15 +609,18 @@ describe('OnboardingPage', () => {
   // Mode coverage: personal-only never creates a team org; the personal workspace
   // exists, so finishing lands DIRECTLY on `/dashboard`.
   it('personal-only mode finishes directly to the personal dashboard', async () => {
-    deploymentFlagsRef.value = { personalOrganizations: true, teamOrganizations: false };
-    hydratedContextRef.value.deploymentFlags = {
-      personalOrganizations: true,
-      teamOrganizations: false,
-    };
+    const personalOnly = { personalOrganizations: true, teamOrganizations: false };
+    deploymentFlagsRef.value = personalOnly;
+    hydratedContextRef.value.deploymentFlags = personalOnly;
     hydratedContextRef.value.personalOrganizationId = 'org_personal_1';
+    liveContextRef.value = makeLiveContext({
+      flags: personalOnly,
+      personalOrganizationId: 'org_personal_1',
+    });
     const user = userEvent.setup();
     const store = useOnboardingStore.getState();
     store.reset();
+    store.claimForUser(SESSION_USER_ID);
     store.patch({ firstName: 'Ada', lastName: 'Lovelace' });
     store.setStepIndex(3);
     renderWithProviders(<OnboardingPage />);
@@ -575,5 +633,208 @@ describe('OnboardingPage', () => {
     expect(navigate).toHaveBeenCalledWith(
       expect.objectContaining({ to: '/dashboard', replace: true }),
     );
+  });
+
+  // ── ONB-1: invites keyed off the ACTIVATED org, not the created one ────────
+
+  // personal-and-team mode where the user ALREADY belongs to a team:
+  // deriveOnboardingSteps shows the invite step, but the wizard creates no org.
+  // Gating the send on the *created* org id therefore skipped every invite —
+  // and the success toast still told the user their workspace was ready.
+  it('sends the invites into the existing team it activated (creates no org)', async () => {
+    const user = userEvent.setup();
+    useHybridSession([teamOrg('acme')]);
+    const successSpy = vi.spyOn(notify, 'success').mockImplementation(() => '');
+    const warningSpy = vi.spyOn(notify, 'warning').mockImplementation(() => '');
+    try {
+      const store = useOnboardingStore.getState();
+      store.reset();
+      store.claimForUser(SESSION_USER_ID);
+      store.patch({ invites: ['a@acme.com', 'b@acme.com', 'c@acme.com'] });
+      store.setStepIndex(4); // welcome/profile/questions/invite/done
+      renderWithProviders(<OnboardingPage />);
+
+      await user.click(await screen.findByTestId('onboarding-finish'));
+
+      await waitFor(() => expect(navigate).toHaveBeenCalled());
+      expect(createOrganization).not.toHaveBeenCalled();
+      expect(switchToOrganization).toHaveBeenCalledWith('org_acme');
+      // All three go out. This is exactly what silently sent nothing before.
+      expect(inviteMember).toHaveBeenCalledTimes(3);
+      expect(inviteMember).toHaveBeenCalledWith({
+        email: 'c@acme.com',
+        roleId: 'rol_member',
+      });
+      expect(successSpy).toHaveBeenCalledTimes(1);
+      expect(warningSpy).not.toHaveBeenCalled();
+    } finally {
+      successSpy.mockRestore();
+      warningSpy.mockRestore();
+    }
+  });
+
+  it('warns rather than claiming success when there is no team to invite into', async () => {
+    // Several teams → activation falls back to the personal workspace, which
+    // cannot hold invited members. Nothing can be sent, so the user is told
+    // instead of being shown a success toast that lies.
+    const user = userEvent.setup();
+    useHybridSession([teamOrg('acme'), teamOrg('beta')]);
+    const successSpy = vi.spyOn(notify, 'success').mockImplementation(() => '');
+    const warningSpy = vi.spyOn(notify, 'warning').mockImplementation(() => '');
+    try {
+      const store = useOnboardingStore.getState();
+      store.reset();
+      store.claimForUser(SESSION_USER_ID);
+      store.patch({ invites: ['a@acme.com', 'b@acme.com'] });
+      store.setStepIndex(4);
+      renderWithProviders(<OnboardingPage />);
+
+      await user.click(await screen.findByTestId('onboarding-finish'));
+
+      await waitFor(() => expect(navigate).toHaveBeenCalled());
+      expect(switchToPersonal).toHaveBeenCalledTimes(1);
+      expect(inviteMember).not.toHaveBeenCalled();
+      expect(warningSpy).toHaveBeenCalledTimes(1);
+      expect(successSpy).not.toHaveBeenCalled();
+    } finally {
+      successSpy.mockRestore();
+      warningSpy.mockRestore();
+    }
+  });
+
+  // ── Single-flight: one gesture, one set of writes ──────────────────────────
+
+  it('drops a double-click on Finish — one org created, one invite sent', async () => {
+    seedDoneStep(['a@acme.com']);
+    renderWithProviders(<OnboardingPage />);
+    const finishButton = await screen.findByTestId('onboarding-finish');
+
+    // userEvent/fireEvent flush React between clicks, so `disabled={submitting}`
+    // lands and even an unguarded button passes. Both clicks must be dispatched
+    // inside ONE act batch to reproduce the frame where the button is still live.
+    await act(async () => {
+      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+    expect(createOrganization).toHaveBeenCalledTimes(1);
+    expect(switchToOrganization).toHaveBeenCalledTimes(1);
+    expect(inviteMember).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Containment: one crashing step body is not the whole wizard ────────────
+
+  it('contains a crashing step body instead of blanking the wizard', async () => {
+    // The boundary reports through console.error by design; silence it here.
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    doneStepThrows.value = true;
+    try {
+      seedDoneStep();
+      renderWithProviders(<OnboardingPage />);
+
+      // The step body is replaced by the retryable section fallback…
+      expect(await screen.findByTestId('onboarding-step-error')).toBeInTheDocument();
+      // …while the wizard shell around it survives. Uncontained, this throw
+      // escalates to the route boundary and takes the whole screen with it.
+      expect(screen.getByTestId('onboarding-page')).toBeInTheDocument();
+      expect(screen.getByTestId('onboarding-step-title')).toBeInTheDocument();
+      expect(screen.getByTestId('onboarding-back')).toBeInTheDocument();
+      expect(screen.getByTestId('onboarding-finish')).toBeInTheDocument();
+    } finally {
+      doneStepThrows.value = false;
+      consoleSpy.mockRestore();
+    }
+  });
+
+  // ── ONB-2: nothing renders or submits on an unloaded me/context ────────────
+
+  /** Put the wizard in the state ONB-2 describes: me/context failed to load. */
+  function failMeContext() {
+    liveContextRef.value = null;
+    liveContextRef.isPending = false;
+    liveContextRef.isError = true;
+  }
+
+  it('renders a retry instead of a wizard when me/context fails', async () => {
+    // Before: `useDeploymentFlags` fell back to the permissive
+    // DEFAULT_DEPLOYMENT_FLAGS and the steps were derived from a null context,
+    // so the user got a plausible-looking wizard built on nothing.
+    seedDoneStep();
+    failMeContext();
+    renderWithProviders(<OnboardingPage />);
+
+    expect(await screen.findByTestId('onboarding-context-gate')).toBeInTheDocument();
+    expect(screen.getByTestId('retry-error')).toBeInTheDocument();
+    // No step list, no step body, and above all no way to finish.
+    expect(screen.queryByTestId('onboarding-step-title')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('onboarding-step-motion')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('onboarding-finish')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('onboarding-next')).not.toBeInTheDocument();
+  });
+
+  it('never stamps onboarding complete while me/context is failed', async () => {
+    // The damaging half of ONB-2: the wizard ran to the end and POSTed
+    // /users/me/onboarding/complete — which is not reversible from the UI —
+    // leaving the user "onboarded" with no workspace.
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    seedDoneStep(['a@acme.com']);
+    failMeContext();
+    renderWithProviders(<OnboardingPage />);
+
+    await screen.findByTestId('onboarding-context-gate');
+    // With the gate there is no finish button at all. The click is guarded so
+    // this test still reproduces the old behaviour when run against the
+    // unfixed component, where the button is present and pressing it commits.
+    const finishButton = screen.queryByTestId('onboarding-finish');
+    if (finishButton) await user.click(finishButton);
+
+    expect(authApi.completeOnboarding).not.toHaveBeenCalled();
+    expect(createOrganization).not.toHaveBeenCalled();
+    expect(inviteMember).not.toHaveBeenCalled();
+    expect(switchToOrganization).not.toHaveBeenCalled();
+    expect(switchToPersonal).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('retries me/context in place instead of stranding the user', async () => {
+    const user = userEvent.setup();
+    seedDoneStep();
+    failMeContext();
+    renderWithProviders(<OnboardingPage />);
+
+    await user.click(await screen.findByTestId('retry-button'));
+    expect(refetchMeContext).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a skeleton, not a step list, while me/context is still loading', async () => {
+    seedDoneStep();
+    liveContextRef.value = null;
+    liveContextRef.isPending = true;
+    liveContextRef.isError = false;
+    renderWithProviders(<OnboardingPage />);
+
+    expect(await screen.findByTestId('onboarding-context-gate')).toBeInTheDocument();
+    expect(screen.getByTestId('query-skeleton')).toBeInTheDocument();
+    expect(screen.queryByTestId('onboarding-finish')).not.toBeInTheDocument();
+  });
+
+  it('does not fall back to a shorter flow when me/context fails', async () => {
+    // Hybrid deployment, user already in a team: with the context LOADED step 3
+    // is the invite step. Derived from a null context the invite step vanishes,
+    // so index 3 clamps to 'done' — the old build showed a finished-looking
+    // wizard that never asked for invites and let the user commit it.
+    useHybridSession([teamOrg('acme')]);
+    const store = useOnboardingStore.getState();
+    store.reset();
+    store.claimForUser(SESSION_USER_ID);
+    store.setStepIndex(3);
+    failMeContext();
+    renderWithProviders(<OnboardingPage />);
+
+    expect(await screen.findByTestId('onboarding-context-gate')).toBeInTheDocument();
+    expect(screen.queryByTestId('onboarding-invite-email')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('onboarding-finish')).not.toBeInTheDocument();
   });
 });

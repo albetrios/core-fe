@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -30,6 +30,21 @@ export function MfaForm() {
   const { t } = useTranslation(AUTH_NS);
   const [apiError, setApiError] = useState<string | null>(null);
   const [otpShake, setOtpShake] = useState(false);
+  /**
+   * Synchronous single-flight latch (house rule 1). `isSubmitting` only flips on
+   * the next render, so a double-click — or a second `onComplete` from the code
+   * boxes — slips through in the frame before it lands. The MFA session token is
+   * SINGLE USE: the second request spends a token core-be has already burned, so
+   * a duplicate does not just waste a round trip, it fails the login outright.
+   */
+  const verifyingRef = useRef(false);
+  /**
+   * Stays true from a successful verify until this component unmounts. Awaiting
+   * `navigate()` is not enough on its own — React can paint between the verify
+   * resolving and the route swapping, which is what flipped "Verifying..." back
+   * to an armed "Verify" and invited the duplicate submit.
+   */
+  const [handedOff, setHandedOff] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as LocationState | undefined;
@@ -49,19 +64,32 @@ export function MfaForm() {
     defaultValues: { code: '', useRecoveryCode: false },
   });
   const useRecovery = watch('useRecoveryCode') ?? false;
+  /** Verify in flight, or verified and on its way out. Nothing here stays live. */
+  const pending = isSubmitting || handedOff;
 
   const onSubmit = async (data: MfaVerifyInput) => {
+    // The latch, not `disabled`, is what guarantees one gesture spends one token.
+    if (verifyingRef.current) return;
+    verifyingRef.current = true;
+
     setApiError(null);
     if (!mfaToken) {
+      verifyingRef.current = false;
       setApiError(t(AUTH_KEYS.mfa.errors.sessionExpired));
       return;
     }
     try {
       const { accessToken } = await authApi.mfaVerify(data, mfaToken);
+      // Verified. The token is spent and the route is about to change: hold the
+      // pending state (latch NOT released) so the form cannot be re-armed.
+      setHandedOff(true);
       clearMfaHandoff();
       await establishSession(accessToken);
-      void navigate({ to: safeRedirect(redirectTarget) ?? '/', replace: true });
+      await navigate({ to: safeRedirect(redirectTarget) ?? '/', replace: true });
     } catch (err) {
+      // Only a failure re-arms the form — the user needs a fresh code either way.
+      verifyingRef.current = false;
+      setHandedOff(false);
       if (!useRecovery) {
         setValue('code', '');
         setOtpShake(true);
@@ -117,6 +145,7 @@ export function MfaForm() {
                   autoComplete="one-time-code"
                   placeholder={t(AUTH_KEYS.mfa.recoveryPlaceholder)}
                   maxLength={AUTH_MFA_RECOVERY_MAX_LENGTH}
+                  disabled={pending}
                   aria-invalid={!!errors.code}
                   aria-describedby={errors.code ? 'mfa-code-error' : undefined}
                   data-testid={MFA_TEST_IDS.code}
@@ -135,10 +164,14 @@ export function MfaForm() {
                       value={field.value}
                       onChange={field.onChange}
                       onComplete={() => {
+                        // Belt to `disabled`'s braces: a paste that lands in the
+                        // same frame as the first submit never reaches the API.
+                        if (verifyingRef.current) return;
                         handleSubmit(onSubmit)().catch(() => {
                           /* onSubmit maps its own errors to form state */
                         });
                       }}
+                      disabled={pending}
                       invalid={!!errors.code || !!apiError}
                       shake={otpShake}
                       testId={MFA_TEST_IDS.code}
@@ -159,10 +192,10 @@ export function MfaForm() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting}
+              disabled={pending}
               data-testid={MFA_TEST_IDS.submit}
             >
-              {isSubmitting ? t(AUTH_KEYS.mfa.verifying) : t(AUTH_KEYS.mfa.submit)}
+              {pending ? t(AUTH_KEYS.mfa.verifying) : t(AUTH_KEYS.mfa.submit)}
             </Button>
           </div>
 
@@ -172,6 +205,7 @@ export function MfaForm() {
               variant="link"
               size="sm"
               className="h-auto p-0 text-xs"
+              disabled={pending}
               onClick={() => {
                 setValue('useRecoveryCode', !useRecovery);
                 setValue('code', '', { shouldValidate: false });

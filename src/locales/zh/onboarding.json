@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "工作空间已就绪 — {{count}} 个邀请未能发送，可在成员页重发。",
     "invitePartialFailure_other": "工作空间已就绪 — {{count}} 个邀请未能发送，可在成员页重发。"
   },
+  "session": {
+    "loadError": "无法加载你的账户设置。请检查网络连接后重试。"
+  },
   "guard": {
     "title": "退出入门引导？",
     "description": "您的进度已保存在本地，但现在退出可能会中断设置。",

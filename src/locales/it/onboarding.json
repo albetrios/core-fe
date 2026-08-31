@@ -111,6 +111,9 @@
     "invitePartialFailure_one": "Spazio pronto — {{count}} invito non è stato inviato. Puoi reinviarlo da Membri.",
     "invitePartialFailure_other": "Spazio pronto — {{count}} inviti non sono stati inviati. Puoi reinviarli da Membri."
   },
+  "session": {
+    "loadError": "Non siamo riusciti a caricare la configurazione del tuo account. Controlla la connessione e riprova."
+  },
   "guard": {
     "title": "Uscire dall'onboarding?",
     "description": "I progressi sono salvati localmente, ma uscire ora potrebbe interrompere la configurazione.",

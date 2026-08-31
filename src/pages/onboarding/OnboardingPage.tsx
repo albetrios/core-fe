@@ -1,5 +1,6 @@
+import type { UseQueryResult } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import i18n from '@/lib/i18n/i18n.ts';
@@ -9,6 +10,7 @@ import { authApi } from '@/shared/api/auth-api.ts';
 import { createRole, inviteMember, listRoles } from '@/shared/api/organization-api.ts';
 import { isSafeRedirectPath } from '@/shared/auth/redirect-safety.ts';
 import { getAccessToken } from '@/shared/auth/token.ts';
+import { QueryBoundary } from '@/shared/components/QueryBoundary/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   Card,
@@ -17,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card.tsx';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard/index.ts';
@@ -54,6 +57,9 @@ import {
   shouldCreateOrganizationOnFinish,
   stepAtIndex,
 } from './onboarding-flow.ts';
+
+/** Step list used while me/context has not loaded — nothing is rendered from it. */
+const EMPTY_STEPS: readonly OnboardingStep[] = [];
 
 function getStepMetaKeys(step: OnboardingStep): {
   title: string;
@@ -223,6 +229,31 @@ async function activateWorkspaceAfterOnboardingFinish(input: {
 }
 
 /**
+ * The organization onboarding invites must be created in: the workspace that was
+ * just ACTIVATED, not the one the wizard created.
+ *
+ * Invites are scoped by the active-org token, but the send used to be gated on
+ * the *created* org id. In `personal-and-team` mode with an existing team the
+ * wizard creates nothing (`shouldCreateOrganizationOnFinish` -> false) while
+ * `deriveOnboardingSteps` still shows the invite step, so that id was null:
+ * every invite was dropped and the success toast still told the user their
+ * workspace was ready. Reading the activated org makes the two agree.
+ *
+ * Only a TEAM org can hold invited members, so an activation that landed on a
+ * personal workspace (several teams -> no unambiguous destination) is NOT an
+ * invite target; the caller reports that through the partial-failure warning
+ * rather than a success toast that lies.
+ */
+function resolveInviteTargetOrganizationId(input: {
+  activeOrganization: MeContext['activeOrganization'] | undefined;
+  createdOrganizationId: string | null;
+}): string | null {
+  const active = input.activeOrganization;
+  if (active?.type === 'TEAM') return active.id;
+  return input.createdOrganizationId;
+}
+
+/**
  * An assignable (non-Owner) role id for onboarding invites. A freshly created
  * org seeds only the system **Owner** role (core-be), so there is nothing to
  * invite anyone *as*: reuse an existing non-system role if the org already has
@@ -298,6 +329,83 @@ function navigateAfterOnboarding(
   void navigate({ to: '/', replace: true });
 }
 
+/**
+ * Stand-in for the wizard while `me/context` is loading or failed.
+ *
+ * A step indicator and a Continue button built from a context we do not have
+ * would walk the user through the WRONG flow and let them finish it — so the
+ * query state is rendered INSTEAD of the wizard, not alongside it.
+ * `QueryBoundary` shows a skeleton while pending and a retry that re-runs the
+ * query in place on failure, so a transient blip costs one click.
+ */
+/**
+ * Back + Continue/Finish row. `Finish` is the wizard's checkout — it creates the
+ * organization, stamps the profile and sends the invites — so `submitting` keeps
+ * it visibly disabled while `finish()` holds the synchronous single-flight guard
+ * that actually stops a duplicate write.
+ */
+function WizardActions(props: {
+  isFirstStep: boolean;
+  isDoneStep: boolean;
+  submitting: boolean;
+  canProceed: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onFinish: () => void;
+}) {
+  const { t } = useTranslation(ONBOARDING_NS);
+  return (
+    <div className="flex items-center justify-between">
+      <Button
+        variant="ghost"
+        onClick={props.onBack}
+        disabled={props.isFirstStep || props.submitting}
+        data-testid={ONBOARDING_TEST_IDS.back}
+      >
+        {t(ONBOARDING_KEYS.actions.back)}
+      </Button>
+
+      {props.isDoneStep ? (
+        <Button
+          onClick={props.onFinish}
+          disabled={props.submitting}
+          data-testid={ONBOARDING_TEST_IDS.finish}
+        >
+          {props.submitting ? (
+            <>
+              <Loader2 className="me-2 h-4 w-4 animate-spin" />
+              {t(ONBOARDING_KEYS.actions.settingUp)}
+            </>
+          ) : (
+            t(ONBOARDING_KEYS.actions.enterDashboard)
+          )}
+        </Button>
+      ) : (
+        <Button
+          onClick={props.onNext}
+          disabled={!props.canProceed}
+          data-testid={ONBOARDING_TEST_IDS.next}
+        >
+          {t(ONBOARDING_KEYS.actions.continue)}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function SessionContextGate({ query }: { query: UseQueryResult<MeContext> }) {
+  const { t } = useTranslation(ONBOARDING_NS);
+  return (
+    <Card className="w-full">
+      <CardContent className="py-2" data-testid={ONBOARDING_TEST_IDS.contextGate}>
+        <QueryBoundary query={query} errorMessage={t(ONBOARDING_KEYS.session.loadError)}>
+          {() => null}
+        </QueryBoundary>
+      </CardContent>
+    </Card>
+  );
+}
+
 function renderStep(step: ReturnType<typeof stepAtIndex>, teamSetupIncluded: boolean) {
   switch (step) {
     case 'profile':
@@ -343,10 +451,32 @@ export function OnboardingPage() {
     setStepIndex,
     claimForUser,
   } = useOnboardingStore();
-  const { data: meContext } = useMeContext();
+  const meContextQuery = useMeContext();
+  const meContext = meContextQuery.data;
+  /**
+   * Nothing in this wizard is safe to render or submit without a LOADED
+   * me/context. The step list, the create-an-org decision and the destination
+   * are all derived from it, and `useDeploymentFlags` falls back to the
+   * permissive `DEFAULT_DEPLOYMENT_FLAGS` when it is missing — so a failed
+   * me/context silently produced a `personal-and-team` flow: no workspace step,
+   * no organization created, onboarding still stamped complete, and the user
+   * dropped on a personal dashboard the deployment may not even have.
+   *
+   * `isError` counts even when a stale `data` is still cached (a background
+   * refetch that failed): the wizard would otherwise submit against a context
+   * we already know is out of date. Wizard progress lives in localStorage, so
+   * gating here costs the user nothing but a retry.
+   */
+  const contextReady =
+    !(meContextQuery.isPending || meContextQuery.isError) && Boolean(meContext);
   const deploymentFlags = useDeploymentFlags();
-  const effectiveSteps = deriveOnboardingSteps(deploymentFlags, meContext ?? null);
+  // Derived ONLY from a loaded context — never from the permissive fallback.
+  const effectiveSteps = contextReady
+    ? deriveOnboardingSteps(deploymentFlags, meContext)
+    : EMPTY_STEPS;
   const [submitting, setSubmitting] = useState(false);
+  // Synchronous twin of `submitting` — see finish().
+  const finishingRef = useRef(false);
   const step = stepAtIndex(stepIndex, effectiveSteps);
   const metaKeys = getStepMetaKeys(step);
   const { cardRef, headerRef, stepBodyRef } = useOnboardingStepMotion(stepIndex);
@@ -394,6 +524,18 @@ export function OnboardingPage() {
     (step !== 'profile' || data.firstName.trim().length > 0);
 
   const finish = async () => {
+    // `submitting` only disables the button after React re-renders, so the
+    // control stays live for the frame after the first click: a double-click or
+    // a bouncing touch target fires this handler twice and the second run
+    // creates a second organization and re-sends every invite. This ref flips
+    // synchronously, so the duplicate gesture is dropped before any request
+    // goes out; `disabled={submitting}` remains the visible affordance.
+    if (finishingRef.current) return;
+    // The button is disabled without a context, but the guard belongs here too:
+    // finish stamps onboarding complete on the backend, which is not reversible
+    // from the UI. Never run it against a step list we could not derive.
+    if (!contextReady) return;
+    finishingRef.current = true;
     setSubmitting(true);
     try {
       const needsCreate = shouldCreateOrganizationOnFinish(
@@ -441,10 +583,20 @@ export function OnboardingPage() {
 
       // Invites go out AFTER activation: they are scoped by the active-org token
       // (switched above), and a just-created org needs an assignable role first.
-      const failed =
-        effectiveSteps.includes('invite') && organizationId
-          ? await sendOnboardingInvites(data.invites)
-          : 0;
+      // The target is therefore the org that was ACTIVATED, not the one the
+      // wizard created — see resolveInviteTargetOrganizationId.
+      const inviteEmails = effectiveSteps.includes('invite') ? data.invites : [];
+      const inviteOrganizationId = resolveInviteTargetOrganizationId({
+        activeOrganization: activatedContext?.activeOrganization,
+        createdOrganizationId: organizationId,
+      });
+      // No team workspace to invite into: nothing can be sent, so count every
+      // address as failed and let the partial-failure warning below say so. A
+      // success toast here would tell the user their teammates were invited
+      // when not one request was made.
+      const failed = inviteOrganizationId
+        ? await sendOnboardingInvites(inviteEmails)
+        : inviteEmails.length;
 
       complete();
       if (failed > 0) {
@@ -467,6 +619,7 @@ export function OnboardingPage() {
     } catch {
       notify.error(i18n.t(ONBOARDING_KEYS.toast.finishError, { ns: ONBOARDING_NS }));
     } finally {
+      finishingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -479,64 +632,57 @@ export function OnboardingPage() {
         data-testid={ONBOARDING_TEST_IDS.page}
       >
         <div ref={cardRef} className="w-full max-w-lg transform-gpu">
-          <Card className="w-full">
-            <CardHeader className="space-y-4">
-              <StepIndicator current={stepIndex} steps={effectiveSteps} />
-              <div ref={headerRef} className="transform-gpu">
-                <CardTitle data-testid={ONBOARDING_TEST_IDS.stepTitle}>
-                  {t(metaKeys.title)}
-                </CardTitle>
-                <CardDescription>{t(metaKeys.description)}</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6 overflow-hidden">
-              <div
-                ref={stepBodyRef}
-                className="transform-gpu"
-                data-testid={ONBOARDING_TEST_IDS.stepMotion}
-              >
-                {renderStep(step, effectiveSteps.includes('workspace'))}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  onClick={() => setStepIndex(Math.max(stepIndex - 1, 0))}
-                  disabled={stepIndex === 0 || submitting}
-                  data-testid={ONBOARDING_TEST_IDS.back}
+          {contextReady ? (
+            <Card className="w-full">
+              <CardHeader className="space-y-4">
+                <StepIndicator current={stepIndex} steps={effectiveSteps} />
+                <div ref={headerRef} className="transform-gpu">
+                  <CardTitle data-testid={ONBOARDING_TEST_IDS.stepTitle}>
+                    {t(metaKeys.title)}
+                  </CardTitle>
+                  <CardDescription>{t(metaKeys.description)}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6 overflow-hidden">
+                <div
+                  ref={stepBodyRef}
+                  className="transform-gpu"
+                  data-testid={ONBOARDING_TEST_IDS.stepMotion}
                 >
-                  {t(ONBOARDING_KEYS.actions.back)}
-                </Button>
+                  {/*
+                  A throw inside one step body must not take the wizard with it:
+                  uncontained it escalates to the route boundary, which replaces
+                  the whole screen with a generic error page and strands a
+                  brand-new user mid-signup. Contained here, the card, the step
+                  indicator and Back/Continue survive and the fallback offers a
+                  retry in place. Keyed by step so moving on mounts a fresh
+                  boundary instead of carrying the error to the next one.
+                */}
+                  <SectionErrorBoundary
+                    key={step}
+                    title={t(metaKeys.title)}
+                    testId={ONBOARDING_TEST_IDS.stepError}
+                  >
+                    {renderStep(step, effectiveSteps.includes('workspace'))}
+                  </SectionErrorBoundary>
+                </div>
 
-                {step === 'done' ? (
-                  <Button
-                    onClick={finish}
-                    disabled={submitting}
-                    data-testid={ONBOARDING_TEST_IDS.finish}
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                        {t(ONBOARDING_KEYS.actions.settingUp)}
-                      </>
-                    ) : (
-                      t(ONBOARDING_KEYS.actions.enterDashboard)
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() =>
-                      setStepIndex(Math.min(stepIndex + 1, effectiveSteps.length - 1))
-                    }
-                    disabled={!canProceed}
-                    data-testid={ONBOARDING_TEST_IDS.next}
-                  >
-                    {t(ONBOARDING_KEYS.actions.continue)}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                <WizardActions
+                  isFirstStep={stepIndex === 0}
+                  isDoneStep={step === 'done'}
+                  submitting={submitting}
+                  canProceed={canProceed}
+                  onBack={() => setStepIndex(Math.max(stepIndex - 1, 0))}
+                  onNext={() =>
+                    setStepIndex(Math.min(stepIndex + 1, effectiveSteps.length - 1))
+                  }
+                  onFinish={finish}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <SessionContextGate query={meContextQuery} />
+          )}
         </div>
       </div>
     </>

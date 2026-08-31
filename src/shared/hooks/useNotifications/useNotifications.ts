@@ -92,6 +92,13 @@ export function useNotificationPreferences() {
   });
 }
 
+/**
+ * One stable toast id for the preferences save. The grid saves on EVERY flick,
+ * so without it turning on four switches stacks four identical "saved" toasts
+ * and buries the screen. Reusing the id makes sonner replace the previous one.
+ */
+export const NOTIFICATION_PREFERENCES_TOAST_ID = 'notification-preferences-saved';
+
 /** Full-replace the preference set, seeding the cache with the saved result. */
 export function useUpdateNotificationPreferences() {
   const queryClient = useQueryClient();
@@ -104,6 +111,7 @@ export function useUpdateNotificationPreferences() {
         ns: ERRORS_NS,
       },
     ),
+    toastId: NOTIFICATION_PREFERENCES_TOAST_ID,
     onSuccess: async (saved) => {
       queryClient.setQueryData(notificationQueryKeys.preferences(), saved);
     },
