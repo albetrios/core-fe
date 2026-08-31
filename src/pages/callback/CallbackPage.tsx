@@ -10,6 +10,8 @@ import { stashMfaHandoff } from '@/shared/auth/mfa-handoff.ts';
 import { popReturnTo } from '@/shared/auth/redirect-safety.ts';
 import { establishSession, silentRefresh } from '@/shared/auth/service.ts';
 import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
+import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
+import { notify } from '@/shared/notify/index.ts';
 
 import { CALLBACK_TEST_IDS } from './callback.constants.ts';
 
@@ -67,9 +69,23 @@ export function CallbackPage() {
         const returnTo = popReturnTo();
         void navigate({ to: returnTo ?? '/', replace: true });
       };
-      const failToLogin = () => {
+      /**
+       * The ONLY exit for a failed sign-in, so it is the one place that has to
+       * say so. This used to be a bare redirect out of an empty catch: the user
+       * watched a spinner, landed back on a plain login form with no toast, no
+       * banner and no hint that Google/GitHub had failed — and retried the same
+       * broken flow. Nothing was recorded either, so the funnel showed only the
+       * two success events and the drop-off was invisible (CB-1).
+       */
+      const failToLogin = (error: unknown) => {
         skipAutoGoogleSignIn();
-        void navigate({ to: '/login', replace: true });
+        captureAnalyticsEvent(ANALYTICS_EVENTS.authOauthFailed, {
+          provider: provider ?? 'unknown',
+        });
+        notify.error(mapFrontendError(error));
+        // A code, not a message: this text would otherwise come from a provider
+        // redirect. /login maps it to its own translated banner copy.
+        void navigate({ to: '/login', search: { error: 'oauth_failed' }, replace: true });
       };
 
       if (code && state && provider) {
@@ -82,7 +98,7 @@ export function CallbackPage() {
             void navigate({ to: '/mfa', replace: true });
             return;
           }
-          failToLogin();
+          failToLogin(error);
           return;
         }
         finishSignIn();
@@ -91,8 +107,8 @@ export function CallbackPage() {
 
       try {
         await silentRefresh();
-      } catch {
-        failToLogin();
+      } catch (error) {
+        failToLogin(error);
         return;
       }
       finishSignIn();

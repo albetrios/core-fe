@@ -4,17 +4,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 const {
+  notifyErrorMock,
+  captureAnalyticsMock,
   establishSessionMock,
   silentRefreshMock,
   stashMfaHandoffMock,
   skipAutoGoogleSignInMock,
   routeParamsHolder,
+  navigateMock,
 } = vi.hoisted(() => ({
+  notifyErrorMock: vi.fn(),
+  captureAnalyticsMock: vi.fn(),
   establishSessionMock: vi.fn().mockResolvedValue(undefined),
   silentRefreshMock: vi.fn().mockResolvedValue(undefined),
   stashMfaHandoffMock: vi.fn(),
   skipAutoGoogleSignInMock: vi.fn(),
   routeParamsHolder: { value: {} as Record<string, string> },
+  navigateMock: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -24,8 +30,26 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     // The test router mounts the page at '/', so the $provider param is
     // injected here instead of via a real /callback/$provider match.
     useParams: () => routeParamsHolder.value,
+    // The page is mounted at '/', so a real navigate would not move
+    // window.location — capture the intent instead.
+    useNavigate: () => navigateMock,
   };
 });
+
+vi.mock('@/shared/notify/index.ts', () => ({
+  notify: {
+    error: notifyErrorMock,
+    success: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+    promise: vi.fn(),
+    dismiss: vi.fn(),
+  },
+}));
+
+vi.mock('@/shared/analytics/capture.ts', () => ({
+  captureAnalyticsEvent: captureAnalyticsMock,
+}));
 
 vi.mock('@/shared/auth/service.ts', () => ({
   establishSession: establishSessionMock,
@@ -167,5 +191,66 @@ describe('CallbackPage', () => {
     renderWithProviders(<CallbackPage />);
     expect(await screen.findByTestId('callback-page')).toBeInTheDocument();
     await waitFor(() => expect(silentRefreshMock).toHaveBeenCalledTimes(1));
+  });
+});
+
+// ── CB-1 ────────────────────────────────────────────────────────────────────
+// The failure path was a bare redirect out of an empty catch: the user watched a
+// spinner, landed back on a plain login form with no toast, no banner and no clue
+// that Google/GitHub had failed, and retried the same broken flow. Nothing was
+// recorded either — the funnel only ever saw the two success events.
+describe('CallbackPage failure reporting (CB-1)', () => {
+  it('surfaces the failure and records it when the code exchange fails', async () => {
+    routeParamsHolder.value = { provider: 'google' };
+    window.history.pushState({}, '', `/callback/google?code=abc&state=${TEST_STATE}`);
+    vi.spyOn(authApi, 'oauthCallback').mockRejectedValue(
+      new Error('Token exchange failed'),
+    );
+
+    renderWithProviders(<CallbackPage />);
+
+    await waitFor(() => expect(notifyErrorMock).toHaveBeenCalledTimes(1));
+    expect(String(notifyErrorMock.mock.calls[0]?.[0])).toMatch(/token exchange failed/i);
+    expect(captureAnalyticsMock).toHaveBeenCalledWith('auth_oauth_failed', {
+      provider: 'google',
+    });
+    // ...and the login screen is told why, so it can say so in its own banner.
+    await waitFor(() =>
+      expect(navigateMock).toHaveBeenCalledWith({
+        to: '/login',
+        search: { error: 'oauth_failed' },
+        replace: true,
+      }),
+    );
+  });
+
+  it('reports a failed silent refresh the same way', async () => {
+    routeParamsHolder.value = { provider: 'google' };
+    window.history.pushState({}, '', '/callback/google');
+    silentRefreshMock.mockRejectedValueOnce(new Error('No session'));
+
+    renderWithProviders(<CallbackPage />);
+
+    await waitFor(() => expect(notifyErrorMock).toHaveBeenCalledTimes(1));
+    expect(captureAnalyticsMock).toHaveBeenCalledWith('auth_oauth_failed', {
+      provider: 'google',
+    });
+  });
+
+  it('stays silent on the success path', async () => {
+    routeParamsHolder.value = { provider: 'google' };
+    window.history.pushState({}, '', `/callback/google?code=abc&state=${TEST_STATE}`);
+    vi.spyOn(authApi, 'oauthCallback').mockResolvedValue({
+      accessToken: 'oauth-access-token',
+    } as never);
+
+    renderWithProviders(<CallbackPage />);
+
+    await waitFor(() => expect(establishSessionMock).toHaveBeenCalled());
+    expect(notifyErrorMock).not.toHaveBeenCalled();
+    expect(captureAnalyticsMock).not.toHaveBeenCalledWith(
+      'auth_oauth_failed',
+      expect.anything(),
+    );
   });
 });

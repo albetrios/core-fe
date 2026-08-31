@@ -11,11 +11,10 @@ import {
   shouldAttemptAutoGoogleSignIn,
   skipAutoGoogleSignIn,
 } from '@/shared/auth/auto-google-sign-in.ts';
-import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
+import { useCaptchaGate } from '@/shared/auth/captcha/useCaptchaGate/index.ts';
+import type { LoginErrorCode } from '@/shared/auth/login-search.ts';
 import { signInWithPasskey } from '@/shared/auth/passkey-sign-in.ts';
 import { isSafeExternalHttpsUrl, stashReturnTo } from '@/shared/auth/redirect-safety.ts';
-import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
-import { Button } from '@/shared/components/ui/button.tsx';
 import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
 import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useAuthMethods } from '@/shared/hooks/useAuthMethods/index.ts';
@@ -25,9 +24,11 @@ import { notify } from '@/shared/notify/index.ts';
 import { AUTH_FORM_TEST_IDS, sortOAuthProviders } from './auth-form.constants.ts';
 import type { AuthContinuePending } from './auth-form-pending.ts';
 import { AuthEmailPanel } from './AuthEmailPanel.tsx';
+import { AuthAutoGooglePending } from './components/AuthAutoGooglePending/index.ts';
 import { AuthMethodButton } from './components/AuthMethodButton/index.ts';
 import { AuthMethodDivider } from './components/AuthMethodDivider/index.ts';
 import { AuthWelcomeHeader } from './components/AuthWelcomeHeader/index.ts';
+import { CaptchaGateNotice } from './components/CaptchaGateNotice/index.ts';
 
 /** Brief pause so users can cancel auto Google and use email instead. */
 const AUTO_GOOGLE_DELAY_MS = 800;
@@ -87,17 +88,39 @@ export function AuthForm() {
   const authMethods = useAuthMethods();
   const navigate = useNavigate();
   const location = useLocation();
-  const turnstileReady = useTurnstileReady();
+  const captchaGate = useCaptchaGate();
+  const turnstileReady = captchaGate.ready;
   const visibleProviders = sortOAuthProviders(enabledOAuthProviders(authMethods.oauth));
   const [emailFlowStep, setEmailFlowStep] = useState<'email' | 'verify'>('email');
   const [verifyEmail, setVerifyEmail] = useState('');
   const [pending, setPending] = useState<AuthContinuePending | null>(null);
-  const [autoGooglePending, setAutoGooglePending] = useState(false);
+  // Lazy initialiser, deliberately NOT `false`. Whether this screen is going to
+  // auto-start Google is knowable at first render, so it must be decided here.
+  // Seeding it `false` and raising it in the effect below made the method picker
+  // the first thing committed, so the whole form rendered and was then replaced
+  // by the spinner — a visible swap for as long as the captcha gate holds the
+  // effect back (LOGIN-1). `turnstileReady` is intentionally NOT part of this:
+  // it gates *starting* OAuth, not whether we intend to.
+  const [autoGooglePending, setAutoGooglePending] = useState(
+    () =>
+      authMethods.oauthAutoGoogle &&
+      authMethods.oauth.google &&
+      shouldAttemptAutoGoogleSignIn(),
+  );
   // Inline error surface for the OAuth / passkey methods — the reliable one.
   // A toast fired from these async catches can be dropped by sonner (created
   // into history but never made active), leaving a failed sign-in with NO
   // feedback; the banner does not depend on that timing.
-  const [formError, setFormError] = useState<string | null>(null);
+  // Seeded from the URL, so a redirect back here can explain itself. /callback
+  // sends `?error=oauth_failed` when the OAuth exchange fails; without it the
+  // user landed on a plain form with no idea Google/GitHub had failed and simply
+  // retried the same broken flow (CB-1). A lazy initialiser, for the same reason
+  // as autoGooglePending: it belongs to the first paint, not to an effect.
+  const [formError, setFormError] = useState<string | null>(() =>
+    (location.search as { error?: LoginErrorCode }).error === 'oauth_failed'
+      ? t(AUTH_KEYS.auth.errors.oauthFailed)
+      : null,
+  );
   const autoGoogleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoGoogleStartedRef = useRef(false);
 
@@ -108,9 +131,19 @@ export function AuthForm() {
     notify.error(message);
   };
 
-  const startOAuth = async (provider: string) => {
+  const startOAuth = async (provider: string, options?: { auto?: boolean }) => {
     if (pending) return;
-    cancelAutoGoogle();
+    if (options?.auto) {
+      // The auto-Google screen stays up until the redirect lands. Routing this
+      // through cancelAutoGoogle() dropped `autoGooglePending` back to false and
+      // put the (now fully disabled) method picker on screen for the length of
+      // the oauthStart round trip — the third flash in LOGIN-1. Still mark the
+      // attempt as spent so returning to /login does not auto-start again.
+      clearAutoGoogleTimer();
+      skipAutoGoogleSignIn();
+    } else {
+      cancelAutoGoogle();
+    }
     setPending({ method: 'oauth', provider });
     stashReturnTo((location.search as { redirect?: unknown }).redirect);
     try {
@@ -129,11 +162,15 @@ export function AuthForm() {
     }
   };
 
-  const cancelAutoGoogle = () => {
+  const clearAutoGoogleTimer = () => {
     if (autoGoogleTimerRef.current) {
       clearTimeout(autoGoogleTimerRef.current);
       autoGoogleTimerRef.current = null;
     }
+  };
+
+  const cancelAutoGoogle = () => {
+    clearAutoGoogleTimer();
     skipAutoGoogleSignIn();
     setAutoGooglePending(false);
     setFormError(null);
@@ -151,18 +188,28 @@ export function AuthForm() {
     if (!canAutoStartGoogle) return;
 
     autoGoogleStartedRef.current = true;
-    setAutoGooglePending(true);
+    // No setAutoGooglePending(true) here: the initialiser above already decided
+    // it from the same inputs, and the only path that lowers it (cancelAutoGoogle)
+    // also sets the skip flag, which fails `shouldAttemptAutoGoogleSignIn()` above.
 
     autoGoogleTimerRef.current = setTimeout(() => {
       autoGoogleTimerRef.current = null;
-      void startOAuth('google');
+      void startOAuth('google', { auto: true });
     }, AUTO_GOOGLE_DELAY_MS);
 
+    // The guard and the timer are owned together, so they are released together.
+    // If this run is torn down before the timer fires — a `pending` or
+    // `turnstileReady` change, or StrictMode's double-invoke on mount — the timer
+    // dies with it, so the guard has to come off too. Holding it left every later
+    // run bailing at `!autoGoogleStartedRef.current` while `autoGooglePending`
+    // stayed true: the spinner sat there forever and OAuth never started
+    // (LOGIN-3). Once the timer HAS fired it nulls itself first, so the guard
+    // stays held from then on and the sign-in can never start twice.
     return () => {
-      if (autoGoogleTimerRef.current) {
-        clearTimeout(autoGoogleTimerRef.current);
-        autoGoogleTimerRef.current = null;
-      }
+      if (!autoGoogleTimerRef.current) return;
+      clearTimeout(autoGoogleTimerRef.current);
+      autoGoogleTimerRef.current = null;
+      autoGoogleStartedRef.current = false;
     };
   }, [authMethods.oauthAutoGoogle, authMethods.oauth.google, pending, turnstileReady]);
 
@@ -215,25 +262,7 @@ export function AuthForm() {
         data-testid={AUTH_FORM_TEST_IDS.form}
         data-auto-google-pending=""
       >
-        <div
-          className="flex flex-col items-center gap-4 py-8"
-          data-testid={AUTH_FORM_TEST_IDS.autoGooglePending}
-        >
-          <FullPageSpinner />
-          <p className="text-muted-foreground text-center text-sm">
-            {t(AUTH_KEYS.auth.autoGoogleSigningIn)}
-          </p>
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="h-auto p-0 text-xs"
-            onClick={cancelAutoGoogle}
-            data-testid={AUTH_FORM_TEST_IDS.skipAutoGoogle}
-          >
-            {t(AUTH_KEYS.auth.useEmailInstead)}
-          </Button>
-        </div>
+        <AuthAutoGooglePending onSkip={cancelAutoGoogle} />
       </div>
     );
   }
@@ -255,6 +284,9 @@ export function AuthForm() {
           data-testid={AUTH_FORM_TEST_IDS.methodErrorBanner}
         />
       ) : null}
+
+      {/* One notice for the whole picker — the verify step renders its own. */}
+      {showMethodPicker ? <CaptchaGateNotice gate={captchaGate} /> : null}
 
       {showMethodPicker && hasSocialMethods ? (
         <div

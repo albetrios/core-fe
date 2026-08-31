@@ -6,8 +6,9 @@ import {
   Outlet,
   RouterProvider,
 } from '@tanstack/react-router';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
@@ -24,13 +25,22 @@ vi.mock('@/core/config/auth-methods.ts', () => ({
   enabledOAuthProviders: vi.fn(() => ['google', 'github']),
 }));
 
-vi.mock('@/shared/hooks/useAuthMethods/index.ts', () => ({
-  useAuthMethods: vi.fn(() => ({
+const authMethodsRef = vi.hoisted(() => ({
+  defaults: {
     email: true,
     oauth: { google: true, github: true, apple: false },
     passkey: true,
     oauthAutoGoogle: false,
-  })),
+  },
+  value: {
+    email: true,
+    oauth: { google: true, github: true, apple: false },
+    passkey: true,
+    oauthAutoGoogle: false,
+  },
+}));
+vi.mock('@/shared/hooks/useAuthMethods/index.ts', () => ({
+  useAuthMethods: vi.fn(() => authMethodsRef.value),
 }));
 
 vi.mock('@/shared/api/auth-api.ts', () => ({
@@ -73,6 +83,13 @@ describe('AuthForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     turnstileReadyRef.value = true;
+    authMethodsRef.value = {
+      ...authMethodsRef.defaults,
+      oauth: { ...authMethodsRef.defaults.oauth },
+    };
+    // shouldAttemptAutoGoogleSignIn() reads sessionStorage; a prior test that
+    // cancelled auto-Google would otherwise suppress it for the whole file.
+    sessionStorage.clear();
   });
 
   it('opens the email panel by default', async () => {
@@ -251,6 +268,148 @@ describe('AuthForm', () => {
     const banner = await screen.findByTestId('auth-method-error-banner');
     expect(banner).toHaveTextContent(/passkey failed/i);
     expect(banner).toHaveAttribute('role', 'alert');
+  });
+
+  // ── LOGIN-1 ────────────────────────────────────────────────────────────────
+  // The auto-Google screen used to be raised in an effect, so the method picker
+  // was committed first and then replaced. With a captcha gate holding the effect
+  // back, that swap was on screen for well over a second.
+  describe('auto Google sign-in (LOGIN-1)', () => {
+    const enableAutoGoogle = () => {
+      authMethodsRef.value = { ...authMethodsRef.value, oauthAutoGoogle: true };
+    };
+
+    it('commits the auto-Google screen first — the method picker never renders', async () => {
+      enableAutoGoogle();
+      renderForm();
+
+      // Present on the very first paint, with no waitFor: the decision is made in
+      // the useState initialiser, not in an effect.
+      expect(await screen.findByTestId('auth-auto-google-pending')).toBeInTheDocument();
+      expect(screen.queryByTestId('auth-social-methods')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('auth-continue-google')).not.toBeInTheDocument();
+    });
+
+    it('still shows the auto-Google screen while the captcha token is minting', async () => {
+      // The gate that made the flicker long enough to see: the effect cannot start
+      // OAuth yet, but the intent to auto-start is already known.
+      turnstileReadyRef.value = false;
+      enableAutoGoogle();
+      renderForm();
+
+      expect(await screen.findByTestId('auth-auto-google-pending')).toBeInTheDocument();
+      expect(screen.queryByTestId('auth-social-methods')).not.toBeInTheDocument();
+    });
+
+    it('leaves the "use email instead" escape hatch clickable', async () => {
+      const user = userEvent.setup();
+      enableAutoGoogle();
+      renderForm();
+
+      await screen.findByTestId('auth-auto-google-pending');
+      // FullPageSpinner is `fixed inset-0` with an opaque background; rendered as a
+      // sibling here it painted over the skip button and swallowed its clicks.
+      expect(screen.queryByTestId('full-page-spinner')).not.toBeInTheDocument();
+
+      await user.click(screen.getByTestId('auth-skip-auto-google'));
+
+      // Cancelling drops back to the picker, and it stays there.
+      expect(await screen.findByTestId('auth-social-methods')).toBeInTheDocument();
+      expect(screen.queryByTestId('auth-auto-google-pending')).not.toBeInTheDocument();
+    });
+
+    it('does not flash the method picker back while the OAuth start is in flight', async () => {
+      vi.useFakeTimers();
+      try {
+        const { authApi } = await import('@/shared/api/auth-api.ts');
+        vi.mocked(authApi.oauthStart).mockImplementation(
+          () => new Promise<string>(() => {}), // never settles: mid-redirect
+        );
+        enableAutoGoogle();
+        renderForm();
+
+        await vi.waitFor(() =>
+          expect(screen.getByTestId('auth-auto-google-pending')).toBeInTheDocument(),
+        );
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1_000); // past AUTO_GOOGLE_DELAY_MS
+        });
+
+        expect(authApi.oauthStart).toHaveBeenCalledWith('google');
+        // startOAuth used to call cancelAutoGoogle() here, putting the disabled
+        // picker back on screen until the redirect resolved.
+        expect(screen.getByTestId('auth-auto-google-pending')).toBeInTheDocument();
+        expect(screen.queryByTestId('auth-social-methods')).not.toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    // LOGIN-3: the arming effect held autoGoogleStartedRef for the whole component
+    // lifetime, but its cleanup only cleared the timer. Any teardown before the
+    // timer fired therefore lost the timer AND kept the guard, so every later run
+    // bailed and the sign-in never started — with autoGooglePending stuck true, the
+    // user sat on the spinner forever.
+    it('still starts sign-in when the effect is torn down before the timer fires', async () => {
+      vi.useFakeTimers();
+      try {
+        const { authApi } = await import('@/shared/api/auth-api.ts');
+        vi.mocked(authApi.oauthStart).mockImplementation(
+          () => new Promise<string>(() => {}), // never settles: mid-redirect
+        );
+        enableAutoGoogle();
+
+        // StrictMode runs mount -> cleanup -> mount, which is exactly the teardown
+        // that used to strand the flow. This is the app's real dev configuration.
+        const router = createTestRouter();
+        render(
+          <StrictMode>
+            <RouterProvider router={router} />
+          </StrictMode>,
+        );
+
+        await vi.waitFor(() =>
+          expect(screen.getByTestId('auth-auto-google-pending')).toBeInTheDocument(),
+        );
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1_000); // past AUTO_GOOGLE_DELAY_MS
+        });
+
+        // Started, and started exactly once — the guard still does its job.
+        expect(authApi.oauthStart).toHaveBeenCalledTimes(1);
+        // The other trigger for the same teardown — the captcha token expiring
+        // inside the 800ms window — is not reachable from here: TanStack Router
+        // does not propagate a parent rerender to the route component, so the
+        // effect never actually tears down and such a test would pass against the
+        // bug. That path is covered end to end in the browser instead.
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('falls back to the method picker with an error when the OAuth start fails', async () => {
+      vi.useFakeTimers();
+      try {
+        const { authApi } = await import('@/shared/api/auth-api.ts');
+        vi.mocked(authApi.oauthStart).mockRejectedValue(new Error('OAuth down'));
+        enableAutoGoogle();
+        renderForm();
+
+        await vi.waitFor(() =>
+          expect(screen.getByTestId('auth-auto-google-pending')).toBeInTheDocument(),
+        );
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(1_000);
+        });
+
+        expect(screen.getByTestId('auth-social-methods')).toBeInTheDocument();
+        expect(screen.getByTestId('auth-method-error-banner')).toHaveTextContent(
+          /oauth down/i,
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   it('has no accessibility violations', async () => {
