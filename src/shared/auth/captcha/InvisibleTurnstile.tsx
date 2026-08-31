@@ -147,28 +147,29 @@ export function InvisibleTurnstile(): ReactElement | null {
   // challenge is required.
   //
   // Placement: with an auth form mounted, the container portals into its registered slot and
-  // an interactive challenge renders inline where the user is already looking — solved, the
-  // slot collapses (height 0) so the form keeps no dead gap. Without a slot it falls back to
-  // a viewport-centered fixed overlay.
+  // an interactive challenge renders inline where the user is already looking — start-aligned
+  // by normal flow, matching the form's own grain (and mirroring correctly under RTL); solved,
+  // the slot collapses (height 0) so the form keeps no dead gap. Without a slot it falls back
+  // to the unobtrusive bottom-right fixed pin for the rare captcha-gated actions outside auth
+  // screens.
   //
-  // The overlay z-index is load-bearing, not cosmetic. When Turnstile escalates to an
+  // The fallback z-index is load-bearing, not cosmetic. When Turnstile escalates to an
   // INTERACTIVE challenge it renders that overlay inside this container. With no stacking
   // order the container sits at `z-index: auto`, i.e. beneath the auth card (z-50) and the
   // toast region (z-70): the challenge paints behind the login form, cannot be completed, so
   // no token is ever minted and every captcha-gated button spins indefinitely. 10000 clears
   // both the app's own scale (which tops out at z-[90]) and the Sentry feedback widget
-  // (z-9999).
-  let style: CSSProperties;
+  // (z-9999) that renders in this same bottom-right corner.
+  let style: CSSProperties | undefined;
   if (slot) {
     style = challengeSolved
       ? { visibility: 'hidden', height: 0, overflow: 'hidden' }
-      : { display: 'flex', justifyContent: 'center' };
+      : undefined;
   } else {
     style = {
       position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
+      right: 0,
+      bottom: 0,
       zIndex: 10_000,
       visibility: challengeSolved ? 'hidden' : undefined,
     };

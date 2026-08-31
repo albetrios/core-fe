@@ -76,15 +76,14 @@ describe('InvisibleTurnstile', () => {
     expect(Number(container.style.zIndex)).toBeGreaterThan(90);
   });
 
-  it('centers the challenge container on the viewport', () => {
+  it('pins the no-slot fallback to the bottom-right corner, out of the layout flow', () => {
     stubTurnstileApi();
     render(<InvisibleTurnstile />);
 
     expect(screen.getByTestId('auth-captcha-widget')).toHaveStyle({
       position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
+      right: '0px',
+      bottom: '0px',
     });
   });
 
@@ -159,8 +158,10 @@ describe('InvisibleTurnstile', () => {
     render(<InvisibleTurnstile />);
     const inline = screen.getByTestId('auth-captcha-widget');
     expect(slot.contains(inline)).toBe(true);
+    // Inline placement is plain flow: no fixed pinning, no alignment overrides — the
+    // challenge start-aligns with the form's own grain (and mirrors correctly under RTL).
     expect(inline.style.position).toBe('');
-    expect(inline).toHaveStyle({ display: 'flex' });
+    expect(inline.style.display).toBe('');
     await waitFor(() => expect(api.render).toHaveBeenCalledTimes(1));
 
     // Solved inline, the slot collapses so the form keeps no dead gap.
@@ -168,13 +169,13 @@ describe('InvisibleTurnstile', () => {
     expect(inline).toHaveStyle({ visibility: 'hidden', height: '0px' });
 
     // Slot unregisters (auth form unmounts): the widget is torn down and re-rendered
-    // into the viewport-centered overlay fallback.
+    // into the bottom-right corner fallback.
     act(() => setCaptchaSlot(null));
     await waitFor(() => expect(api.render).toHaveBeenCalledTimes(2));
     expect(api.remove).toHaveBeenCalledWith('widget-1');
     const overlay = screen.getByTestId('auth-captcha-widget');
     expect(slot.contains(overlay)).toBe(false);
-    expect(overlay).toHaveStyle({ position: 'fixed', top: '50%', left: '50%' });
+    expect(overlay).toHaveStyle({ position: 'fixed', right: '0px', bottom: '0px' });
 
     slot.remove();
   });
