@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { applyDocumentLocale } from '@/lib/i18n/apply-document-locale.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import { I18N_NAMESPACES } from '@/lib/i18n/namespaces.ts';
 
-import { useLocaleStore } from './useLocaleStore.ts';
+import { localeFormatPrefs, useLocaleStore } from './useLocaleStore.ts';
 
 describe('useLocaleStore', () => {
   beforeEach(async () => {
@@ -106,5 +106,103 @@ describe('useLocaleStore', () => {
   it('stores a currency code override independently', () => {
     useLocaleStore.getState().setCurrencyCode('EUR');
     expect(useLocaleStore.getState().currencyCode).toBe('EUR');
+  });
+});
+
+describe('useLocaleStore — persistence contract', () => {
+  it('migrate falls back to full defaults for non-object persisted state', () => {
+    const migrate = useLocaleStore.persist.getOptions().migrate;
+    const migrated = migrate?.(null, 3) as Record<string, unknown>;
+
+    expect(migrated.locale).toBe('en');
+    expect(migrated.dateFormat).toBe('auto');
+    expect(migrated.timeZone).toBe('auto');
+    expect(migrated.textDirection).toBe('auto');
+  });
+
+  it('migrate normalizes every corrupted field to a safe value', () => {
+    const migrate = useLocaleStore.persist.getOptions().migrate;
+    const migrated = migrate?.(
+      {
+        locale: 'klingon',
+        formatLocale: 'not-a-tag',
+        dateFormat: 'weird',
+        hourCycle: '13h',
+        timeZone: 42,
+        textDirection: 'sideways',
+        numberStyle: 'roman',
+        currencyDisplay: 'seashells',
+        currencyCode: 'not-a-code',
+      },
+      6,
+    ) as Record<string, unknown>;
+
+    expect(migrated.locale).toBe('en');
+    expect(typeof migrated.formatLocale).toBe('string');
+    expect(migrated.dateFormat).toBe('auto');
+    expect(migrated.hourCycle).toBe('auto');
+    expect(migrated.timeZone).toBe('auto');
+    expect(migrated.textDirection).toBe('auto');
+    expect(migrated.numberStyle).toBe('auto');
+    expect(migrated.currencyDisplay).toBe('auto');
+    expect(typeof migrated.currencyCode).toBe('string');
+    expect(migrated.currencyCode).not.toBe('not-a-code');
+  });
+
+  it('migrate preserves a valid persisted preference set', () => {
+    const migrate = useLocaleStore.persist.getOptions().migrate;
+    const migrated = migrate?.(
+      {
+        locale: 'ar',
+        dateFormat: 'iso',
+        textDirection: 'ltr',
+        timeZone: 'Asia/Kolkata',
+      },
+      6,
+    ) as Record<string, unknown>;
+
+    expect(migrated.locale).toBe('ar');
+    expect(migrated.dateFormat).toBe('iso');
+    expect(migrated.textDirection).toBe('ltr');
+    expect(migrated.timeZone).toBe('Asia/Kolkata');
+  });
+
+  it('rehydration re-applies the persisted locale to the document', async () => {
+    const onRehydrate = useLocaleStore.persist.getOptions().onRehydrateStorage;
+    const apply = onRehydrate?.(useLocaleStore.getState());
+
+    apply?.({ ...useLocaleStore.getState(), locale: 'ar', textDirection: 'auto' });
+
+    await vi.waitFor(() => {
+      expect(document.documentElement.lang).toBe('ar');
+      expect(document.documentElement.dir).toBe('rtl');
+    });
+
+    // Restore for neighbouring suites.
+    await applyDocumentLocale('en', 'auto');
+  });
+
+  it('localeFormatPrefs projects exactly the Intl-relevant fields', () => {
+    const prefs = localeFormatPrefs({
+      locale: 'en',
+      formatLocale: 'en-GB',
+      dateFormat: 'iso',
+      hourCycle: 'h23',
+      timeZone: 'UTC',
+      numberStyle: 'auto',
+      currencyDisplay: 'symbol',
+      currencyCode: 'GBP',
+    });
+
+    expect(prefs).toEqual({
+      locale: 'en',
+      formatLocale: 'en-GB',
+      dateFormat: 'iso',
+      hourCycle: 'h23',
+      timeZone: 'UTC',
+      numberStyle: 'auto',
+      currencyDisplay: 'symbol',
+      currencyCode: 'GBP',
+    });
   });
 });

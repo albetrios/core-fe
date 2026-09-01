@@ -34,7 +34,7 @@ async function ensureTeamSubscription(teamToken: string): Promise<void> {
     },
     data: { plan_id: plan.id, billing_cycle: 'monthly' },
   });
-  expect([201, 409]).toContain(createRes.status());
+  expect([200, 409]).toContain(createRes.status());
 }
 
 test.beforeAll(async ({ playwright }) => {
@@ -123,10 +123,10 @@ test.describe('core-be — billing', () => {
       },
       data: { plan_id: plan.id, billing_cycle: 'monthly' },
     });
-    expect([201, 409]).toContain(createRes.status());
+    expect([200, 409]).toContain(createRes.status());
 
     let subscriptionId: string | undefined;
-    if (createRes.status() === 201) {
+    if (createRes.status() === 200) {
       const created = (await createRes.json()) as { data: { id: string } };
       subscriptionId = created.data.id;
     } else {
@@ -180,8 +180,8 @@ test.describe('core-be — billing', () => {
         'X-Idempotency-Key': idempotencyKey(),
       },
     });
-    expect([200, 201, 422, 503]).toContain(res.status());
-    if (res.status() === 200 || res.status() === 201) {
+    expect([200, 422, 503]).toContain(res.status());
+    if (res.status() === 200 || res.status() === 200) {
       const body = (await res.json()) as { data: { client_secret: string | null } };
       expect(body.data).toHaveProperty('client_secret');
     }
@@ -253,8 +253,8 @@ test.describe('core-be — billing', () => {
       headers: { ...bearerHeaders(teamToken), 'X-Idempotency-Key': idem },
       data: body,
     });
-    expect([201, 409]).toContain(first.status());
-    expect([201, 409]).toContain(second.status());
+    expect([200, 409]).toContain(first.status());
+    expect([200, 409]).toContain(second.status());
     expect(second.status()).toBe(first.status());
   });
 

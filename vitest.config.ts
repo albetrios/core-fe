@@ -89,13 +89,13 @@ export default defineConfig({
       ],
       // Coverage RATCHET — pinned just under measured coverage so CI fails on
       // regression, never on ambition. Raise (never lower) when coverage rises.
-      // Measured 2026-08-31: statements 87.00, branches 76.88, functions 85.74,
-      // lines 88.40 (full unit + security + ci-policy run).
+      // Measured 2026-08-31: statements 89.95, branches 80.41, functions 89.05,
+      // lines 91.25 (full unit + security + ci-policy run).
       thresholds: {
-        branches: 76,
-        functions: 85,
-        lines: 88,
-        statements: 86,
+        branches: 80,
+        functions: 88,
+        lines: 91,
+        statements: 89,
       },
     },
   },

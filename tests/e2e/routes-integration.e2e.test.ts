@@ -37,7 +37,7 @@ test.describe('Live routes integration', () => {
     });
 
     test('OAuth callback without a session returns to login', async ({ page }) => {
-      await gotoApp(page, '/callback');
+      await gotoApp(page, '/callback/google');
       await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
       await expectLoginFormReady(page);
     });
@@ -69,7 +69,7 @@ test.describe('Live routes integration', () => {
     });
 
     test('OAuth callback with an error query returns to login', async ({ page }) => {
-      await gotoApp(page, '/callback?error=access_denied');
+      await gotoApp(page, '/callback/google?error=access_denied');
       await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
       await expectLoginFormReady(page);
     });

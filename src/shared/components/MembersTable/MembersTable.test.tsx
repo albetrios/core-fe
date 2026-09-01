@@ -1,11 +1,32 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Member } from '@/shared/api/organization-contracts.ts';
+import type { AuthUser } from '@/shared/auth/types.ts';
+import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { MembersTable } from './MembersTable.tsx';
+
+const { updateRoleMutate, updateStatusMutate, removeMutate } = vi.hoisted(() => ({
+  updateRoleMutate: vi.fn(),
+  updateStatusMutate: vi.fn(),
+  removeMutate: vi.fn(),
+}));
+vi.mock('@/shared/hooks/useMembers/index.ts', () => ({
+  useUpdateMemberRole: () => ({ mutate: updateRoleMutate }),
+  useUpdateMemberStatus: () => ({ mutate: updateStatusMutate }),
+  useRemoveMember: () => ({ mutate: removeMutate }),
+}));
+
+function grantManagePermission() {
+  useAuthStore.setState({
+    user: { id: 'usr_t', email: 't@t.test', role: 'user' } as AuthUser,
+  });
+  useOrganizationStore.getState().setPermissions(['membership:manage']);
+}
 
 const MEMBERS: Member[] = [
   {
@@ -129,6 +150,95 @@ describe('MembersTable', () => {
       await user.click(screen.getByRole('checkbox', { name: /select all/i }));
 
       expect(screen.getByText(/2 of 2 row\(s\) selected/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('permission-gated row actions', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      useAuthStore.setState({ user: null });
+      useOrganizationStore.getState().clearOrganization();
+    });
+
+    it('hides the actions menu entirely without membership:manage', async () => {
+      renderWithProviders(<MembersTable members={[member(1)]} />);
+      await screen.findByTestId('members-table');
+
+      expect(screen.queryByTestId('member-actions-m_1')).not.toBeInTheDocument();
+    });
+
+    it('changes a member role through the radio group', async () => {
+      grantManagePermission();
+      const user = userEvent.setup();
+      renderWithProviders(<MembersTable members={[member(1, { role: 'member' })]} />);
+
+      await user.click(await screen.findByTestId('member-actions-m_1'));
+      await user.click(await screen.findByRole('menuitemradio', { name: 'admin' }));
+
+      expect(updateRoleMutate).toHaveBeenCalledWith({
+        membershipId: 'm_1',
+        role: 'admin',
+      });
+    });
+
+    it('suspends an active member and reactivates a suspended one', async () => {
+      grantManagePermission();
+      const user = userEvent.setup();
+      const { unmount } = renderWithProviders(
+        <MembersTable members={[member(1, { status: 'active' })]} />,
+      );
+
+      await user.click(await screen.findByTestId('member-actions-m_1'));
+      await user.click(await screen.findByTestId('member-toggle-status-m_1'));
+      expect(updateStatusMutate).toHaveBeenCalledWith({
+        membershipId: 'm_1',
+        status: 'suspended',
+      });
+
+      unmount();
+      renderWithProviders(
+        <MembersTable members={[member(2, { status: 'suspended' })]} />,
+      );
+      await user.click(await screen.findByTestId('member-actions-m_2'));
+      await user.click(await screen.findByTestId('member-toggle-status-m_2'));
+      expect(updateStatusMutate).toHaveBeenLastCalledWith({
+        membershipId: 'm_2',
+        status: 'active',
+      });
+    });
+
+    it('removal requires the confirm dialog and then fires the mutation', async () => {
+      grantManagePermission();
+      const user = userEvent.setup();
+      renderWithProviders(<MembersTable members={[member(1)]} />);
+
+      await user.click(await screen.findByTestId('member-actions-m_1'));
+      await user.click(await screen.findByRole('menuitem', { name: /remove/i }));
+
+      // Dialog gate: nothing fired yet.
+      expect(removeMutate).not.toHaveBeenCalled();
+
+      await user.click(await screen.findByTestId('member-remove-confirm-m_1'));
+      expect(removeMutate).toHaveBeenCalledWith('m_1');
+    });
+
+    it('the role facet filter narrows rows to that role', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <MembersTable
+          members={[
+            member(1, { role: 'admin' }),
+            member(2, { role: 'viewer' }),
+            member(3, { role: 'admin' }),
+          ]}
+        />,
+      );
+      await screen.findByTestId('members-table');
+
+      await user.click(screen.getByTestId('members-role-filter'));
+      await user.click(await screen.findByRole('option', { name: /admin/i }));
+
+      expect(renderedNames()).toEqual(['Member 01', 'Member 03']);
     });
   });
 });
