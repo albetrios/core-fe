@@ -1463,13 +1463,10 @@ core-fe/
 ├── CONTRIBUTING.md
 ├── docker-compose.sonar.yml
 ├── eslint.config.mjs
-├── HIGH-SEVERITY-ISSUES.md
 ├── index.html
 ├── knip.jsonc
 ├── LICENSE
-├── LOW-SEVERITY-ISSUES.md
 ├── Makefile
-├── MEDIUM-SEVERITY-ISSUES.md
 ├── mfa1-proof.tmp.mjs
 ├── netlify.toml
 ├── package.json
