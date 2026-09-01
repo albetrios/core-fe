@@ -38,7 +38,7 @@ describe('initPerformanceMonitoring', () => {
     vi.clearAllMocks();
   });
 
-  it('subscribes to all five Core Web Vitals', () => {
+  it('subscribes to all five web-vitals metrics', () => {
     initPerformanceMonitoring();
 
     for (const register of [onCLS, onINP, onLCP, onFCP, onTTFB]) {
