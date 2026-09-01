@@ -1,5 +1,5 @@
 import { type ComponentType, type ReactNode, Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 
 import { platformConfig } from '@/core/config/env.ts';
@@ -42,17 +42,18 @@ function OverlayScrim({ children }: { children: ReactNode }) {
  * so React remounts the whole subtree instead of updating it, and any state in
  * it is lost (sonar typescript:S6478). Everything it needs arrives as props.
  */
+interface OverlayChrome {
+  title: string;
+  testId?: string;
+  onDismiss?: () => void;
+}
+
 function LazyOverlayError({
   title,
   testId,
   onRetry,
   onDismiss,
-}: {
-  title: string;
-  testId?: string;
-  onRetry: () => void;
-  onDismiss?: () => void;
-}) {
+}: OverlayChrome & { onRetry: () => void }) {
   const { t } = useTranslation(ERRORS_NS);
   const { t: tLocale } = useTranslation(LOCALE_NS);
 
@@ -102,6 +103,17 @@ function LazyOverlayError({
 }
 
 /**
+ * Builds the boundary's fallback renderer. A module-level factory, not an inline
+ * arrow inside `LazyOverlay`: a JSX-returning function declared in a component's
+ * body is a component definition in that scope (sonar typescript:S6478).
+ */
+function renderOverlayError(chrome: OverlayChrome) {
+  return function OverlayErrorFallback({ resetErrorBoundary }: FallbackProps) {
+    return <LazyOverlayError {...chrome} onRetry={resetErrorBoundary} />;
+  };
+}
+
+/**
  * Mounts a code-split overlay with a real loading state, a contained failure
  * surface, and a Retry that actually retries.
  *
@@ -137,14 +149,7 @@ export function LazyOverlay({
           console.error(`[LazyOverlay:${title}]`, error, info);
         }
       }}
-      fallbackRender={({ resetErrorBoundary }) => (
-        <LazyOverlayError
-          title={title}
-          testId={testId}
-          onRetry={resetErrorBoundary}
-          onDismiss={onDismiss}
-        />
-      )}
+      fallbackRender={renderOverlayError({ title, testId, onDismiss })}
     >
       <Suspense fallback={pending}>
         <Overlay />
