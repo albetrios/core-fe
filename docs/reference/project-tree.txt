@@ -179,7 +179,6 @@ core-fe/
 │   │   ├── preset-product-design.mdc
 │   │   ├── project-conventions.mdc
 │   │   ├── pwa-manifest-sync.mdc
-│   │   ├── resilient-interactions.mdc
 │   │   ├── routing-tenancy-sync.mdc
 │   │   ├── skill-router.mdc
 │   │   ├── tailwind-styling.mdc
