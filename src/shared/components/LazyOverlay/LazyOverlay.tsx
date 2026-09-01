@@ -37,6 +37,71 @@ function OverlayScrim({ children }: { children: ReactNode }) {
 }
 
 /**
+ * The overlay's failure surface. Module-level on purpose: a component defined
+ * inside its parent's render gets a fresh type identity on every parent render,
+ * so React remounts the whole subtree instead of updating it, and any state in
+ * it is lost (sonar typescript:S6478). Everything it needs arrives as props.
+ */
+function LazyOverlayError({
+  title,
+  testId,
+  onRetry,
+  onDismiss,
+}: {
+  title: string;
+  testId?: string;
+  onRetry: () => void;
+  onDismiss?: () => void;
+}) {
+  const { t } = useTranslation(ERRORS_NS);
+  const { t: tLocale } = useTranslation(LOCALE_NS);
+
+  return (
+    <OverlayScrim>
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-label={t(ERRORS_KEYS.widget.unavailable, { title })}
+        data-testid={testId ?? 'lazy-overlay-error'}
+        className="bg-background flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-6 text-center shadow-lg"
+      >
+        <AlertTriangle className="text-muted-foreground size-7" aria-hidden="true" />
+        <div>
+          <p className="text-sm font-medium">
+            {t(ERRORS_KEYS.widget.unavailable, { title })}
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            {t(ERRORS_KEYS.widget.message)}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onRetry}
+            data-testid="lazy-overlay-retry"
+          >
+            {t(ERRORS_KEYS.widget.retry)}
+          </Button>
+          {onDismiss ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onDismiss}
+              data-testid="lazy-overlay-dismiss"
+            >
+              {tLocale(LOCALE_KEYS.closeAria)}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </OverlayScrim>
+  );
+}
+
+/**
  * Mounts a code-split overlay with a real loading state, a contained failure
  * surface, and a Retry that actually retries.
  *
@@ -61,8 +126,6 @@ export function LazyOverlay({
   onDismiss,
   testId,
 }: LazyOverlayProps) {
-  const { t } = useTranslation(ERRORS_NS);
-  const { t: tLocale } = useTranslation(LOCALE_NS);
   // A fresh `lazy()` per attempt — the only way back out of a cached rejection.
   const { Component: Overlay, retry } = useRetryableLazy(load);
 
@@ -75,47 +138,12 @@ export function LazyOverlay({
         }
       }}
       fallbackRender={({ resetErrorBoundary }) => (
-        <OverlayScrim>
-          <div
-            role="alertdialog"
-            aria-modal="true"
-            aria-label={t(ERRORS_KEYS.widget.unavailable, { title })}
-            data-testid={testId ?? 'lazy-overlay-error'}
-            className="bg-background flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-6 text-center shadow-lg"
-          >
-            <AlertTriangle className="text-muted-foreground size-7" aria-hidden="true" />
-            <div>
-              <p className="text-sm font-medium">
-                {t(ERRORS_KEYS.widget.unavailable, { title })}
-              </p>
-              <p className="text-muted-foreground mt-1 text-xs">
-                {t(ERRORS_KEYS.widget.message)}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={resetErrorBoundary}
-                data-testid="lazy-overlay-retry"
-              >
-                {t(ERRORS_KEYS.widget.retry)}
-              </Button>
-              {onDismiss ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={onDismiss}
-                  data-testid="lazy-overlay-dismiss"
-                >
-                  {tLocale(LOCALE_KEYS.closeAria)}
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        </OverlayScrim>
+        <LazyOverlayError
+          title={title}
+          testId={testId}
+          onRetry={resetErrorBoundary}
+          onDismiss={onDismiss}
+        />
       )}
     >
       <Suspense fallback={pending}>
@@ -138,15 +166,17 @@ export function LazyOverlaySkeleton({
   const { t } = useTranslation(LOCALE_NS);
   return (
     <OverlayScrim>
-      <div
-        role="status"
+      {/* `<output>` carries an implicit role="status", so the live region is the
+          element itself. `block` is explicit because <output> is inline by
+          default and would ignore the width. */}
+      <output
         aria-busy="true"
         data-testid={testId ?? 'lazy-overlay-pending'}
-        className={`bg-background w-full overflow-hidden rounded-xl border shadow-lg ${className ?? 'max-w-lg'}`}
+        className={`bg-background block w-full overflow-hidden rounded-xl border shadow-lg ${className ?? 'max-w-lg'}`}
       >
         <span className="sr-only">{t(LOCALE_KEYS.loading)}</span>
         {children}
-      </div>
+      </output>
     </OverlayScrim>
   );
 }

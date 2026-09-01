@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils.ts';
+
 /**
  * Presentation for a list whose rows belong to the PREVIOUS query params while
  * the new ones load.
@@ -12,7 +14,9 @@
  * so assistive tech hears what the dim shows.
  */
 export function listRefreshClass(isRefreshing: boolean): string {
-  return isRefreshing
-    ? 'opacity-60 transition-opacity duration-200'
-    : 'transition-opacity duration-200';
+  // Composed, not branched: the transition is unconditional so the dim fades in
+  // BOTH directions, and `isRefreshing` only adds the dim. Returning one of two
+  // whole class strings made the flag select an action rather than describe a
+  // state (sonar typescript:S2301).
+  return cn('transition-opacity duration-200', isRefreshing && 'opacity-60');
 }

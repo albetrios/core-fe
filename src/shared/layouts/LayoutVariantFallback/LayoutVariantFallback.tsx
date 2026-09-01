@@ -14,10 +14,9 @@ import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 export function LayoutVariantFallback() {
   const { t } = useTranslation(LOCALE_NS);
   return (
-    <div
+    <output
       data-testid="layout-variant-fallback"
       className="bg-background flex min-h-0 flex-1"
-      role="status"
       aria-busy="true"
     >
       <span className="sr-only">{t(LOCALE_KEYS.loading)}</span>
@@ -37,6 +36,6 @@ export function LayoutVariantFallback() {
           <div className="bg-muted/30 h-40 animate-pulse rounded" />
         </div>
       </div>
-    </div>
+    </output>
   );
 }

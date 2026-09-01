@@ -8,9 +8,11 @@ describe('LayoutVariantFallback', () => {
     render(<LayoutVariantFallback />);
     const fallback = screen.getByTestId('layout-variant-fallback');
     expect(fallback).toBeInTheDocument();
-    // `role="status"` + sr-only text, not `aria-label` on a bare div: a label on an
-    // element with no role is an axe `aria-prohibited-attr` violation.
-    expect(fallback).toHaveAttribute('role', 'status');
+    // A live region + sr-only text, not `aria-label` on a bare div: a label on an
+    // element with no role is an axe `aria-prohibited-attr` violation. Asserted
+    // through the resolved role rather than the literal attribute, because the
+    // element is an `<output>`, which carries role="status" implicitly.
+    expect(screen.getByRole('status')).toBe(fallback);
     expect(fallback).toHaveAttribute('aria-busy', 'true');
     // Translated via a11y.loading — asserting the key's English value, not a literal.
     expect(screen.getByText('Loading')).toBeInTheDocument();
