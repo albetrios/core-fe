@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~556 src files · ~309 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~566 src files · ~314 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -410,6 +410,7 @@ core-fe/
 │   │   ├── csv.ts
 │   │   ├── icon-surface.ts
 │   │   ├── lazy-module.ts
+│   │   ├── list-refresh.ts
 │   │   ├── onboarding-defaults.ts
 │   │   ├── parse-list-tolerant.ts
 │   │   ├── password-breach.ts
@@ -419,7 +420,7 @@ core-fe/
 │   │   ├── sensitive-clipboard.ts
 │   │   ├── telemetry-scrub.ts
 │   │   ├── utils.ts
-│   │   └── [17 test files]
+│   │   └── [18 test files]
 │   ├── locales/
 │   │   ├── ar/
 │   │   │   ├── auth.json
@@ -819,6 +820,10 @@ core-fe/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── LanguagePrefsCard.tsx
 │   │   │   │   └── [1 test file]
+│   │   │   ├── LazyOverlay/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── LazyOverlay.tsx
+│   │   │   │   └── [1 test file]
 │   │   │   ├── LocalizedCalendar/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── LocalizedCalendar.tsx
@@ -1003,6 +1008,11 @@ core-fe/
 │   │   │   │   │   │   ├── AuthMethodDivider.tsx
 │   │   │   │   │   │   ├── index.ts
 │   │   │   │   │   │   └── [1 test file]
+│   │   │   │   │   ├── AuthSocialMethods/
+│   │   │   │   │   │   ├── AuthSocialMethods.tsx
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── ProviderIcon.tsx
+│   │   │   │   │   │   └── [1 test file]
 │   │   │   │   │   ├── AuthWelcomeHeader/
 │   │   │   │   │   │   ├── AuthWelcomeHeader.tsx
 │   │   │   │   │   │   ├── index.ts
@@ -1038,6 +1048,10 @@ core-fe/
 │   │   │   ├── useAppMutation/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── useAppMutation.ts
+│   │   │   │   └── [1 test file]
+│   │   │   ├── useAppQuery/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── useAppQuery.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── useAuthMethods/
 │   │   │   │   ├── index.ts
@@ -1078,6 +1092,10 @@ core-fe/
 │   │   │   ├── useDebouncedValue/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── useDebouncedValue.ts
+│   │   │   │   └── [1 test file]
+│   │   │   ├── useDeferredRowRemoval/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── useDeferredRowRemoval.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── useDelete/
 │   │   │   │   ├── index.ts
@@ -1458,6 +1476,9 @@ core-fe/
 ├── README.md
 ├── SECURITY.md
 ├── SETUP.md
+├── shell1-proof.tmp.mjs
+├── shell2-proof.tmp.mjs
+├── shell34-proof.tmp.mjs
 ├── sonar-project.properties
 ├── stryker.config.json
 ├── stryker.config.mjs
