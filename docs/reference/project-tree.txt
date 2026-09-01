@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~609 src files · ~333 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
+Stats: ~609 src files · ~334 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -300,7 +300,8 @@ core-fe/
 │   │   ├── providers/
 │   │   │   ├── AppProviders.tsx
 │   │   │   ├── I18nProvider.tsx
-│   │   │   └── QueryProvider.tsx
+│   │   │   ├── QueryProvider.tsx
+│   │   │   └── [1 test file]
 │   │   ├── routes/
 │   │   │   ├── ErrorBoundary.tsx
 │   │   │   ├── NotFoundPage.tsx
@@ -1545,7 +1546,6 @@ core-fe/
 ├── knip.jsonc
 ├── LICENSE
 ├── Makefile
-├── mfa1-proof.tmp.mjs
 ├── netlify.toml
 ├── package.json
 ├── playwright.config.ts
@@ -1554,9 +1554,6 @@ core-fe/
 ├── README.md
 ├── SECURITY.md
 ├── SETUP.md
-├── shell1-proof.tmp.mjs
-├── shell2-proof.tmp.mjs
-├── shell34-proof.tmp.mjs
 ├── sonar-project.properties
 ├── stryker.config.json
 ├── stryker.config.mjs
