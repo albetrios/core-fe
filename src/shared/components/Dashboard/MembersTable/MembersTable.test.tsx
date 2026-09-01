@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import type { Member } from '@/shared/api/organization-contracts.ts';
@@ -7,9 +7,18 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { MembersTable } from './MembersTable.tsx';
 
-const { useMembersMock } = vi.hoisted(() => ({ useMembersMock: vi.fn() }));
+const { useMembersMock, orgIdRef } = vi.hoisted(() => ({
+  useMembersMock: vi.fn(),
+  orgIdRef: { value: 'org_1' as string | null },
+}));
 vi.mock('@/shared/hooks/useMembers/index.ts', () => ({
   useMembers: useMembersMock,
+}));
+// The table reads the same store field `useMembers` gates its query on, so it
+// can tell "no workspace" (query disabled, permanently pending) from "loading".
+vi.mock('@/shared/store/useOrganizationStore/index.ts', () => ({
+  useOrganizationStore: (selector: (s: { organizationId: string | null }) => unknown) =>
+    selector({ organizationId: orgIdRef.value }),
 }));
 
 const MEMBERS: Member[] = [
@@ -51,6 +60,10 @@ function baseResult() {
 }
 
 describe('MembersTable', () => {
+  beforeEach(() => {
+    orgIdRef.value = 'org_1';
+  });
+
   it('renders the REAL roster from useMembers — names, emails, count', async () => {
     // Regression: this table used to render a hardcoded 5-person fixture
     // ("Ava Chen" et al. @acme.test) in every org — a brand-new solo workspace
@@ -88,6 +101,41 @@ describe('MembersTable', () => {
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
     expect(screen.queryByText('Sarah Walker')).not.toBeInTheDocument();
+  });
+
+  // Regression (DASH-1): `useMembers` disables its query when there is no active
+  // org, and a DISABLED query in TanStack Query v5 reports `status: 'pending'`
+  // forever. Gating the skeleton on `isPending` alone left three shimmering rows
+  // on screen indefinitely — no data, no empty state, no error.
+  it('shows a no-workspace state instead of a skeleton that never resolves', async () => {
+    orgIdRef.value = null;
+    useMembersMock.mockReturnValue(listResult({ rows: [], isPending: true }));
+    renderWithProviders(<MembersTable />);
+
+    expect(
+      await screen.findByTestId('dashboard-members-no-workspace'),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboard-members-loading')).not.toBeInTheDocument();
+  });
+
+  it('still shows the skeleton while a real fetch is in flight', async () => {
+    orgIdRef.value = 'org_1';
+    useMembersMock.mockReturnValue(listResult({ rows: [], isPending: true }));
+    renderWithProviders(<MembersTable />);
+
+    expect(await screen.findByTestId('dashboard-members-loading')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('dashboard-members-no-workspace'),
+    ).not.toBeInTheDocument();
+  });
+
+  // An empty roster used to render a bare table header with nothing beneath it.
+  it('shows an empty state rather than a header with no rows', async () => {
+    useMembersMock.mockReturnValue(listResult({ rows: [] }));
+    renderWithProviders(<MembersTable />);
+
+    expect(await screen.findByTestId('dashboard-members-empty')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {

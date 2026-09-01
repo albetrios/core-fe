@@ -119,7 +119,9 @@
       "invited": "Eingeladen",
       "suspended": "Gesperrt"
     },
-    "error": "Mitglieder konnten nicht geladen werden."
+    "error": "Mitglieder konnten nicht geladen werden.",
+    "empty": "Diesem Workspace ist noch niemand beigetreten.",
+    "noWorkspace": "Kein Workspace ausgewählt."
   },
   "schedule": {
     "ariaLabel": "Zeitplan",

@@ -109,6 +109,8 @@ export const DASHBOARD_KEYS = {
     heading: 'members.heading',
     description: 'members.description',
     error: 'members.error',
+    empty: 'members.empty',
+    noWorkspace: 'members.noWorkspace',
     columnMember: 'members.columnMember',
     columnRole: 'members.columnRole',
     columnStatus: 'members.columnStatus',

@@ -251,36 +251,58 @@ function DashboardContent({ ctx }: { ctx: MeContext }) {
         </SectionErrorBoundary>
       ) : null}
 
-      <SectionErrorBoundary
-        title={t(DASHBOARD_KEYS.insights.heading)}
-        testId="dashboard-insights-error"
+      {/*
+        One boundary per widget, not one around the section. These three render
+        independent data and fail independently, so a throw in the chart used to
+        take the roster, the calendar and the section heading down with it —
+        three widgets lost to one bug. The heading now stays whichever widget
+        breaks, and each fallback offers its own retry.
+      */}
+      <section
+        aria-label={t(DASHBOARD_KEYS.insights.ariaLabel)}
+        className="flex flex-col gap-4 sm:gap-5"
       >
-        <section
-          aria-label={t(DASHBOARD_KEYS.insights.ariaLabel)}
-          className="flex flex-col gap-4 sm:gap-5"
+        <SectionHeading
+          title={t(DASHBOARD_KEYS.insights.heading)}
+          description={t(DASHBOARD_KEYS.analytics.description)}
+        />
+        <SectionErrorBoundary
+          title={t(DASHBOARD_KEYS.insights.heading)}
+          testId="dashboard-insights-error"
         >
-          <SectionHeading
-            title={t(DASHBOARD_KEYS.insights.heading)}
-            description={t(DASHBOARD_KEYS.analytics.description)}
-          />
           <DeferredAnalyticsChart />
-          {/* The roster is a TEAM surface gated on the active org's type — not
-              the deployment mode: in a hybrid install a personal workspace is
-              still `personalOnly === false` but has no roster to show. */}
-          {isTeam && ctx.myPermissions.includes('membership:read') ? (
-            <div className={splitMainAsideGrid}>
-              <div className={gridCellMinWidth}>
+        </SectionErrorBoundary>
+        {/* The roster is a TEAM surface gated on the active org's type — not
+            the deployment mode: in a hybrid install a personal workspace is
+            still `personalOnly === false` but has no roster to show. */}
+        {isTeam && ctx.myPermissions.includes('membership:read') ? (
+          <div className={splitMainAsideGrid}>
+            <div className={gridCellMinWidth}>
+              <SectionErrorBoundary
+                title={t(DASHBOARD_KEYS.members.heading)}
+                testId="dashboard-members-error"
+              >
                 <DeferredMembersTable />
-              </div>
-              <div className={gridCellMinWidth}>
-                <DeferredScheduleCalendar />
-              </div>
+              </SectionErrorBoundary>
             </div>
-          ) : (
+            <div className={gridCellMinWidth}>
+              <SectionErrorBoundary
+                title={t(DASHBOARD_KEYS.schedule.heading)}
+                testId="dashboard-schedule-error"
+              >
+                <DeferredScheduleCalendar />
+              </SectionErrorBoundary>
+            </div>
+          </div>
+        ) : (
+          <SectionErrorBoundary
+            title={t(DASHBOARD_KEYS.schedule.heading)}
+            testId="dashboard-schedule-error"
+          >
             <DeferredScheduleCalendar />
-          )}
-        </section>
-      </SectionErrorBoundary>
+          </SectionErrorBoundary>
+        )}
+      </section>
 
       {!personalOnly ? (
         <div className={dashboardFooterGrid}>

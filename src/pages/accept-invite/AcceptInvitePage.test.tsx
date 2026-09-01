@@ -227,6 +227,56 @@ describe('AcceptInvitePage', () => {
     });
   });
 
+  // Regression (INV-2): the accept is a chain of long awaits, and the branches
+  // after them set state, fire toasts and navigate. The redirect timer was
+  // already released on unmount, so the navigation was covered — the toast was
+  // not. Leaving mid-flight still popped a warning about a workspace the user
+  // was no longer looking at.
+  describe('when the user leaves while the accept is still running', () => {
+    it('does not toast about a page the user has already left', async () => {
+      let settleAccept: ((v: unknown) => void) | undefined;
+      acceptInvitationMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            settleAccept = resolve;
+          }),
+      );
+      // The switch fails, which is the branch that surfaces a warning toast.
+      switchToOrganizationMock.mockRejectedValue(new Error('switch exploded'));
+
+      const { unmount } = renderWithProviders(<AcceptInvitePage />);
+      await waitFor(() => expect(acceptInvitationMock).toHaveBeenCalled());
+
+      unmount();
+      settleAccept?.({ organizationId: 'org_1', organizationSlug: 'acme' });
+      await waitFor(() => expect(switchToOrganizationMock).toHaveBeenCalled());
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifyWarningMock).not.toHaveBeenCalled();
+      expect(navigateMock).not.toHaveBeenCalled();
+    });
+
+    it('still reports the swallowed switch error, because the join was real', async () => {
+      let settleAccept: ((v: unknown) => void) | undefined;
+      acceptInvitationMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            settleAccept = resolve;
+          }),
+      );
+      switchToOrganizationMock.mockRejectedValue(new Error('switch exploded'));
+
+      const { unmount } = renderWithProviders(<AcceptInvitePage />);
+      await waitFor(() => expect(acceptInvitationMock).toHaveBeenCalled());
+
+      unmount();
+      settleAccept?.({ organizationId: 'org_1', organizationSlug: 'acme' });
+
+      // Silence for the user, but not for the logs — the membership exists.
+      await waitFor(() => expect(reportErrorMock).toHaveBeenCalled());
+    });
+  });
+
   describe('when the status card throws', () => {
     // The boundary logs through react-error-boundary; React also logs the caught
     // error. Silence both so the failure path does not spam the suite output.

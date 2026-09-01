@@ -116,4 +116,19 @@ describe('guard wiring in beforeLoad', () => {
     await beforeLoadOf('/organization/$organizationSlug')(gateArgs(false));
     expect(requireAuth).toHaveBeenCalledTimes(2);
   });
+
+  // Regression (INV-4): the signed-out check used to live in a passive effect
+  // inside the page, so the "Joining…" card painted for a frame and then
+  // vanished — for the COMMON case, since an invite recipient is usually not
+  // signed in yet. Deciding it in beforeLoad costs zero frames, and passing
+  // location.href carries the invite token back through login.
+  it('accept-invite requires auth before it renders, carrying the invite link', async () => {
+    const href = '/accept-invite/inv_abc?token=tok_123';
+    await beforeLoadOf('/public-shell/accept-invite/$invitationId')({
+      location: { href },
+      params: { invitationId: 'inv_abc' },
+      preload: false,
+    });
+    expect(requireAuth).toHaveBeenCalledWith(href);
+  });
 });

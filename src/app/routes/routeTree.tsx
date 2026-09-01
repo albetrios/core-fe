@@ -239,8 +239,16 @@ const acceptInviteRoute = createRoute({
   getParentRoute: () => publicShellRoute,
   path: '/accept-invite/$invitationId',
   head: manifestHead(acceptInviteManifest),
-  beforeLoad: ({ params }) => {
+  beforeLoad: async ({ params, location }) => {
     if (!parseInvitationIdParam(params.invitationId)) throw notFound();
+    // Accepting needs a signed-in session whose email matches the invite, and
+    // the recipient usually is NOT signed in yet — that is the common path, not
+    // the edge case. The page used to check this in a passive effect, so the
+    // "Joining…" card painted first and then vanished (INV-4). `requireAuth`
+    // awaits the auth bootstrap before deciding, so a cold load of an emailed
+    // link does not bounce an already-signed-in user, and `location.href`
+    // carries the token back through login.
+    await requireAuth(location.href);
   },
   component: AcceptInvitePage,
   errorComponent: RouteErrorBoundary,

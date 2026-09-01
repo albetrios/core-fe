@@ -25,6 +25,34 @@ const OAUTH_STATE_PATTERN = /^[0-9a-f]{64}$/;
 const OAUTH_CODE_PATTERN = /^[!-~]{1,2048}$/;
 
 /**
+ * Validate the three provider/user-supplied inputs before any of them selects a
+ * code path. Pure and module-level: it is the same decision every render, and
+ * keeping it out of the effect leaves that body about one thing.
+ *
+ * The server remains the real gate either way — single-use CSRF state,
+ * browser-nonce binding and PKCE all verify before a session is minted.
+ */
+function readCallbackParams(rawProvider: unknown): {
+  code: string | null;
+  state: string | null;
+  provider: string | null;
+} {
+  // Read from window.location, not router state: these come straight from the
+  // provider's full-page redirect, before any SPA navigation.
+  const params = new URLSearchParams(window.location.search);
+  const rawCode = params.get('code');
+  const rawState = params.get('state');
+  return {
+    code: rawCode !== null && OAUTH_CODE_PATTERN.test(rawCode) ? rawCode : null,
+    state: rawState !== null && OAUTH_STATE_PATTERN.test(rawState) ? rawState : null,
+    provider:
+      typeof rawProvider === 'string' && OAUTH_PROVIDER_SLUG_PATTERN.test(rawProvider)
+        ? rawProvider
+        : null,
+  };
+}
+
+/**
  * Provider-specific OAuth landing page (`/callback/$provider`, e.g.
  * `/callback/google`). Each provider registers its own URL, so the path itself
  * names the provider that is returning — the route guard has already validated
@@ -38,32 +66,32 @@ export function CallbackPage() {
   const navigate = useNavigate();
   const { provider: rawProvider } = useParams({ strict: false });
   const started = useRef(false);
+  /**
+   * Whether this page is still the one on screen. Deliberately re-armed at the
+   * TOP of every effect run, before the `started` bail: StrictMode's
+   * mount → cleanup → mount would otherwise leave it false from the first run's
+   * cleanup while the second run bails early, and the exchange already in
+   * flight would resolve into a page that thinks it is gone.
+   */
+  const aliveRef = useRef(true);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    aliveRef.current = true;
 
-    void (async () => {
-      // Read from window.location, not router state: the params come straight
-      // from the provider's full-page redirect, before any SPA navigation.
-      // All three inputs are provider/user-supplied, so each is validated
-      // against its exact expected shape before selecting the exchange path —
-      // the slug re-checked (not trusting the route guard across files), the
-      // state against our own 64-hex mint, the code against the DTO bound.
-      // The server remains the real gate either way: single-use CSRF state,
-      // browser-nonce binding, and PKCE all verify before a session is minted.
-      const params = new URLSearchParams(window.location.search);
-      const rawCode = params.get('code');
-      const rawState = params.get('state');
-      const code = rawCode !== null && OAUTH_CODE_PATTERN.test(rawCode) ? rawCode : null;
-      const state =
-        rawState !== null && OAUTH_STATE_PATTERN.test(rawState) ? rawState : null;
-      const provider =
-        typeof rawProvider === 'string' && OAUTH_PROVIDER_SLUG_PATTERN.test(rawProvider)
-          ? rawProvider
-          : null;
+    if (!started.current) {
+      started.current = true;
+      void runCallback();
+    }
+
+    async function runCallback() {
+      const { code, state, provider } = readCallbackParams(rawProvider);
 
       const finishSignIn = () => {
+        // The user may have left while the exchange was in flight (a back
+        // gesture is enough). The session is established either way — that part
+        // is not ours to undo — but yanking them off the page they just opened,
+        // and logging a completion for a screen nobody is looking at, is (CB-2).
+        if (!aliveRef.current) return;
         captureAnalyticsEvent(ANALYTICS_EVENTS.authOauthCompleted);
         captureAnalyticsEvent(ANALYTICS_EVENTS.sessionStarted, { method: 'oauth' });
         const returnTo = popReturnTo();
@@ -78,6 +106,7 @@ export function CallbackPage() {
        * two success events and the drop-off was invisible (CB-1).
        */
       const failToLogin = (error: unknown) => {
+        if (!aliveRef.current) return;
         skipAutoGoogleSignIn();
         captureAnalyticsEvent(ANALYTICS_EVENTS.authOauthFailed, {
           provider: provider ?? 'unknown',
@@ -94,7 +123,10 @@ export function CallbackPage() {
           await establishSession(accessToken);
         } catch (error) {
           if (error instanceof MfaRequiredError) {
+            // Stash regardless — the hand-off token is worth keeping even if we
+            // no longer own the screen — but only navigate if we still do.
             stashMfaHandoff(error.mfaSessionToken, popReturnTo() ?? '/');
+            if (!aliveRef.current) return;
             void navigate({ to: '/mfa', replace: true });
             return;
           }
@@ -112,7 +144,11 @@ export function CallbackPage() {
         return;
       }
       finishSignIn();
-    })();
+    }
+
+    return () => {
+      aliveRef.current = false;
+    };
   }, [navigate, rawProvider]);
 
   return (

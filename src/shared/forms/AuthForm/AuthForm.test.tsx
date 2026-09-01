@@ -56,6 +56,9 @@ vi.mock('@/shared/api/auth-api.ts', () => ({
 
 vi.mock('@/shared/auth/passkey-sign-in.ts', () => ({
   signInWithPasskey: vi.fn().mockResolvedValue(undefined),
+  // The suite exercises the passkey method, so it stands in for a wired
+  // backend. Production returns false until /auth/webauthn/login/* exists.
+  isPasskeySignInAvailable: vi.fn(() => true),
 }));
 
 vi.mock('@/shared/auth/service.ts', () => ({
@@ -406,6 +409,99 @@ describe('AuthForm', () => {
         expect(screen.getByTestId('auth-method-error-banner')).toHaveTextContent(
           /oauth down/i,
         );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  describe('resilience', () => {
+    // Regression (house rule §1): `disabled={pending}` only lands on the NEXT
+    // render, so for one frame after the first click the handler is still
+    // reachable. Both clicks go out in a single act() batch — the real
+    // double-click window — because fireEvent/userEvent flush React between
+    // calls and would pass even with no guard at all.
+    it('starts only one OAuth request when the button is double-clicked', async () => {
+      const { authApi } = await import('@/shared/api/auth-api.ts');
+      vi.mocked(authApi.oauthStart).mockImplementationOnce(
+        () => new Promise<string>(() => {}),
+      );
+
+      renderForm();
+      const google = await screen.findByTestId('auth-continue-google');
+
+      act(() => {
+        google.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        google.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+
+      await waitFor(() => expect(google).toHaveAttribute('aria-busy', 'true'));
+      expect(authApi.oauthStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts only one passkey ceremony when the button is double-clicked', async () => {
+      authMethodsRef.value = { ...authMethodsRef.defaults, passkey: true };
+      vi.mocked(signInWithPasskey).mockImplementationOnce(
+        () => new Promise<void>(() => {}),
+      );
+
+      renderForm();
+      const passkey = await screen.findByTestId('auth-continue-passkey');
+
+      act(() => {
+        passkey.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        passkey.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+
+      await waitFor(() => expect(passkey).toHaveAttribute('aria-busy', 'true'));
+      expect(signInWithPasskey).toHaveBeenCalledTimes(1);
+    });
+
+    // Regression (LOGIN-9): the OAuth failure banner used to be cleared by
+    // `onInteract`, which fires on focus — so moving to the email field to try
+    // another way wiped the explanation before it could be read.
+    it('keeps the OAuth error banner when the user focuses the email field', async () => {
+      const user = userEvent.setup();
+      const { authApi } = await import('@/shared/api/auth-api.ts');
+      vi.mocked(authApi.oauthStart).mockRejectedValueOnce(new Error('OAuth down'));
+
+      renderForm();
+      await user.click(await screen.findByTestId('auth-continue-google'));
+      const banner = await screen.findByTestId('auth-method-error-banner');
+      expect(banner).toHaveTextContent(/.+/);
+
+      await user.click(screen.getByTestId('auth-email'));
+
+      expect(screen.getByTestId('auth-method-error-banner')).toHaveTextContent(/.+/);
+    });
+
+    // Regression (LOGIN-10): `window.location.assign` neither resolves nor
+    // throws when the navigation is blocked, so the form sat disabled behind a
+    // spinner forever with no way back.
+    it('hands the form back if the OAuth redirect never happens', async () => {
+      const { authApi } = await import('@/shared/api/auth-api.ts');
+      vi.mocked(authApi.oauthStart).mockResolvedValue('https://oauth.example/go');
+
+      renderForm();
+      const google = await screen.findByTestId('auth-continue-google');
+
+      vi.useFakeTimers();
+      try {
+        act(() => {
+          google.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        // Let oauthStart resolve and location.assign run (a no-op in jsdom).
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(0);
+        });
+        expect(screen.getByTestId('auth-continue-google')).toBeDisabled();
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(8000);
+        });
+
+        expect(screen.getByTestId('auth-continue-google')).not.toBeDisabled();
+        expect(screen.getByTestId('auth-method-error-banner')).toHaveTextContent(/.+/);
       } finally {
         vi.useRealTimers();
       }

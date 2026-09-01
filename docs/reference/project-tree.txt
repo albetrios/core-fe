@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~547 src files · ~304 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~556 src files · ~309 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -179,6 +179,7 @@ core-fe/
 │   │   ├── preset-product-design.mdc
 │   │   ├── project-conventions.mdc
 │   │   ├── pwa-manifest-sync.mdc
+│   │   ├── resilient-interactions.mdc
 │   │   ├── routing-tenancy-sync.mdc
 │   │   ├── skill-router.mdc
 │   │   ├── tailwind-styling.mdc
@@ -644,6 +645,10 @@ core-fe/
 │   │   │   └── [14 test files]
 │   │   ├── auth/
 │   │   │   ├── captcha/
+│   │   │   │   ├── useCaptchaGate/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── useCaptchaGate.ts
+│   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── useTurnstileReady/
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   ├── useTurnstileReady.ts
@@ -659,6 +664,7 @@ core-fe/
 │   │   │   ├── AUTH.OVERVIEW.md
 │   │   │   ├── auto-google-sign-in.ts
 │   │   │   ├── idle-timeout.ts
+│   │   │   ├── login-search.ts
 │   │   │   ├── mfa-handoff.ts
 │   │   │   ├── passkey-sign-in.ts
 │   │   │   ├── redirect-safety.ts
@@ -681,6 +687,10 @@ core-fe/
 │   │   │   │   ├── AppearancePanel.tsx
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [4 test files]
+│   │   │   ├── BrandLoader/
+│   │   │   │   ├── BrandLoader.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── [1 test file]
 │   │   │   ├── CommandPalette/
 │   │   │   │   ├── CommandPalette.tsx
 │   │   │   │   ├── CommandPaletteItem.tsx
@@ -981,6 +991,10 @@ core-fe/
 │   │   ├── forms/
 │   │   │   ├── AuthForm/
 │   │   │   │   ├── components/
+│   │   │   │   │   ├── AuthAutoGooglePending/
+│   │   │   │   │   │   ├── AuthAutoGooglePending.tsx
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   └── [1 test file]
 │   │   │   │   │   ├── AuthMethodButton/
 │   │   │   │   │   │   ├── AuthMethodButton.tsx
 │   │   │   │   │   │   ├── index.ts
@@ -989,8 +1003,12 @@ core-fe/
 │   │   │   │   │   │   ├── AuthMethodDivider.tsx
 │   │   │   │   │   │   ├── index.ts
 │   │   │   │   │   │   └── [1 test file]
-│   │   │   │   │   └── AuthWelcomeHeader/
-│   │   │   │   │       ├── AuthWelcomeHeader.tsx
+│   │   │   │   │   ├── AuthWelcomeHeader/
+│   │   │   │   │   │   ├── AuthWelcomeHeader.tsx
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   └── [1 test file]
+│   │   │   │   │   └── CaptchaGateNotice/
+│   │   │   │   │       ├── CaptchaGateNotice.tsx
 │   │   │   │   │       ├── index.ts
 │   │   │   │   │       └── [1 test file]
 │   │   │   │   ├── auth-form-pending.ts
@@ -1203,7 +1221,7 @@ core-fe/
 │   │   │   ├── index.ts
 │   │   │   ├── notify-deferred.ts
 │   │   │   ├── notify.ts
-│   │   │   └── [5 test files]
+│   │   │   └── [6 test files]
 │   │   ├── store/
 │   │   │   ├── useAuthStore/
 │   │   │   │   ├── index.ts
@@ -1431,6 +1449,7 @@ core-fe/
 ├── knip.jsonc
 ├── LICENSE
 ├── Makefile
+├── mfa1-proof.tmp.mjs
 ├── netlify.toml
 ├── package.json
 ├── playwright.config.ts

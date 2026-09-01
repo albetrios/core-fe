@@ -119,7 +119,9 @@
       "invited": "Convidado",
       "suspended": "Suspenso"
     },
-    "error": "Não foi possível carregar os membros."
+    "error": "Não foi possível carregar os membros.",
+    "empty": "Ainda ninguém entrou neste espaço de trabalho.",
+    "noWorkspace": "Nenhum espaço de trabalho selecionado."
   },
   "schedule": {
     "ariaLabel": "Agenda",

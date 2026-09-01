@@ -119,7 +119,9 @@
       "invited": "Invited",
       "suspended": "Suspended"
     },
-    "error": "Couldn't load members."
+    "error": "Couldn't load members.",
+    "empty": "No one has joined this workspace yet.",
+    "noWorkspace": "No workspace selected."
   },
   "schedule": {
     "ariaLabel": "Schedule",

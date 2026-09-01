@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { DEFAULT_DEPLOYMENT_FLAGS } from '@/shared/tenancy/deployment-mode.ts';
@@ -8,13 +8,16 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { Dashboard } from './Dashboard.tsx';
 
-const { useMeContextMock } = vi.hoisted(() => ({ useMeContextMock: vi.fn() }));
+const { useMeContextMock, chartMock } = vi.hoisted(() => ({
+  useMeContextMock: vi.fn(),
+  chartMock: vi.fn(() => null),
+}));
 vi.mock('@/shared/hooks/useMeContext/index.ts', () => ({
   useMeContext: useMeContextMock,
   meContextQueryKey: ['auth', 'me-context'],
 }));
 vi.mock('@/shared/components/Dashboard/Dashboard.deferred.tsx', () => ({
-  DeferredAnalyticsChart: () => <div data-testid="dashboard-analytics-chart" />,
+  DeferredAnalyticsChart: () => chartMock() as unknown,
   DeferredHighlightsCarousel: () => (
     <div data-testid="dashboard-highlights-carousel">
       <div data-testid="dashboard-highlights-tabs" />
@@ -76,6 +79,7 @@ const queryResult = (
 describe('Dashboard', () => {
   beforeEach(() => {
     useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });
+    chartMock.mockReturnValue(<div data-testid="dashboard-analytics-chart" />);
   });
 
   it('greets the user and shows the team overview + management actions', async () => {
@@ -175,5 +179,34 @@ describe('Dashboard', () => {
     renderWithProviders(<Dashboard />);
     expect(await screen.findByTestId('dashboard-page')).toBeInTheDocument();
     expect(screen.queryByTestId('dashboard-stat-workspaces')).not.toBeInTheDocument();
+  });
+
+  // Regression (DASH-2): the chart, the roster and the calendar shared ONE
+  // SectionErrorBoundary wrapped around the whole Insights section, so a throw
+  // in any one of them removed all three plus the section heading.
+  describe('when one insights widget throws', () => {
+    let consoleError: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+      consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      consoleError.mockRestore();
+      chartMock.mockReturnValue(<div data-testid="dashboard-analytics-chart" />);
+    });
+
+    it('keeps the other widgets and the section heading on screen', async () => {
+      useMeContextMock.mockReturnValue(queryResult(ctx()));
+      chartMock.mockImplementation(() => {
+        throw new Error('analytics chart exploded');
+      });
+
+      renderWithProviders(<Dashboard />);
+
+      // The failing widget is contained...
+      expect(await screen.findByTestId('dashboard-insights-error')).toBeInTheDocument();
+      // ...and its neighbours survive.
+      expect(screen.getByTestId('members-table')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard-schedule-calendar')).toBeInTheDocument();
+    });
   });
 });

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -26,10 +26,14 @@ import {
 
 type LocationState = { mfaToken?: string; redirect?: string };
 
+/** Duration of the wrong-code shake; matches the `animate-otp-shake` keyframes. */
+const OTP_SHAKE_MS = 450;
+
 export function MfaForm() {
   const { t } = useTranslation(AUTH_NS);
   const [apiError, setApiError] = useState<string | null>(null);
   const [otpShake, setOtpShake] = useState(false);
+  const otpShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /**
    * Synchronous single-flight latch (house rule 1). `isSubmitting` only flips on
    * the next render, so a double-click — or a second `onComplete` from the code
@@ -38,6 +42,36 @@ export function MfaForm() {
    * a duplicate does not just waste a round trip, it fails the login outright.
    */
   const verifyingRef = useRef(false);
+  /**
+   * Replay-safe shake, owned so it can be restarted and released. A bare
+   * `setTimeout` held no id: a second wrong code inside the window re-set an
+   * already-true flag (no class change, so no replay), the first timer then
+   * cleared the shake mid-way through the second attempt, and leaving the
+   * screen fired `setOtpShake` on an unmounted component. Same defect as the
+   * email panel's (LOGIN-8) — this is its second site.
+   */
+  const startOtpShake = () => {
+    if (otpShakeTimerRef.current) clearTimeout(otpShakeTimerRef.current);
+    setOtpShake(false);
+    // Next frame, so the class is genuinely removed and re-added.
+    requestAnimationFrame(() => {
+      setOtpShake(true);
+      otpShakeTimerRef.current = setTimeout(() => {
+        otpShakeTimerRef.current = null;
+        setOtpShake(false);
+      }, OTP_SHAKE_MS);
+    });
+  };
+
+  useEffect(
+    () => () => {
+      if (otpShakeTimerRef.current) {
+        clearTimeout(otpShakeTimerRef.current);
+        otpShakeTimerRef.current = null;
+      }
+    },
+    [],
+  );
   /**
    * Stays true from a successful verify until this component unmounts. Awaiting
    * `navigate()` is not enough on its own — React can paint between the verify
@@ -92,8 +126,7 @@ export function MfaForm() {
       setHandedOff(false);
       if (!useRecovery) {
         setValue('code', '');
-        setOtpShake(true);
-        window.setTimeout(() => setOtpShake(false), 450);
+        startOtpShake();
       }
       setApiError(mapFrontendError(err));
     }

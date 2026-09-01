@@ -228,4 +228,49 @@ describe('MfaForm', () => {
       await waitFor(() => expect(mfaVerifyMock).toHaveBeenCalledTimes(2));
     });
   });
+
+  // Regression (LOGIN-8, second site): the shake used to be a bare setTimeout
+  // with no id, so a rapid second wrong code could not replay it and leaving the
+  // screen inside the window fired setState on an unmounted component.
+  describe('wrong-code shake', () => {
+    it('replays on a second wrong code instead of being swallowed', async () => {
+      mockUseLocation.mockReturnValue({ state: { mfaToken: 'temp-token' } });
+      mfaVerifyMock.mockRejectedValue(new Error('bad code'));
+      const user = userEvent.setup();
+      renderWithRouter();
+
+      const shaking = () => Boolean(document.querySelector('.animate-otp-shake'));
+
+      await user.type(await screen.findByTestId('mfa-code'), '111111');
+      await waitFor(() => expect(shaking()).toBe(true));
+
+      // Second failure inside the window: the class must come off and go back
+      // on, which is what makes the animation restart.
+      await waitFor(() => expect(screen.getByTestId('mfa-code')).not.toBeDisabled());
+      await user.type(screen.getByTestId('mfa-code'), '222222');
+      await waitFor(() => expect(mfaVerifyMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(shaking()).toBe(true));
+    });
+
+    it('releases the shake timer when the screen goes away', async () => {
+      mockUseLocation.mockReturnValue({ state: { mfaToken: 'temp-token' } });
+      mfaVerifyMock.mockRejectedValue(new Error('bad code'));
+      const user = userEvent.setup();
+      const { unmount } = renderWithRouter();
+
+      await user.type(await screen.findByTestId('mfa-code'), '111111');
+      await waitFor(() => expect(mfaVerifyMock).toHaveBeenCalled());
+
+      const cleared: number[] = [];
+      const realClear = globalThis.clearTimeout;
+      vi.spyOn(globalThis, 'clearTimeout').mockImplementation(((id: number) => {
+        cleared.push(id);
+        return realClear(id);
+      }) as typeof clearTimeout);
+
+      unmount();
+      expect(cleared.length).toBeGreaterThan(0);
+      vi.mocked(globalThis.clearTimeout).mockRestore();
+    });
+  });
 });

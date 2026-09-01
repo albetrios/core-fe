@@ -237,6 +237,36 @@ describe('CallbackPage failure reporting (CB-1)', () => {
     });
   });
 
+  // Regression (CB-2): the exchange used to run with no cancellation, so a user
+  // who left the callback screen mid-flight — a back gesture is enough — was
+  // yanked back off whatever page they had just opened, and a completion event
+  // was logged for a screen nobody was looking at.
+  it('does not navigate or log a completion once the user has left', async () => {
+    routeParamsHolder.value = { provider: 'google' };
+    window.history.pushState({}, '', `/callback/google?code=abc&state=${TEST_STATE}`);
+
+    let resolveExchange: ((v: unknown) => void) | undefined;
+    vi.spyOn(authApi, 'oauthCallback').mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveExchange = resolve;
+        }) as never,
+    );
+
+    const { unmount } = renderWithProviders(<CallbackPage />);
+    await waitFor(() => expect(authApi.oauthCallback).toHaveBeenCalled());
+
+    unmount(); // the user navigates away
+    resolveExchange?.({ accessToken: 'late-token' });
+    await waitFor(() => expect(establishSessionMock).toHaveBeenCalled());
+
+    expect(navigateMock).not.toHaveBeenCalled();
+    expect(captureAnalyticsMock).not.toHaveBeenCalledWith(
+      'auth_oauth_completed',
+      expect.anything(),
+    );
+  });
+
   it('stays silent on the success path', async () => {
     routeParamsHolder.value = { provider: 'google' };
     window.history.pushState({}, '', `/callback/google?code=abc&state=${TEST_STATE}`);

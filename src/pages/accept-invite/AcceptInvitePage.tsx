@@ -146,6 +146,15 @@ export function AcceptInvitePage() {
   const inFlightRef = useRef<Promise<void> | null>(null);
   const startedRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Whether this page still owns the screen. The accept is a chain of long
+   * awaits (accept → switch → refresh), and every branch after them either sets
+   * state or navigates. Without this, leaving mid-flight meant the finished
+   * chain still moved the browser — off whatever page the user had just opened
+   * — and still wrote state into a component that was gone (INV-2). The timer
+   * was already released on unmount; the awaits were not.
+   */
+  const aliveRef = useRef(true);
 
   const redirectAfterDelay = useCallback((run: () => void) => {
     if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
@@ -180,6 +189,7 @@ export function AcceptInvitePage() {
       const accepted = await acceptInvitation(invitationId, invitationToken);
 
       // The membership exists from here on, whatever the switch does next.
+      // Worth recording even if the user has left — the join really happened.
       captureAnalyticsEvent(ANALYTICS_EVENTS.inviteAccepted, {
         invitation_id: invitationId,
         organization_id: accepted.organizationId,
@@ -199,12 +209,14 @@ export function AcceptInvitePage() {
           invitation_id: invitationId,
           organization_id: accepted.organizationId,
         });
+        if (!aliveRef.current) return;
         notify.warning(t(AUTH_KEYS.acceptInvite.switchFailedToast));
         setStatus('partial');
         redirectAfterDelay(() => void navigate({ to: '/', replace: true }));
         return;
       }
 
+      if (!aliveRef.current) return;
       setStatus('success');
       redirectAfterDelay(() => {
         if (slug) {
@@ -216,6 +228,7 @@ export function AcceptInvitePage() {
     } catch (err) {
       // A 401 here means the session died between boot and accept — the
       // invitation itself is fine, so recover through login, not the card.
+      if (!aliveRef.current) return;
       if (err instanceof HttpError && err.status === 401) {
         void navigate(loginRecovery);
         return;
@@ -259,6 +272,7 @@ export function AcceptInvitePage() {
 
   useEffect(
     () => () => {
+      aliveRef.current = false;
       if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
     },
     [],

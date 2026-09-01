@@ -50,6 +50,9 @@ function formatResendCooldown(remainingMs: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
+/** Duration of the wrong-code shake; matches the `animate-otp-shake` keyframes. */
+const CODE_SHAKE_MS = 450;
+
 const inlineLinkClassName =
   'text-foreground h-auto p-0 text-sm font-normal underline underline-offset-4 hover:text-foreground/80 disabled:pointer-events-none disabled:opacity-50';
 
@@ -140,6 +143,7 @@ export function AuthEmailPanel({
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [codeShake, setCodeShake] = useState(false);
+  const codeShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Inline error surface — the reliable one. Toasts fired from this submit's
   // async catch can be dropped by sonner (created into history but never made
   // active), so a failed send/verify would otherwise give the user NO feedback.
@@ -153,10 +157,6 @@ export function AuthEmailPanel({
   const emailVerifyLoading = authMethodIsLoading(pending, { method: 'email-verify' });
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    onStepChange?.(step, step === 'verify' ? submittedEmail || undefined : undefined);
-  }, [step, submittedEmail, onStepChange]);
 
   const {
     register,
@@ -179,6 +179,37 @@ export function AuthEmailPanel({
     setFormError(message);
     notify.error(message);
   };
+
+  /**
+   * Replay-safe shake. The timer id is held so a rapid second failure can
+   * restart the animation instead of being swallowed by the first timer, and so
+   * it can be released on unmount — previously a bare `window.setTimeout` fired
+   * `setCodeShake` on an unmounted component when the user left inside the
+   * 450ms window (LOGIN-8).
+   */
+  const startCodeShake = () => {
+    if (codeShakeTimerRef.current) clearTimeout(codeShakeTimerRef.current);
+    setCodeShake(false);
+    // Next frame, so the class is genuinely removed and re-added — otherwise a
+    // second failure re-sets an already-true flag and the animation never replays.
+    requestAnimationFrame(() => {
+      setCodeShake(true);
+      codeShakeTimerRef.current = setTimeout(() => {
+        codeShakeTimerRef.current = null;
+        setCodeShake(false);
+      }, CODE_SHAKE_MS);
+    });
+  };
+
+  useEffect(
+    () => () => {
+      if (codeShakeTimerRef.current) {
+        clearTimeout(codeShakeTimerRef.current);
+        codeShakeTimerRef.current = null;
+      }
+    },
+    [],
+  );
 
   const sendCode = async (email: string) => {
     const value = email.trim();
@@ -203,6 +234,12 @@ export function AuthEmailPanel({
       // the verify step when it's there, otherwise start empty for normal manual entry.
       setVerificationCode(debug_verification_code ?? '');
       setStep('verify');
+      // Told to the parent HERE, not from an effect. Reporting it after commit
+      // meant this panel rendered the verify step while the parent still showed
+      // the welcome header, the OAuth buttons and the divider — one frame of the
+      // code boxes sitting under the method picker, then a visible collapse
+      // (LOGIN-6). Both states now land in the same commit.
+      onStepChange?.('verify', value);
 
       const cooldownUntil = Date.now() + AUTH_EMAIL_VERIFICATION_CODE_RESEND_COOLDOWN_MS;
       setResendCooldownUntil(cooldownUntil);
@@ -259,8 +296,7 @@ export function AuthEmailPanel({
         return;
       }
       setVerificationCode('');
-      setCodeShake(true);
-      window.setTimeout(() => setCodeShake(false), 450);
+      startCodeShake();
       surfaceError(err);
       handBack();
       return;
@@ -281,6 +317,7 @@ export function AuthEmailPanel({
 
   const changeEmail = () => {
     setStep('email');
+    onStepChange?.('email');
     setVerificationCode('');
     setResendCooldownUntil(null);
     setFormError(null);

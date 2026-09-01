@@ -12,6 +12,8 @@ export const AUTH_FORM_TEST_IDS = {
   methodDivider: 'auth-method-divider',
   socialMethods: 'auth-social-methods',
   methodErrorBanner: 'auth-method-error-banner',
+  /** Fallback when the email panel itself throws (its own section boundary). */
+  emailPanelError: 'auth-email-panel-error',
   emailPanel: 'auth-email-panel',
   email: 'auth-email',
   emailError: 'auth-email-error',

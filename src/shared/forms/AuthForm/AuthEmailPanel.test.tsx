@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-router';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, type ReactNode, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
@@ -68,12 +68,12 @@ import { queryClient } from '@/core/http/queryClient.ts';
 import type { AuthContinuePending } from './auth-form-pending.ts';
 import { AuthEmailPanel } from './AuthEmailPanel.tsx';
 
-function createTestRouter() {
+function createTestRouter(component: () => ReactNode = () => <AuthEmailPanel />) {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',
-    component: () => <AuthEmailPanel />,
+    component,
   });
   const tree = rootRoute.addChildren([indexRoute]);
   const history = createMemoryHistory({ initialEntries: ['/'] });
@@ -380,7 +380,10 @@ describe('AuthEmailPanel', () => {
     });
     render(<RouterProvider router={router} />);
 
-    await waitFor(() => expect(onStepChange).toHaveBeenCalledWith('email', undefined));
+    // No mount-time echo: the parent already initialises to 'email', and the
+    // effect that used to re-announce it is what made the step change land a
+    // commit late (LOGIN-6). The contract is now "report transitions".
+    expect(onStepChange).not.toHaveBeenCalled();
 
     await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
     await user.click(screen.getByTestId('auth-email-submit'));
@@ -388,6 +391,45 @@ describe('AuthEmailPanel', () => {
     await waitFor(() =>
       expect(onStepChange).toHaveBeenCalledWith('verify', 'user@example.com'),
     );
+  });
+
+  // Regression (LOGIN-6): the parent must learn about the step in the SAME
+  // commit that renders it. When this was reported from an effect there was one
+  // frame where the code boxes were on screen while the parent still showed the
+  // welcome header and the OAuth picker, then the layout visibly collapsed.
+  // Asserting "was told" is not enough — it has to be true by first paint.
+  it('tells the parent about the verify step in the same commit that renders it', async () => {
+    let sawVerifyInputBeforeParentWasTold = false;
+    const onStepChange = vi.fn();
+    const user = userEvent.setup();
+
+    const Probe = () => {
+      // Runs during the commit that first paints the verify step.
+      const verifyPanelPainted = Boolean(
+        document.querySelector('[data-testid="auth-email-verify-panel"]'),
+      );
+      if (verifyPanelPainted && onStepChange.mock.calls.length === 0) {
+        sawVerifyInputBeforeParentWasTold = true;
+      }
+      return null;
+    };
+
+    const router = createTestRouter(() => (
+      <>
+        <AuthEmailPanel onStepChange={onStepChange} />
+        <Probe />
+      </>
+    ));
+    render(<RouterProvider router={router} />);
+
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-email-verify-panel')).toBeInTheDocument(),
+    );
+    expect(onStepChange).toHaveBeenCalledWith('verify', 'user@example.com');
+    expect(sawVerifyInputBeforeParentWasTold).toBe(false);
   });
 
   // Regression: a failed send-code must surface a VISIBLE error. Toasts fired
