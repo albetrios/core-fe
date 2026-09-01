@@ -1,14 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  requireActiveOrganization,
-  requireOrganizationContext,
-  requirePersonalOrganizationsDeployment,
-  requireProvisionedPersonalDashboard,
-  requireProvisionedTeamWorkspace,
-  requireTeamOrganizationsDeployment,
-} from './route-guards.ts';
-import {
   requireOrgStatus,
   requirePersonalDashboardWorkspace,
   requirePersonalDeployment,
@@ -16,6 +8,14 @@ import {
   requireTeamDeployment,
   resolveActiveOrg,
 } from './org-gates.ts';
+import {
+  requireActiveOrganization,
+  requireOrganizationContext,
+  requirePersonalOrganizationsDeployment,
+  requireProvisionedPersonalDashboard,
+  requireProvisionedTeamWorkspace,
+  requireTeamOrganizationsDeployment,
+} from './route-guards.ts';
 
 vi.mock('./route-guards.ts', () => ({
   requireActiveOrganization: vi.fn(),

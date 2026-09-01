@@ -4,9 +4,8 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { notificationQueryKeys } from '@/shared/api/notification-query-keys.ts';
-import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
-
 import { notify } from '@/shared/notify/index.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
   useMarkAllNotificationsRead,

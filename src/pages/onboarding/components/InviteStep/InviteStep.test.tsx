@@ -22,9 +22,7 @@ describe('InviteStep', () => {
 
     addEmail('  Teammate@Example.COM ');
 
-    expect(useOnboardingStore.getState().data.invites).toEqual([
-      'teammate@example.com',
-    ]);
+    expect(useOnboardingStore.getState().data.invites).toEqual(['teammate@example.com']);
     expect(screen.getByTestId('onboarding-invite-list')).toHaveTextContent(
       'teammate@example.com',
     );

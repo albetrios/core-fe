@@ -1,6 +1,6 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Metric } from 'web-vitals';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 

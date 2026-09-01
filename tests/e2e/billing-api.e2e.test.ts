@@ -181,7 +181,7 @@ test.describe('core-be — billing', () => {
       },
     });
     expect([200, 422, 503]).toContain(res.status());
-    if (res.status() === 200 || res.status() === 200) {
+    if (res.status() === 200) {
       const body = (await res.json()) as { data: { client_secret: string | null } };
       expect(body.data).toHaveProperty('client_secret');
     }
