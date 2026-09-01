@@ -107,6 +107,8 @@
   },
   "toast": {
     "finishSuccess": "Welcome! Your workspace is ready.",
+    "finishSuccessWithInvites_one": "Welcome! Your workspace is ready — {{count}} invitation sent.",
+    "finishSuccessWithInvites_other": "Welcome! Your workspace is ready — {{count}} invitations sent.",
     "finishError": "Something went wrong finishing setup. Please try again.",
     "invitePartialFailure_one": "Workspace ready — {{count}} invite couldn't be sent. You can resend from Members.",
     "invitePartialFailure_other": "Workspace ready — {{count}} invites couldn't be sent. You can resend from Members."

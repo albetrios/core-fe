@@ -18,9 +18,18 @@
     "message": "حدث خطأ أثناء تحميل هذا القسم. حاول مرة أخرى.",
     "retry": "إعادة المحاولة",
     "pageContent": "محتوى الصفحة",
+    "navigation": "التنقل",
     "emailBanner": "التحقق من البريد",
     "notifications": "الإشعارات",
-    "organizationSwitcher": "مبدّل المؤسسة"
+    "organizationSwitcher": "مبدّل المؤسسة",
+    "commandPalette": "لوحة الأوامر",
+    "settings": "الإعدادات",
+    "appearance": "المظهر",
+    "analytics": "التحليلات",
+    "members": "الأعضاء",
+    "schedule": "الجدول",
+    "highlights": "أبرز الميزات",
+    "themeShowcase": "عرض السمة"
   },
   "toast": {
     "dismiss": "إغلاق الإشعار",
@@ -65,7 +74,8 @@
       "logoReadFailed": "تعذّر قراءة ذلك الملف.",
       "formCheck": "تحقق من النموذج",
       "updateSuccess": "تم تحديث المؤسسة",
-      "createSuccess": "تم إنشاء {{name}}"
+      "createSuccess": "تم إنشاء {{name}}",
+      "createdSwitchFailed": "تم إنشاء {{name}}، لكن تعذّر فتحها. اخترها من مبدّل المؤسسات."
     },
     "account": {
       "copyFailed": "تعذّر النسخ إلى الحافظة",

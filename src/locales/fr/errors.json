@@ -18,9 +18,18 @@
     "message": "Une erreur s'est produite lors du chargement de cette section. Réessayez.",
     "retry": "Réessayer",
     "pageContent": "Contenu de la page",
+    "navigation": "Navigation",
     "emailBanner": "Vérification de l'e-mail",
     "notifications": "Notifications",
-    "organizationSwitcher": "Sélecteur d'organisation"
+    "organizationSwitcher": "Sélecteur d'organisation",
+    "commandPalette": "Palette de commandes",
+    "settings": "Paramètres",
+    "appearance": "Apparence",
+    "analytics": "Analytique",
+    "members": "Membres",
+    "schedule": "Calendrier",
+    "highlights": "Points forts",
+    "themeShowcase": "Aperçu du thème"
   },
   "toast": {
     "dismiss": "Fermer la notification",
@@ -65,7 +74,8 @@
       "logoReadFailed": "Impossible de lire ce fichier.",
       "formCheck": "Vérifiez le formulaire",
       "updateSuccess": "Organisation mise à jour",
-      "createSuccess": "{{name}} créé"
+      "createSuccess": "{{name}} créé",
+      "createdSwitchFailed": "{{name}} a été créée, mais nous n'avons pas pu l'ouvrir. Sélectionnez-la dans le sélecteur d'organisations."
     },
     "account": {
       "copyFailed": "Impossible de copier dans le presse-papiers",

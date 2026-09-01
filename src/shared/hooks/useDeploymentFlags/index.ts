@@ -1,1 +1,6 @@
-export { useDeploymentFlags, useDeploymentMode } from './useDeploymentFlags.ts';
+export {
+  type DeploymentFlagsState,
+  useDeploymentFlags,
+  useDeploymentFlagsState,
+  useDeploymentMode,
+} from './useDeploymentFlags.ts';

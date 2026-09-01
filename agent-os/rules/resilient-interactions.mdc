@@ -1,11 +1,11 @@
 ---
-description: Seven standing UI-resilience rules — writes must be single-flight (no double submit / double charge), a component crash must stay contained to that component, the completion message must match the work that actually happened, no flow may be derived from state that has not loaded, local optimistic state must be rolled back like the cache is, a failed follow-up step must never route the user backwards, and a repeatable confirmation must replace itself instead of stacking. Applies to every mutating control, every composed surface, every success toast, every screen whose shape comes from a query, every optimistic edit held outside the cache, every multi-step flow that ends in a redirect, and every repeat-fire control.
+description: Twelve standing UI-resilience rules — writes must be single-flight (no double submit / double charge), a component crash must stay contained to that component and its boundary must be able to catch what actually fails, the completion message must match the work that actually happened, no flow may be derived from state that has not loaded, a param change must not blank the list, a failed fetch must be loud unless silence was chosen on purpose, local optimistic state must be rolled back like the cache is, a failed follow-up step must never route the user backwards, a repeatable confirmation must replace itself instead of stacking, every query must render all three of its states, and a try/catch must wrap only the step whose failure it describes, and a deferred action must own its optimism, its messages and its timer. Applies to every mutating control, every composed surface, every success toast, every screen whose shape comes from a query, every optimistic edit held outside the cache, every multi-step flow that ends in a redirect, every repeat-fire control, every value read from a query, and every handler that chains a write to follow-up steps.
 alwaysApply: true
 ---
 
 # Resilient Interactions
 
-Seven failure modes cost real money, a whole screen, or the user's trust. Each has a house
+Twelve failure modes cost real money, a whole screen, or the user's trust. Each has a house
 answer; use it rather than re-solving per feature.
 
 ## 1. Writes are single-flight — never trust `disabled` alone
@@ -94,6 +94,54 @@ same `notify` / logging surface, so a contained failure is still visible, never 
 
 New composed surfaces (a dashboard widget, a settings panel, a route island section) ship
 with their boundary in the same change — not as a follow-up.
+
+**A boundary that cannot catch what actually fails is decoration.** A React boundary sees a
+`throw` during render and nothing else. These widgets do not throw — they **fetch**. A rejected
+query just flips `isError` on its observer; the widget renders its empty/placeholder branch, and
+the wrapper with its translated "… unavailable" copy sits there unreachable. The org switcher
+showed "Select organization" over an empty list, the email banner rendered nothing at all, and
+neither fallback could ever appear (X-1).
+
+**Choose the surface by what it costs the layout.** Every failure must be visible and retryable;
+where it appears is a design decision, and there are exactly two house answers:
+
+| The widget is…                              | Surface                                                    |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| A page section that owns its own space       | `throwOnError: true` → `SectionErrorBoundary` in its place |
+| **App chrome** — header, rail, banner, nav   | `notifyOnError: true` → one toast, carrying a Retry        |
+
+Swapping a header control for an error card reflows the chrome around a control the user is
+mid-reach for, and it does it while they are already having a bad time. The toast says the same
+thing, keeps the switcher's last known label in place, and moves nothing:
+
+```tsx
+// chrome: the failure arrives beside the widget, not instead of it
+const { data: ctx } = useMeContext({ notifyOnError: true });
+
+// a page section: the fallback takes the space the section already had
+const { data } = useSomething({ throwOnError: true });
+<QueryErrorResetBoundary>
+  {({ reset }) => <ErrorBoundary onReset={reset} fallbackRender={…}>{children}</ErrorBoundary>}
+</QueryErrorResetBoundary>;
+```
+
+- **Either way, Retry must refetch.** The toast's action calls
+  `queryClient.refetchQueries({ queryKey })`; the boundary's Retry resets the failed query through
+  `QueryErrorResetBoundary`. A Retry that only re-renders a dead observer is silence with extra
+  steps.
+- **Pick one owner per widget.** Throw, toast, or an inline `QueryBoundary` — exactly one. Two is
+  a duplicate report; none is X-1.
+- **Every mount site must be wrapped before you make a component throw.** One unwrapped usage (the
+  desktop sidebar switcher) turns a contained widget failure into a blanked app.
+- **Match the fallback to the surface.** A 120px card inside a 56px header breaks the layout it is
+  protecting — `variant="inline"` exists for the boundaries that do sit in chrome (render throws
+  still land there).
+- **Check the copy resolves.** `t(ERRORS_KEYS.widget.x)` from a component bound to another
+  namespace renders the raw key. Nobody noticed, because the fallback never rendered.
+- **Test the fallback through a failing *query*, not a `throw`.** A `Boom` component passes on this
+  bug. `queryFn.mockRejectedValue(...)` plus "Retry calls queryFn a second time" does not — and
+  keep `gcTime` at its default in that test, or the remount refetches on its own and the assertion
+  passes with the reset wiring deleted.
 
 ## 3. A success message never outruns the work
 
@@ -261,3 +309,185 @@ useAppMutation({
   next to the field beats any toast; reach for the id when a toast is still the right surface.
 - **Test the rendered count, not the call count.** `notify.success` firing four times is correct
   and expected — the assertion that catches this is how many toasts are in the DOM.
+
+## 8. Every query renders all three of its states
+
+**Rule: `data`, `isPending` and `isError` are one unit — destructure all three or none.**
+A default value (`?? false`, `?? []`, `?? 0`) is a **claim**, and the user cannot tell it apart
+from a real answer.
+
+```tsx
+// WRONG — three different situations, one indistinguishable rendering.
+const { data: mfaEnabled = false } = useMfaStatus();      // SET-3
+const { data: hooks, isLoading } = useWebhooks();          // SET-4 — isError dropped
+```
+
+Two shapes of the same bug, both shipped:
+
+- **The default read as fact.** The security panel opened claiming *Disabled* with a Set-up
+  button while the status was still loading, then flipped — and said the same thing forever when
+  the read failed, with no error at all. A security posture the app never read is the worst
+  possible thing to assert.
+- **Every branch falling through.** With `isError` unread, a failed fetch leaves `data`
+  `undefined`: `isLoading` is false, `data && data.length === 0` is false, `data && length > 0`
+  is false. The section renders a bare heading, and "we couldn't ask" reads as "there are none".
+
+The house answer, in order of preference:
+
+1. `QueryBoundary` — skeleton, retry, data, in one wrapper.
+2. Explicit branches: `isPending` → skeleton **shaped like the thing** (a badge-sized skeleton
+   for a badge), `isError` → `RetryError` with `onRetry={refetch}` and `isRetrying={isFetching}`,
+   then the data.
+3. For a derived summary built from *several* queries (a score, a total, a status line), require
+   **all** of them to have landed. Rendering it from partial data invents a number.
+
+- **An empty state is a claim too.** "No webhooks", "No passkeys registered", "0 members" must
+  only render on a successful read.
+- **Test all three states.** A test that only mocks `{ data }` is how both of these shipped —
+  mock the query the way the component reads it, and assert what the user is told while pending
+  and while failed.
+
+## 9. A `catch` wraps only the step whose failure it describes
+
+**Rule: once a write has succeeded, nothing after it may report itself as that write failing.**
+A `try` that spans "create it" *and* "then go there" cannot tell the two apart — and the message
+it picks decides what the user does next.
+
+```tsx
+// WRONG — one catch over create + hydrate + switch + invalidate + navigate.
+try {
+  const org = await createOrganization(input);
+  await hydrateSessionContext();
+  await switchToOrganization(org.id);
+  await navigate(dashboard(org.slug));
+} catch {
+  notify.error(t(KEYS.formCheck)); // "Check the form" — for a form that was fine
+}
+```
+
+The organization existed. The user was told their *form* was wrong, corrected nothing, submitted
+again — and got a second organization (SET-6). The catch turned a navigation blip into a
+duplicate write.
+
+```tsx
+let org;
+try {
+  org = await createOrganization(input);
+} catch (error) {
+  notify.error(mapApiError(error)); // the real reason; the user can fix this
+  return;                            // and the dialog stays open on purpose
+}
+
+// The write LANDED. Close the retry surface before anything else can fail.
+reset();
+setOpen(false);
+notify.success(t(KEYS.created, { name: org.name }));
+
+try {
+  await hydrateSessionContext();
+  await switchToOrganization(org.id);
+  await navigate(dashboard(org.slug));
+} catch {
+  notify.warning(t(KEYS.createdSwitchFailed, { name: org.name }));
+}
+```
+
+- **Close the form the moment the write succeeds.** A dialog left open after a successful create
+  is a retry button for something already done.
+- **Surface the mapped error, not a category.** `mapApiError(error)` names the taken slug; "check
+  the form" sends the user hunting for a mistake that isn't there.
+- **Every follow-up step reports itself.** "Created, but we couldn't open it — pick it from the
+  switcher" is recoverable in one click. A generic failure is recoverable only by guessing.
+- **Test the count, not the toast.** `expect(createOrganization).toHaveBeenCalledTimes(1)` after a
+  post-create failure is the assertion that fails on this bug.
+
+## 10. A deferred action owns its optimism, its messages and its timer
+
+**Rule: an undoable action is scheduled, not fired.** Everything the user sees must move at
+*schedule* time, and the component that scheduled it must still own the timer.
+
+Three failures, all in one five-second window (SET-7):
+
+- **The optimism arrives late.** A mutation's `optimistic` / `optimisticInfinite` patch runs in
+  `onMutate` — which is at the END of the undo window. The toast said "Removing Sam…" while Sam
+  sat in the table for five seconds. **Apply the change when you schedule**, snapshot for undo,
+  and restore that snapshot on both undo AND commit-failure. The mutation's own rollback
+  snapshots at commit time, when the row is already gone, so it can never put it back.
+- **Two components each own a message.** The deferred toast says it, then the mutation's
+  `successMessage` says it again five seconds later. **One owner:** suppress the mutation's toast
+  on deferred paths and let the pending → processing → committed toasts share a single id, so
+  sonner replaces rather than stacks (rule 7).
+- **The timer outlives its owner.** A `setTimeout` left running against a torn-down component
+  cannot commit — the write goes through that component's mutation observer, which React has
+  already disposed — so a confirmed destructive action silently does not happen. **Cancel on
+  unmount, restore the row, and say so.** Never leave a pending write with no surface.
+
+```tsx
+const scheduleRemoval = useDeferredRowRemoval<Member>(orgQueryKeys.members(orgId));
+scheduleRemoval({
+  id: member.id,
+  pendingMessage: t(keys.removePending, { name: member.name }),
+  committedMessage: t(keys.removed),          // the ONE closing message
+  toastId: `remove-member-${member.id}`,      // unique per row
+  commit: () => removeMember.mutateAsync(member.id), // await it: failure rolls back
+});
+```
+
+- **Return the promise from `commit`.** Fire-and-forget `mutate()` gives the scheduler no way to
+  know the write failed, so the optimistic removal can never be undone.
+- **Test the window, not just the outcome.** Assert what the list shows one second in — "the row
+  eventually disappears" passes on this bug.
+
+## 11. A param change dims the list; it never blanks it
+
+**Rule: search, sort and filter must not swap the rows for a skeleton.** Those values live in the
+query key, so every keystroke starts a *new* query with no data: `isPending` flips true, the panel
+renders its skeleton, the container's height collapses, and the page jumps — then it refills. On a
+fast connection that is a strobe; on a slow one the user loses their place (X-2).
+
+```tsx
+// the hook keeps the previous answer on screen…
+useInfiniteQuery({ queryKey, queryFn, placeholderData: keepPreviousData });
+
+// …and the panel dims it rather than replacing it
+<Card className={cn('…', listRefreshClass(list.isRefreshing))} aria-busy={list.isRefreshing}>
+```
+
+- **`isPending` must mean the FIRST load.** With `keepPreviousData` on, an existing
+  `isPending → skeleton` branch becomes correct by itself — it stops firing per keystroke. Never
+  gate a skeleton on `isFetching`.
+- **Expose the placeholder state; don't infer it.** `useCursorList` returns `isRefreshing`
+  (`isPlaceholderData`) so a panel never has to guess whether its rows match its inputs.
+- **Dim and `aria-busy` together** — the same message for the eye and for assistive tech.
+- **Test the frame in between.** Rerender with new params, resolve nothing, and assert the old rows
+  are still there with `isPending === false`. "The list eventually shows the results" passes on this
+  bug.
+
+## 12. A failed fetch is loud unless silence was chosen on purpose
+
+**Rule: use `useAppQuery` for every read.** It defaults `meta: { notifyOnError: true }`, mirroring
+`useAppMutation`, so the `QueryCache` toasts the mapped error.
+
+The cache has always been able to toast — it just needed the flag, and across every call site in
+`src/` exactly zero of them set it. So a 500 on a list rendered the panel's *empty* state and
+nothing else; the failure existed only in Sentry (X-3). Rule 8 is how a component tells the two
+apart; this is the default that stops a component being the only thing standing between a failure
+and silence.
+
+```tsx
+// quiet — and the reason is right there, at the call site
+const sessions = useAppQuery({
+  queryKey: sessionsQueryKey,
+  queryFn: api.listSessions,
+  // The panel renders an inline failure row for exactly this query.
+  notifyOnError: false,
+});
+```
+
+- **One surface per failure, picked deliberately.** Inline (`QueryBoundary`, `RetryError`, a
+  boundary the query throws into) **or** the toast — not both, never neither.
+- **Polling queries stay quiet.** A toast every 30s is worse than the inline state it duplicates.
+- **`notifyOnError: false` needs a sentence next to it.** "Silent because X renders it" is a
+  reviewable claim; a bare `false` is the old bug with extra steps.
+- **Test the flag, not the toast.** Assert what the cache saw (`query.meta?.notifyOnError`), so the
+  test survives a change of toast library.

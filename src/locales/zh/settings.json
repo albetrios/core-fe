@@ -21,6 +21,7 @@
     "integrations": "集成"
   },
   "security": {
+    "loadFailed": "无法加载你的安全设置。请重试。",
     "heading": "安全",
     "description": "双因素认证与通行密钥。",
     "mfa": {

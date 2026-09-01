@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { ERRORS_KEYS } from '@/lib/i18n/errors.constants.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { cn } from '@/lib/utils.ts';
 import { NotificationCenter } from '@/shared/components/NotificationCenter/index.ts';
 import { OrganizationSwitcher } from '@/shared/components/OrganizationSwitcher/index.ts';
@@ -75,11 +75,17 @@ export function SidebarShell({
                 {t(LAYOUT_KEYS.brand.name)}
               </p>
               {showOrgSwitcher ? (
-                <OrganizationSwitcher
-                  className="w-full"
-                  align="start"
-                  surface="sidebar"
-                />
+                <SectionErrorBoundary
+                  title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
+                  testId="org-switcher-error-sidebar"
+                  variant="inline"
+                >
+                  <OrganizationSwitcher
+                    className="w-full"
+                    align="start"
+                    surface="sidebar"
+                  />
+                </SectionErrorBoundary>
               ) : null}
             </div>
           </div>
@@ -135,8 +141,9 @@ export function SidebarShell({
           </Button>
           {showOrgSwitcher ? (
             <SectionErrorBoundary
-              title={t(ERRORS_KEYS.widget.organizationSwitcher)}
+              title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
               testId="org-switcher-error-mobile"
+              variant="inline"
             >
               <OrganizationSwitcher className="min-w-0 flex-1 md:hidden" align="start" />
             </SectionErrorBoundary>
@@ -144,8 +151,9 @@ export function SidebarShell({
           <SearchTrigger />
           <div className="flex-1" />
           <SectionErrorBoundary
-            title={t(ERRORS_KEYS.widget.notifications)}
-            testId="notifications-error"
+            title={t(ERRORS_KEYS.widget.notifications, { ns: ERRORS_NS })}
+            testId="notifications-widget-error"
+            variant="inline"
           >
             <NotificationCenter />
           </SectionErrorBoundary>

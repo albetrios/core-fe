@@ -28,34 +28,57 @@ describe('notifyDeferredCommit', () => {
     vi.useRealTimers();
   });
 
-  it('runs onCommit after the delay and shows then dismisses a processing toast', async () => {
+  it('runs onCommit after the delay, reusing one toast id throughout', async () => {
+    // SET-7: pending → processing → committed all share `toastId`, so sonner
+    // REPLACES each with the next. Two ids meant two toasts for one action.
     const onCommit = vi.fn().mockResolvedValue(undefined);
     notifyDeferredCommit({
       pendingMessage: 'Removing…',
       processingMessage: 'Processing…',
+      committedMessage: 'Member removed',
       onCommit,
       delayMs: 100,
       toastId: 'remove-1',
     });
-    expect(notifySuccess).toHaveBeenCalled();
+    expect(notifySuccess).toHaveBeenCalledWith(
+      'Removing…',
+      expect.objectContaining({ id: 'remove-1' }),
+    );
     expect(onCommit).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(100);
-    expect(notifyDismiss).toHaveBeenCalledWith('remove-1');
-    expect(notifyLoading).toHaveBeenCalledWith('Processing…', {
-      id: 'remove-1-processing',
-    });
+    expect(notifyLoading).toHaveBeenCalledWith('Processing…', { id: 'remove-1' });
     expect(onCommit).toHaveBeenCalled();
 
-    await Promise.resolve();
-    expect(notifyDismiss).toHaveBeenCalledWith('remove-1-processing');
+    await vi.waitFor(() =>
+      expect(notifySuccess).toHaveBeenCalledWith('Member removed', { id: 'remove-1' }),
+    );
+    // Every toast this raised carries the SAME id — never a second one.
+    const ids = [...notifySuccess.mock.calls, ...notifyLoading.mock.calls].map(
+      (call) => (call[1] as { id?: string } | undefined)?.id,
+    );
+    expect(new Set(ids)).toEqual(new Set(['remove-1']));
   });
 
-  it('cancels onCommit when undo is clicked', () => {
-    const onCommit = vi.fn();
+  it('dismisses the toast when there is no closing message', async () => {
+    const onCommit = vi.fn().mockResolvedValue(undefined);
     notifyDeferredCommit({
       pendingMessage: 'Removing…',
       onCommit,
+      delayMs: 10,
+      toastId: 'r',
+    });
+    vi.advanceTimersByTime(10);
+    await vi.waitFor(() => expect(notifyDismiss).toHaveBeenCalledWith('r'));
+  });
+
+  it('cancels onCommit and calls onCancel when undo is clicked', () => {
+    const onCommit = vi.fn();
+    const onCancel = vi.fn();
+    notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      onCommit,
+      onCancel,
       delayMs: 100,
       toastId: 'r',
     });
@@ -63,21 +86,76 @@ describe('notifyDeferredCommit', () => {
     action?.onClick();
     vi.advanceTimersByTime(200);
     expect(onCommit).not.toHaveBeenCalled();
+    expect(onCancel).toHaveBeenCalledTimes(1);
     expect(notifyInfo).toHaveBeenCalled();
   });
 
   it('cancels onCommit when the pending toast is dismissed', () => {
     const onCommit = vi.fn();
+    const onCancel = vi.fn();
     notifyDeferredCommit({
       pendingMessage: 'Removing…',
       onCommit,
+      onCancel,
       delayMs: 100,
       toastId: 'r',
     });
-    const onDismiss = notifySuccess.mock.calls[0]?.[1]?.onDismiss;
-    onDismiss?.();
+    notifySuccess.mock.calls[0]?.[1]?.onDismiss?.();
     vi.advanceTimersByTime(200);
     expect(onCommit).not.toHaveBeenCalled();
+    expect(onCancel).toHaveBeenCalledTimes(1);
     expect(notifyLoading).not.toHaveBeenCalled();
+  });
+
+  it('ignores a dismiss that arrives once the commit has started', () => {
+    // The pending toast is REPLACED at commit time, and sonner reports that as
+    // a dismiss. Treating it as an undo would roll back every successful commit.
+    const onCommit = vi.fn().mockResolvedValue(undefined);
+    const onCancel = vi.fn();
+    notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      onCommit,
+      onCancel,
+      delayMs: 10,
+      toastId: 'r',
+    });
+    vi.advanceTimersByTime(10);
+    notifySuccess.mock.calls[0]?.[1]?.onDismiss?.();
+
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it('flush() commits immediately and is inert afterwards', () => {
+    const onCommit = vi.fn().mockResolvedValue(undefined);
+    const handle = notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      onCommit,
+      delayMs: 5000,
+      toastId: 'r',
+    });
+
+    handle.flush();
+    expect(onCommit).toHaveBeenCalledTimes(1);
+
+    // The window is over — neither a second flush nor the timer may re-run it.
+    handle.flush();
+    handle.cancel();
+    vi.advanceTimersByTime(10_000);
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it('rolls back through onCommitError when the write fails', async () => {
+    const onCommitError = vi.fn();
+    notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      onCommit: () => Promise.reject(new Error('nope')),
+      onCommitError,
+      delayMs: 10,
+      toastId: 'r',
+    });
+    vi.advanceTimersByTime(10);
+    await vi.waitFor(() => expect(onCommitError).toHaveBeenCalledTimes(1));
+    expect(notifyDismiss).toHaveBeenCalledWith('r');
   });
 });

@@ -64,6 +64,7 @@ export const ONBOARDING_KEYS = {
   },
   toast: {
     finishSuccess: 'toast.finishSuccess',
+    finishSuccessWithInvites: 'toast.finishSuccessWithInvites',
     finishError: 'toast.finishError',
     invitePartialFailure: 'toast.invitePartialFailure',
   },

@@ -107,6 +107,8 @@
   },
   "toast": {
     "finishSuccess": "Willkommen! Ihr Arbeitsbereich ist bereit.",
+    "finishSuccessWithInvites_one": "Willkommen! Dein Workspace ist bereit — {{count}} Einladung gesendet.",
+    "finishSuccessWithInvites_other": "Willkommen! Dein Workspace ist bereit — {{count}} Einladungen gesendet.",
     "finishError": "Beim Abschließen der Einrichtung ist etwas schiefgelaufen. Bitte erneut versuchen.",
     "invitePartialFailure_one": "Arbeitsbereich bereit — {{count}} Einladung konnte nicht gesendet werden. Sie können sie unter Mitglieder erneut senden.",
     "invitePartialFailure_other": "Arbeitsbereich bereit — {{count}} Einladungen konnten nicht gesendet werden. Sie können sie unter Mitglieder erneut senden."

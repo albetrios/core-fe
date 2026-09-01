@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { listRefreshClass } from '@/lib/list-refresh.ts';
+import { cn } from '@/lib/utils.ts';
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { CreateRoleDialog } from '@/shared/components/CreateRoleDialog/index.ts';
@@ -163,7 +165,10 @@ function RolesResults({
   }
   return (
     <>
-      <Card className="gap-0 overflow-hidden py-0">
+      <Card
+        className={cn('gap-0 overflow-hidden py-0', listRefreshClass(roles.isRefreshing))}
+        aria-busy={roles.isRefreshing}
+      >
         <ul className="divide-border divide-y" data-testid="roles-list">
           {roles.rows.map((role) => (
             <RoleListItem

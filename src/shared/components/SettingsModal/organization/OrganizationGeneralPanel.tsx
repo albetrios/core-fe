@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { type ChangeEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +20,7 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
 import { useUpdateOrganization } from '@/shared/hooks/useUpdateOrganization/index.ts';
 import { notify } from '@/shared/notify/index.ts';
@@ -159,9 +159,11 @@ export function OrganizationGeneralPanel() {
   });
   const update = useUpdateOrganization();
 
-  const orgsQuery = useQuery({
+  const orgsQuery = useAppQuery({
     queryKey: ['organizations'],
     queryFn: listMyOrganizations,
+    // The panel wraps this in a QueryBoundary.
+    notifyOnError: false,
   });
 
   return (

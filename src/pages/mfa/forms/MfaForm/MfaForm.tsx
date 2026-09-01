@@ -189,10 +189,14 @@ export function MfaForm() {
           </div>
 
           <div>
+            {/* `isLoading`, not just `disabled`: the shared Button renders the
+                spinner, sets `disabled` AND `aria-busy` from the one prop. A
+                label that only changes to "Verifying..." reads as a dead button
+                on a slow connection — nothing on it is moving. */}
             <Button
               type="submit"
               className="w-full"
-              disabled={pending}
+              isLoading={pending}
               data-testid={MFA_TEST_IDS.submit}
             >
               {pending ? t(AUTH_KEYS.mfa.verifying) : t(AUTH_KEYS.mfa.submit)}

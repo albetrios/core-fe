@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
@@ -9,6 +9,7 @@ import type {
 import { notificationQueryKeys } from '@/shared/api/notification-query-keys.ts';
 import * as api from '@/shared/api/notifications-api.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
@@ -23,20 +24,25 @@ const POLL_INTERVAL_MS = 30_000;
 /** The active org's notification inbox for this user (newest first), polled. */
 export function useNotifications() {
   const orgId = useOrganizationStore((s) => s.organizationId);
-  return useQuery({
+  return useAppQuery({
     queryKey: notificationQueryKeys.list(orgId),
     queryFn: api.listNotifications,
     refetchInterval: POLL_INTERVAL_MS,
+    // The popover renders a RetryError inline, and this polls — a toast every
+    // 30s would be worse than the inline state.
+    notifyOnError: false,
   });
 }
 
 /** Unread count for the bell badge (active org), polled. */
 export function useUnreadCount() {
   const orgId = useOrganizationStore((s) => s.organizationId);
-  return useQuery({
+  return useAppQuery({
     queryKey: notificationQueryKeys.unreadCount(orgId),
     queryFn: api.getUnreadCount,
     refetchInterval: POLL_INTERVAL_MS,
+    // A missing badge count is not worth a toast every poll.
+    notifyOnError: false,
   });
 }
 
@@ -86,9 +92,11 @@ export function useMarkAllNotificationsRead() {
 
 /** Category × channel delivery preferences (FE-30). */
 export function useNotificationPreferences() {
-  return useQuery({
+  return useAppQuery({
     queryKey: notificationQueryKeys.preferences(),
     queryFn: api.getNotificationPreferences,
+    // The notifications panel renders its own failure state for this query.
+    notifyOnError: false,
   });
 }
 

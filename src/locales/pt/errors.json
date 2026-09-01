@@ -18,9 +18,18 @@
     "message": "Algo deu errado ao carregar esta seção. Tente novamente.",
     "retry": "Tentar novamente",
     "pageContent": "Conteúdo da página",
+    "navigation": "Navegação",
     "emailBanner": "Verificação de e-mail",
     "notifications": "Notificações",
-    "organizationSwitcher": "Seletor de organização"
+    "organizationSwitcher": "Seletor de organização",
+    "commandPalette": "Paleta de comandos",
+    "settings": "Configurações",
+    "appearance": "Aparência",
+    "analytics": "Análises",
+    "members": "Membros",
+    "schedule": "Agenda",
+    "highlights": "Destaques",
+    "themeShowcase": "Vitrine de temas"
   },
   "toast": {
     "dismiss": "Dispensar notificação",
@@ -65,7 +74,8 @@
       "logoReadFailed": "Não foi possível ler esse arquivo.",
       "formCheck": "Verifique o formulário",
       "updateSuccess": "Organização atualizada",
-      "createSuccess": "{{name}} criado"
+      "createSuccess": "{{name}} criado",
+      "createdSwitchFailed": "{{name}} foi criada, mas não foi possível abri-la. Selecione-a no seletor de organizações."
     },
     "account": {
       "copyFailed": "Não foi possível copiar para a área de transferência",

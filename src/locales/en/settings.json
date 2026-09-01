@@ -21,6 +21,7 @@
     "integrations": "Integrations"
   },
   "security": {
+    "loadFailed": "Couldn't load your security settings. Please try again.",
     "heading": "Security",
     "description": "Two-factor authentication and passkeys.",
     "mfa": {

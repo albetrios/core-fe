@@ -18,9 +18,18 @@
     "message": "यह अनुभाग लोड करते समय कुछ गलत हो गया। फिर कोशिश करें।",
     "retry": "फिर कोशिश करें",
     "pageContent": "पृष्ठ सामग्री",
+    "navigation": "नेविगेशन",
     "emailBanner": "ईमेल सत्यापन",
     "notifications": "सूचनाएँ",
-    "organizationSwitcher": "संगठन स्विचर"
+    "organizationSwitcher": "संगठन स्विचर",
+    "commandPalette": "कमांड पैलेट",
+    "settings": "सेटिंग्स",
+    "appearance": "दिखावट",
+    "analytics": "एनालिटिक्स",
+    "members": "सदस्य",
+    "schedule": "शेड्यूल",
+    "highlights": "मुख्य बातें",
+    "themeShowcase": "थीम शोकेस"
   },
   "toast": {
     "dismiss": "सूचना खारिज करें",
@@ -65,7 +74,8 @@
       "logoReadFailed": "वह फ़ाइल पढ़ी नहीं जा सकी।",
       "formCheck": "फ़ॉर्म जाँचें",
       "updateSuccess": "संगठन अपडेट किया गया",
-      "createSuccess": "{{name}} बनाया गया"
+      "createSuccess": "{{name}} बनाया गया",
+      "createdSwitchFailed": "{{name}} बन गया, लेकिन हम उसे खोल नहीं सके. उसे संगठन स्विचर से चुनें."
     },
     "account": {
       "copyFailed": "क्लिपबोर्ड पर कॉपी नहीं हो सका",

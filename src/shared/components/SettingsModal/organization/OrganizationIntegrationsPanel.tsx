@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { listRefreshClass } from '@/lib/list-refresh.ts';
+import { cn } from '@/lib/utils.ts';
 import type { ApiKey } from '@/shared/api/organization-contracts.ts';
 import {
   createWebhookSchema,
@@ -12,6 +14,7 @@ import {
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
+import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
@@ -103,7 +106,13 @@ function ApiKeysSection() {
         />
       ) : null}
       {!keys.isError && keys.rows.length > 0 ? (
-        <Card className="gap-0 overflow-hidden py-0">
+        <Card
+          className={cn(
+            'gap-0 overflow-hidden py-0',
+            listRefreshClass(keys.isRefreshing),
+          )}
+          aria-busy={keys.isRefreshing}
+        >
           <ul className="divide-border divide-y" data-testid="apikeys-list">
             {keys.rows.map((key) => (
               <li key={key.id} className="flex items-center gap-3 p-3">
@@ -162,7 +171,7 @@ function ApiKeysSection() {
 /** Webhooks — list + cap-gated create (url + events) + delete. */
 function WebhooksSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
-  const { data: hooks, isLoading } = useWebhooks();
+  const { data: hooks, isLoading, isError, isFetching, refetch } = useWebhooks();
   const canManage = useCanManageIntegrations();
   const create = useCreateWebhook();
   const remove = useDeleteWebhook();
@@ -218,7 +227,19 @@ function WebhooksSection() {
         <Skeleton className="h-14 w-full" data-testid="webhooks-loading" />
       ) : null}
 
-      {hooks && hooks.length === 0 ? (
+      {isError ? (
+        <div data-testid="webhooks-error">
+          <RetryError
+            message="Couldn't load webhooks. Please try again."
+            onRetry={() => {
+              void refetch();
+            }}
+            isRetrying={isFetching}
+          />
+        </div>
+      ) : null}
+
+      {!isError && hooks && hooks.length === 0 ? (
         <EmptyState
           icon={<Boxes />}
           title="No webhooks"
@@ -226,7 +247,7 @@ function WebhooksSection() {
         />
       ) : null}
 
-      {hooks && hooks.length > 0 ? (
+      {!isError && hooks && hooks.length > 0 ? (
         <Card className="gap-0 overflow-hidden py-0">
           <ul className="divide-border divide-y" data-testid="webhooks-list">
             {hooks.map((hook) => (

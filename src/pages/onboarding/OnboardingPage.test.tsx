@@ -666,6 +666,11 @@ describe('OnboardingPage', () => {
         roleId: 'rol_member',
       });
       expect(successSpy).toHaveBeenCalledTimes(1);
+      // The toast NAMES how many invitations went out — "your workspace is
+      // ready" alone left the user with no confirmation that the teammates
+      // they had just typed were invited at all.
+      expect(successSpy).toHaveBeenCalledWith(expect.stringContaining('3'));
+      expect(successSpy.mock.calls[0]?.[0]).toMatch(/invitation/i);
       expect(warningSpy).not.toHaveBeenCalled();
     } finally {
       successSpy.mockRestore();
@@ -836,5 +841,23 @@ describe('OnboardingPage', () => {
     expect(await screen.findByTestId('onboarding-context-gate')).toBeInTheDocument();
     expect(screen.queryByTestId('onboarding-invite-email')).not.toBeInTheDocument();
     expect(screen.queryByTestId('onboarding-finish')).not.toBeInTheDocument();
+  });
+
+  it('does not mention invitations when the flow sent none', async () => {
+    // team-only default: the wizard creates the org, and no teammates were typed.
+    const user = userEvent.setup();
+    const successSpy = vi.spyOn(notify, 'success').mockImplementation(() => '');
+    try {
+      seedDoneStep();
+      renderWithProviders(<OnboardingPage />);
+
+      await user.click(await screen.findByTestId('onboarding-finish'));
+
+      await waitFor(() => expect(navigate).toHaveBeenCalled());
+      expect(successSpy).toHaveBeenCalledTimes(1);
+      expect(successSpy.mock.calls[0]?.[0]).not.toMatch(/invitation/i);
+    } finally {
+      successSpy.mockRestore();
+    }
   });
 });

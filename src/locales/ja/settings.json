@@ -21,6 +21,7 @@
     "integrations": "連携"
   },
   "security": {
+    "loadFailed": "セキュリティ設定を読み込めませんでした。もう一度お試しください。",
     "heading": "セキュリティ",
     "description": "二要素認証とパスキー。",
     "mfa": {

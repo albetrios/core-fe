@@ -107,6 +107,8 @@
   },
   "toast": {
     "finishSuccess": "Bem-vindo! Seu espaço de trabalho está pronto.",
+    "finishSuccessWithInvites_one": "Bem-vindo! O seu espaço está pronto — {{count}} convite enviado.",
+    "finishSuccessWithInvites_other": "Bem-vindo! O seu espaço está pronto — {{count}} convites enviados.",
     "finishError": "Algo deu errado ao concluir a configuração. Tente novamente.",
     "invitePartialFailure_one": "Espaço pronto — {{count}} convite não pôde ser enviado. Você pode reenviar em Membros.",
     "invitePartialFailure_other": "Espaço pronto — {{count}} convites não puderam ser enviados. Você pode reenviá-los em Membros."

@@ -18,9 +18,18 @@
     "message": "このセクションの読み込み中に問題が発生しました。再試行してください。",
     "retry": "再試行",
     "pageContent": "ページコンテンツ",
+    "navigation": "ナビゲーション",
     "emailBanner": "メール確認",
     "notifications": "通知",
-    "organizationSwitcher": "組織スイッチャー"
+    "organizationSwitcher": "組織スイッチャー",
+    "commandPalette": "コマンドパレット",
+    "settings": "設定",
+    "appearance": "外観",
+    "analytics": "分析",
+    "members": "メンバー",
+    "schedule": "スケジュール",
+    "highlights": "ハイライト",
+    "themeShowcase": "テーマショーケース"
   },
   "toast": {
     "dismiss": "通知を閉じる",
@@ -65,7 +74,8 @@
       "logoReadFailed": "そのファイルを読み取れませんでした。",
       "formCheck": "フォームを確認",
       "updateSuccess": "組織を更新しました",
-      "createSuccess": "{{name}} を作成しました"
+      "createSuccess": "{{name}} を作成しました",
+      "createdSwitchFailed": "{{name}} を作成しましたが、開けませんでした。組織スイッチャーから選択してください。"
     },
     "account": {
       "copyFailed": "クリップボードにコピーできませんでした",

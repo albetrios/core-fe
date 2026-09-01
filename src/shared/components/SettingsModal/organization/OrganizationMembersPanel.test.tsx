@@ -1,10 +1,24 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
+
+/**
+ * The panel schedules its deferred removal through the query cache now, so it
+ * needs a client. Kept local (rather than renderWithProviders) so these stay
+ * router-free component tests.
+ */
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return rtlRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 const {
   useMembersMock,
@@ -21,7 +35,7 @@ const {
 }));
 vi.mock('@/shared/hooks/useMembers/index.ts', () => ({
   useMembers: useMembersMock,
-  useRemoveMember: () => ({ mutate: removeMutate }),
+  useRemoveMember: () => ({ mutate: removeMutate, mutateAsync: removeMutate }),
   useUpdateMemberRole: () => ({ mutate: updateRoleMutate }),
   useUpdateMemberStatus: () => ({ mutate: updateStatusMutate }),
 }));
@@ -34,7 +48,11 @@ vi.mock('@/shared/components/InviteMemberDialog/index.ts', () => ({
   ),
 }));
 vi.mock('@/shared/notify/notify-deferred.ts', () => ({
-  notifyDeferredCommit: ({ onCommit }: { onCommit: () => void }) => onCommit(),
+  // Commit immediately and hand back the real handle shape the caller stores.
+  notifyDeferredCommit: ({ onCommit }: { onCommit: () => void | Promise<void> }) => {
+    void onCommit();
+    return { cancel: vi.fn(), flush: vi.fn() };
+  },
 }));
 
 import { OrganizationMembersPanel } from './OrganizationMembersPanel.tsx';
@@ -89,6 +107,7 @@ function membersQueryResult(
     isPending: false,
     isError: false,
     isFetching: false,
+    isRefreshing: false,
     hasNextPage: false,
     isFetchingNextPage: false,
     fetchNextPage: vi.fn(),
@@ -140,6 +159,22 @@ describe('OrganizationMembersPanel', () => {
     useMembersMock.mockReturnValue(membersQueryResult({ rows: [], isPending: true }));
     render(<OrganizationMembersPanel />);
     expect(screen.getByTestId('members-loading')).toBeInTheDocument();
+  });
+
+  it('dims the current rows while new search params load — never a skeleton (X-2)', () => {
+    // Search lives in the query key, so a keystroke is a new query. With
+    // keepPreviousData the rows stay put and only dim; without it the panel
+    // swapped them for a skeleton and the list blanked on every keystroke.
+    useMembersMock.mockReturnValue(
+      membersQueryResult({ rows: [MEMBER], isFetching: true, isRefreshing: true }),
+    );
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.queryByTestId('members-loading')).not.toBeInTheDocument();
+    const list = screen.getByTestId('members-list');
+    expect(list).toBeInTheDocument();
+    expect(screen.getByText('Jo Rivera')).toBeInTheDocument();
+    expect(list.closest('[aria-busy="true"]')).not.toBeNull();
   });
 
   it('shows an actions menu for a non-owner member and the real role name', () => {

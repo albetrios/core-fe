@@ -18,9 +18,18 @@
     "message": "이 섹션을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
     "retry": "다시 시도",
     "pageContent": "페이지 콘텐츠",
+    "navigation": "내비게이션",
     "emailBanner": "이메일 확인",
     "notifications": "알림",
-    "organizationSwitcher": "조직 전환기"
+    "organizationSwitcher": "조직 전환기",
+    "commandPalette": "명령 팔레트",
+    "settings": "설정",
+    "appearance": "모양",
+    "analytics": "분석",
+    "members": "멤버",
+    "schedule": "일정",
+    "highlights": "하이라이트",
+    "themeShowcase": "테마 쇼케이스"
   },
   "toast": {
     "dismiss": "알림 닫기",
@@ -65,7 +74,8 @@
       "logoReadFailed": "해당 파일을 읽을 수 없습니다.",
       "formCheck": "양식을 확인하세요",
       "updateSuccess": "조직이 업데이트됨",
-      "createSuccess": "{{name}} 생성됨"
+      "createSuccess": "{{name}} 생성됨",
+      "createdSwitchFailed": "{{name}}을(를) 만들었지만 열지 못했습니다. 조직 전환기에서 선택해 주세요."
     },
     "account": {
       "copyFailed": "클립보드에 복사할 수 없습니다",

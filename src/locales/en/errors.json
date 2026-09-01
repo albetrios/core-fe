@@ -18,9 +18,18 @@
     "message": "Something went wrong loading this section. Try again.",
     "retry": "Retry",
     "pageContent": "Page content",
+    "navigation": "Navigation",
     "emailBanner": "Email verification",
     "notifications": "Notifications",
-    "organizationSwitcher": "Organization switcher"
+    "organizationSwitcher": "Organization switcher",
+    "commandPalette": "Command palette",
+    "settings": "Settings",
+    "appearance": "Appearance",
+    "analytics": "Analytics",
+    "members": "Members",
+    "schedule": "Schedule",
+    "highlights": "Highlights",
+    "themeShowcase": "Theme showcase"
   },
   "toast": {
     "dismiss": "Dismiss notification",
@@ -65,7 +74,8 @@
       "logoReadFailed": "Could not read that file.",
       "formCheck": "Check the form",
       "updateSuccess": "Organization updated",
-      "createSuccess": "Created {{name}}"
+      "createSuccess": "Created {{name}}",
+      "createdSwitchFailed": "{{name}} was created, but we couldn't open it. Pick it from the organization switcher."
     },
     "account": {
       "copyFailed": "Could not copy to clipboard",

@@ -21,6 +21,7 @@
     "integrations": "Integrazioni"
   },
   "security": {
+    "loadFailed": "Non siamo riusciti a caricare le impostazioni di sicurezza. Riprova.",
     "heading": "Sicurezza",
     "description": "Autenticazione a due fattori e passkey.",
     "mfa": {

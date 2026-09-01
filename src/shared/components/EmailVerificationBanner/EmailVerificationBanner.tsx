@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { authApi } from '@/shared/api/auth-api.ts';
@@ -17,9 +17,17 @@ import { notify } from '@/shared/notify/index.ts';
  */
 export function EmailVerificationBanner() {
   const { t } = useTranslation(LAYOUT_NS);
-  const { data } = useMeContext();
+  // Rendering nothing on a failed me/context hides the prompt from exactly the
+  // users who need it, and looks identical to "already verified" (X-1). The
+  // failure now arrives as a toast with a Retry; the banner keeps its own shape
+  // rather than becoming an error strip that pushes the page down.
+  const { data } = useMeContext({ notifyOnError: true });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // `sending` is React state: two clicks in the same frame both read the stale
+  // value and both send a code. This flips synchronously inside the handler
+  // (agent-os/rules/resilient-interactions section 1).
+  const sendingRef = useRef(false);
   const turnstileReady = useTurnstileReady();
 
   if (!data || data.user.isEmailVerified) return null;
@@ -35,6 +43,8 @@ export function EmailVerificationBanner() {
 
   const resend = async () => {
     if (!email) return;
+    if (sendingRef.current || sent) return;
+    sendingRef.current = true;
     setSending(true);
     try {
       await authApi.emailVerificationCodeSend(email);
@@ -43,6 +53,7 @@ export function EmailVerificationBanner() {
     } catch (err) {
       notify.error(mapFrontendError(err));
     } finally {
+      sendingRef.current = false;
       setSending(false);
     }
   };

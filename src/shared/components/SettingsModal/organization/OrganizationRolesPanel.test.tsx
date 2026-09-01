@@ -1,9 +1,23 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
+
+/**
+ * The panel schedules its deferred removal through the query cache now, so it
+ * needs a client. Kept local (rather than renderWithProviders) so these stay
+ * router-free component tests.
+ */
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return rtlRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 const { useRolesMock, deleteMutate } = vi.hoisted(() => ({
   useRolesMock: vi.fn(),
@@ -11,7 +25,7 @@ const { useRolesMock, deleteMutate } = vi.hoisted(() => ({
 }));
 vi.mock('@/shared/hooks/useRoles/index.ts', () => ({
   useRoles: useRolesMock,
-  useDeleteRole: () => ({ mutate: deleteMutate }),
+  useDeleteRole: () => ({ mutate: deleteMutate, mutateAsync: deleteMutate }),
 }));
 // CreateRoleDialog has its own suite; here we only assert the panel renders it
 // (create trigger + controlled edit instance), so stub it to reflect its mode.
@@ -26,7 +40,11 @@ vi.mock('@/shared/components/CreateRoleDialog/index.ts', () => ({
   ),
 }));
 vi.mock('@/shared/notify/notify-deferred.ts', () => ({
-  notifyDeferredCommit: ({ onCommit }: { onCommit: () => void }) => onCommit(),
+  // Commit immediately and hand back the real handle shape the caller stores.
+  notifyDeferredCommit: ({ onCommit }: { onCommit: () => void | Promise<void> }) => {
+    void onCommit();
+    return { cancel: vi.fn(), flush: vi.fn() };
+  },
 }));
 
 import { OrganizationRolesPanel } from './OrganizationRolesPanel.tsx';

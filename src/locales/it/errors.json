@@ -18,9 +18,18 @@
     "message": "Qualcosa è andato storto nel caricamento di questa sezione. Riprova.",
     "retry": "Riprova",
     "pageContent": "Contenuto della pagina",
+    "navigation": "Navigazione",
     "emailBanner": "Verifica e-mail",
     "notifications": "Notifiche",
-    "organizationSwitcher": "Selettore organizzazione"
+    "organizationSwitcher": "Selettore organizzazione",
+    "commandPalette": "Palette dei comandi",
+    "settings": "Impostazioni",
+    "appearance": "Aspetto",
+    "analytics": "Analisi",
+    "members": "Membri",
+    "schedule": "Programma",
+    "highlights": "In evidenza",
+    "themeShowcase": "Vetrina dei temi"
   },
   "toast": {
     "dismiss": "Chiudi notifica",
@@ -65,7 +74,8 @@
       "logoReadFailed": "Impossibile leggere quel file.",
       "formCheck": "Controlla il modulo",
       "updateSuccess": "Organizzazione aggiornata",
-      "createSuccess": "Creato {{name}}"
+      "createSuccess": "Creato {{name}}",
+      "createdSwitchFailed": "{{name}} è stata creata, ma non siamo riusciti ad aprirla. Selezionala dal selettore di organizzazioni."
     },
     "account": {
       "copyFailed": "Impossibile copiare negli appunti",

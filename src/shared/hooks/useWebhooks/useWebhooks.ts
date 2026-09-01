@@ -1,10 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import type { CreateWebhookInput, Webhook } from '@/shared/api/webhook-contracts.ts';
 import * as api from '@/shared/api/webhooks-api.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 /** Org-scoped so two tenants never share a webhooks cache entry. */
@@ -14,7 +13,12 @@ export const webhooksQueryKey = (organizationId: string | null) =>
 /** The active org's outbound webhooks. Server state only. */
 export function useWebhooks() {
   const orgId = useOrganizationStore((s) => s.organizationId);
-  return useQuery({ queryKey: webhooksQueryKey(orgId), queryFn: api.listWebhooks });
+  return useAppQuery({
+    queryKey: webhooksQueryKey(orgId),
+    queryFn: api.listWebhooks,
+    // The integrations panel renders a RetryError for exactly this failure.
+    notifyOnError: false,
+  });
 }
 
 /** Create a webhook, then refresh the list. */

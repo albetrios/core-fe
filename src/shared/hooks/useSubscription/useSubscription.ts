@@ -1,11 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import * as billingApi from '@/shared/api/billing-api.ts';
 import type { BillingCycle } from '@/shared/api/billing-contracts.ts';
 import { billingQueryKeys } from '@/shared/api/billing-query-keys.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 /**
@@ -14,16 +13,20 @@ import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.
  */
 export function useSubscription() {
   const orgId = useOrganizationStore((s) => s.organizationId);
-  return useQuery({
+  return useAppQuery({
     queryKey: billingQueryKeys.activeSubscription(orgId),
     queryFn: billingApi.getActiveSubscription,
+    // The billing panel renders a QueryBoundary for exactly this failure.
+    notifyOnError: false,
   });
 }
 
 export function useBillingPlans() {
-  return useQuery({
+  return useAppQuery({
     queryKey: billingQueryKeys.plans(),
     queryFn: billingApi.listBillingPlans,
+    // The plan grid is wrapped in a QueryBoundary.
+    notifyOnError: false,
   });
 }
 

@@ -25,6 +25,7 @@ export const SETTINGS_KEYS = {
     integrations: 'nav.integrations',
   },
   security: {
+    loadFailed: 'security.loadFailed',
     heading: 'security.heading',
     description: 'security.description',
     stepUp: {

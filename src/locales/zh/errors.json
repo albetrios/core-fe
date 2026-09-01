@@ -18,9 +18,18 @@
     "message": "加载此区域时出错。请重试。",
     "retry": "重试",
     "pageContent": "页面内容",
+    "navigation": "导航",
     "emailBanner": "邮箱验证",
     "notifications": "通知",
-    "organizationSwitcher": "组织切换"
+    "organizationSwitcher": "组织切换",
+    "commandPalette": "命令面板",
+    "settings": "设置",
+    "appearance": "外观",
+    "analytics": "分析",
+    "members": "成员",
+    "schedule": "日程",
+    "highlights": "精选",
+    "themeShowcase": "主题展示"
   },
   "toast": {
     "dismiss": "关闭通知",
@@ -65,7 +74,8 @@
       "logoReadFailed": "无法读取该文件。",
       "formCheck": "请检查表单",
       "updateSuccess": "组织已更新",
-      "createSuccess": "已创建 {{name}}"
+      "createSuccess": "已创建 {{name}}",
+      "createdSwitchFailed": "已创建 {{name}}，但无法打开。请在组织切换器中选择它。"
     },
     "account": {
       "copyFailed": "无法复制到剪贴板",

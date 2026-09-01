@@ -21,6 +21,7 @@
     "integrations": "Intégrations"
   },
   "security": {
+    "loadFailed": "Impossible de charger vos paramètres de sécurité. Veuillez réessayer.",
     "heading": "Sécurité",
     "description": "Authentification à deux facteurs et clés d'accès.",
     "mfa": {

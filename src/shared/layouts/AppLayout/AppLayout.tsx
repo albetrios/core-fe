@@ -1,12 +1,15 @@
 import { useParams } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { lazy, startTransition, Suspense, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { onceAsync } from '@/lib/lazy-module.ts';
 import { CommandPaletteLazy } from '@/shared/components/CommandPalette/index.ts';
 import { KeyboardShortcutsLazy } from '@/shared/components/KeyboardShortcutsDialog/KeyboardShortcutsLazy.tsx';
 import { SessionTimeoutDialog } from '@/shared/components/SessionTimeoutDialog/index.ts';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useVisibleNav } from '@/shared/hooks/useCan/index.ts';
-import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
+import { useDeploymentFlagsState } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useOrgBrand } from '@/shared/hooks/useOrgBrand/index.ts';
 import { NAV_ITEMS, SkipLink } from '@/shared/layouts/AppLayout/AppLayout.shared.tsx';
 import {
@@ -16,6 +19,7 @@ import {
 } from '@/shared/layouts/AppLayout/resolve-app-shell.ts';
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
+import { resolveDeploymentMode } from '@/shared/tenancy/deployment-mode.ts';
 
 // Each shell is fetched on first render (or preload) and shared from then on.
 // A module-scope `import()` would instead fetch all four the moment this
@@ -31,6 +35,14 @@ const RailShell = lazy(() => loadRail().then((m) => ({ default: m.RailShell })))
 const FocusShell = lazy(() => loadFocus().then((m) => ({ default: m.FocusShell })));
 
 const APP_SHELLS = [SidebarShell, TopNavShell, RailShell, FocusShell] as const;
+
+/** Chunk loaders in `APP_SHELL_VARIANT` order — index-aligned with APP_SHELLS. */
+const APP_SHELL_LOADERS = [loadSidebar, loadTopNav, loadRail, loadFocus] as const;
+
+/** Fetch one shell's chunk without mounting it. */
+function preloadAppShellVariant(variant: AppShellVariant): Promise<unknown> {
+  return (APP_SHELL_LOADERS[variant] ?? loadFocus)();
+}
 
 function AppLayoutShell({
   variant,
@@ -57,20 +69,61 @@ function AppLayoutShell({
  */
 export function Component() {
   useOrgBrand();
+  const { t } = useTranslation(ERRORS_NS);
   const navItems = useVisibleNav(NAV_ITEMS);
   const { organizationSlug = '' } = useParams({ strict: false });
   const themeVariant = useThemeStore((s) => s.appVariant);
-  const deploymentMode = useDeploymentMode();
-  const variant = resolveAppShellVariant(deploymentMode, themeVariant);
+  const { flags, ready } = useDeploymentFlagsState();
+  // House rule 4: the shell is derived ONLY from loaded session context. Before
+  // it lands, `flags` is the permissive DEFAULT_DEPLOYMENT_FLAGS guess — deriving
+  // a shell from it mounts one frame and then replaces it with another.
+  const target = ready
+    ? resolveAppShellVariant(resolveDeploymentMode(flags), themeVariant)
+    : null;
+
+  /**
+   * The shell that is actually mounted. It only ever changes once the NEXT
+   * shell's chunk is already in memory, so the old one is never swapped out for
+   * a Suspense fallback — that swap is what blanked the page, remounted the
+   * routed island under it, and lost the user's scroll position (SHELL-1).
+   */
+  const [mounted, setMounted] = useState<AppShellVariant | null>(null);
+
+  useEffect(() => {
+    if (target === null || target === mounted) return;
+    let cancelled = false;
+    void preloadAppShellVariant(target).then(() => {
+      if (cancelled) return;
+      // A transition, so React can keep the current shell interactive while it
+      // renders the replacement instead of tearing straight down to a fallback.
+      startTransition(() => setMounted(target));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [target, mounted]);
 
   return (
     <div className="bg-background flex h-screen overflow-hidden" data-testid="app-layout">
       <SkipLink />
-      <AppLayoutShell
-        variant={variant}
-        navItems={navItems}
-        organizationSlug={organizationSlug}
-      />
+      {/* House rule 2. The variants render nav, brand, quick links and the user
+          menu; without this, a throw in any of them escalates to the route
+          boundary and replaces the whole authenticated application. Contained
+          here the user keeps a retry, and the dialogs below stay mounted. */}
+      <SectionErrorBoundary
+        title={t(ERRORS_KEYS.widget.navigation)}
+        testId="app-shell-error"
+      >
+        {mounted === null ? (
+          <LayoutVariantFallback />
+        ) : (
+          <AppLayoutShell
+            variant={mounted}
+            navItems={navItems}
+            organizationSlug={organizationSlug}
+          />
+        )}
+      </SectionErrorBoundary>
       <CommandPaletteLazy />
       <KeyboardShortcutsLazy />
       <SessionTimeoutDialog />
@@ -88,6 +141,7 @@ export {
   APP_SHELL_VARIANT,
   AppLayoutShell,
   preloadAppLayoutVariants,
+  preloadAppShellVariant,
   resolveAppShellVariant,
 };
 /* eslint-enable react-refresh/only-export-components */

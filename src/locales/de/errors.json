@@ -18,9 +18,18 @@
     "message": "Beim Laden dieses Abschnitts ist etwas schiefgelaufen. Erneut versuchen.",
     "retry": "Erneut versuchen",
     "pageContent": "Seiteninhalt",
+    "navigation": "Navigation",
     "emailBanner": "E-Mail-Bestätigung",
     "notifications": "Benachrichtigungen",
-    "organizationSwitcher": "Organisationswechsler"
+    "organizationSwitcher": "Organisationswechsler",
+    "commandPalette": "Befehlspalette",
+    "settings": "Einstellungen",
+    "appearance": "Darstellung",
+    "analytics": "Analysen",
+    "members": "Mitglieder",
+    "schedule": "Zeitplan",
+    "highlights": "Highlights",
+    "themeShowcase": "Theme-Vorschau"
   },
   "toast": {
     "dismiss": "Benachrichtigung schließen",
@@ -65,7 +74,8 @@
       "logoReadFailed": "Datei konnte nicht gelesen werden.",
       "formCheck": "Formular prüfen",
       "updateSuccess": "Organisation aktualisiert",
-      "createSuccess": "{{name}} erstellt"
+      "createSuccess": "{{name}} erstellt",
+      "createdSwitchFailed": "{{name}} wurde erstellt, konnte aber nicht geöffnet werden. Wähle sie im Organisationswechsler aus."
     },
     "account": {
       "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",

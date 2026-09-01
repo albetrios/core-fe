@@ -107,6 +107,8 @@
   },
   "toast": {
     "finishSuccess": "مرحبًا! مساحة عملك جاهزة.",
+    "finishSuccessWithInvites_one": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوة.",
+    "finishSuccessWithInvites_other": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوات.",
     "finishError": "حدث خطأ أثناء إنهاء الإعداد. يُرجى المحاولة مرة أخرى.",
     "invitePartialFailure_one": "المساحة جاهزة — تعذّر إرسال {{count}} دعوة. يمكنك إعادة الإرسال من الأعضاء.",
     "invitePartialFailure_other": "المساحة جاهزة — تعذّر إرسال {{count}} دعوات. يمكنك إعادة الإرسال من الأعضاء."

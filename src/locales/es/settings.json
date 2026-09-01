@@ -21,6 +21,7 @@
     "integrations": "Integraciones"
   },
   "security": {
+    "loadFailed": "No pudimos cargar tu configuración de seguridad. Inténtalo de nuevo.",
     "heading": "Seguridad",
     "description": "Autenticación en dos pasos y llaves de acceso.",
     "mfa": {

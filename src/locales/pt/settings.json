@@ -21,6 +21,7 @@
     "integrations": "Integrações"
   },
   "security": {
+    "loadFailed": "Não foi possível carregar as suas definições de segurança. Tente novamente.",
     "heading": "Segurança",
     "description": "Autenticação de dois fatores e passkeys.",
     "mfa": {

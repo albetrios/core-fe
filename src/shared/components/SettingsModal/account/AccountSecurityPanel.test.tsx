@@ -37,9 +37,39 @@ vi.mock('@/shared/notify/index.ts', () => ({
 
 import { AccountSecurityPanel } from './AccountSecurityPanel.tsx';
 
+/**
+ * Query results shaped the way the panel now reads them. The old mocks returned
+ * `{ data }` alone — which is exactly how SET-3 hid: `data ?? false` looks
+ * identical whether the answer is "off", "still loading" or "the read failed".
+ */
+const refetchMfa = vi.fn();
+const refetchPasskeys = vi.fn();
+const querySuccess = (data: unknown) => ({
+  data,
+  isSuccess: true,
+  isPending: false,
+  isError: false,
+  isFetching: false,
+});
+const queryPending = () => ({
+  data: undefined,
+  isSuccess: false,
+  isPending: true,
+  isError: false,
+  isFetching: true,
+});
+const queryFailed = (refetch: () => void) => ({
+  data: undefined,
+  isSuccess: false,
+  isPending: false,
+  isError: true,
+  isFetching: false,
+  refetch,
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
-  useMfaStatusMock.mockReturnValue({ data: false });
+  useMfaStatusMock.mockReturnValue({ ...querySuccess(false), refetch: refetchMfa });
   beginMutateAsync.mockResolvedValue({
     secret: 'JBSWY3DPEHPK3PXP',
     otpauthUri: 'otpauth://totp/Core:you?secret=JBSWY3DPEHPK3PXP&issuer=Core',
@@ -47,6 +77,8 @@ beforeEach(() => {
   confirmMutateAsync.mockResolvedValue({ recoveryCodes: ['AAAA-1111', 'BBBB-2222'] });
   disableMutateAsync.mockResolvedValue(undefined);
   usePasskeysMock.mockReturnValue({
+    ...querySuccess(undefined),
+    refetch: refetchPasskeys,
     data: [
       {
         id: 'pk_1',
@@ -87,7 +119,7 @@ describe('AccountSecurityPanel', () => {
   });
 
   it('shows Disable when enabled and confirms disabling', async () => {
-    useMfaStatusMock.mockReturnValue({ data: true });
+    useMfaStatusMock.mockReturnValue({ ...querySuccess(true), refetch: refetchMfa });
     const user = userEvent.setup();
     render(<AccountSecurityPanel />);
     expect(screen.getByTestId('mfa-status')).toHaveTextContent('Enabled');
@@ -115,5 +147,55 @@ describe('AccountSecurityPanel', () => {
   it('has no accessibility violations', async () => {
     const { container } = render(<AccountSecurityPanel />);
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  // ── SET-3: a security state is never asserted before it is known ───────────
+
+  it('shows a skeleton, never "Disabled", while the 2FA status is loading', async () => {
+    // Regression: `data ?? false` rendered the Disabled badge and a Set-up
+    // button on first paint, then flipped to Enabled a moment later.
+    useMfaStatusMock.mockReturnValue(queryPending());
+    usePasskeysMock.mockReturnValue(queryPending());
+    render(<AccountSecurityPanel />);
+
+    expect(screen.getByTestId('mfa-status-loading')).toBeInTheDocument();
+    expect(screen.queryByTestId('mfa-status')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mfa-setup')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mfa-disable')).not.toBeInTheDocument();
+    // The score is a claim too — it must not be computed from the defaults.
+    expect(screen.queryByTestId('security-overview')).not.toBeInTheDocument();
+    expect(screen.getByTestId('security-overview-loading')).toBeInTheDocument();
+  });
+
+  it('reports a failed 2FA read as an error with a retry, not as "off"', async () => {
+    const user = userEvent.setup();
+    useMfaStatusMock.mockReturnValue(queryFailed(refetchMfa));
+    render(<AccountSecurityPanel />);
+
+    expect(screen.getByTestId('mfa-error')).toBeInTheDocument();
+    // Never claim a security posture the app could not read.
+    expect(screen.queryByTestId('mfa-status')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mfa-setup')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('security-overview')).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('retry-button'));
+    expect(refetchMfa).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a failed passkeys read instead of an empty list', async () => {
+    // "You have no passkeys" is a claim; a failed read is not evidence for it.
+    usePasskeysMock.mockReturnValue(queryFailed(refetchPasskeys));
+    render(<AccountSecurityPanel />);
+
+    expect(screen.getByTestId('passkeys-error')).toBeInTheDocument();
+    expect(screen.queryByTestId('passkeys-empty')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('passkey-row')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('security-overview')).not.toBeInTheDocument();
+  });
+
+  it('shows the score only once both reads have landed', async () => {
+    render(<AccountSecurityPanel />);
+    expect(screen.getByTestId('security-overview')).toBeInTheDocument();
+    expect(screen.queryByTestId('security-overview-loading')).not.toBeInTheDocument();
   });
 });

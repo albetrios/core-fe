@@ -21,6 +21,7 @@
     "integrations": "Integrationen"
   },
   "security": {
+    "loadFailed": "Deine Sicherheitseinstellungen konnten nicht geladen werden. Bitte versuche es erneut.",
     "heading": "Sicherheit",
     "description": "Zwei-Faktor-Authentifizierung und Passkeys.",
     "mfa": {

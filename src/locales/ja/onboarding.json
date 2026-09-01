@@ -107,6 +107,8 @@
   },
   "toast": {
     "finishSuccess": "ようこそ！ワークスペースの準備ができました。",
+    "finishSuccessWithInvites_one": "ようこそ！ワークスペースの準備ができました — 招待を {{count}} 件送信しました。",
+    "finishSuccessWithInvites_other": "ようこそ！ワークスペースの準備ができました — 招待を {{count}} 件送信しました。",
     "finishError": "セットアップの完了中に問題が発生しました。もう一度お試しください。",
     "invitePartialFailure_one": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。",
     "invitePartialFailure_other": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。"

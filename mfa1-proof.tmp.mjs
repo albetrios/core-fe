@@ -280,6 +280,15 @@ if (SCENARIO === 'boundary') {
 
   result.inputDisabledDuringVerify = await hidden.isDisabled().catch(() => null);
   result.buttonLabelDuringVerify = await txt(page.getByTestId('mfa-submit'));
+  // A label that merely changes is not motion — is anything actually spinning?
+  result.spinnerDuringVerify = await page
+    .getByTestId('mfa-submit')
+    .evaluate((el) => !!el.querySelector('.animate-spin'))
+    .catch(() => null);
+  result.buttonBusyDuringVerify = await page
+    .getByTestId('mfa-submit')
+    .evaluate((el) => el.getAttribute('aria-busy') === 'true')
+    .catch(() => null);
   await shot('1-verifying');
 
   await hidden.press('Backspace').catch(() => {});

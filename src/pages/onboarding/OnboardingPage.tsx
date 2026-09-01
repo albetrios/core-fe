@@ -598,6 +598,12 @@ export function OnboardingPage() {
         ? await sendOnboardingInvites(inviteEmails)
         : inviteEmails.length;
 
+      // How many invitations actually went out. The toast names it: "your
+      // workspace is ready" alone left the user with no confirmation that the
+      // teammates they typed were invited at all — the one thing they most
+      // wanted to know at that moment.
+      const invitesSent = inviteEmails.length - failed;
+
       complete();
       if (failed > 0) {
         notify.warning(
@@ -608,7 +614,12 @@ export function OnboardingPage() {
         );
       } else {
         notify.success(
-          i18n.t(ONBOARDING_KEYS.toast.finishSuccess, { ns: ONBOARDING_NS }),
+          invitesSent > 0
+            ? i18n.t(ONBOARDING_KEYS.toast.finishSuccessWithInvites, {
+                ns: ONBOARDING_NS,
+                count: invitesSent,
+              })
+            : i18n.t(ONBOARDING_KEYS.toast.finishSuccess, { ns: ONBOARDING_NS }),
         );
       }
       navigateAfterOnboarding(

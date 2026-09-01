@@ -25,6 +25,8 @@ export function useApiKeys(params: ApiKeysListParams = {}): CursorListResult<Api
   return useCursorList<ApiKey>({
     queryKey: orgQueryKeys.apiKeysList(orgId, params),
     queryFn: (after) => orgApi.listApiKeys({ ...params, after }),
+    // The integrations panel renders an inline failure line for this query.
+    notifyOnError: false,
     // No active org (mid org-switch, or before context resolves) → skip the
     // request instead of firing a `Forbidden` against an empty org scope.
     enabled: Boolean(orgId),

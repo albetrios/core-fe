@@ -107,6 +107,8 @@
   },
   "toast": {
     "finishSuccess": "欢迎！您的工作空间已就绪。",
+    "finishSuccessWithInvites_one": "欢迎！你的工作区已就绪 — 已发送 {{count}} 份邀请。",
+    "finishSuccessWithInvites_other": "欢迎！你的工作区已就绪 — 已发送 {{count}} 份邀请。",
     "finishError": "完成设置时出错，请重试。",
     "invitePartialFailure_one": "工作空间已就绪 — {{count}} 个邀请未能发送，可在成员页重发。",
     "invitePartialFailure_other": "工作空间已就绪 — {{count}} 个邀请未能发送，可在成员页重发。"

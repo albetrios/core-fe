@@ -186,8 +186,12 @@ describe('MfaForm', () => {
       // Editable boxes were the bug: clearing one and retyping it re-fired
       // `onComplete`, which posted the spent token again.
       expect(screen.getByTestId('mfa-code')).toBeDisabled();
-      expect(screen.getByTestId('mfa-submit')).toBeDisabled();
-      expect(screen.getByTestId('mfa-submit')).toHaveTextContent(/verifying/i);
+      const submit = screen.getByTestId('mfa-submit');
+      expect(submit).toBeDisabled();
+      expect(submit).toHaveTextContent(/verifying/i);
+      // A changed label alone reads as a dead button — something has to move.
+      expect(submit).toHaveAttribute('aria-busy', 'true');
+      expect(submit.querySelector('.animate-spin')).toBeInTheDocument();
     });
 
     it('holds the pending state through the post-verify navigation', async () => {

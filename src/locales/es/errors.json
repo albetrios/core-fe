@@ -18,9 +18,18 @@
     "message": "Algo salió mal al cargar esta sección. Inténtalo de nuevo.",
     "retry": "Reintentar",
     "pageContent": "Contenido de la página",
+    "navigation": "Navegación",
     "emailBanner": "Verificación de correo",
     "notifications": "Notificaciones",
-    "organizationSwitcher": "Selector de organización"
+    "organizationSwitcher": "Selector de organización",
+    "commandPalette": "Paleta de comandos",
+    "settings": "Configuración",
+    "appearance": "Apariencia",
+    "analytics": "Analíticas",
+    "members": "Miembros",
+    "schedule": "Agenda",
+    "highlights": "Destacados",
+    "themeShowcase": "Muestra de temas"
   },
   "toast": {
     "dismiss": "Descartar notificación",
@@ -65,7 +74,8 @@
       "logoReadFailed": "No se pudo leer ese archivo.",
       "formCheck": "Revisa el formulario",
       "updateSuccess": "Organización actualizada",
-      "createSuccess": "Se creó {{name}}"
+      "createSuccess": "Se creó {{name}}",
+      "createdSwitchFailed": "Se creó {{name}}, pero no pudimos abrirla. Selecciónala en el selector de organizaciones."
     },
     "account": {
       "copyFailed": "No se pudo copiar al portapapeles",

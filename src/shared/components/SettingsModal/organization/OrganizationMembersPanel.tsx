@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { listRefreshClass } from '@/lib/list-refresh.ts';
+import { cn } from '@/lib/utils.ts';
 import type { Member, OrgRole } from '@/shared/api/organization-contracts.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
@@ -252,7 +254,13 @@ export function OrganizationMembersPanel() {
 
       {!members.isError && members.rows.length > 0 ? (
         <>
-          <Card className="gap-0 overflow-hidden py-0">
+          <Card
+            className={cn(
+              'gap-0 overflow-hidden py-0',
+              listRefreshClass(members.isRefreshing),
+            )}
+            aria-busy={members.isRefreshing}
+          >
             <ul className="divide-border divide-y" data-testid="members-list">
               {members.rows.map((member) => (
                 <li key={member.id} className="flex items-center gap-3 p-3">

@@ -201,4 +201,46 @@ describe('OrganizationIntegrationsPanel — webhooks', () => {
     await user.click(screen.getByTestId('confirm-accept'));
     await waitFor(() => expect(deleteWebhookMutateAsync).toHaveBeenCalledWith('whk_1'));
   });
+
+  // ── SET-4: a failed webhooks fetch is not an empty workspace ──────────────
+
+  it('shows an error with a retry when the webhooks fetch fails', async () => {
+    // Regression: `isError` was never read, so `hooks` stayed undefined, every
+    // branch fell through, and the user saw a bare heading — no list, no empty
+    // state, no error — and concluded there were no webhooks.
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    setCanManage(true); // webhook:read — the sub-section renders at all
+    useWebhooksMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      isFetching: false,
+      refetch,
+    });
+    render(<OrganizationIntegrationsPanel />);
+
+    expect(screen.getByTestId('webhooks-error')).toBeInTheDocument();
+    expect(screen.queryByTestId('webhooks-list')).not.toBeInTheDocument();
+    // Crucially NOT the empty state — that would still say "No webhooks".
+    expect(screen.queryByText('No webhooks')).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('retry-error').querySelector('button')!);
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('still shows the empty state when the fetch succeeds with no webhooks', async () => {
+    setCanManage(true);
+    useWebhooksMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      refetch: vi.fn(),
+    });
+    render(<OrganizationIntegrationsPanel />);
+
+    expect(screen.getByText('No webhooks')).toBeInTheDocument();
+    expect(screen.queryByTestId('webhooks-error')).not.toBeInTheDocument();
+  });
 });

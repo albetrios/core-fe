@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -25,6 +24,7 @@ import {
 } from '@/shared/components/ui/dialog.tsx';
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useMfaStatus } from '@/shared/hooks/useMfa/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 
@@ -160,7 +160,7 @@ export function StepUpDialog({
   const keys = SETTINGS_KEYS.security.stepUp;
   const email = useAuthStore((s) => s.user?.email) ?? '';
   const { data: mfaEnabled = false } = useMfaStatus();
-  const methods = useQuery({
+  const methods = useAppQuery({
     queryKey: ['auth', 'auth-methods'],
     queryFn: listAuthMethods,
     enabled: open,

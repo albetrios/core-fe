@@ -21,6 +21,7 @@
     "integrations": "연동"
   },
   "security": {
+    "loadFailed": "보안 설정을 불러오지 못했습니다. 다시 시도해 주세요.",
     "heading": "보안",
     "description": "2단계 인증과 패스키.",
     "mfa": {
