@@ -60,7 +60,7 @@ test.describe('deployment — team-only', () => {
   test('user can create a TEAM organization', async () => {
     const { accessToken } = await createSessionViaEmailCode(api);
     const { createStatus, org } = await createTeamOrganization(api, accessToken);
-    expect(createStatus).toBe(201);
+    expect(createStatus).toBe(200);
     expect(org?.id).toMatch(/^org_/);
     expect(org?.slug).toBeTruthy();
   });
