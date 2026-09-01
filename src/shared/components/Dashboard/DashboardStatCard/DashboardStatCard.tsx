@@ -10,7 +10,14 @@ type DashboardKpiTileProps = {
   value: string | number;
   hint?: string;
   testId: string;
+  /** `accent` inverts the tile onto the primary surface (lead-tile flair). */
+  emphasis?: 'default' | 'accent';
 };
+
+/** Diagonal hairline texture (currentColor) — the reference dashboards' hatch. */
+const hatchOverlayClassName =
+  'pointer-events-none absolute inset-0 opacity-[0.08] ' +
+  'bg-[repeating-linear-gradient(135deg,currentColor_0,currentColor_1px,transparent_1px,transparent_7px)]';
 
 /** Elevated KPI tile for the dashboard bento grid. */
 export function DashboardKpiTile({
@@ -19,6 +26,7 @@ export function DashboardKpiTile({
   value,
   hint,
   testId,
+  emphasis = 'default',
 }: DashboardKpiTileProps) {
   const { formatNumber } = useLocaleFormat();
   const numericValue = typeof value === 'number' ? value : null;
@@ -26,31 +34,63 @@ export function DashboardKpiTile({
   // React renders the final value; the tween only overwrites the node while running.
   const countRef = useAnimeCountUp<HTMLParagraphElement>(numericValue, formatCount, 720);
   const displayValue = numericValue !== null ? formatCount(numericValue) : value;
+  const accent = emphasis === 'accent';
 
   return (
     <article
       data-testid={testId}
       data-slot="card"
-      className="border-border/70 bg-card text-card-foreground flex flex-col gap-3 rounded-xl border p-4"
+      className={cn(
+        'relative flex flex-col gap-3 overflow-hidden rounded-xl border p-4',
+        accent
+          ? 'border-primary/50 bg-primary text-primary-foreground'
+          : 'border-border/70 bg-card text-card-foreground',
+      )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-muted-foreground text-xs font-medium">{label}</p>
+      {accent ? <div className={hatchOverlayClassName} aria-hidden="true" /> : null}
+      <div className="relative flex items-start justify-between gap-2">
+        <p
+          className={cn(
+            'text-xs font-medium',
+            accent ? 'text-primary-foreground/85' : 'text-muted-foreground',
+          )}
+        >
+          {label}
+        </p>
         <div
           data-slot="icon-chip"
-          className={cn('bg-muted text-muted-foreground size-8', iconChipClassName)}
+          className={cn(
+            'size-8',
+            accent
+              ? 'bg-primary-foreground/15 text-primary-foreground'
+              : 'bg-muted text-muted-foreground',
+            iconChipClassName,
+          )}
           aria-hidden="true"
         >
           <Icon className="size-4" />
         </div>
       </div>
-      <div>
+      <div className="relative">
         <p
           ref={countRef}
-          className="text-foreground text-2xl font-semibold tracking-tight tabular-nums"
+          className={cn(
+            'text-2xl font-semibold tracking-tight tabular-nums',
+            accent ? 'text-primary-foreground' : 'text-foreground',
+          )}
         >
           {displayValue}
         </p>
-        {hint ? <p className="text-muted-foreground mt-1 text-xs">{hint}</p> : null}
+        {hint ? (
+          <p
+            className={cn(
+              'mt-1 text-xs',
+              accent ? 'text-primary-foreground/75' : 'text-muted-foreground',
+            )}
+          >
+            {hint}
+          </p>
+        ) : null}
       </div>
     </article>
   );

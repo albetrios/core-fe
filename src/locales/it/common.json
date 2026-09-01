@@ -154,6 +154,9 @@
     "layoutTitle": "Layout",
     "layoutDescription": "Quanto è ampia l'area di lavoro principale — standard per le dashboard, lettura per i testi lunghi.",
     "contentWidth": "Larghezza del contenuto",
+    "dashboardTitle": "Dashboard",
+    "dashboardDescription": "Come la dashboard dispone le sue sezioni.",
+    "dashboardArrangement": "Disposizione",
     "surfaceTitle": "Superficie e movimento",
     "surfaceDescription": "Spaziatura, profondità, contrasto e movimento.",
     "density": "Densità",
@@ -176,6 +179,7 @@
     "sectionColour": "colore",
     "sectionType": "tipografia e forma",
     "sectionSurface": "superficie e movimento",
+    "sectionDashboard": "layout della dashboard",
     "sectionNotifications": "stile di notifica",
     "custom": "Personalizzato",
     "customWith": "Personalizzato — {{look}}"

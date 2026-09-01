@@ -12,6 +12,7 @@ describe('useThemeStore', () => {
       iconLibrary: 'lucide',
       authVariant: 0,
       appVariant: 0,
+      dashboardVariant: 0,
     });
     const root = document.documentElement;
     delete root.dataset.theme;
@@ -96,6 +97,12 @@ describe('useThemeStore', () => {
     // on; either way the stored index stays a valid variant.
     expect([0, 1, 2]).toContain(state.authVariant);
     expect([0, 1, 2]).toContain(state.appVariant);
+    expect([0, 1, 2, 3]).toContain(state.dashboardVariant);
+  });
+
+  it('setDashboardVariant stores the arrangement index (TEMP preview)', () => {
+    useThemeStore.getState().setDashboardVariant(2);
+    expect(useThemeStore.getState().dashboardVariant).toBe(2);
   });
 
   it('applyThemeSeed reproduces a look from its seed and stores it', () => {

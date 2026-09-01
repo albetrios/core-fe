@@ -142,6 +142,16 @@ const SESSION_USER_ID = 'usr_1';
  * is claimed for the session user FIRST: the mount effect claims it too, and an
  * unclaimed store is wiped — taking the seed with it.
  */
+/**
+ * Structurally valid base64url JWT — `setAccessToken` validates the shape, so a
+ * bare string is rejected. Shared by every test that needs a token in scope.
+ */
+const FAKE_JWT = (() => {
+  const b64u = (value: object) =>
+    btoa(JSON.stringify(value)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return `${b64u({ alg: 'none' })}.${b64u({ sub: 'usr_1', exp: 9999999999 })}.sig`;
+})();
+
 function seedDoneStep(invites: string[] = []) {
   const store = useOnboardingStore.getState();
   store.reset();
@@ -442,14 +452,7 @@ describe('OnboardingPage', () => {
     const { authApi } = await import('@/shared/api/auth-api.ts');
     const { hydrateSessionContext } = await import('@/shared/tenancy/session-context.ts');
     const { setAccessToken, clearAccessToken } = await import('@/shared/auth/token.ts');
-    // Structurally valid base64url JWT — setAccessToken validates the shape.
-    const b64u = (value: object) =>
-      btoa(JSON.stringify(value))
-        .replace(/=/g, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
-    const fakeJwt = `${b64u({ alg: 'none' })}.${b64u({ sub: 'usr_1', exp: 9999999999 })}.sig`;
-    setAccessToken(fakeJwt);
+    setAccessToken(FAKE_JWT);
     vi.mocked(authApi.updateProfile).mockImplementationOnce(async () => {
       await new Promise((r) => setTimeout(r, 20)); // let hydrate overtake if unordered
       order.push('updateProfile');
@@ -799,15 +802,7 @@ describe('OnboardingPage', () => {
     const user = userEvent.setup();
     const warningSpy = vi.spyOn(notify, 'warning').mockImplementation(() => '');
     const { setAccessToken, clearAccessToken } = await import('@/shared/auth/token.ts');
-    // Structurally valid base64url JWT — setAccessToken validates the shape.
-    const b64u = (value: object) =>
-      btoa(JSON.stringify(value))
-        .replace(/=/g, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
-    setAccessToken(
-      `${b64u({ alg: 'none' })}.${b64u({ sub: 'usr_1', exp: 9999999999 })}.sig`,
-    );
+    setAccessToken(FAKE_JWT);
     const { authApi } = await import('@/shared/api/auth-api.ts');
     vi.mocked(authApi.updateProfile).mockRejectedValueOnce(new Error('patch failed'));
     try {

@@ -28,9 +28,12 @@ export const AUTH_FORM_TEST_IDS = {
   emailResend: 'auth-email-resend',
   emailChange: 'auth-email-change',
   autoGooglePending: 'auth-auto-google-pending',
+  // The gate notice (this branch) and the inline Turnstile slot (main) are
+  // different surfaces on the same screen, so both sets of hooks are kept.
   captchaPreparing: 'auth-captcha-preparing',
   captchaStalled: 'auth-captcha-stalled',
   captchaRetry: 'auth-captcha-retry',
+  captchaSlot: 'auth-captcha-slot',
   skipAutoGoogle: 'auth-skip-auto-google',
   /** Fallback selector for providers without a dedicated `continue*` id. */
   continueProvider: (provider: string) => `auth-continue-${provider}`,

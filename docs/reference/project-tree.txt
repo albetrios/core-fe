@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~566 src files · ~314 tests in src/ · 35 E2E specs · 24 shadcn UI primitives
+Stats: ~609 src files · ~333 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -656,10 +656,12 @@ core-fe/
 │   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── auth-captcha-headers.ts
 │   │   │   │   ├── captcha-config.ts
+│   │   │   │   ├── captcha-slot.ts
 │   │   │   │   ├── captcha.constants.ts
+│   │   │   │   ├── CaptchaSlot.tsx
 │   │   │   │   ├── InvisibleTurnstile.tsx
 │   │   │   │   ├── turnstile-token-store.ts
-│   │   │   │   └── [5 test files]
+│   │   │   │   └── [7 test files]
 │   │   │   ├── auth-channel.ts
 │   │   │   ├── auth-shell.constants.ts
 │   │   │   ├── AUTH.OVERVIEW.md
@@ -717,12 +719,36 @@ core-fe/
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── Dashboard/
+│   │   │   │   ├── AiAssistantCard/
+│   │   │   │   │   ├── AiAssistantCard.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── AnalyticsChart/
 │   │   │   │   │   ├── AnalyticsChart.tsx
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── AutomationLeaderboard/
+│   │   │   │   │   ├── AutomationLeaderboard.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── BillingSummary/
+│   │   │   │   │   ├── BillingSummary.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── ContributionHeatmap/
+│   │   │   │   │   ├── ContributionHeatmap.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── ConversionFunnel/
+│   │   │   │   │   ├── ConversionFunnel.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── DashboardActionCard/
 │   │   │   │   │   ├── DashboardActionCard.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── DashboardActivityFeed/
+│   │   │   │   │   ├── DashboardActivityFeed.tsx
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── DashboardHero/
@@ -733,8 +759,24 @@ core-fe/
 │   │   │   │   │   ├── DashboardNextSteps.tsx
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── DashboardPulseGauge/
+│   │   │   │   │   ├── DashboardPulseGauge.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── DashboardStatCard/
 │   │   │   │   │   ├── DashboardStatCard.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── FocusTimer/
+│   │   │   │   │   ├── FocusTimer.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── GlobalActivityMap/
+│   │   │   │   │   ├── GlobalActivityMap.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── HealthRadar/
+│   │   │   │   │   ├── HealthRadar.tsx
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── HighlightsCarousel/
@@ -745,14 +787,50 @@ core-fe/
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   ├── MembersTable.tsx
 │   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── MiniGantt/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── MiniGantt.tsx
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── PlanUsageMeters/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── PlanUsageMeters.tsx
+│   │   │   │   │   └── [1 test file]
 │   │   │   │   ├── ScheduleCalendar/
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   ├── ScheduleCalendar.tsx
 │   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── SourceDonut/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── SourceDonut.tsx
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── TimelineStrip/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── TimelineStrip.tsx
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── TrendStrip/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── TrendStrip.tsx
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── UsageBars/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── UsageBars.tsx
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── UsageRanking/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── UsageRanking.tsx
+│   │   │   │   │   └── [1 test file]
+│   │   │   │   ├── variants/
+│   │   │   │   │   ├── DashboardBento.tsx
+│   │   │   │   │   ├── DashboardClassic.tsx
+│   │   │   │   │   ├── DashboardCommandCenter.tsx
+│   │   │   │   │   └── DashboardPulse.tsx
+│   │   │   │   ├── dashboard-motion.ts
 │   │   │   │   ├── dashboard-quick-actions.ts
+│   │   │   │   ├── dashboard-view.ts
 │   │   │   │   ├── dashboard.constants.ts
 │   │   │   │   ├── Dashboard.deferred.tsx
 │   │   │   │   ├── dashboard.placeholder-data.ts
+│   │   │   │   ├── Dashboard.shared.tsx
 │   │   │   │   ├── Dashboard.tsx
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [4 test files]
@@ -1311,7 +1389,7 @@ core-fe/
 │   │   │   ├── login-light-chromium-darwin.png
 │   │   │   └── login-theme-extremes-chromium-darwin.png
 │   │   ├── global-setup.ts
-│   │   └── [28 test files]
+│   │   └── [32 test files]
 │   ├── factories/
 │   │   └── README.md
 │   ├── fixtures/

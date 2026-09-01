@@ -123,6 +123,128 @@
     "empty": "Diesem Workspace ist noch niemand beigetreten.",
     "noWorkspace": "Kein Workspace ausgewählt."
   },
+  "trends": {
+    "heading": "Nutzungstrends",
+    "description": "Entwicklung Woche über Woche"
+  },
+  "usageBars": {
+    "heading": "Wöchentliche Nutzung",
+    "description": "Sitzungen und API-Aufrufe pro Woche"
+  },
+  "heatmap": {
+    "heading": "Aktivitäts-Heatmap",
+    "description": "Zwölf Wochen tägliche Aktivität",
+    "less": "Weniger",
+    "more": "Mehr"
+  },
+  "funnel": {
+    "heading": "Akquise-Funnel",
+    "description": "Vom ersten Besuch bis zur Aktivierung",
+    "stages": {
+      "visited": "Besucht",
+      "signedUp": "Registriert",
+      "onboarded": "Onboarding abgeschlossen",
+      "activated": "Aktiviert"
+    }
+  },
+  "radar": {
+    "heading": "Workspace-Gesundheit",
+    "description": "Fünf Dimensionen auf einen Blick",
+    "axes": {
+      "activity": "Aktivität",
+      "growth": "Wachstum",
+      "security": "Sicherheit",
+      "automation": "Automatisierung",
+      "engagement": "Engagement"
+    }
+  },
+  "leaderboard": {
+    "heading": "Top-Automatisierungen",
+    "description": "Meiste Läufe diesen Monat",
+    "runs": "Läufe",
+    "items": {
+      "welcomeEmail": "Willkommens-E-Mail",
+      "weeklyDigest": "Wochenübersicht",
+      "slackSync": "Slack-Sync",
+      "backupJob": "Backup-Job"
+    }
+  },
+  "focus": {
+    "heading": "Fokus-Timer",
+    "description": "Ein 25-minütiger Deep-Work-Sprint",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Zurücksetzen"
+  },
+  "meters": {
+    "heading": "Plan-Nutzung",
+    "description": "Wie viel vom Plan genutzt wird"
+  },
+  "billingCard": {
+    "heading": "Abrechnungsübersicht",
+    "description": "Plan, Verlängerung und Zahlung",
+    "plan": "Plan",
+    "nextInvoice": "Nächste Rechnung",
+    "payment": "Zahlung"
+  },
+  "ai": {
+    "heading": "Frag deinen Workspace",
+    "description": "Suchen, Aktionen ausführen, überallhin springen",
+    "placeholder": "Frag etwas…",
+    "chips": {
+      "usage": "Nutzung anzeigen",
+      "members": "Mitglieder einladen",
+      "appearance": "Theme ändern"
+    }
+  },
+  "map": {
+    "heading": "Globale Aktivität",
+    "description": "Sitzungen nach Region diese Woche",
+    "regions": {
+      "americas": "Amerika",
+      "europe": "Europa",
+      "asia": "Asien",
+      "oceania": "Ozeanien"
+    }
+  },
+  "donut": {
+    "heading": "Sitzungen nach Quelle",
+    "description": "Woher die Sitzungen dieser Woche kamen",
+    "segments": {
+      "web": "Web",
+      "mobile": "Mobil",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "Funktionsnutzung",
+    "description": "Fortschritt zu den Wochenzielen"
+  },
+  "timeline": {
+    "heading": "Dieser Monat",
+    "description": "Wichtige Termine im Monat",
+    "today": "Heute"
+  },
+  "activity": {
+    "heading": "Letzte Aktivität",
+    "description": "Neueste Änderungen in diesem Arbeitsbereich",
+    "events": {
+      "inviteAccepted": "Ein neues Mitglied hat die Einladung angenommen",
+      "roleUpdated": "Eine Mitgliederrolle wurde aktualisiert",
+      "planRenewed": "Der Plan wurde erfolgreich verlängert",
+      "settingsChanged": "Die Arbeitsbereich-Einstellungen wurden aktualisiert"
+    }
+  },
+  "pulse": {
+    "heading": "Arbeitsbereich-Puls",
+    "description": "Wöchentliche Aktivität in diesem Arbeitsbereich",
+    "score": "des Wochenziels",
+    "metrics": {
+      "sessions": "Sitzungen",
+      "automations": "Automatisierungen",
+      "reviews": "Überprüfungen"
+    }
+  },
   "schedule": {
     "ariaLabel": "Zeitplan",
     "heading": "Zeitplan",

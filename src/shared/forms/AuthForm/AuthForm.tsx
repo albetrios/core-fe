@@ -11,6 +11,7 @@ import {
   shouldAttemptAutoGoogleSignIn,
   skipAutoGoogleSignIn,
 } from '@/shared/auth/auto-google-sign-in.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { useCaptchaGate } from '@/shared/auth/captcha/useCaptchaGate/index.ts';
 import type { LoginErrorCode } from '@/shared/auth/login-search.ts';
 import {
@@ -379,6 +380,13 @@ export function AuthForm() {
           </SectionErrorBoundary>
         </div>
       ) : null}
+
+      {/* The email panel owns the captcha slot (between its last field and the submit
+          button — the conventional captcha position). This form-level slot exists only for
+          OAuth-only deployments, where no email panel mounts but the provider buttons are
+          still captcha-gated. Never render both: the registry is last-mounted-wins and the
+          challenge must sit in the email flow whenever it exists. */}
+      {showEmail ? null : <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />}
     </div>
   );
 }

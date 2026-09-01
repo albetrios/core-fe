@@ -16,6 +16,7 @@ import {
   AUTH_KEYS,
   AUTH_NS,
 } from '@/shared/auth/auth-shell.constants.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { useCaptchaGate } from '@/shared/auth/captcha/useCaptchaGate/index.ts';
 import { stashMfaHandoff } from '@/shared/auth/mfa-handoff.ts';
 import { isSafeRedirectPath } from '@/shared/auth/redirect-safety.ts';
@@ -369,6 +370,11 @@ export function AuthEmailPanel({
               ) : null}
             </div>
 
+            {/* Escalated Turnstile challenge renders here — between the last field and the
+                submit button, the conventional captcha position — so the user meets the check
+                before the gated action. */}
+            <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+
             <AuthMethodButton
               type="submit"
               variant="default"
@@ -449,9 +455,14 @@ export function AuthEmailPanel({
         />
       </div>
 
-      {/* Why the button below is disabled. The captcha token was consumed by
-          send-code and the widget is minting another; if that stalls, this turns
-          into a retry rather than an unexplained dead end (LOGIN-4). */}
+      {/* Same conventional position on the verify step: challenge above the gated
+          button — an escalated Turnstile renders here when one is demanded. */}
+      <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+
+      {/* And, below it, WHY the button is disabled when no challenge is showing:
+          the captcha token was consumed by send-code and the widget is minting
+          another; if that stalls, this turns into a retry rather than an
+          unexplained dead end (LOGIN-4). */}
       <CaptchaGateNotice gate={captchaGate} />
 
       <AuthMethodButton

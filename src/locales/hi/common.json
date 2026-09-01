@@ -154,6 +154,9 @@
     "layoutTitle": "लेआउट",
     "layoutDescription": "मुख्य कार्यक्षेत्र की चौड़ाई — डैशबोर्ड के लिए मानक, केंद्रित पाठ के लिए पठन चौड़ाई।",
     "contentWidth": "सामग्री चौड़ाई",
+    "dashboardTitle": "डैशबोर्ड",
+    "dashboardDescription": "डैशबोर्ड अपने अनुभागों को कैसे व्यवस्थित करता है।",
+    "dashboardArrangement": "व्यवस्था",
     "surfaceTitle": "सतह और गति",
     "surfaceDescription": "अंतराल, गहराई, कंट्रास्ट और गति।",
     "density": "घनत्व",
@@ -176,6 +179,7 @@
     "sectionColour": "रंग",
     "sectionType": "टाइप और आकार",
     "sectionSurface": "सतह और गति",
+    "sectionDashboard": "डैशबोर्ड लेआउट",
     "sectionNotifications": "सूचना शैली",
     "custom": "कस्टम",
     "customWith": "कस्टम — {{look}}"

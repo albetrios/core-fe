@@ -154,6 +154,9 @@
     "layoutTitle": "Layout",
     "layoutDescription": "Wie breit der Hauptarbeitsbereich ist — Standard für Dashboards, Lesebreite für konzentrierte Texte.",
     "contentWidth": "Inhaltsbreite",
+    "dashboardTitle": "Dashboard",
+    "dashboardDescription": "Wie das Dashboard seine Bereiche anordnet.",
+    "dashboardArrangement": "Anordnung",
     "surfaceTitle": "Oberfläche & Bewegung",
     "surfaceDescription": "Abstände, Tiefe, Kontrast und Bewegung.",
     "density": "Dichte",
@@ -176,6 +179,7 @@
     "sectionColour": "Farbe",
     "sectionType": "Schrift & Form",
     "sectionSurface": "Oberfläche & Bewegung",
+    "sectionDashboard": "Dashboard-Layout",
     "sectionNotifications": "Benachrichtigungsstil",
     "custom": "Benutzerdefiniert",
     "customWith": "Benutzerdefiniert — {{look}}"

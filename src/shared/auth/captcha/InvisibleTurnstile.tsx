@@ -1,9 +1,11 @@
-import type { ReactElement } from 'react';
-import { useEffect, useRef } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 
 import { platformConfig } from '@/core/config/env.ts';
 
 import { isCaptchaEnabled, resolveCaptchaProvider } from './captcha-config.ts';
+import { getCaptchaSlot, subscribeCaptchaSlot } from './captcha-slot.ts';
 import { setTurnstileResetHandler, setTurnstileToken } from './turnstile-token-store.ts';
 
 const TURNSTILE_SCRIPT_SRC =
@@ -78,6 +80,16 @@ function loadTurnstileScript(): Promise<void> {
 export function InvisibleTurnstile(): ReactElement | null {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
+  // Whether the current token came from a completed interactive solve. Cloudflare's
+  // `interaction-only` appearance auto-hides the widget BEFORE a solve, but after one it
+  // leaves a persistent "Success!" receipt on screen — so we hide the container ourselves
+  // the moment the token is minted and show it again whenever a fresh solve may need
+  // interaction (expiry, error, reset).
+  const [challengeSolved, setChallengeSolved] = useState(false);
+  // Inline anchor registered by the auth form ({@link CaptchaSlot}). When present the
+  // container portals into it so a challenge appears inside the form; otherwise it falls
+  // back to a viewport-centered overlay for captcha-gated actions outside auth screens.
+  const slot = useSyncExternalStore(subscribeCaptchaSlot, getCaptchaSlot, () => null);
 
   useEffect(() => {
     if (!(isInvisibleTurnstileActive() && TURNSTILE_SITE_KEY)) return;
@@ -89,12 +101,22 @@ export function InvisibleTurnstile(): ReactElement | null {
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
           appearance: 'interaction-only',
-          callback: (token) => setTurnstileToken(token),
-          'expired-callback': () => setTurnstileToken(undefined),
-          'error-callback': () => setTurnstileToken(undefined),
+          callback: (token) => {
+            setTurnstileToken(token);
+            setChallengeSolved(true);
+          },
+          'expired-callback': () => {
+            setTurnstileToken(undefined);
+            setChallengeSolved(false);
+          },
+          'error-callback': () => {
+            setTurnstileToken(undefined);
+            setChallengeSolved(false);
+          },
         });
         setTurnstileResetHandler(() => {
           setTurnstileToken(undefined);
+          setChallengeSolved(false);
           if (widgetIdRef.current && window.turnstile) {
             window.turnstile.reset(widgetIdRef.current);
           }
@@ -109,30 +131,47 @@ export function InvisibleTurnstile(): ReactElement | null {
       cancelled = true;
       setTurnstileResetHandler(undefined);
       setTurnstileToken(undefined);
+      setChallengeSolved(false);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
       }
       widgetIdRef.current = null;
     };
-  }, []);
+    // The widget cannot survive its container moving in the DOM (the challenge iframe
+    // resets on reparent), so a slot change tears the widget down and renders a fresh one
+    // into the new container; the replacement mints a fresh token in the background.
+  }, [slot]);
 
   if (!isInvisibleTurnstileActive()) return null;
   // `interaction-only` manages its own visibility; the container is empty (zero-size) until a
-  // challenge is required, and pinned out of the layout flow if one ever appears.
+  // challenge is required.
   //
-  // The z-index is load-bearing, not cosmetic. When Turnstile escalates to an INTERACTIVE
-  // challenge it renders that overlay inside this container. With no stacking order the
-  // container sits at `z-index: auto`, i.e. beneath the auth card (z-50) and the toast region
-  // (z-70): the challenge paints behind the login form, cannot be completed, so no token is
-  // ever minted and every captcha-gated button spins indefinitely. 10000 clears both the app's
-  // own scale (which tops out at z-[90]) and the Sentry feedback widget (z-9999) that renders
-  // in this same bottom-right corner.
-  return (
+  // Placement: the container portals into the registered slot and an interactive challenge
+  // renders inline where the user is already looking — in plain flow, matching the surface's
+  // own alignment (and mirroring correctly under RTL); solved, the slot collapses (height 0)
+  // so the layout keeps no dead gap.
+  //
+  // Without a slot the container stays hidden and inert (no floating pins or overlays):
+  // an escalated challenge is DEFERRED until a surface mounts a {@link CaptchaSlot}, at which
+  // point the widget re-renders into it and re-issues the challenge. The invariant this rests
+  // on: every surface with a captcha-gated action (the auth form, the email-verification
+  // banner) and every long-lived slotless screen a user can sit on (403/404) mounts a slot —
+  // a gated action on a slotless surface would leave its challenge invisible and the gate
+  // stuck.
+  const hiddenInert: CSSProperties = {
+    visibility: 'hidden',
+    height: 0,
+    overflow: 'hidden',
+  };
+  const style: CSSProperties | undefined =
+    !slot || challengeSolved ? hiddenInert : undefined;
+  const container = (
     <div
       ref={containerRef}
       aria-hidden="true"
       data-testid="auth-captcha-widget"
-      style={{ position: 'fixed', right: 0, bottom: 0, zIndex: 10_000 }}
+      style={style}
     />
   );
+  return slot ? createPortal(container, slot) : container;
 }

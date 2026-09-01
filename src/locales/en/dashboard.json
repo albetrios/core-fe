@@ -123,6 +123,128 @@
     "empty": "No one has joined this workspace yet.",
     "noWorkspace": "No workspace selected."
   },
+  "trends": {
+    "heading": "Usage trends",
+    "description": "Week-over-week movement"
+  },
+  "usageBars": {
+    "heading": "Weekly usage",
+    "description": "Sessions and API calls per week"
+  },
+  "heatmap": {
+    "heading": "Activity heatmap",
+    "description": "Twelve weeks of daily activity",
+    "less": "Less",
+    "more": "More"
+  },
+  "funnel": {
+    "heading": "Acquisition funnel",
+    "description": "From first visit to activated",
+    "stages": {
+      "visited": "Visited",
+      "signedUp": "Signed up",
+      "onboarded": "Onboarded",
+      "activated": "Activated"
+    }
+  },
+  "radar": {
+    "heading": "Workspace health",
+    "description": "Five dimensions at a glance",
+    "axes": {
+      "activity": "Activity",
+      "growth": "Growth",
+      "security": "Security",
+      "automation": "Automation",
+      "engagement": "Engagement"
+    }
+  },
+  "leaderboard": {
+    "heading": "Top automations",
+    "description": "Most runs this month",
+    "runs": "runs",
+    "items": {
+      "welcomeEmail": "Welcome email",
+      "weeklyDigest": "Weekly digest",
+      "slackSync": "Slack sync",
+      "backupJob": "Backup job"
+    }
+  },
+  "focus": {
+    "heading": "Focus timer",
+    "description": "A 25-minute deep-work sprint",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset"
+  },
+  "meters": {
+    "heading": "Plan usage",
+    "description": "How much of the plan is in use"
+  },
+  "billingCard": {
+    "heading": "Billing summary",
+    "description": "Plan, renewal, and payment",
+    "plan": "Plan",
+    "nextInvoice": "Next invoice",
+    "payment": "Payment"
+  },
+  "ai": {
+    "heading": "Ask your workspace",
+    "description": "Search, run actions, or jump anywhere",
+    "placeholder": "Ask anything…",
+    "chips": {
+      "usage": "Show usage",
+      "members": "Invite members",
+      "appearance": "Change theme"
+    }
+  },
+  "map": {
+    "heading": "Global activity",
+    "description": "Sessions by region this week",
+    "regions": {
+      "americas": "Americas",
+      "europe": "Europe",
+      "asia": "Asia",
+      "oceania": "Oceania"
+    }
+  },
+  "donut": {
+    "heading": "Sessions by source",
+    "description": "Where this week's sessions came from",
+    "segments": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "Feature usage",
+    "description": "Progress toward this week's targets"
+  },
+  "timeline": {
+    "heading": "This month",
+    "description": "Key dates across the month",
+    "today": "Today"
+  },
+  "activity": {
+    "heading": "Recent activity",
+    "description": "Latest changes across this workspace",
+    "events": {
+      "inviteAccepted": "A new member accepted their invite",
+      "roleUpdated": "A member role was updated",
+      "planRenewed": "The plan renewed successfully",
+      "settingsChanged": "Workspace settings were updated"
+    }
+  },
+  "pulse": {
+    "heading": "Workspace pulse",
+    "description": "Weekly activity across this workspace",
+    "score": "of weekly goal",
+    "metrics": {
+      "sessions": "Sessions",
+      "automations": "Automations",
+      "reviews": "Reviews"
+    }
+  },
   "schedule": {
     "ariaLabel": "Schedule",
     "heading": "Schedule",

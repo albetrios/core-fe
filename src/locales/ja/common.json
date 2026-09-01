@@ -154,6 +154,9 @@
     "layoutTitle": "レイアウト",
     "layoutDescription": "メインワークスペースの幅 — ダッシュボードには標準、集中して読む場合は読みやすい幅。",
     "contentWidth": "コンテンツ幅",
+    "dashboardTitle": "ダッシュボード",
+    "dashboardDescription": "ダッシュボードのセクション配置を選べます。",
+    "dashboardArrangement": "レイアウト",
     "surfaceTitle": "サーフェスとモーション",
     "surfaceDescription": "余白、奥行き、コントラスト、動きの質感。",
     "density": "密度",
@@ -176,6 +179,7 @@
     "sectionColour": "カラー",
     "sectionType": "書体と形状",
     "sectionSurface": "サーフェスとモーション",
+    "sectionDashboard": "ダッシュボードレイアウト",
     "sectionNotifications": "通知スタイル",
     "custom": "カスタム",
     "customWith": "カスタム — {{look}}"

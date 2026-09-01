@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { authApi } from '@/shared/api/auth-api.ts';
+import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
 import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
@@ -76,6 +77,10 @@ export function EmailVerificationBanner() {
       >
         {resendButtonLabel()}
       </Button>
+
+      {/* Resend is captcha-gated: when Turnstile escalates, the challenge renders on a
+          full row beneath the banner line rather than floating elsewhere. */}
+      <CaptchaSlot className="basis-full" testId="email-verify-captcha-slot" />
     </output>
   );
 }

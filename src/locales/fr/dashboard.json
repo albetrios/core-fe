@@ -123,6 +123,128 @@
     "empty": "Personne n’a encore rejoint cet espace de travail.",
     "noWorkspace": "Aucun espace de travail sélectionné."
   },
+  "trends": {
+    "heading": "Tendances d'utilisation",
+    "description": "Évolution semaine après semaine"
+  },
+  "usageBars": {
+    "heading": "Utilisation hebdo",
+    "description": "Sessions et appels API par semaine"
+  },
+  "heatmap": {
+    "heading": "Heatmap d'activité",
+    "description": "Douze semaines d'activité quotidienne",
+    "less": "Moins",
+    "more": "Plus"
+  },
+  "funnel": {
+    "heading": "Entonnoir d'acquisition",
+    "description": "De la première visite à l'activation",
+    "stages": {
+      "visited": "Visiteurs",
+      "signedUp": "Inscrits",
+      "onboarded": "Intégrés",
+      "activated": "Activés"
+    }
+  },
+  "radar": {
+    "heading": "Santé de l'espace",
+    "description": "Cinq dimensions en un coup d'œil",
+    "axes": {
+      "activity": "Activité",
+      "growth": "Croissance",
+      "security": "Sécurité",
+      "automation": "Automatisation",
+      "engagement": "Engagement"
+    }
+  },
+  "leaderboard": {
+    "heading": "Top automatisations",
+    "description": "Plus d'exécutions ce mois-ci",
+    "runs": "exécutions",
+    "items": {
+      "welcomeEmail": "E-mail de bienvenue",
+      "weeklyDigest": "Résumé hebdo",
+      "slackSync": "Sync Slack",
+      "backupJob": "Sauvegarde"
+    }
+  },
+  "focus": {
+    "heading": "Minuteur de concentration",
+    "description": "Un sprint de 25 minutes de travail profond",
+    "start": "Démarrer",
+    "pause": "Pause",
+    "reset": "Réinitialiser"
+  },
+  "meters": {
+    "heading": "Utilisation du forfait",
+    "description": "Part du forfait utilisée"
+  },
+  "billingCard": {
+    "heading": "Résumé de facturation",
+    "description": "Forfait, renouvellement et paiement",
+    "plan": "Forfait",
+    "nextInvoice": "Prochaine facture",
+    "payment": "Paiement"
+  },
+  "ai": {
+    "heading": "Interrogez votre espace",
+    "description": "Recherchez, lancez des actions, naviguez",
+    "placeholder": "Demandez ce que vous voulez…",
+    "chips": {
+      "usage": "Voir l'utilisation",
+      "members": "Inviter des membres",
+      "appearance": "Changer le thème"
+    }
+  },
+  "map": {
+    "heading": "Activité mondiale",
+    "description": "Sessions par région cette semaine",
+    "regions": {
+      "americas": "Amériques",
+      "europe": "Europe",
+      "asia": "Asie",
+      "oceania": "Océanie"
+    }
+  },
+  "donut": {
+    "heading": "Sessions par source",
+    "description": "D'où viennent les sessions de la semaine",
+    "segments": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "Utilisation des fonctionnalités",
+    "description": "Progression vers les objectifs hebdo"
+  },
+  "timeline": {
+    "heading": "Ce mois-ci",
+    "description": "Dates clés du mois",
+    "today": "Aujourd'hui"
+  },
+  "activity": {
+    "heading": "Activité récente",
+    "description": "Derniers changements de cet espace de travail",
+    "events": {
+      "inviteAccepted": "Un nouveau membre a accepté son invitation",
+      "roleUpdated": "Le rôle d'un membre a été mis à jour",
+      "planRenewed": "L'abonnement a été renouvelé avec succès",
+      "settingsChanged": "Les paramètres de l'espace ont été mis à jour"
+    }
+  },
+  "pulse": {
+    "heading": "Pouls de l'espace",
+    "description": "Activité hebdomadaire de cet espace de travail",
+    "score": "de l'objectif hebdo",
+    "metrics": {
+      "sessions": "Sessions",
+      "automations": "Automatisations",
+      "reviews": "Révisions"
+    }
+  },
   "schedule": {
     "ariaLabel": "Calendrier",
     "heading": "Calendrier",

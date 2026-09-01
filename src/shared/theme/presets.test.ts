@@ -17,6 +17,7 @@ import {
   isThemePreset,
   nextAppVariant,
   nextAuthVariant,
+  nextDashboardVariant,
   nextRandomHue,
   oklchToHex,
   randomThemeHue,
@@ -335,6 +336,17 @@ describe('orthogonal base colour + menu', () => {
         const v = nextAppVariant(current);
         expect(v).toBeGreaterThanOrEqual(0);
         expect(v).toBeLessThan(3);
+        expect(v).not.toBe(current);
+      }
+    }
+  });
+
+  it('nextDashboardVariant returns a different arrangement index in range (TEMP)', () => {
+    for (const current of [0, 1, 2, 3]) {
+      for (let i = 0; i < 20; i += 1) {
+        const v = nextDashboardVariant(current);
+        expect(v).toBeGreaterThanOrEqual(0);
+        expect(v).toBeLessThan(4);
         expect(v).not.toBe(current);
       }
     }

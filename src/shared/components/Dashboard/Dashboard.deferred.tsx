@@ -4,6 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { SkeletonShimmer } from '@/lib/animations/Skeleton.tsx';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { onceAsync, useRetryableLazy } from '@/lib/lazy-module.ts';
+import {
+  DASHBOARD_KEYS,
+  DASHBOARD_NS,
+} from '@/shared/components/Dashboard/dashboard.constants.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 
 // Every factory goes through `onceAsync`: one shared in-flight promise per
@@ -27,6 +31,12 @@ const loadThemeShowcase = onceAsync(() =>
   import('@/shared/components/ThemeShowcase/index.ts').then((m) => ({
     default: m.ThemeShowcase,
   })),
+);
+const loadSourceDonut = onceAsync(() =>
+  import('./SourceDonut/index.ts').then((m) => ({ default: m.SourceDonut })),
+);
+const loadUsageBars = onceAsync(() =>
+  import('./UsageBars/index.ts').then((m) => ({ default: m.UsageBars })),
 );
 
 /**
@@ -117,6 +127,39 @@ export function DeferredThemeShowcase() {
       fallback={<SkeletonShimmer className="h-56 w-full rounded-xl" />}
       title={t(ERRORS_KEYS.widget.themeShowcase)}
       testId="dashboard-theme-error"
+    />
+  );
+}
+
+/**
+ * Weekly usage bars (recharts stays off first paint).
+ *
+ * Carries its own boundary like every other widget in this file, rather than
+ * borrowing one from the section around it: only a boundary wired to
+ * `useRetryableLazy`'s `retry` can actually recover from a failed chunk, and
+ * `React.lazy` caches a rejection for the rest of the session (SHELL-3).
+ */
+export function DeferredUsageBars() {
+  const { t } = useTranslation(DASHBOARD_NS);
+  return (
+    <DeferredSection
+      load={loadUsageBars}
+      fallback={<SkeletonShimmer className="h-72 w-full rounded-xl" />}
+      title={t(DASHBOARD_KEYS.usageBars.heading)}
+      testId="dashboard-usage-bars-error"
+    />
+  );
+}
+
+/** Sessions-by-source donut (recharts stays off first paint), same contract. */
+export function DeferredSourceDonut() {
+  const { t } = useTranslation(DASHBOARD_NS);
+  return (
+    <DeferredSection
+      load={loadSourceDonut}
+      fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}
+      title={t(DASHBOARD_KEYS.donut.heading)}
+      testId="dashboard-donut-error"
     />
   );
 }

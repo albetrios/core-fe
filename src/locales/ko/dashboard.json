@@ -123,6 +123,128 @@
     "empty": "아직 이 워크스페이스에 참여한 사람이 없습니다.",
     "noWorkspace": "선택된 워크스페이스가 없습니다."
   },
+  "trends": {
+    "heading": "사용 추이",
+    "description": "주간 변화"
+  },
+  "usageBars": {
+    "heading": "주간 사용량",
+    "description": "주별 세션 및 API 호출"
+  },
+  "heatmap": {
+    "heading": "활동 히트맵",
+    "description": "12주간의 일별 활동",
+    "less": "적음",
+    "more": "많음"
+  },
+  "funnel": {
+    "heading": "획득 퍼널",
+    "description": "첫 방문부터 활성화까지",
+    "stages": {
+      "visited": "방문",
+      "signedUp": "가입",
+      "onboarded": "온보딩 완료",
+      "activated": "활성화"
+    }
+  },
+  "radar": {
+    "heading": "워크스페이스 상태",
+    "description": "다섯 가지 지표를 한눈에",
+    "axes": {
+      "activity": "활동",
+      "growth": "성장",
+      "security": "보안",
+      "automation": "자동화",
+      "engagement": "참여도"
+    }
+  },
+  "leaderboard": {
+    "heading": "인기 자동화",
+    "description": "이번 달 실행 횟수 상위",
+    "runs": "실행",
+    "items": {
+      "welcomeEmail": "환영 이메일",
+      "weeklyDigest": "주간 다이제스트",
+      "slackSync": "Slack 동기화",
+      "backupJob": "백업 작업"
+    }
+  },
+  "focus": {
+    "heading": "집중 타이머",
+    "description": "25분 딥워크 스프린트",
+    "start": "시작",
+    "pause": "일시정지",
+    "reset": "초기화"
+  },
+  "meters": {
+    "heading": "플랜 사용량",
+    "description": "플랜 사용 현황"
+  },
+  "billingCard": {
+    "heading": "결제 요약",
+    "description": "플랜, 갱신, 결제",
+    "plan": "플랜",
+    "nextInvoice": "다음 청구서",
+    "payment": "결제 수단"
+  },
+  "ai": {
+    "heading": "워크스페이스에 물어보기",
+    "description": "검색하고 실행하고 어디로든 이동",
+    "placeholder": "무엇이든 물어보세요…",
+    "chips": {
+      "usage": "사용량 보기",
+      "members": "멤버 초대",
+      "appearance": "테마 변경"
+    }
+  },
+  "map": {
+    "heading": "글로벌 활동",
+    "description": "이번 주 지역별 세션",
+    "regions": {
+      "americas": "아메리카",
+      "europe": "유럽",
+      "asia": "아시아",
+      "oceania": "오세아니아"
+    }
+  },
+  "donut": {
+    "heading": "소스별 세션",
+    "description": "이번 주 세션의 출처",
+    "segments": {
+      "web": "웹",
+      "mobile": "모바일",
+      "api": "API"
+    }
+  },
+  "ranking": {
+    "heading": "기능 사용량",
+    "description": "주간 목표 대비 진행률"
+  },
+  "timeline": {
+    "heading": "이번 달",
+    "description": "이번 달 주요 일정",
+    "today": "오늘"
+  },
+  "activity": {
+    "heading": "최근 활동",
+    "description": "이 워크스페이스의 최신 변경 사항",
+    "events": {
+      "inviteAccepted": "새 멤버가 초대를 수락했습니다",
+      "roleUpdated": "멤버 역할이 업데이트되었습니다",
+      "planRenewed": "플랜이 갱신되었습니다",
+      "settingsChanged": "워크스페이스 설정이 업데이트되었습니다"
+    }
+  },
+  "pulse": {
+    "heading": "워크스페이스 펄스",
+    "description": "이 워크스페이스의 주간 활동",
+    "score": "주간 목표 대비",
+    "metrics": {
+      "sessions": "세션",
+      "automations": "자동화",
+      "reviews": "검토"
+    }
+  },
   "schedule": {
     "ariaLabel": "일정",
     "heading": "일정",

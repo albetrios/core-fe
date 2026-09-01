@@ -154,6 +154,9 @@
     "layoutTitle": "布局",
     "layoutDescription": "主工作区的宽度——标准适合仪表板，阅读宽度适合专注阅读。",
     "contentWidth": "内容宽度",
+    "dashboardTitle": "仪表盘",
+    "dashboardDescription": "仪表盘各区域的排列方式。",
+    "dashboardArrangement": "布局",
     "surfaceTitle": "表面与动效",
     "surfaceDescription": "间距、层次、对比度以及动效表现。",
     "density": "密度",
@@ -176,6 +179,7 @@
     "sectionColour": "颜色",
     "sectionType": "字体与形状",
     "sectionSurface": "表面与动效",
+    "sectionDashboard": "仪表盘布局",
     "sectionNotifications": "通知样式",
     "custom": "自定义",
     "customWith": "自定义 — {{look}}"

@@ -9,6 +9,8 @@ type DashboardActionCardProps = {
   title: string;
   description: string;
   testId: string;
+  /** Optional wash (e.g. `bg-chart-1/10 border-chart-1/25`) — variant flair. */
+  tintClassName?: string;
 };
 
 /** Quick-action tile — elevated surface with icon chip and hover affordance. */
@@ -18,6 +20,7 @@ export function DashboardActionCard({
   title,
   description,
   testId,
+  tintClassName,
 }: DashboardActionCardProps) {
   return (
     <a
@@ -25,7 +28,10 @@ export function DashboardActionCard({
       data-testid={testId}
       data-slot="card"
       title={description}
-      className="border-border/60 bg-card text-card-foreground hover:border-border hover:bg-muted/30 group flex w-full min-w-0 items-center gap-3 rounded-xl border p-3 transition-[background-color,border-color]"
+      className={cn(
+        'border-border/60 bg-card text-card-foreground hover:border-border hover:bg-muted/30 group flex w-full min-w-0 items-center gap-3 rounded-xl border p-3 transition-[background-color,border-color]',
+        tintClassName,
+      )}
     >
       <div
         data-slot="icon-chip"
