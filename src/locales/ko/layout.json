@@ -144,7 +144,12 @@
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "조직 만들기",
+      "nameLabel": "조직 이름",
+      "slugLabel": "워크스페이스 URL (선택)",
+      "submit": "조직 만들기",
+      "submitting": "만드는 중…"
     }
   },
   "public": {

@@ -60,6 +60,11 @@ export const LAYOUT_KEYS = {
     orgCreate: {
       namePlaceholder: 'app.orgCreate.namePlaceholder',
       slugPlaceholder: 'app.orgCreate.slugPlaceholder',
+      title: 'app.orgCreate.title',
+      nameLabel: 'app.orgCreate.nameLabel',
+      slugLabel: 'app.orgCreate.slugLabel',
+      submit: 'app.orgCreate.submit',
+      submitting: 'app.orgCreate.submitting',
     },
     orgSwitcher: {
       selectPlaceholder: 'app.orgSwitcher.selectPlaceholder',

@@ -108,6 +108,14 @@ export const AUTH_KEYS = {
       invalidOrExpired: 'acceptInvite.errors.invalidOrExpired',
     },
   },
+  organizationPicker: {
+    heading: 'organizationPicker.heading',
+    subheading: 'organizationPicker.subheading',
+    listTitle: 'organizationPicker.listTitle',
+    loadError: 'organizationPicker.loadError',
+    empty: 'organizationPicker.empty',
+    create: 'organizationPicker.create',
+  },
   validation: {
     emailRequired: 'validation.emailRequired',
     invalidEmail: 'validation.invalidEmail',

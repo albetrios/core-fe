@@ -144,7 +144,12 @@
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "إنشاء مؤسسة",
+      "nameLabel": "اسم المؤسسة",
+      "slugLabel": "رابط مساحة العمل (اختياري)",
+      "submit": "إنشاء مؤسسة",
+      "submitting": "جارٍ الإنشاء…"
     }
   },
   "public": {

@@ -144,7 +144,12 @@
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "新建组织",
+      "nameLabel": "组织名称",
+      "slugLabel": "工作区 URL（可选）",
+      "submit": "新建组织",
+      "submitting": "正在创建…"
     }
   },
   "public": {

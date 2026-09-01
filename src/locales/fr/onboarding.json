@@ -76,7 +76,8 @@
     "slugLabel": "URL de l'espace (facultatif)",
     "slugPlaceholder": "acme",
     "urlPreview": "Votre espace sera accessible à <1>core.app/{{slug}}</1>",
-    "slugFallback": "votre-espace"
+    "slugFallback": "votre-espace",
+    "slugInvalid": "Utilisez uniquement des minuscules, des chiffres et des tirets."
   },
   "invite": {
     "emailLabel": "E-mail du coéquipier",
@@ -110,6 +111,7 @@
     "finishSuccessWithInvites_one": "Bienvenue ! Votre espace est prêt — {{count}} invitation envoyée.",
     "finishSuccessWithInvites_other": "Bienvenue ! Votre espace est prêt — {{count}} invitations envoyées.",
     "finishError": "Une erreur s'est produite lors de la finalisation. Veuillez réessayer.",
+    "profileSaveFailed": "Nous n'avons pas pu enregistrer votre nom. Votre espace de travail est prêt — ajoutez-le dans les paramètres.",
     "invitePartialFailure_one": "Espace prêt — {{count}} invitation n'a pas pu être envoyée. Vous pouvez la renvoyer depuis Membres.",
     "invitePartialFailure_other": "Espace prêt — {{count}} invitations n'ont pas pu être envoyées. Vous pouvez les renvoyer depuis Membres."
   },

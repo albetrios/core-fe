@@ -144,7 +144,12 @@
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "संगठन बनाएँ",
+      "nameLabel": "संगठन का नाम",
+      "slugLabel": "वर्कस्पेस URL (वैकल्पिक)",
+      "submit": "संगठन बनाएँ",
+      "submitting": "बनाया जा रहा है…"
     }
   },
   "public": {

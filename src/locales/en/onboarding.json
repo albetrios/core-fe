@@ -76,7 +76,8 @@
     "slugLabel": "Workspace URL (optional)",
     "slugPlaceholder": "acme",
     "urlPreview": "Your workspace will live at <1>core.app/{{slug}}</1>",
-    "slugFallback": "your-workspace"
+    "slugFallback": "your-workspace",
+    "slugInvalid": "Use lowercase letters, numbers and hyphens only."
   },
   "invite": {
     "emailLabel": "Teammate email",
@@ -110,6 +111,7 @@
     "finishSuccessWithInvites_one": "Welcome! Your workspace is ready — {{count}} invitation sent.",
     "finishSuccessWithInvites_other": "Welcome! Your workspace is ready — {{count}} invitations sent.",
     "finishError": "Something went wrong finishing setup. Please try again.",
+    "profileSaveFailed": "We couldn't save your name. Your workspace is ready — add it in Settings.",
     "invitePartialFailure_one": "Workspace ready — {{count}} invite couldn't be sent. You can resend from Members.",
     "invitePartialFailure_other": "Workspace ready — {{count}} invites couldn't be sent. You can resend from Members."
   },

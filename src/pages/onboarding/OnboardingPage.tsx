@@ -2,7 +2,9 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 
+import { queryClient } from '@/core/http/queryClient.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
@@ -20,6 +22,9 @@ import {
   CardTitle,
 } from '@/shared/components/ui/card.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { reportError } from '@/shared/errors/errorHandler.ts';
+import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
+import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard/index.ts';
@@ -31,6 +36,7 @@ import type { MeContext } from '@/shared/tenancy/me-context.ts';
 import {
   createOrganization,
   listMyOrganizations,
+  type Organization,
 } from '@/shared/tenancy/my-organizations.ts';
 import { resolveRootTarget } from '@/shared/tenancy/organization-resolver.ts';
 import { hydrateSessionContext } from '@/shared/tenancy/session-context.ts';
@@ -52,7 +58,9 @@ import {
 } from './onboarding.constants.ts';
 import type { OnboardingSearch } from './onboarding.search.ts';
 import {
+  clampStepIndex,
   deriveOnboardingSteps,
+  isValidWorkspaceSlug,
   type OnboardingStep,
   shouldCreateOrganizationOnFinish,
   stepAtIndex,
@@ -60,6 +68,37 @@ import {
 
 /** Step list used while me/context has not loaded — nothing is rendered from it. */
 const EMPTY_STEPS: readonly OnboardingStep[] = [];
+
+/**
+ * How long a just-read organization list counts as fresh inside the finish path.
+ *
+ * Long enough that the stale-created-org effect and `resolveOrganizationForFinish`
+ * share one response a moment later; short enough that a list read in an earlier
+ * session is never trusted to decide whether the created org still exists.
+ */
+const ORGANIZATIONS_STALE_MS = 10_000;
+
+/**
+ * Read the user's organizations THROUGH the query cache.
+ *
+ * `listMyOrganizations()` was called bare from two places on the finish path —
+ * the stale-created-org effect and `resolveOrganizationForFinish` — so a resumed
+ * session fetched the identical list twice, back to back, and neither response
+ * reached the cache the picker and Settings read from (ONB-10). `fetchQuery`
+ * under the SAME `['organizations']` key collapses those two into one request
+ * and leaves the result where the next screen can use it.
+ *
+ * `staleTime` rather than `ensureQueryData`: this list decides whether a
+ * persisted created-org id still exists, and answering that from an arbitrarily
+ * old cache entry would drop a real organization and create a duplicate.
+ */
+function readMyOrganizations(): Promise<Organization[]> {
+  return queryClient.fetchQuery({
+    queryKey: ['organizations'],
+    queryFn: listMyOrganizations,
+    staleTime: ORGANIZATIONS_STALE_MS,
+  });
+}
 
 function getStepMetaKeys(step: OnboardingStep): {
   title: string;
@@ -109,8 +148,24 @@ async function persistOnboardingResult(input: {
       if (user && displayName) {
         useAuthStore.getState().setUser({ ...user, name: displayName });
       }
-    } catch {
-      /* profile update is best-effort */
+    } catch (error) {
+      /*
+       * Best-effort by design — a failed profile PATCH must never strand the
+       * wizard. Best-effort is not the same as invisible though: the user's name
+       * silently failed to save and the dashboard then greeted them by their
+       * email prefix, with nothing anywhere to say why (ONB-11).
+       *
+       * So: reported for us, and said out loud to the user. A warning, not an
+       * error — onboarding itself succeeded and the fix is one visit to
+       * Settings, which the toast names.
+       */
+      reportError(error, { scope: 'onboarding.persistProfile' });
+      notify.warning(
+        i18n.t(ONBOARDING_KEYS.toast.profileSaveFailed, { ns: ONBOARDING_NS }),
+        {
+          id: 'onboarding-profile-save',
+        },
+      );
     }
   }
 
@@ -135,7 +190,7 @@ async function resolveOrganizationForFinish(input: {
   let organizationId = input.createdOrganizationId;
 
   if (organizationId) {
-    const organizations = await listMyOrganizations();
+    const organizations = await readMyOrganizations();
     const existing = organizations.find((o) => o.id === organizationId);
     if (!existing) {
       organizationId = null;
@@ -158,6 +213,19 @@ async function resolveOrganizationForFinish(input: {
     organizationId = org.id;
     input.setCreatedOrganizationId(org.id);
     input.setCreatedOrganizationSlug(org.slug);
+    /*
+     * Keep the cache honest about an org WE just created.
+     *
+     * The existence check above reads `['organizations']` through the cache
+     * (ONB-10), and its window can now span this create — a retry after a
+     * partial failure would otherwise be told the org does not exist, drop the
+     * stored id and create a SECOND workspace. Appending here means the next
+     * read inside that window sees the truth; the finish path still invalidates
+     * the key for real once it is done.
+     */
+    queryClient.setQueryData<Organization[]>(['organizations'], (previous) =>
+      previous ? [...previous, org] : previous,
+    );
   }
 
   return { organizationId, organizationSlug };
@@ -167,24 +235,26 @@ async function refreshSessionAfterOnboardingFinish(): Promise<MeContext> {
   return hydrateSessionContext();
 }
 
+/**
+ * Primitives rather than the `data` object: the caller selects these fields
+ * individually so a keystroke elsewhere in the wizard does not re-render the
+ * page (ONB-13), and passing the object back would undo that.
+ */
 function isOnboardingDirty(input: {
   completed: boolean;
   stepIndex: number;
-  data: {
-    firstName: string;
-    lastName: string;
-    organizationName: string;
-    invites: string[];
-  };
+  firstName: string;
+  lastName: string;
+  organizationName: string;
+  inviteCount: number;
 }): boolean {
   if (input.completed) return false;
   if (input.stepIndex > 0) return true;
-  const d = input.data;
   return Boolean(
-    d.firstName.trim() ||
-    d.lastName.trim() ||
-    d.organizationName.trim() ||
-    d.invites.length > 0,
+    input.firstName.trim() ||
+    input.lastName.trim() ||
+    input.organizationName.trim() ||
+    input.inviteCount > 0,
   );
 }
 
@@ -406,7 +476,16 @@ function SessionContextGate({ query }: { query: UseQueryResult<MeContext> }) {
   );
 }
 
-function renderStep(step: ReturnType<typeof stepAtIndex>, teamSetupIncluded: boolean) {
+/**
+ * `steps` is threaded down rather than re-derived by the children: the summary
+ * step needs to know which rows this flow collected, and deriving that a second
+ * time from a context the child fetches itself is exactly the hazard ONB-9 is
+ * about. The page holds the one derivation, made from a proven-loaded context.
+ */
+function renderStep(
+  step: ReturnType<typeof stepAtIndex>,
+  steps: readonly OnboardingStep[],
+) {
   switch (step) {
     case 'profile':
       return <ProfileStep />;
@@ -417,9 +496,9 @@ function renderStep(step: ReturnType<typeof stepAtIndex>, teamSetupIncluded: boo
     case 'invite':
       return <InviteStep />;
     case 'done':
-      return <DoneStep />;
+      return <DoneStep steps={steps} />;
     default:
-      return <WelcomeStep teamSetupIncluded={teamSetupIncluded} />;
+      return <WelcomeStep teamSetupIncluded={steps.includes('workspace')} />;
   }
 }
 
@@ -439,18 +518,49 @@ export function OnboardingPage() {
   // guarantees `redirect` is a string when present.
   const search: OnboardingSearch = useSearch({ strict: false });
   const redirectSearch = search.redirect;
+  /*
+   * Slices, not the whole store. `useOnboardingStore()` with no selector
+   * subscribes to every field, and `patch` replaces the whole `data` object — so
+   * a keystroke in ANY field re-rendered this page, the step indicator and the
+   * mounted step, whether or not the page reads that field (ONB-13).
+   *
+   * Only what the render actually derives from is selected here; the four
+   * actions are stable store closures, so the shallow compare on this object is
+   * driven purely by the primitives above them. `finish()` reads the full data
+   * with `getState()` instead — a submit wants the latest values, not a
+   * subscription.
+   */
   const {
     stepIndex,
-    data,
-    complete,
     completed,
     createdOrganizationId,
-    setCreatedOrganizationId,
     createdOrganizationSlug,
+    firstName,
+    lastName,
+    organizationName,
+    organizationSlug,
+    inviteCount,
+    complete,
+    setCreatedOrganizationId,
     setCreatedOrganizationSlug,
     setStepIndex,
-    claimForUser,
-  } = useOnboardingStore();
+  } = useOnboardingStore(
+    useShallow((s) => ({
+      stepIndex: s.stepIndex,
+      completed: s.completed,
+      createdOrganizationId: s.createdOrganizationId,
+      createdOrganizationSlug: s.createdOrganizationSlug,
+      firstName: s.data.firstName,
+      lastName: s.data.lastName,
+      organizationName: s.data.organizationName,
+      organizationSlug: s.data.organizationSlug,
+      inviteCount: s.data.invites.length,
+      complete: s.complete,
+      setCreatedOrganizationId: s.setCreatedOrganizationId,
+      setCreatedOrganizationSlug: s.setCreatedOrganizationSlug,
+      setStepIndex: s.setStepIndex,
+    })),
+  );
   const meContextQuery = useMeContext();
   const meContext = meContextQuery.data;
   /**
@@ -469,18 +579,45 @@ export function OnboardingPage() {
    */
   const contextReady =
     !(meContextQuery.isPending || meContextQuery.isError) && Boolean(meContext);
+  /*
+   * The same fact as `contextReady`, but as a VALUE the type system can narrow.
+   * `deriveOnboardingSteps` and `shouldCreateOrganizationOnFinish` now demand a
+   * non-null `MeContext`, so every consumer — this page, and any future one —
+   * has to prove it holds a loaded context before it can derive a flow. The gate
+   * below is still what the user sees; this is what stops the gate from being
+   * quietly dropped (ONB-9).
+   */
+  const loadedContext = contextReady ? meContext : undefined;
   const deploymentFlags = useDeploymentFlags();
   // Derived ONLY from a loaded context — never from the permissive fallback.
-  const effectiveSteps = contextReady
-    ? deriveOnboardingSteps(deploymentFlags, meContext)
+  const effectiveSteps = loadedContext
+    ? deriveOnboardingSteps(deploymentFlags, loadedContext)
     : EMPTY_STEPS;
   const [submitting, setSubmitting] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
   // Synchronous twin of `submitting` — see finish().
   const finishingRef = useRef(false);
-  const step = stepAtIndex(stepIndex, effectiveSteps);
+  /*
+   * `stepIndex` is persisted in localStorage and is NOT re-clamped when the step
+   * list shrinks — which happens when the deployment mode changes, or a team org
+   * appears between sessions. `stepAtIndex` clamped for the body, but the
+   * indicator and the Back/Continue maths were driven off the raw value, so the
+   * dots showed every step done with none current, `aria-current="step"`
+   * disappeared, and the first Back click was a no-op (ONB-3). One clamp, used
+   * everywhere.
+   */
+  const clampedIndex = clampStepIndex(stepIndex, effectiveSteps);
+  const step = stepAtIndex(clampedIndex, effectiveSteps);
   const metaKeys = getStepMetaKeys(step);
-  const { cardRef, headerRef, stepBodyRef } = useOnboardingStepMotion(stepIndex);
-  const dirty = isOnboardingDirty({ completed, stepIndex, data });
+  const { cardRef, headerRef, stepBodyRef } = useOnboardingStepMotion(clampedIndex);
+  const dirty = isOnboardingDirty({
+    completed,
+    stepIndex: clampedIndex,
+    firstName,
+    lastName,
+    organizationName,
+    inviteCount,
+  });
   const { guardDialog } = useUnsavedChangesGuard({
     when: dirty && !submitting,
     title: t(ONBOARDING_KEYS.guard.title),
@@ -493,10 +630,14 @@ export function OnboardingPage() {
   // is known: a store left behind by a DIFFERENT user on this browser is wiped
   // before any of its data can be reviewed or submitted (the wizard would
   // otherwise PATCH the previous user's name onto this account).
-  const sessionUserId = meContext?.user.id ?? null;
-  useEffect(() => {
-    if (sessionUserId) claimForUser(sessionUserId);
-  }, [sessionUserId, claimForUser]);
+  /*
+   * Claimed in the route's beforeLoad, not here. As a passive effect this ran
+   * after the first commit, so signing in as a second user on the same browser
+   * painted the previous user's name and workspace for a frame before the wipe
+   * (ONB-4). The guard already awaits `me/context`, so it can claim the store
+   * before a single frame is committed — and it keeps the write out of render,
+   * which React does not allow anyway.
+   */
 
   // Persisted wizard state can carry a created-org id from a prior session while
   // fresh signup with an empty membership list skips duplicate org creation
@@ -504,7 +645,7 @@ export function OnboardingPage() {
   useEffect(() => {
     if (!createdOrganizationId) return;
     let cancelled = false;
-    listMyOrganizations()
+    readMyOrganizations()
       .then((organizations) => {
         if (cancelled) return;
         if (organizations.some((o) => o.id === createdOrganizationId)) return;
@@ -519,9 +660,16 @@ export function OnboardingPage() {
     };
   }, [createdOrganizationId, setCreatedOrganizationId, setCreatedOrganizationSlug]);
 
+  /*
+   * The slug is checked HERE, against the same schema `createOrganization` uses.
+   * Left unvalidated, an uppercase or spaced slug passed Continue and only blew
+   * up at Finish, two steps away, as the generic error above (ONB-6).
+   */
+  const slugValid = isValidWorkspaceSlug(organizationSlug);
+
   const canProceed =
-    (step !== 'workspace' || data.organizationName.trim().length > 0) &&
-    (step !== 'profile' || data.firstName.trim().length > 0);
+    (step !== 'workspace' || (organizationName.trim().length > 0 && slugValid)) &&
+    (step !== 'profile' || firstName.trim().length > 0);
 
   const finish = async () => {
     // `submitting` only disables the button after React re-renders, so the
@@ -533,14 +681,20 @@ export function OnboardingPage() {
     if (finishingRef.current) return;
     // The button is disabled without a context, but the guard belongs here too:
     // finish stamps onboarding complete on the backend, which is not reversible
-    // from the UI. Never run it against a step list we could not derive.
-    if (!contextReady) return;
+    // from the UI. Never run it against a step list we could not derive — and
+    // narrowing on the context itself is what lets the call below take it
+    // non-null (ONB-9).
+    if (!loadedContext) return;
     finishingRef.current = true;
+    setFinishError(null);
     setSubmitting(true);
+    // Non-reactive read: a submit wants the latest values, and subscribing to
+    // the whole `data` object here is exactly what ONB-13 removed above.
+    const data = useOnboardingStore.getState().data;
     try {
       const needsCreate = shouldCreateOrganizationOnFinish(
         deploymentFlags,
-        meContext ?? null,
+        loadedContext,
       );
       const { organizationId } = await resolveOrganizationForFinish({
         needsCreate,
@@ -573,6 +727,14 @@ export function OnboardingPage() {
       // keeps the user on the wizard to retry, rather than a silent redirect loop.
       const accessToken = getAccessToken();
       if (accessToken) await authApi.completeOnboarding(accessToken);
+
+      /*
+       * `['organizations']` has a 5-minute staleTime, so without this the org
+       * picker and Settings → Organization served a cached list from before the
+       * workspace existed — for five minutes after creating it (ONB-7). The
+       * create dialog already does this; the wizard did not.
+       */
+      await queryClient.invalidateQueries({ queryKey: ['organizations'] });
 
       const refreshedContext = await refreshSessionAfterOnboardingFinish();
       const activatedContext = await activateWorkspaceAfterOnboardingFinish({
@@ -627,8 +789,18 @@ export function OnboardingPage() {
         activatedContext ?? refreshedContext,
         redirectSearch,
       );
-    } catch {
-      notify.error(i18n.t(ONBOARDING_KEYS.toast.finishError, { ns: ONBOARDING_NS }));
+    } catch (error) {
+      /*
+       * The error object used to be discarded entirely: a generic toast that
+       * named no reason and no field, on a page that looked unchanged, and a
+       * fresh duplicate toast on every retry (ONB-5). The mapped message now
+       * stays on screen next to the button that failed, the raw error reaches
+       * the logs, and a stable toast id replaces rather than stacks.
+       */
+      const message = mapFrontendError(error);
+      reportError(error, { scope: 'onboarding.finish' });
+      setFinishError(message);
+      notify.error(message, { id: 'onboarding-finish' });
     } finally {
       finishingRef.current = false;
       setSubmitting(false);
@@ -646,7 +818,7 @@ export function OnboardingPage() {
           {contextReady ? (
             <Card className="w-full">
               <CardHeader className="space-y-4">
-                <StepIndicator current={stepIndex} steps={effectiveSteps} />
+                <StepIndicator current={clampedIndex} steps={effectiveSteps} />
                 <div ref={headerRef} className="transform-gpu">
                   <CardTitle data-testid={ONBOARDING_TEST_IDS.stepTitle}>
                     {t(metaKeys.title)}
@@ -674,18 +846,30 @@ export function OnboardingPage() {
                     title={t(metaKeys.title)}
                     testId={ONBOARDING_TEST_IDS.stepError}
                   >
-                    {renderStep(step, effectiveSteps.includes('workspace'))}
+                    {renderStep(step, effectiveSteps)}
                   </SectionErrorBoundary>
                 </div>
 
+                {/*
+                  The same FormError banner the auth screens use, rather than a
+                  bare paragraph: one error surface across the product, and it
+                  carries the icon, the destructive tokens and role="alert"
+                  without this page re-deciding any of it.
+                */}
+                <FormError
+                  message={finishError}
+                  className="mt-4"
+                  data-testid={ONBOARDING_TEST_IDS.finishError}
+                />
+
                 <WizardActions
-                  isFirstStep={stepIndex === 0}
+                  isFirstStep={clampedIndex === 0}
                   isDoneStep={step === 'done'}
                   submitting={submitting}
                   canProceed={canProceed}
-                  onBack={() => setStepIndex(Math.max(stepIndex - 1, 0))}
+                  onBack={() => setStepIndex(Math.max(clampedIndex - 1, 0))}
                   onNext={() =>
-                    setStepIndex(Math.min(stepIndex + 1, effectiveSteps.length - 1))
+                    setStepIndex(Math.min(clampedIndex + 1, effectiveSteps.length - 1))
                   }
                   onFinish={finish}
                 />

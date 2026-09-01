@@ -76,7 +76,8 @@
     "slugLabel": "رابط مساحة العمل (اختياري)",
     "slugPlaceholder": "acme",
     "urlPreview": "ستكون مساحة عملك على <1>core.app/{{slug}}</1>",
-    "slugFallback": "your-workspace"
+    "slugFallback": "your-workspace",
+    "slugInvalid": "استخدم الأحرف الصغيرة والأرقام والشرطات فقط."
   },
   "invite": {
     "emailLabel": "بريد الزميل",
@@ -110,6 +111,7 @@
     "finishSuccessWithInvites_one": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوة.",
     "finishSuccessWithInvites_other": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوات.",
     "finishError": "حدث خطأ أثناء إنهاء الإعداد. يُرجى المحاولة مرة أخرى.",
+    "profileSaveFailed": "تعذّر حفظ اسمك. مساحة العمل جاهزة — أضِف اسمك من الإعدادات.",
     "invitePartialFailure_one": "المساحة جاهزة — تعذّر إرسال {{count}} دعوة. يمكنك إعادة الإرسال من الأعضاء.",
     "invitePartialFailure_other": "المساحة جاهزة — تعذّر إرسال {{count}} دعوات. يمكنك إعادة الإرسال من الأعضاء."
   },

@@ -147,7 +147,7 @@ export function CreateOrganizationDialog({
       )}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create organization</DialogTitle>
+          <DialogTitle>{tLayout(LAYOUT_KEYS.app.orgCreate.title)}</DialogTitle>
           <DialogDescription>
             Spin up a new workspace. You can invite teammates afterwards.
           </DialogDescription>
@@ -161,7 +161,9 @@ export function CreateOrganizationDialog({
           data-testid="create-organization-dialog-form"
         >
           <div className="space-y-2">
-            <Label htmlFor="new-org-name">Organization name</Label>
+            <Label htmlFor="new-org-name">
+              {tLayout(LAYOUT_KEYS.app.orgCreate.nameLabel)}
+            </Label>
             <Input
               id="new-org-name"
               autoComplete="organization"
@@ -182,7 +184,9 @@ export function CreateOrganizationDialog({
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="new-org-slug">Workspace URL (optional)</Label>
+            <Label htmlFor="new-org-slug">
+              {tLayout(LAYOUT_KEYS.app.orgCreate.slugLabel)}
+            </Label>
             <Input
               id="new-org-slug"
               placeholder={tLayout(LAYOUT_KEYS.app.orgCreate.slugPlaceholder)}
@@ -196,7 +200,9 @@ export function CreateOrganizationDialog({
               disabled={isSubmitting}
               data-testid="create-organization-dialog-submit"
             >
-              {isSubmitting ? 'Creating…' : 'Create organization'}
+              {isSubmitting
+                ? tLayout(LAYOUT_KEYS.app.orgCreate.submitting)
+                : tLayout(LAYOUT_KEYS.app.orgCreate.submit)}
             </Button>
           </DialogFooter>
         </form>

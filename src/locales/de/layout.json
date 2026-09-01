@@ -144,7 +144,12 @@
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "Organisation erstellen",
+      "nameLabel": "Name der Organisation",
+      "slugLabel": "Workspace-URL (optional)",
+      "submit": "Organisation erstellen",
+      "submitting": "Wird erstellt…"
     }
   },
   "public": {

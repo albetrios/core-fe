@@ -1,7 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
+import { queryClient } from '@/core/http/queryClient.ts';
 import { organizationDashboard } from '@/lib/routes/index.ts';
+import { AUTH_KEYS, AUTH_NS } from '@/shared/auth/auth-shell.constants.ts';
 import { CreateOrganizationDialog } from '@/shared/components/CreateOrganizationDialog/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card, CardContent } from '@/shared/components/ui/card.tsx';
@@ -9,6 +12,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { AlertCircle, Building2, ChevronRight, Plus } from '@/shared/icons/index.ts';
+import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
 import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
 
 /**
@@ -19,6 +23,7 @@ import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
  * nowhere else to land.
  */
 function OrganizationList() {
+  const { t } = useTranslation(AUTH_NS);
   const {
     data: organizations = [],
     isLoading,
@@ -29,6 +34,27 @@ function OrganizationList() {
     queryFn: listMyOrganizations,
     // The picker renders its own error card with a retry for this failure.
     notifyOnError: false,
+    /*
+     * The `/` resolver already fetched `me/context` to decide the user belongs
+     * here, and that payload carries the same organizations. Seeding from it
+     * means a warm arrival renders the real list on the FIRST paint instead of
+     * flashing two skeletons for the length of a 40ms cached response (PICK-2).
+     * Placeholder data is not cached, so the real fetch still runs and replaces
+     * this the moment it lands.
+     */
+    placeholderData: () =>
+      queryClient
+        .getQueryData<MeContext>(meContextQueryKey)
+        ?.organizations // A personal org has no slug, so it has no row to link to.
+        .filter((org) => org.slug !== null)
+        .map((org) => ({
+          id: org.id,
+          name: org.name,
+          slug: org.slug ?? '',
+          status:
+            org.status === 'SUSPENDED' ? ('suspended' as const) : ('active' as const),
+          logoUrl: org.logoUrl,
+        })),
   });
 
   const isEmpty = !(isLoading || isError) && organizations.length === 0;
@@ -47,16 +73,21 @@ function OrganizationList() {
           <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
             <AlertCircle className="text-destructive h-6 w-6" />
             <p className="text-muted-foreground text-sm">
-              We couldn&rsquo;t load your organizations. Check your connection and try
-              again.
+              {t(AUTH_KEYS.organizationPicker.loadError)}
             </p>
+            {/*
+              No `disabled`/spinner here on purpose. Retrying resets the query to
+              pending, so this whole card unmounts and the skeletons below take
+              its place — the feedback PICK-1 asked for, and a button that is
+              gone cannot be spammed. A disabled state would never be rendered.
+            */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => void refetch()}
               data-testid="organization-picker-retry"
             >
-              Try again
+              {t(AUTH_KEYS.common.tryAgain)}
             </Button>
           </CardContent>
         </Card>
@@ -65,8 +96,7 @@ function OrganizationList() {
       {isEmpty && (
         <Card data-testid="organization-picker-empty">
           <CardContent className="text-muted-foreground p-6 text-center text-sm">
-            You&rsquo;re not part of any organization yet. Create one below to get
-            started.
+            {t(AUTH_KEYS.organizationPicker.empty)}
           </CardContent>
         </Card>
       )}
@@ -108,6 +138,7 @@ function OrganizationList() {
  * URL and persists the choice for the `/` resolver.
  */
 export function OrganizationPickerPage() {
+  const { t } = useTranslation(AUTH_NS);
   const [createOpen, setCreateOpen] = useState(false);
 
   return (
@@ -117,15 +148,17 @@ export function OrganizationPickerPage() {
     >
       <div className="w-full max-w-md space-y-6">
         <header className="space-y-1 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Select organization</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t(AUTH_KEYS.organizationPicker.heading)}
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Choose an organization to continue, or create a new one.
+            {t(AUTH_KEYS.organizationPicker.subheading)}
           </p>
         </header>
 
         <div className="space-y-2">
           <SectionErrorBoundary
-            title="Organizations"
+            title={t(AUTH_KEYS.organizationPicker.listTitle)}
             testId="organization-picker-list-error"
           >
             <OrganizationList />
@@ -139,7 +172,7 @@ export function OrganizationPickerPage() {
           data-testid="organization-picker-create"
         >
           <Plus className="me-2 h-4 w-4" />
-          Create organization
+          {t(AUTH_KEYS.organizationPicker.create)}
         </Button>
       </div>
 

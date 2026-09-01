@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { queryClient } from '@/core/http/queryClient.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 vi.mock('@/shared/hooks/useUnsavedChangesGuard/index.ts', () => ({
@@ -76,7 +77,11 @@ vi.mock('@/shared/hooks/useDeploymentFlags/index.ts', () => ({
 
 const createOrganization = vi.fn();
 const listMyOrganizations = vi.fn();
-vi.mock('@/shared/tenancy/my-organizations.ts', () => ({
+vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => ({
+  // Spread the real module so the REAL schema is used: the wizard validates the
+  // slug against the same one `createOrganization` does, and a stubbed schema
+  // would make that test prove nothing.
+  ...(await importOriginal<Record<string, unknown>>()),
   createOrganization: (...args: unknown[]) => createOrganization(...args),
   listMyOrganizations: (...args: unknown[]) => listMyOrganizations(...args),
 }));
@@ -235,6 +240,13 @@ function personalOrg() {
 describe('OnboardingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    /*
+     * `queryClient` is a module singleton, so cache entries survive between
+     * tests in this file. The wizard now reads the organization list THROUGH
+     * that cache (ONB-10), so without this a list left behind by an earlier
+     * test answers a later one.
+     */
+    queryClient.clear();
     deploymentFlagsRef.value = { personalOrganizations: false, teamOrganizations: true };
     // Default: team-only deployment, context LOADED. Without this the readiness
     // gate renders instead of the wizard — which is the whole point of ONB-2.
@@ -282,30 +294,29 @@ describe('OnboardingPage', () => {
     expect(await screen.findByTestId('onboarding-page')).toBeInTheDocument();
   });
 
-  it("wipes a previous user's persisted wizard state when a different user signs in", async () => {
-    // User A abandoned the wizard mid-flow on this browser: owner bound,
-    // name typed, a later step reached — all persisted to localStorage.
+  // The wipe itself now happens in `requireOnboardingWorkspace` (see
+  // route-guards.test.ts), BEFORE this page renders — that is the ONB-4 fix:
+  // done from an effect, the previous user's name painted for a frame first.
+  // What this asserts is the half the page still owns: once the store belongs
+  // to the new user, nothing of the old one is on screen.
+  it("shows nothing of a previous user's wizard once the store is claimed", async () => {
     const store = useOnboardingStore.getState();
     store.claimForUser('usr_previous');
     store.patch({ firstName: 'Prev', lastName: 'User', teamSize: '2–10' });
     store.setStepIndex(2);
 
-    // User B signs in on the same browser — me/context resolves with THEIR id.
+    // What the guard does before this page is allowed to render.
+    store.claimForUser('usr_next');
     liveContextRef.value = makeLiveContext({ userId: 'usr_next' });
 
-    {
-      renderWithProviders(<OnboardingPage />);
+    renderWithProviders(<OnboardingPage />);
 
-      // The claim wipes user A's progress and binds the store to user B — the
-      // wizard restarts from scratch instead of submitting A's name for B.
-      await waitFor(() => {
-        expect(useOnboardingStore.getState().forUserId).toBe('usr_next');
-      });
-      const state = useOnboardingStore.getState();
-      expect(state.stepIndex).toBe(0);
-      expect(state.data.firstName).toBe('');
-      expect(state.data.teamSize).toBe('');
-    }
+    await screen.findByTestId('onboarding-page');
+    expect(screen.queryByDisplayValue('Prev')).not.toBeInTheDocument();
+    const state = useOnboardingStore.getState();
+    expect(state.forUserId).toBe('usr_next');
+    expect(state.stepIndex).toBe(0);
+    expect(state.data.firstName).toBe('');
   });
 
   it('creates the org once and navigates to its dashboard', async () => {
@@ -752,6 +763,75 @@ describe('OnboardingPage', () => {
     }
   });
 
+  // ── ONB-10: one read of the organization list, through the shared cache ────
+
+  it('reads the organization list ONCE across the finish path', async () => {
+    const user = userEvent.setup();
+    // The resume shape both readers care about: a created-org id is persisted,
+    // so the mount effect checks it still exists AND resolveOrganizationForFinish
+    // checks again a moment later. Both used to call the API directly.
+    listMyOrganizations.mockResolvedValue([
+      { id: 'org_existing', name: 'Existing', slug: 'existing-slug', status: 'active' },
+    ]);
+    seedDoneStep();
+    useOnboardingStore.getState().setCreatedOrganizationId('org_existing');
+    useOnboardingStore.getState().setCreatedOrganizationSlug('existing-slug');
+    switchToOrganization.mockImplementationOnce(async () =>
+      ctxWithActive(teamOrg('existing-slug')),
+    );
+    renderWithProviders(<OnboardingPage />);
+
+    await screen.findByTestId('onboarding-finish');
+    await waitFor(() => expect(listMyOrganizations).toHaveBeenCalled());
+    await user.click(screen.getByTestId('onboarding-finish'));
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+
+    // Two readers, one request — and it is in the cache the picker reads.
+    expect(listMyOrganizations).toHaveBeenCalledTimes(1);
+    expect(queryClient.getQueryData(['organizations'])).toEqual([
+      { id: 'org_existing', name: 'Existing', slug: 'existing-slug', status: 'active' },
+    ]);
+  });
+
+  // ── ONB-11: a failed profile save is best-effort, not invisible ────────────
+
+  it('warns the user when the name could not be saved', async () => {
+    const user = userEvent.setup();
+    const warningSpy = vi.spyOn(notify, 'warning').mockImplementation(() => '');
+    const { setAccessToken, clearAccessToken } = await import('@/shared/auth/token.ts');
+    // Structurally valid base64url JWT — setAccessToken validates the shape.
+    const b64u = (value: object) =>
+      btoa(JSON.stringify(value))
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+    setAccessToken(
+      `${b64u({ alg: 'none' })}.${b64u({ sub: 'usr_1', exp: 9999999999 })}.sig`,
+    );
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    vi.mocked(authApi.updateProfile).mockRejectedValueOnce(new Error('patch failed'));
+    try {
+      seedDoneStep();
+      useOnboardingStore.getState().patch({ firstName: 'Ada', lastName: 'Lovelace' });
+      renderWithProviders(<OnboardingPage />);
+
+      await user.click(await screen.findByTestId('onboarding-finish'));
+
+      // Onboarding still succeeds — the save is best-effort by contract...
+      await waitFor(() => expect(navigate).toHaveBeenCalled());
+      // ...but the user is told, instead of being greeted by their email prefix
+      // on the dashboard with nothing anywhere to explain it.
+      await waitFor(() =>
+        expect(warningSpy).toHaveBeenCalledWith(
+          expect.stringContaining('save your name'),
+          expect.objectContaining({ id: 'onboarding-profile-save' }),
+        ),
+      );
+    } finally {
+      clearAccessToken();
+    }
+  });
+
   // ── ONB-2: nothing renders or submits on an unloaded me/context ────────────
 
   /** Put the wizard in the state ONB-2 describes: me/context failed to load. */
@@ -859,5 +939,51 @@ describe('OnboardingPage', () => {
     } finally {
       successSpy.mockRestore();
     }
+  });
+
+  // Regression (ONB-3): `stepIndex` is persisted and was NOT re-clamped when the
+  // step list shrank, so the indicator marked every dot done with none current,
+  // `aria-current="step"` vanished, and the first Back click was a no-op.
+  it('clamps a stale persisted step index for the indicator and Back', async () => {
+    const store = useOnboardingStore.getState();
+    store.claimForUser('usr_clamp');
+    store.setStepIndex(99); // far past the end of any step list
+
+    renderWithProviders(<OnboardingPage />);
+    await screen.findByTestId('onboarding-page');
+
+    // Exactly one dot is current — the last real step, not "none".
+    await waitFor(() =>
+      expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1),
+    );
+  });
+
+  // Regression (ONB-6): the slug was free text with a live URL preview and no
+  // validation, so an uppercase or spaced value passed Continue and only failed
+  // at Finish, two steps away, as a generic toast.
+  it('blocks Continue on an invalid workspace slug', async () => {
+    const store = useOnboardingStore.getState();
+    store.reset();
+    store.claimForUser(SESSION_USER_ID);
+    store.patch({ organizationName: 'Acme Inc.', organizationSlug: 'Not A Slug' });
+    store.setStepIndex(3); // welcome/profile/questions/WORKSPACE/invite/done
+
+    renderWithProviders(<OnboardingPage />);
+    await screen.findByTestId('onboarding-organization-slug');
+
+    expect(screen.getByTestId('onboarding-next')).toBeDisabled();
+  });
+
+  it('allows Continue once the slug is valid', async () => {
+    const store = useOnboardingStore.getState();
+    store.reset();
+    store.claimForUser(SESSION_USER_ID);
+    store.patch({ organizationName: 'Acme Inc.', organizationSlug: 'acme-inc' });
+    store.setStepIndex(3);
+
+    renderWithProviders(<OnboardingPage />);
+    await screen.findByTestId('onboarding-organization-slug');
+
+    expect(screen.getByTestId('onboarding-next')).not.toBeDisabled();
   });
 });
