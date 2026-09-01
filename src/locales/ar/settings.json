@@ -99,7 +99,8 @@
       "verify": "تحقق",
       "verifying": "جارٍ التحقق…",
       "invalid": "لم يتطابق. حاول مرة أخرى.",
-      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة."
+      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة.",
+      "sendFailed": "تعذّر إرسال الرمز. حاول مرة أخرى."
     }
   },
   "discard": {
@@ -181,11 +182,40 @@
       "deleteCancel": "إلغاء"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "المؤسسة · عام",
+      "description": "هوية مؤسستك عبر المنصة.",
+      "loadFailed": "تعذّر تحميل تفاصيل المؤسسة."
     },
     "integrations": {
       "searchPlaceholder": "ابحث عن مفاتيح API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "description": "اختر ما تُشعر به وكيفية ذلك.",
+      "deliveryTitle": "التسليم",
+      "deliveryDescription": "اختر قناة لكل نوع من التحديثات.",
+      "categories": {
+        "system": "المنتج والنظام",
+        "systemDescription": "التحديثات والإعلانات والنصائح.",
+        "member": "نشاط الفريق",
+        "memberDescription": "انضمام الأعضاء وتغييرات الأدوار والدعوات.",
+        "billing": "الفوترة",
+        "billingDescription": "الفواتير وتغييرات الخطة والتجديدات.",
+        "security": "الأمان",
+        "securityDescription": "عمليات تسجيل الدخول وتغييرات كلمة المرور وأحداث الأمان."
+      },
+      "channels": {
+        "email": "البريد الإلكتروني",
+        "inApp": "داخل التطبيق",
+        "desktop": "سطح المكتب"
+      }
+    },
+    "appearance": {
+      "title": "المظهر",
+      "description": "محفوظ على هذا الجهاز — تُطبَّق التغييرات فورًا.",
+      "shuffle": "عشوائي"
     }
   }
 }

@@ -99,7 +99,8 @@
       "verify": "확인",
       "verifying": "확인 중…",
       "invalid": "일치하지 않습니다. 다시 시도해 주세요.",
-      "passwordRequired": "이 작업에는 비밀번호 또는 인증 코드가 필요합니다."
+      "passwordRequired": "이 작업에는 비밀번호 또는 인증 코드가 필요합니다.",
+      "sendFailed": "코드를 보내지 못했습니다. 다시 시도해 주세요."
     }
   },
   "discard": {
@@ -181,11 +182,40 @@
       "deleteCancel": "취소"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "조직 · 일반",
+      "description": "플랫폼 전반에서 사용되는 조직 정보.",
+      "loadFailed": "조직 정보를 불러오지 못했습니다."
     },
     "integrations": {
       "searchPlaceholder": "API 키 검색…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "알림",
+      "description": "무엇을 어떻게 알림받을지 선택하세요.",
+      "deliveryTitle": "전달",
+      "deliveryDescription": "업데이트 종류마다 채널을 고르세요.",
+      "categories": {
+        "system": "제품 및 시스템",
+        "systemDescription": "업데이트, 공지, 팁.",
+        "member": "팀 활동",
+        "memberDescription": "멤버 참여, 역할 변경, 초대.",
+        "billing": "결제",
+        "billingDescription": "청구서, 요금제 변경, 갱신.",
+        "security": "보안",
+        "securityDescription": "로그인, 비밀번호 변경, 보안 이벤트."
+      },
+      "channels": {
+        "email": "이메일",
+        "inApp": "앱 내",
+        "desktop": "데스크톱"
+      }
+    },
+    "appearance": {
+      "title": "화면 스타일",
+      "description": "이 기기에 저장되며 변경 사항이 바로 적용됩니다.",
+      "shuffle": "셔플"
     }
   }
 }

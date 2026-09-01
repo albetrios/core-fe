@@ -132,7 +132,8 @@
       "cancel": "取消",
       "confirmRemove": "移除",
       "rolePlaceholder": "角色",
-      "searchPlaceholder": "搜索成员…"
+      "searchPlaceholder": "搜索成员…",
+      "removing": "正在移除…"
     },
     "shortcuts": {
       "title": "键盘快捷键",
@@ -150,6 +151,12 @@
       "slugLabel": "工作区 URL（可选）",
       "submit": "新建组织",
       "submitting": "正在创建…"
+    },
+    "theme": {
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统",
+      "shuffle": "随机主题"
     }
   },
   "public": {

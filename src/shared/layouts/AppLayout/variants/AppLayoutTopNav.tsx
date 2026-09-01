@@ -35,7 +35,7 @@ export function TopNavShell({
         <SectionErrorBoundary
           title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
           testId="org-switcher-error"
-          variant="inline"
+          variant="control"
         >
           <OrganizationSwitcher
             className="min-w-0 flex-1 sm:max-w-[11rem]"

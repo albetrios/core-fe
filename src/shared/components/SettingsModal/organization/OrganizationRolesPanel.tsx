@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { listRefreshClass } from '@/lib/list-refresh.ts';
+import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
 import { cn } from '@/lib/utils.ts';
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
@@ -26,10 +26,10 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
-import { useCan } from '@/shared/hooks/useCan/index.ts';
-import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
+import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import { useDeleteRole, useRoles } from '@/shared/hooks/useRoles/index.ts';
-import { MoreHorizontal, ShieldCheck } from '@/shared/icons/index.ts';
+import { MoreHorizontal, Plus, ShieldCheck } from '@/shared/icons/index.ts';
 import { notifyDeferredCommit } from '@/shared/notify/notify-deferred.ts';
 
 import {
@@ -131,18 +131,22 @@ function RolesLoading() {
 function RolesResults({
   roles,
   isSearching,
+  isStale,
   canManage,
   onEdit,
   onDelete,
 }: {
   roles: ReturnType<typeof useRoles>;
   isSearching: boolean;
+  /** The rows answer a question the user has already changed. */
+  isStale: boolean;
   canManage: boolean;
   onEdit: (role: RoleSummary) => void;
   onDelete: (role: RoleSummary) => void;
 }) {
   const { t } = useTranslation(SETTINGS_NS);
   const panels = SETTINGS_KEYS.panels.roles;
+  const stale = isListStale(roles.isRefreshing, isStale);
 
   if (roles.isPending) return <RolesLoading />;
   if (roles.isError) {
@@ -166,8 +170,8 @@ function RolesResults({
   return (
     <>
       <Card
-        className={cn('gap-0 overflow-hidden py-0', listRefreshClass(roles.isRefreshing))}
-        aria-busy={roles.isRefreshing}
+        className={cn('gap-0 overflow-hidden py-0', listRefreshClass(stale))}
+        aria-busy={stale}
       >
         <ul className="divide-border divide-y" data-testid="roles-list">
           {roles.rows.map((role) => (
@@ -206,13 +210,17 @@ export function OrganizationRolesPanel() {
   const { t } = useTranslation(SETTINGS_NS);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<OrgListSortPreset>(DEFAULT_ORG_LIST_SORT);
-  const debouncedSearch = useDebouncedValue(search.trim());
+  const { debounced: debouncedSearch, isPending: isSearchPending } =
+    useDebouncedSearch(search);
   const sortParams = orgListSortToParams(sort);
   const roles = useRoles({
     q: debouncedSearch || undefined,
     ...sortParams,
   });
   const canManage = useCan({ permission: 'role:manage', teamOrganizationOnly: true });
+  // See the members panel: a `false` before the guard chain answers is "not yet",
+  // not "not allowed" (SET-23).
+  const accessResolved = useAccessResolved();
   const deleteRole = useDeleteRole();
   const [toDelete, setToDelete] = useState<RoleSummary | null>(null);
   const [toEdit, setToEdit] = useState<RoleSummary | null>(null);
@@ -242,12 +250,19 @@ export function OrganizationRolesPanel() {
           searchTestId="roles-search"
           sortTestId="roles-sort"
         />
-        {canManage ? <CreateRoleDialog /> : null}
+        {accessResolved ? null : (
+          <Button size="sm" disabled data-testid="role-create-pending">
+            <Plus className="me-2 h-4 w-4" />
+            New role
+          </Button>
+        )}
+        {accessResolved && canManage ? <CreateRoleDialog /> : null}
       </div>
 
       <RolesResults
         roles={roles}
         isSearching={isSearching}
+        isStale={isSearchPending}
         canManage={canManage}
         onEdit={setToEdit}
         onDelete={setToDelete}

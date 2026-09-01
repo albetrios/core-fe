@@ -31,6 +31,11 @@ export function useNotifications() {
     // The popover renders a RetryError inline, and this polls — a toast every
     // 30s would be worse than the inline state.
     notifyOnError: false,
+    // Same gate `useMembers` already carries. Without it this polls every 30s
+    // against an empty org scope before context resolves and while an org
+    // switch is in flight — requests that can only ever come back `Forbidden`,
+    // and that keep coming back every interval (SHELL-10).
+    enabled: Boolean(orgId),
   });
 }
 
@@ -43,6 +48,9 @@ export function useUnreadCount() {
     refetchInterval: POLL_INTERVAL_MS,
     // A missing badge count is not worth a toast every poll.
     notifyOnError: false,
+    // The badge polls on the same interval as the inbox, so it needs the same
+    // gate — otherwise closing one only halves the wasted traffic.
+    enabled: Boolean(orgId),
   });
 }
 

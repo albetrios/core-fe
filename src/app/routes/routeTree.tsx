@@ -50,6 +50,7 @@ import { RouteAnnouncer } from '@/shared/components/RouteAnnouncer/index.ts';
 import { RouteErrorBoundary } from '@/shared/components/RouteErrorBoundary/index.ts';
 import { RouteProgressBar } from '@/shared/components/RouteProgressBar/index.ts';
 import { SettingsModalLazy } from '@/shared/components/SettingsModal/index.ts';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { AppToaster } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { resolveRootRedirect } from '@/shared/tenancy/organization-resolver.ts';
@@ -135,10 +136,17 @@ const rootRoute = createRootRoute({
       </div>
       {/* Global hash-driven settings modal — overlays any page (#settings/…). */}
       <SettingsModalLazy />
-      {/* Right-edge handles: appearance (when unlocked) + language. */}
+      {/* Right-edge handles: appearance (when unlocked) + language. Contains
+          itself — see FloatingEdgeControls. */}
       <FloatingEdgeControls />
-      {/* Dedicated Appearance dialog — its own surface, opened via useUIStore. */}
-      <AppearanceDialogLazy />
+      {/* Dedicated Appearance dialog — its own surface, opened via useUIStore.
+          A fixed-position overlay mounted at the ROOT: without its own boundary
+          a throw in here reached the global fallback and replaced the entire
+          app. Silent, because an overlay has nowhere in the layout to put an
+          error card — the dialog just is not there, and the throw is reported. */}
+      <SectionErrorBoundary title="Appearance" variant="silent">
+        <AppearanceDialogLazy />
+      </SectionErrorBoundary>
       {/* Dedicated Language & region dialog — mirrors Appearance, opened via useUIStore. */}
       <OfflineIndicator />
       {/* aria-live announcer: reads the new document.title on navigation. */}
@@ -157,6 +165,24 @@ const rootRoute = createRootRoute({
 // once over every auth page; the pages keep their top-level URLs (/login, …).
 // AuthLayout is rendered inside a custom component (it wraps Outlet), so it
 // keeps a local Suspense boundary — the router only manages route components.
+/**
+ * Pending config for the **network-gated entry routes** — `/`, the auth shell,
+ * `/onboarding`, `/organization`.
+ *
+ * `defaultPendingMs: 3000` below is right for in-app navigation: it keeps the
+ * current screen up while a guard runs, and the `RouteProgressBar` reports the
+ * work. On a **cold load** there is no current screen — the `/` resolver renders
+ * `null`, the boot splash has already faded out after first paint, and the user
+ * sits in front of a blank page with a 2px bar for up to three seconds (X-6).
+ * These four routes are exactly the ones a cold visit lands on, and every one of
+ * them awaits the network before it can render anything, so they show the
+ * spinner immediately instead.
+ */
+const COLD_ENTRY_PENDING = {
+  pendingMs: 0,
+  pendingComponent: () => <FullPageSpinner />,
+} as const;
+
 const authShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'auth-shell',
@@ -165,6 +191,10 @@ const authShellRoute = createRoute({
   beforeLoad: async () => {
     await redirectIfAuthenticated();
   },
+  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
+  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
+  ...COLD_ENTRY_PENDING,
+
   component: () => (
     <Suspense fallback={<FullPageSpinner />}>
       <AuthLayout>
@@ -231,6 +261,10 @@ const onboardingRoute = createRoute({
     await requireAuth(location.href);
     await requireOnboardingWorkspace();
   },
+  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
+  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
+  ...COLD_ENTRY_PENDING,
+
   component: OnboardingPage,
   errorComponent: RouteErrorBoundary,
 });
@@ -275,6 +309,9 @@ const indexRoute = createRoute({
     await requireAuth(location.href);
     throw redirect(await resolveRootRedirect());
   },
+  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
+  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
+  ...COLD_ENTRY_PENDING,
   component: () => null,
 });
 
@@ -288,6 +325,9 @@ const organizationPickerRoute = createRoute({
     await requireAuth(location.href);
     await requireProvisionedWorkspace({ params: {}, redirectFrom: location.href });
   },
+  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
+  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
+  ...COLD_ENTRY_PENDING,
   component: OrganizationPickerPage,
   errorComponent: RouteErrorBoundary,
 });

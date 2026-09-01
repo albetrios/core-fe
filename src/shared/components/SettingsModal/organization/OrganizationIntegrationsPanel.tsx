@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
-import { listRefreshClass } from '@/lib/list-refresh.ts';
+import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
 import { cn } from '@/lib/utils.ts';
 import type { ApiKey } from '@/shared/api/organization-contracts.ts';
 import {
@@ -33,9 +33,11 @@ import {
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
+import { mapApiError } from '@/shared/errors/errorHandler.ts';
+import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useApiKeys, useRevokeApiKey } from '@/shared/hooks/useApiKeys/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
-import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import {
   useCreateWebhook,
   useDeleteWebhook,
@@ -59,7 +61,8 @@ function ApiKeysSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<OrgListSortPreset>(DEFAULT_ORG_LIST_SORT);
-  const debouncedSearch = useDebouncedValue(search.trim());
+  const { debounced: debouncedSearch, isPending: isSearchPending } =
+    useDebouncedSearch(search);
   const sortParams = orgListSortToParams(sort);
   const keys = useApiKeys({
     q: debouncedSearch || undefined,
@@ -69,6 +72,7 @@ function ApiKeysSection() {
   const revokeKey = useRevokeApiKey();
   const [toRevoke, setToRevoke] = useState<ApiKey | null>(null);
   const isSearching = debouncedSearch.length > 0;
+  const isStale = isListStale(keys.isRefreshing, isSearchPending);
 
   return (
     <div className="space-y-3">
@@ -90,9 +94,15 @@ function ApiKeysSection() {
         </div>
       ) : null}
       {keys.isError ? (
-        <p className="text-destructive text-sm" role="alert">
-          Couldn&apos;t load API keys. Please try again.
-        </p>
+        // The webhooks list beside this one always offered a retry; the API-key
+        // list answered the same failure with a dead sentence (SET-20).
+        <div data-testid="apikeys-error">
+          <RetryError
+            message="Couldn't load API keys. Please try again."
+            onRetry={keys.refetch}
+            isRetrying={keys.isFetching}
+          />
+        </div>
       ) : null}
       {!(keys.isPending || keys.isError) && keys.rows.length === 0 ? (
         <EmptyState
@@ -107,11 +117,8 @@ function ApiKeysSection() {
       ) : null}
       {!keys.isError && keys.rows.length > 0 ? (
         <Card
-          className={cn(
-            'gap-0 overflow-hidden py-0',
-            listRefreshClass(keys.isRefreshing),
-          )}
-          aria-busy={keys.isRefreshing}
+          className={cn('gap-0 overflow-hidden py-0', listRefreshClass(isStale))}
+          aria-busy={isStale}
         >
           <ul className="divide-border divide-y" data-testid="apikeys-list">
             {keys.rows.map((key) => (
@@ -203,6 +210,10 @@ function WebhooksSection() {
         setUrl('');
         setEvents([]);
       },
+      // The dialog stays open on failure, so the reason belongs IN it — beside
+      // the URL the server rejected, not only in a toast the user has to catch
+      // before it fades (SET-26).
+      onError: (cause) => setError(mapApiError(cause)),
     });
   }
 
@@ -275,7 +286,14 @@ function WebhooksSection() {
         </Card>
       ) : null}
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog
+        open={addOpen}
+        onOpenChange={(open) => {
+          // Esc and the overlay are dismissals too — none of them may abandon a
+          // create that is already running.
+          if (!create.isPending) setAddOpen(open);
+        }}
+      >
         <DialogContent data-testid="webhook-add-dialog">
           <DialogHeader>
             <DialogTitle>Add a webhook</DialogTitle>
@@ -313,22 +331,30 @@ function WebhooksSection() {
                 ))}
               </div>
             </div>
-            {error ? (
-              <p className="text-destructive text-xs" role="alert">
-                {error}
-              </p>
-            ) : null}
+            {/*
+              The same error card the sign-in form and the step-up dialog use.
+              A bare red line under the events read as a caption; this reads as
+              the thing that went wrong (SET-26).
+            */}
+            <FormError message={error} data-testid="webhook-error" />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setAddOpen(false)}>
+            <Button
+              variant="ghost"
+              onClick={() => setAddOpen(false)}
+              // Cancel used to stay live through the request: pressing it left
+              // the create in flight with nothing on screen to report it.
+              disabled={create.isPending}
+              data-testid="webhook-cancel"
+            >
               Cancel
             </Button>
             <Button
               onClick={submit}
-              disabled={create.isPending}
+              isLoading={create.isPending}
               data-testid="webhook-create"
             >
-              Create webhook
+              {create.isPending ? 'Creating…' : 'Create webhook'}
             </Button>
           </DialogFooter>
         </DialogContent>

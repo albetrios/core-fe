@@ -23,10 +23,20 @@ import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 export function AccountProfilePanel() {
   const { t } = useTranslation(SETTINGS_NS);
   const user = useAuthStore((s) => s.user);
-  const [values, setValues] = useState<ProfileInput>({
-    name: user?.name ?? '',
-    jobTitle: user?.jobTitle ?? '',
-  });
+  /**
+   * What the store currently says the profile is. Derived, never snapshotted:
+   * the session can write a fuller user AFTER this panel mounted (a proactive
+   * refresh re-reads me/context), and a `useState` initializer only ever sees
+   * the first one — leaving an empty form and a 0% meter for a profile that is
+   * demonstrably filled in (SET-18).
+   */
+  const seeded = useMemo<ProfileInput>(
+    () => ({ name: user?.name ?? '', jobTitle: user?.jobTitle ?? '' }),
+    [user?.name, user?.jobTitle],
+  );
+  /** What the user has typed, if anything — it outranks the store. */
+  const [edited, setEdited] = useState<ProfileInput | null>(null);
+  const values = edited ?? seeded;
   const completeness = useMemo(() => computeProfileCompleteness(values), [values]);
 
   const panels = SETTINGS_KEYS.panels.profile;
@@ -45,8 +55,8 @@ export function AccountProfilePanel() {
       />
       <ProfileForm
         email={user?.email ?? ''}
-        defaultValues={values}
-        onValuesChange={setValues}
+        defaultValues={seeded}
+        onValuesChange={setEdited}
       />
     </div>
   );

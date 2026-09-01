@@ -40,6 +40,7 @@ export const SETTINGS_KEYS = {
       verify: 'security.stepUp.verify',
       verifying: 'security.stepUp.verifying',
       invalid: 'security.stepUp.invalid',
+      sendFailed: 'security.stepUp.sendFailed',
       passwordRequired: 'security.stepUp.passwordRequired',
     },
     mfa: {
@@ -112,6 +113,32 @@ export const SETTINGS_KEYS = {
     leave: 'discard.leave',
   },
   panels: {
+    notifications: {
+      title: 'panels.notifications.title',
+      description: 'panels.notifications.description',
+      deliveryTitle: 'panels.notifications.deliveryTitle',
+      deliveryDescription: 'panels.notifications.deliveryDescription',
+      categories: {
+        system: 'panels.notifications.categories.system',
+        systemDescription: 'panels.notifications.categories.systemDescription',
+        member: 'panels.notifications.categories.member',
+        memberDescription: 'panels.notifications.categories.memberDescription',
+        billing: 'panels.notifications.categories.billing',
+        billingDescription: 'panels.notifications.categories.billingDescription',
+        security: 'panels.notifications.categories.security',
+        securityDescription: 'panels.notifications.categories.securityDescription',
+      },
+      channels: {
+        email: 'panels.notifications.channels.email',
+        inApp: 'panels.notifications.channels.inApp',
+        desktop: 'panels.notifications.channels.desktop',
+      },
+    },
+    appearance: {
+      title: 'panels.appearance.title',
+      description: 'panels.appearance.description',
+      shuffle: 'panels.appearance.shuffle',
+    },
     members: {
       title: 'panels.members.title',
       description: 'panels.members.description',
@@ -164,7 +191,12 @@ export const SETTINGS_KEYS = {
       newest: 'panels.listSort.newest',
       oldest: 'panels.listSort.oldest',
     },
-    general: { namePlaceholder: 'panels.general.namePlaceholder' },
+    general: {
+      title: 'panels.general.title',
+      description: 'panels.general.description',
+      loadFailed: 'panels.general.loadFailed',
+      namePlaceholder: 'panels.general.namePlaceholder',
+    },
     integrations: {
       searchPlaceholder: 'panels.integrations.searchPlaceholder',
       webhookUrlPlaceholder: 'panels.integrations.webhookUrlPlaceholder',

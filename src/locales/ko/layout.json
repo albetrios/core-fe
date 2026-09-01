@@ -140,7 +140,8 @@
       "cancel": "취소",
       "confirmRemove": "제거",
       "rolePlaceholder": "역할",
-      "searchPlaceholder": "멤버 검색…"
+      "searchPlaceholder": "멤버 검색…",
+      "removing": "제거하는 중…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
@@ -150,6 +151,12 @@
       "slugLabel": "워크스페이스 URL (선택)",
       "submit": "조직 만들기",
       "submitting": "만드는 중…"
+    },
+    "theme": {
+      "light": "라이트",
+      "dark": "다크",
+      "system": "시스템",
+      "shuffle": "테마 셔플"
     }
   },
   "public": {

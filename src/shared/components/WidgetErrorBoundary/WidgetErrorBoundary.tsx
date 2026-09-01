@@ -8,15 +8,24 @@ import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card, CardContent } from '@/shared/components/ui/card.tsx';
 import { reportError } from '@/shared/errors/errorHandler.ts';
-import { AlertTriangle } from '@/shared/icons/index.ts';
+import { AlertTriangle, RotateCw } from '@/shared/icons/index.ts';
 
 /**
  * `card` is the default block fallback for panels and page sections. `inline`
  * is the compact one-line form for chrome-height surfaces — a 56px header, an
  * icon rail, a banner strip — where a 120px card would break the layout it is
  * supposed to be protecting.
+ *
+ * `control` is for a slot that holds ONE named control, like the organization
+ * switcher. It borrows that control's own geometry — same `h-9` outline button,
+ * same `size-6` leading chip, same trailing 16px glyph — so the failed state
+ * reads as a state OF the control rather than damage NEXT TO it. A dashed box
+ * with the full "<title> unavailable" string cannot do that: in a 220px sidebar
+ * it truncates mid-word ("Organization switc…"), which is what made it look
+ * broken. Here the visible label is short and the full sentence goes to
+ * `aria-label`, so nothing is lost to screen readers.
  */
-type SectionErrorVariant = 'card' | 'inline';
+type SectionErrorVariant = 'card' | 'inline' | 'control' | 'silent';
 
 interface SectionErrorBoundaryProps {
   children: ReactNode;
@@ -24,7 +33,11 @@ interface SectionErrorBoundaryProps {
   title: string;
   /** Optional test id for the fallback container. */
   testId?: string;
-  /** Fallback shape — `card` (default) or `inline` for chrome-height surfaces. */
+  /**
+   * Fallback shape — `card` (default), `inline` for chrome-height surfaces, or
+   * `silent` for a fixed-position overlay (a floating handle, a dialog host)
+   * where the graceful degradation is to not be there. Silent still reports.
+   */
   variant?: SectionErrorVariant;
   /**
    * Ran when the user presses Retry, before the boundary re-renders its
@@ -49,6 +62,11 @@ function SectionErrorFallback({
   const { t } = useTranslation(ERRORS_NS);
   const heading = t(ERRORS_KEYS.widget.unavailable, { title });
 
+  // An overlay has no place in the layout flow to put a card: rendering one
+  // would drop an error box into the middle of a working page. Disappearing IS
+  // the degradation — and `onError` above has already reported it.
+  if (variant === 'silent') return null;
+
   if (variant === 'inline') {
     return (
       <div
@@ -66,6 +84,31 @@ function SectionErrorFallback({
           onClick={resetErrorBoundary}
         >
           {t(ERRORS_KEYS.widget.retry)}
+        </Button>
+      </div>
+    );
+  }
+
+  if (variant === 'control') {
+    return (
+      <div className="min-w-0" data-testid={testId ?? 'widget-error'} role="alert">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          // Deliberately the switcher trigger's own classes: a fallback that
+          // changes the slot's height makes the whole shell jump on failure.
+          className="h-9 w-full min-w-0 justify-start gap-2"
+          onClick={resetErrorBoundary}
+          aria-label={t(ERRORS_KEYS.widget.controlRetry, { title })}
+        >
+          <span className="bg-destructive/10 text-destructive flex size-6 shrink-0 items-center justify-center rounded">
+            <AlertTriangle className="size-3.5" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-start text-sm font-medium">
+            {t(ERRORS_KEYS.widget.unavailableShort)}
+          </span>
+          <RotateCw className="size-4 shrink-0 opacity-60" aria-hidden="true" />
         </Button>
       </div>
     );

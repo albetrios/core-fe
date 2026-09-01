@@ -27,6 +27,10 @@ export function useCreateWebhook() {
   return useAppMutation({
     mutationFn: (input: CreateWebhookInput) => api.createWebhook(input),
     invalidateKeys: [webhooksQueryKey(orgId)],
+    // The add-webhook dialog renders the mapped error inline, beside the field
+    // the server rejected — a toast on top of it would say the same thing twice
+    // (SET-26, and rule 12: silence here is chosen, not accidental).
+    notifyOnError: false,
     successMessage: i18n.t(ERRORS_KEYS.frontend.hooks.webhooks.createSuccess, {
       ns: ERRORS_NS,
     }),

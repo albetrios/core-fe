@@ -47,7 +47,7 @@ export function FocusShell({
             <SectionErrorBoundary
               title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
               testId="org-switcher-error"
-              variant="inline"
+              variant="control"
             >
               <OrganizationSwitcher
                 className="hidden min-w-0 md:flex md:max-w-[12rem]"

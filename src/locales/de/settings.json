@@ -99,7 +99,8 @@
       "verify": "Bestätigen",
       "verifying": "Wird geprüft…",
       "invalid": "Das stimmte nicht. Bitte erneut versuchen.",
-      "passwordRequired": "Diese Aktion erfordert Ihr Passwort oder einen Authenticator-Code."
+      "passwordRequired": "Diese Aktion erfordert Ihr Passwort oder einen Authenticator-Code.",
+      "sendFailed": "Der Code konnte nicht gesendet werden. Bitte versuche es erneut."
     }
   },
   "discard": {
@@ -181,11 +182,40 @@
       "deleteCancel": "Abbrechen"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organisation · Allgemein",
+      "description": "Die Identität Ihrer Organisation auf der Plattform.",
+      "loadFailed": "Organisationsdetails konnten nicht geladen werden."
     },
     "integrations": {
       "searchPlaceholder": "API-Schlüssel suchen…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "description": "Wählen Sie, worüber Sie benachrichtigt werden – und wie.",
+      "deliveryTitle": "Zustellung",
+      "deliveryDescription": "Wählen Sie pro Update-Art einen Kanal.",
+      "categories": {
+        "system": "Produkt & System",
+        "systemDescription": "Updates, Ankündigungen und Tipps.",
+        "member": "Teamaktivität",
+        "memberDescription": "Neue Mitglieder, Rollenänderungen und Einladungen.",
+        "billing": "Abrechnung",
+        "billingDescription": "Rechnungen, Tarifwechsel und Verlängerungen.",
+        "security": "Sicherheit",
+        "securityDescription": "Anmeldungen, Passwortänderungen und Sicherheitsereignisse."
+      },
+      "channels": {
+        "email": "E-Mail",
+        "inApp": "In der App",
+        "desktop": "Desktop"
+      }
+    },
+    "appearance": {
+      "title": "Darstellung",
+      "description": "Auf diesem Gerät gespeichert – Änderungen greifen sofort.",
+      "shuffle": "Zufall"
     }
   }
 }

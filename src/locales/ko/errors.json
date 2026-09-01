@@ -11,12 +11,17 @@
     "pageMessage": "이 페이지를 렌더링하는 중 문제가 발생했습니다.",
     "tryAgain": "다시 시도",
     "goHome": "홈으로",
-    "refresh": "페이지 새로고침"
+    "refresh": "페이지 새로고침",
+    "forbidden": "이 페이지에 접근할 권한이 없습니다.",
+    "signOut": "로그아웃",
+    "signingOut": "로그아웃 중…"
   },
   "widget": {
     "unavailable": "{{title}}을(를) 사용할 수 없음",
     "message": "이 섹션을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
     "retry": "다시 시도",
+    "unavailableShort": "사용할 수 없음",
+    "controlRetry": "{{title}}을(를) 사용할 수 없습니다. 선택하여 다시 시도하세요.",
     "pageContent": "페이지 콘텐츠",
     "navigation": "내비게이션",
     "emailBanner": "이메일 확인",
@@ -29,7 +34,8 @@
     "members": "멤버",
     "schedule": "일정",
     "highlights": "하이라이트",
-    "themeShowcase": "테마 쇼케이스"
+    "themeShowcase": "테마 쇼케이스",
+    "sessionTimeout": "세션 타이머"
   },
   "toast": {
     "dismiss": "알림 닫기",
@@ -142,7 +148,10 @@
       },
       "subscription": {
         "changePlanFailed": "플랜을 변경할 수 없습니다",
-        "changePlanSuccess": "{{plan}} 플랜으로 전환됨"
+        "changePlanSuccess": "{{plan}} 플랜으로 전환됨",
+        "paymentSetupFailed": "요금제는 변경됐지만 결제 단계를 시작하지 못했습니다. 청구를 다시 열어 마무리하세요.",
+        "cancelSuccess": "구독이 결제 기간 종료 시 해지됩니다",
+        "resumeSuccess": "구독을 재개했습니다"
       },
       "invitations": {
         "sendFailed": "초대를 보낼 수 없습니다",
@@ -150,5 +159,10 @@
       }
     },
     "profileUpdated": "프로필이 업데이트됨"
+  },
+  "suspended": {
+    "title": "조직이 정지되었습니다",
+    "message": "이 조직은 현재 정지되어 있습니다. 결제 내용을 확인하려면 조직 관리자에게 문의하거나 다른 조직으로 전환하세요.",
+    "switchOrganization": "조직 전환"
   }
 }

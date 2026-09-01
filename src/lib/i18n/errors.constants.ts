@@ -16,11 +16,22 @@ export const ERRORS_KEYS = {
     tryAgain: 'route.tryAgain',
     goHome: 'route.goHome',
     refresh: 'route.refresh',
+    forbidden: 'route.forbidden',
+    signOut: 'route.signOut',
+    signingOut: 'route.signingOut',
+  },
+  /** Blocked-organization status screen (guard target, not a crash). */
+  suspended: {
+    title: 'suspended.title',
+    message: 'suspended.message',
+    switchOrganization: 'suspended.switchOrganization',
   },
   widget: {
     unavailable: 'widget.unavailable',
     message: 'widget.message',
     retry: 'widget.retry',
+    unavailableShort: 'widget.unavailableShort',
+    controlRetry: 'widget.controlRetry',
     pageContent: 'widget.pageContent',
     navigation: 'widget.navigation',
     emailBanner: 'widget.emailBanner',
@@ -34,6 +45,7 @@ export const ERRORS_KEYS = {
     schedule: 'widget.schedule',
     highlights: 'widget.highlights',
     themeShowcase: 'widget.themeShowcase',
+    sessionTimeout: 'widget.sessionTimeout',
   },
   toast: {
     dismiss: 'toast.dismiss',
@@ -149,6 +161,9 @@ export const ERRORS_KEYS = {
       subscription: {
         changePlanFailed: 'frontend.hooks.subscription.changePlanFailed',
         changePlanSuccess: 'frontend.hooks.subscription.changePlanSuccess',
+        paymentSetupFailed: 'frontend.hooks.subscription.paymentSetupFailed',
+        cancelSuccess: 'frontend.hooks.subscription.cancelSuccess',
+        resumeSuccess: 'frontend.hooks.subscription.resumeSuccess',
       },
       invitations: {
         sendFailed: 'frontend.hooks.invitations.sendFailed',

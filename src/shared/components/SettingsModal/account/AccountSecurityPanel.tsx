@@ -35,6 +35,7 @@ import {
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import {
   useBeginMfaEnrollment,
   useConfirmMfaEnrollment,
@@ -61,7 +62,7 @@ function MfaCard() {
   const begin = useBeginMfaEnrollment();
   const confirm = useConfirmMfaEnrollment();
   const disable = useDisableMfa();
-  const { guard, stepUpDialog } = useStepUpGuard();
+  const { guard, isGuarding, stepUpDialog } = useStepUpGuard();
 
   const [setupOpen, setSetupOpen] = useState(false);
   const [enrollment, setEnrollment] = useState<MfaEnrollment | null>(null);
@@ -88,7 +89,7 @@ function MfaCard() {
     // Enrollment is step-up gated; the bootstrap email-code factor is allowed
     // here (it exists exactly so a passwordless account can enroll its first
     // second factor).
-    guard(
+    void guard(
       () =>
         begin.mutateAsync().then((result) => {
           setEnrollment(result);
@@ -127,6 +128,7 @@ function MfaCard() {
       variant="outline"
       size="sm"
       onClick={() => setDisableOpen(true)}
+      disabled={isGuarding}
       data-testid="mfa-disable"
     >
       {t(SETTINGS_KEYS.security.mfa.disable)}
@@ -135,7 +137,7 @@ function MfaCard() {
     <Button
       size="sm"
       onClick={handleStartSetup}
-      disabled={begin.isPending}
+      disabled={begin.isPending || isGuarding}
       data-testid="mfa-setup"
     >
       <ShieldCheck data-icon="inline-start" />
@@ -259,11 +261,12 @@ function MfaCard() {
       <MfaDisableConfirm
         open={disableOpen}
         onOpenChange={setDisableOpen}
-        onConfirm={() => {
+        onConfirm={() =>
           // Destructive — needs a STRONG step-up window (TOTP for MFA accounts;
-          // the bootstrap email code is never accepted here).
-          guard(() => disable.mutateAsync(), { allowEmailCode: false });
-        }}
+          // the bootstrap email code is never accepted here). RETURNED, so the
+          // dialog stays open and busy until the round-trip settles.
+          guard(() => disable.mutateAsync(), { allowEmailCode: false })
+        }
       />
 
       {stepUpDialog}
@@ -336,7 +339,8 @@ function MfaDisableConfirm({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  /** Awaited by ConfirmDialog — return the promise so it can hold its busy state. */
+  onConfirm: () => void | Promise<void>;
 }) {
   const { t } = useTranslation(SETTINGS_NS);
   return (
@@ -353,6 +357,59 @@ function MfaDisableConfirm({
 }
 
 /** Passkeys card: list + named registration + revoke (FE-32). */
+/**
+ * One saved credential, and its own removal.
+ *
+ * The mutation lives HERE, not on the card: `useRemovePasskey().isPending` is
+ * one flag per instance, so a card-level instance greyed out every row's button
+ * while any one of them was going (SET-24). A per-row instance also gives each
+ * row its own single-flight guard, so "leave the other rows enabled" cannot
+ * become "the second click is silently joined to the first" (rule 1).
+ */
+function PasskeyRow({
+  passkey,
+  guard,
+  isSteppingUp,
+}: {
+  passkey: { id: string; name: string };
+  guard: ReturnType<typeof useStepUpGuard>['guard'];
+  /** A re-authentication dialog is open — no row may start another. */
+  isSteppingUp: boolean;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const remove = useRemovePasskey();
+
+  return (
+    <div
+      className="flex items-center justify-between rounded-md border px-3 py-2"
+      data-testid="passkey-row"
+    >
+      <div className="flex items-center gap-2 text-sm">
+        <Fingerprint className="text-muted-foreground" aria-hidden />
+        {passkey.name}
+      </div>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t(SETTINGS_KEYS.security.passkeys.removeAria, { name: passkey.name })}
+        onClick={() =>
+          // Destructive — STRONG step-up only (never the email code).
+          void guard(() => remove.mutateAsync(passkey.id), { allowEmailCode: false })
+        }
+        isLoading={remove.isPending}
+        // Shared only for the ceremony: while a step-up dialog is open no row
+        // may start another. A removal that is simply in flight belongs to its
+        // own row and leaves the rest of the list alone.
+        disabled={isSteppingUp}
+        data-testid="passkey-remove"
+        data-passkey-id={passkey.id}
+      >
+        {remove.isPending ? null : <Trash2 />}
+      </Button>
+    </div>
+  );
+}
+
 function PasskeysCard() {
   const { t } = useTranslation(SETTINGS_NS);
   // Same reasoning as MfaCard: an empty list is a claim ("you have no
@@ -360,8 +417,7 @@ function PasskeysCard() {
   const passkeysQuery = usePasskeys();
   const passkeys = passkeysQuery.data ?? [];
   const register = useRegisterPasskey();
-  const remove = useRemovePasskey();
-  const { guard, stepUpDialog } = useStepUpGuard();
+  const { guard, isGuarding, isSteppingUp, stepUpDialog } = useStepUpGuard();
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState('');
 
@@ -372,7 +428,7 @@ function PasskeysCard() {
 
   function submitAdd() {
     // Registration is step-up gated; bootstrap email-code is allowed (first factor).
-    guard(() => register.mutateAsync(name.trim() || 'New passkey').then(closeAdd));
+    void guard(() => register.mutateAsync(name.trim() || 'New passkey').then(closeAdd));
   }
 
   // Only rendered once the list is KNOWN — see passkeysQuery above.
@@ -383,31 +439,12 @@ function PasskeysCard() {
       </p>
     ) : (
       passkeys.map((passkey) => (
-        <div
+        <PasskeyRow
           key={passkey.id}
-          className="flex items-center justify-between rounded-md border px-3 py-2"
-          data-testid="passkey-row"
-        >
-          <div className="flex items-center gap-2 text-sm">
-            <Fingerprint className="text-muted-foreground" aria-hidden />
-            {passkey.name}
-          </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t(SETTINGS_KEYS.security.passkeys.removeAria, {
-              name: passkey.name,
-            })}
-            onClick={() =>
-              // Destructive — STRONG step-up only (never the email code).
-              guard(() => remove.mutateAsync(passkey.id), { allowEmailCode: false })
-            }
-            disabled={remove.isPending}
-            data-testid="passkey-remove"
-          >
-            <Trash2 />
-          </Button>
-        </div>
+          passkey={passkey}
+          guard={guard}
+          isSteppingUp={isSteppingUp}
+        />
       ))
     );
 
@@ -484,7 +521,7 @@ function PasskeysCard() {
             </Button>
             <Button
               onClick={submitAdd}
-              disabled={register.isPending}
+              disabled={register.isPending || isGuarding}
               data-testid="passkey-add-submit"
             >
               {t(SETTINGS_KEYS.security.passkeys.submit)}
@@ -531,9 +568,22 @@ export function AccountSecurityPanel() {
         <Skeleton className="h-36 w-full" data-testid="security-overview-loading" />
       )}
 
-      <MfaCard />
+      {/* Two independent credential features in one panel: a throw in the
+          passkey list must not take two-factor management with it, and the
+          reverse. */}
+      <SectionErrorBoundary
+        title={t(SETTINGS_KEYS.security.mfa.title)}
+        testId="mfa-card-error"
+      >
+        <MfaCard />
+      </SectionErrorBoundary>
 
-      <PasskeysCard />
+      <SectionErrorBoundary
+        title={t(SETTINGS_KEYS.security.passkeys.title)}
+        testId="passkeys-card-error"
+      >
+        <PasskeysCard />
+      </SectionErrorBoundary>
     </div>
   );
 }

@@ -11,12 +11,17 @@
     "pageMessage": "Qualcosa è andato storto durante il rendering di questa pagina.",
     "tryAgain": "Riprova",
     "goHome": "Vai alla home",
-    "refresh": "Aggiorna pagina"
+    "refresh": "Aggiorna pagina",
+    "forbidden": "Non hai i permessi per accedere a questa pagina.",
+    "signOut": "Esci",
+    "signingOut": "Disconnessione…"
   },
   "widget": {
     "unavailable": "{{title}} non disponibile",
     "message": "Qualcosa è andato storto nel caricamento di questa sezione. Riprova.",
     "retry": "Riprova",
+    "unavailableShort": "Non disponibile",
+    "controlRetry": "{{title}} non disponibile. Seleziona per riprovare.",
     "pageContent": "Contenuto della pagina",
     "navigation": "Navigazione",
     "emailBanner": "Verifica e-mail",
@@ -29,7 +34,8 @@
     "members": "Membri",
     "schedule": "Programma",
     "highlights": "In evidenza",
-    "themeShowcase": "Vetrina dei temi"
+    "themeShowcase": "Vetrina dei temi",
+    "sessionTimeout": "Timer della sessione"
   },
   "toast": {
     "dismiss": "Chiudi notifica",
@@ -142,7 +148,10 @@
       },
       "subscription": {
         "changePlanFailed": "Impossibile cambiare piano",
-        "changePlanSuccess": "Passato al piano {{plan}}"
+        "changePlanSuccess": "Passato al piano {{plan}}",
+        "paymentSetupFailed": "Piano modificato, ma non è stato possibile avviare il passaggio di pagamento. Riapri la fatturazione per completarlo.",
+        "cancelSuccess": "L'abbonamento terminerà alla fine del periodo",
+        "resumeSuccess": "Abbonamento ripreso"
       },
       "invitations": {
         "sendFailed": "Impossibile inviare l'invito",
@@ -150,5 +159,10 @@
       }
     },
     "profileUpdated": "Profilo aggiornato"
+  },
+  "suspended": {
+    "title": "Organizzazione sospesa",
+    "message": "Questa organizzazione è sospesa. Contatta un amministratore per verificare la fatturazione oppure passa a un'altra organizzazione.",
+    "switchOrganization": "Cambia organizzazione"
   }
 }

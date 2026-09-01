@@ -140,7 +140,8 @@
       "cancel": "Abbrechen",
       "confirmRemove": "Entfernen",
       "rolePlaceholder": "Rolle",
-      "searchPlaceholder": "Mitglieder suchen…"
+      "searchPlaceholder": "Mitglieder suchen…",
+      "removing": "Wird entfernt…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
@@ -150,6 +151,12 @@
       "slugLabel": "Workspace-URL (optional)",
       "submit": "Organisation erstellen",
       "submitting": "Wird erstellt…"
+    },
+    "theme": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System",
+      "shuffle": "Theme zufällig wählen"
     }
   },
   "public": {

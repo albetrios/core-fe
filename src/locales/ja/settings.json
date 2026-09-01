@@ -99,7 +99,8 @@
       "verify": "確認",
       "verifying": "確認中…",
       "invalid": "一致しませんでした。もう一度お試しください。",
-      "passwordRequired": "この操作にはパスワードまたは認証コードが必要です。"
+      "passwordRequired": "この操作にはパスワードまたは認証コードが必要です。",
+      "sendFailed": "コードを送信できませんでした。もう一度お試しください。"
     }
   },
   "discard": {
@@ -181,11 +182,40 @@
       "deleteCancel": "キャンセル"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "組織 · 一般",
+      "description": "プラットフォーム全体での組織の表示情報。",
+      "loadFailed": "組織情報を読み込めませんでした。"
     },
     "integrations": {
       "searchPlaceholder": "API キーを検索…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "何をどのように通知するかを選べます。",
+      "deliveryTitle": "配信",
+      "deliveryDescription": "更新の種類ごとにチャネルを選びます。",
+      "categories": {
+        "system": "製品とシステム",
+        "systemDescription": "更新情報、お知らせ、ヒント。",
+        "member": "チームの動き",
+        "memberDescription": "メンバーの参加、ロール変更、招待。",
+        "billing": "請求",
+        "billingDescription": "請求書、プラン変更、更新。",
+        "security": "セキュリティ",
+        "securityDescription": "サインイン、パスワード変更、安全に関する出来事。"
+      },
+      "channels": {
+        "email": "メール",
+        "inApp": "アプリ内",
+        "desktop": "デスクトップ"
+      }
+    },
+    "appearance": {
+      "title": "外観",
+      "description": "この端末に保存されます。変更はすぐに反映されます。",
+      "shuffle": "シャッフル"
     }
   }
 }

@@ -6,6 +6,8 @@ import {
   omitStripeReturnParams,
   readStripeBillingReturnParams,
 } from '@/lib/billing/stripe-return.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import i18n from '@/lib/i18n/i18n.ts';
 import * as billingApi from '@/shared/api/billing-api.ts';
 import type { BillingPaymentMethod } from '@/shared/api/billing-contracts.ts';
 import { billingQueryKeys } from '@/shared/api/billing-query-keys.ts';
@@ -21,9 +23,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card.tsx';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { mapApiError } from '@/shared/errors/errorHandler.ts';
 import { useBillingPaymentMethods } from '@/shared/hooks/useBillingPaymentMethods/index.ts';
 import { CreditCard } from '@/shared/icons/index.ts';
+import { notify } from '@/shared/notify/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
+
+/** One toast id for the add-card button — a retry replaces, never stacks. */
+const ADD_METHOD_TOAST = 'billing-add-payment-method';
 
 function formatCardLabel(method: BillingPaymentMethod) {
   const brand = method.brand ? method.brand.toUpperCase() : 'Card';
@@ -68,6 +76,22 @@ export function BillingPaymentMethods({
   const [isAdding, setIsAdding] = useState(false);
   // Synchronous twin of `isAdding` — see handleAddPaymentMethod.
   const isAddingRef = useRef(false);
+  /**
+   * The setup request outlives this card when the user closes Settings
+   * mid-flight. Its result must not be written into a component that is gone —
+   * the toast still fires, because the failure is the user's news either way.
+   */
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    // Set on every run, not just the first: React re-runs mount effects (Strict
+    // Mode does it immediately), and a cleanup that only ever flips this to
+    // false would leave the card permanently "unmounted" to itself.
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const { setupIntentClientSecret, redirectStatus } = readStripeBillingReturnParams();
@@ -100,25 +124,36 @@ export function BillingPaymentMethods({
     setIsAdding(true);
     try {
       const setup = await billingApi.createPaymentMethodSetup();
-      if (setup.clientSecret) {
+      if (!setup.clientSecret) {
+        // A 200 with no secret is still "no form to fill in".
+        notify.error(i18n.t(ERRORS_KEYS.api.unexpected, { ns: ERRORS_NS }), {
+          id: ADD_METHOD_TOAST,
+        });
+      } else if (isMountedRef.current) {
         setSetupSecret(setup.clientSecret);
       }
+    } catch (error) {
+      // Was a bare try/finally: the button simply re-enabled, so a failed setup
+      // looked exactly like a click that did nothing (SET-17).
+      notify.error(mapApiError(error), { id: ADD_METHOD_TOAST });
     } finally {
       isAddingRef.current = false;
-      setIsAdding(false);
+      if (isMountedRef.current) setIsAdding(false);
     }
   }
 
   async function refreshPaymentMethods() {
     setSetupSecret(null);
-    await queryClient.invalidateQueries({
-      queryKey: billingQueryKeys.paymentMethods(orgId),
-    });
+    await queryClient
+      .invalidateQueries({ queryKey: billingQueryKeys.paymentMethods(orgId) })
+      .catch(() => {
+        /* best effort — the list refetches on next focus */
+      });
   }
 
-  // Hide entirely when disabled (no subscription) or Stripe is off. The query
-  // is gated the same way, so a disabled query's `isPending` would otherwise
-  // leave the card stuck on a loading skeleton forever.
+  // Hide the whole card when there is no subscription, or Stripe is off. The
+  // guard is about the card, not about the query: QueryBoundary tells a disabled
+  // query apart from a loading one by itself now (X-5).
   if (!enabled || !isStripeEnabled()) {
     return null;
   }
@@ -133,12 +168,19 @@ export function BillingPaymentMethods({
       </CardHeader>
       <CardContent className="space-y-4">
         {setupSecret ? (
-          <StripePaymentForm
-            clientSecret={setupSecret}
-            intent="setup"
-            onCancel={() => setSetupSecret(null)}
-            onComplete={() => void refreshPaymentMethods()}
-          />
+          // Stripe Elements is third-party and mounts an iframe: a throw in
+          // there costs the card form, not the whole billing panel.
+          <SectionErrorBoundary
+            title="Payment method"
+            testId="billing-payment-form-error"
+          >
+            <StripePaymentForm
+              clientSecret={setupSecret}
+              intent="setup"
+              onCancel={() => setSetupSecret(null)}
+              onComplete={() => void refreshPaymentMethods()}
+            />
+          </SectionErrorBoundary>
         ) : (
           <>
             <QueryBoundary

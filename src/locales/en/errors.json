@@ -11,12 +11,17 @@
     "pageMessage": "Something went wrong rendering this page.",
     "tryAgain": "Try again",
     "goHome": "Go home",
-    "refresh": "Refresh page"
+    "refresh": "Refresh page",
+    "forbidden": "You do not have permission to access this page.",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…"
   },
   "widget": {
     "unavailable": "{{title}} unavailable",
     "message": "Something went wrong loading this section. Try again.",
     "retry": "Retry",
+    "unavailableShort": "Unavailable",
+    "controlRetry": "{{title}} unavailable. Select to retry.",
     "pageContent": "Page content",
     "navigation": "Navigation",
     "emailBanner": "Email verification",
@@ -29,7 +34,8 @@
     "members": "Members",
     "schedule": "Schedule",
     "highlights": "Highlights",
-    "themeShowcase": "Theme showcase"
+    "themeShowcase": "Theme showcase",
+    "sessionTimeout": "Session timer"
   },
   "toast": {
     "dismiss": "Dismiss notification",
@@ -142,7 +148,10 @@
       },
       "subscription": {
         "changePlanFailed": "Could not change plan",
-        "changePlanSuccess": "Switched to the {{plan}} plan"
+        "changePlanSuccess": "Switched to the {{plan}} plan",
+        "paymentSetupFailed": "Plan changed, but the payment step couldn't start. Reopen billing to finish it.",
+        "cancelSuccess": "Subscription set to end at the period close",
+        "resumeSuccess": "Subscription resumed"
       },
       "invitations": {
         "sendFailed": "Could not send invitation",
@@ -150,5 +159,10 @@
       }
     },
     "profileUpdated": "Profile updated"
+  },
+  "suspended": {
+    "title": "Organization suspended",
+    "message": "This organization is currently suspended. Contact an organization administrator to review billing, or switch to another organization.",
+    "switchOrganization": "Switch organization"
   }
 }

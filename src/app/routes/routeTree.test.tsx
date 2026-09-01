@@ -77,6 +77,46 @@ describe('router configuration', () => {
     expect(router.options.defaultPendingComponent).toBeDefined();
   });
 
+  describe('cold entry routes show their pending state immediately (X-6)', () => {
+    // `defaultPendingMs: 3000` keeps the CURRENT screen during in-app
+    // navigation. On a cold load there is no current screen — `/` renders null,
+    // the boot splash has faded, and the user gets a blank page with a 2px bar
+    // for three seconds. The routes a cold visit can land on override it.
+    type RouteOptions = {
+      id: string;
+      options: { pendingMs?: number; pendingComponent?: unknown };
+    };
+    const allRoutes = Object.values(router.routesById) as unknown as RouteOptions[];
+    // Pathless routes carry a prefixed id, so match on the suffix.
+    const routeEndingWith = (suffix: string) =>
+      allRoutes.find((route) => route.id.endsWith(suffix));
+
+    it('keeps the 3s default for in-app navigation', () => {
+      expect(router.options.defaultPendingMs).toBe(3000);
+    });
+
+    it.each(['auth-shell', '/onboarding', '/organization'])(
+      '%s renders its pending component at once',
+      (suffix) => {
+        const route = routeEndingWith(suffix);
+        expect(route, `route ${suffix} is missing`).toBeDefined();
+        expect(route?.options.pendingMs, `route ${suffix}`).toBe(0);
+        expect(route?.options.pendingComponent, `route ${suffix}`).toBeDefined();
+      },
+    );
+
+    it('the `/` resolver does too — it renders null, so 3s of it is a blank page', () => {
+      const index = allRoutes.find((route) => route.id === '/');
+      expect(index?.options.pendingMs).toBe(0);
+      expect(index?.options.pendingComponent).toBeDefined();
+    });
+
+    it('leaves every other route on the default', () => {
+      const immediate = allRoutes.filter((route) => route.options.pendingMs === 0);
+      expect(immediate).toHaveLength(4);
+    });
+  });
+
   it('wires an error component on every routed island (root handles the rest)', () => {
     const routes = Object.values(router.routesById).filter(
       (route) => route.id !== '__root__' && route.id !== '/',

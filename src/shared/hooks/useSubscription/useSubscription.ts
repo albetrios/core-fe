@@ -7,6 +7,9 @@ import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
+/** One toast id for cancel + resume — the two directions of one switch. */
+const SUBSCRIPTION_LIFECYCLE_TOAST = 'subscription-lifecycle';
+
 /**
  * Active subscription for the current organization — query + plan mutations.
  * Server state only — never mirrored into Zustand (file-structure.mdc).
@@ -61,11 +64,23 @@ export function useSelectBillingPlan() {
   });
 }
 
+/**
+ * Cancel at period end. Both lifecycle mutations share one `toastId`: cancel and
+ * resume are the two directions of the same switch, so flipping it twice must
+ * replace the first confirmation rather than stack a contradicting pair.
+ */
 export function useCancelSubscription() {
   const orgId = useOrganizationStore((s) => s.organizationId);
   return useAppMutation({
     mutationFn: (subscriptionId: string) => billingApi.cancelSubscription(subscriptionId),
     invalidateKeys: [billingQueryKeys.activeSubscription(orgId)],
+    // Was silent: the dialog closed and NOTHING said the subscription had been
+    // cancelled — the one write on this panel that costs the user money
+    // (SET-14).
+    successMessage: i18n.t(ERRORS_KEYS.frontend.hooks.subscription.cancelSuccess, {
+      ns: ERRORS_NS,
+    }),
+    toastId: SUBSCRIPTION_LIFECYCLE_TOAST,
   });
 }
 
@@ -74,5 +89,9 @@ export function useResumeSubscription() {
   return useAppMutation({
     mutationFn: (subscriptionId: string) => billingApi.resumeSubscription(subscriptionId),
     invalidateKeys: [billingQueryKeys.activeSubscription(orgId)],
+    successMessage: i18n.t(ERRORS_KEYS.frontend.hooks.subscription.resumeSuccess, {
+      ns: ERRORS_NS,
+    }),
+    toastId: SUBSCRIPTION_LIFECYCLE_TOAST,
   });
 }

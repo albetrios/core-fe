@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { organizationPicker } from '@/lib/routes/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { ShieldAlert } from '@/shared/icons/index.ts';
@@ -10,6 +12,8 @@ import { ShieldAlert } from '@/shared/icons/index.ts';
  * an administrator about billing.
  */
 export function SuspendedPage() {
+  const { t } = useTranslation(ERRORS_NS);
+
   return (
     <div
       className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center"
@@ -19,14 +23,15 @@ export function SuspendedPage() {
         <ShieldAlert className="h-6 w-6" />
       </div>
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">Organization suspended</h1>
+        <h1 className="text-xl font-semibold">{t(ERRORS_KEYS.suspended.title)}</h1>
         <p className="text-muted-foreground max-w-sm text-sm">
-          This organization is currently suspended. Contact an organization administrator
-          to review billing, or switch to another organization.
+          {t(ERRORS_KEYS.suspended.message)}
         </p>
       </div>
       <Button asChild variant="outline" data-testid="suspended-switch-organization">
-        <Link {...organizationPicker()}>Switch organization</Link>
+        <Link {...organizationPicker()}>
+          {t(ERRORS_KEYS.suspended.switchOrganization)}
+        </Link>
       </Button>
     </div>
   );

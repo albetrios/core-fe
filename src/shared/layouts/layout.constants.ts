@@ -32,6 +32,12 @@ export const LAYOUT_KEYS = {
     },
   },
   app: {
+    theme: {
+      light: 'app.theme.light',
+      dark: 'app.theme.dark',
+      system: 'app.theme.system',
+      shuffle: 'app.theme.shuffle',
+    },
     search: 'app.search',
     searchPlaceholder: 'app.searchPlaceholder',
     searchShortcutMac: 'app.searchShortcutMac',

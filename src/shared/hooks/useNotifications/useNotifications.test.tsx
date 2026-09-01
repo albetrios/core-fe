@@ -53,9 +53,15 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
+/** A resolved org scope — what every real caller of these hooks has. */
+const ORG_ID = 'org_acme0000000000000000';
+
 beforeEach(() => {
   vi.clearAllMocks();
   useOrganizationStore.getState().clearOrganization();
+  // The polls are gated on a resolved org scope (SHELL-10), so a test that
+  // wants them to run has to say which org it is running against.
+  useOrganizationStore.setState({ organizationId: ORG_ID });
   listMock.mockResolvedValue([ITEM]);
   countMock.mockResolvedValue(3);
   markReadMock.mockResolvedValue(undefined);
@@ -133,5 +139,42 @@ describe('useNotifications', () => {
     for (const call of successMock.mock.calls) {
       expect(call[1]).toEqual({ id: NOTIFICATION_PREFERENCES_TOAST_ID });
     }
+  });
+});
+
+describe('SHELL-10 — the polls wait for an org scope', () => {
+  /**
+   * Both hooks poll every 30 s. Before the session context resolves, and while
+   * an org switch is in flight, `organizationId` is null — and a request in
+   * that window can only come back `Forbidden`, once per interval, forever.
+   * `useMembers` already carried this gate; these two did not.
+   */
+  beforeEach(() => {
+    useOrganizationStore.setState({ organizationId: null });
+  });
+
+  it('does not fetch the inbox without a resolved org', async () => {
+    const { result } = renderHook(() => useNotifications(), { wrapper });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(listMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
+  });
+
+  it('does not fetch the unread count without a resolved org', async () => {
+    const { result } = renderHook(() => useUnreadCount(), { wrapper });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(countMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
+  });
+
+  it('starts fetching as soon as the org scope resolves', async () => {
+    const { result, rerender } = renderHook(() => useNotifications(), { wrapper });
+    expect(listMock).not.toHaveBeenCalled();
+
+    useOrganizationStore.setState({ organizationId: ORG_ID });
+    rerender();
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(listMock).toHaveBeenCalled();
   });
 });

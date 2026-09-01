@@ -11,12 +11,17 @@
     "pageMessage": "Algo salió mal al renderizar esta página.",
     "tryAgain": "Reintentar",
     "goHome": "Ir al inicio",
-    "refresh": "Actualizar página"
+    "refresh": "Actualizar página",
+    "forbidden": "No tienes permiso para acceder a esta página.",
+    "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión…"
   },
   "widget": {
     "unavailable": "{{title}} no disponible",
     "message": "Algo salió mal al cargar esta sección. Inténtalo de nuevo.",
     "retry": "Reintentar",
+    "unavailableShort": "No disponible",
+    "controlRetry": "{{title}} no disponible. Selecciona para reintentar.",
     "pageContent": "Contenido de la página",
     "navigation": "Navegación",
     "emailBanner": "Verificación de correo",
@@ -29,7 +34,8 @@
     "members": "Miembros",
     "schedule": "Agenda",
     "highlights": "Destacados",
-    "themeShowcase": "Muestra de temas"
+    "themeShowcase": "Muestra de temas",
+    "sessionTimeout": "Temporizador de sesión"
   },
   "toast": {
     "dismiss": "Descartar notificación",
@@ -142,7 +148,10 @@
       },
       "subscription": {
         "changePlanFailed": "No se pudo cambiar el plan",
-        "changePlanSuccess": "Cambiado al plan {{plan}}"
+        "changePlanSuccess": "Cambiado al plan {{plan}}",
+        "paymentSetupFailed": "Se cambió el plan, pero no se pudo iniciar el paso de pago. Vuelve a abrir Facturación para completarlo.",
+        "cancelSuccess": "La suscripción terminará al final del periodo",
+        "resumeSuccess": "Suscripción reanudada"
       },
       "invitations": {
         "sendFailed": "No se pudo enviar la invitación",
@@ -150,5 +159,10 @@
       }
     },
     "profileUpdated": "Perfil actualizado"
+  },
+  "suspended": {
+    "title": "Organización suspendida",
+    "message": "Esta organización está suspendida. Contacta con una persona administradora para revisar la facturación o cambia a otra organización.",
+    "switchOrganization": "Cambiar de organización"
   }
 }

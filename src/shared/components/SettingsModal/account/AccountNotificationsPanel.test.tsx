@@ -185,4 +185,44 @@ describe('AccountNotificationsPanel', () => {
     // The dropped flick left no phantom override behind either.
     expect(second).toBeChecked();
   });
+
+  // ── SET-20: the same failure surface as every other panel ────────────────
+
+  it('offers a retry when the preferences fetch fails', async () => {
+    const refetch = vi.fn();
+    const user = userEvent.setup();
+    usePrefsMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      isFetching: false,
+      refetch,
+    });
+    render(<AccountNotificationsPanel />);
+
+    expect(screen.getByTestId('notification-prefs-error')).toBeInTheDocument();
+    await user.click(screen.getByTestId('retry-button'));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  // ── SET-22: one skeleton block per real category ─────────────────────────
+
+  it('renders one skeleton block per category, in the row shell', () => {
+    // Regression: four 48px bars for rows that are ~3x taller — the card grew
+    // under the user when the preferences landed.
+    usePrefsMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    const { container } = render(<AccountNotificationsPanel />);
+
+    const loading = container.querySelector(
+      '[data-testid="notifications-prefs-loading"]',
+    );
+    expect(loading).not.toBeNull();
+    expect(loading?.className).toContain('divide-y');
+    // One block per category, in the same `py-4` shell the loaded rows use.
+    const blocks = container.querySelectorAll(
+      '[data-testid="notifications-prefs-loading"] > div',
+    );
+    expect(blocks.length).toBeGreaterThan(0);
+    expect(blocks[0]?.className).toContain('py-4');
+  });
 });

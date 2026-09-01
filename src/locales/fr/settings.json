@@ -99,7 +99,8 @@
       "verify": "Vérifier",
       "verifying": "Vérification…",
       "invalid": "Cela ne correspond pas. Veuillez réessayer.",
-      "passwordRequired": "Cette action nécessite votre mot de passe ou un code d'authentificateur."
+      "passwordRequired": "Cette action nécessite votre mot de passe ou un code d'authentificateur.",
+      "sendFailed": "Impossible d'envoyer le code. Réessaie."
     }
   },
   "discard": {
@@ -181,11 +182,40 @@
       "deleteCancel": "Annuler"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organisation · Général",
+      "description": "L'identité de votre organisation sur la plateforme.",
+      "loadFailed": "Impossible de charger les informations de l'organisation."
     },
     "integrations": {
       "searchPlaceholder": "Rechercher des clés d'API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choisissez ce dont vous êtes averti, et comment.",
+      "deliveryTitle": "Réception",
+      "deliveryDescription": "Choisissez un canal pour chaque type de mise à jour.",
+      "categories": {
+        "system": "Produit et système",
+        "systemDescription": "Mises à jour, annonces et conseils.",
+        "member": "Activité de l'équipe",
+        "memberDescription": "Arrivées, changements de rôle et invitations.",
+        "billing": "Facturation",
+        "billingDescription": "Factures, changements de forfait et renouvellements.",
+        "security": "Sécurité",
+        "securityDescription": "Connexions, changements de mot de passe et événements de sécurité."
+      },
+      "channels": {
+        "email": "E-mail",
+        "inApp": "Dans l'app",
+        "desktop": "Bureau"
+      }
+    },
+    "appearance": {
+      "title": "Apparence",
+      "description": "Enregistré sur cet appareil — les changements sont immédiats.",
+      "shuffle": "Aléatoire"
     }
   }
 }

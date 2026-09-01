@@ -1,1 +1,1 @@
-export { type AccessCheck, useCan, useVisibleNav } from './useCan.ts';
+export { type AccessCheck, useAccessResolved, useCan, useVisibleNav } from './useCan.ts';

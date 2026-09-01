@@ -2,7 +2,9 @@ import { useState } from 'react';
 
 import type { Session } from '@/shared/api/session-contracts.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
+import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
+import { RetryError } from '@/shared/components/RetryError/index.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -17,7 +19,7 @@ import { Laptop, LogOut } from '@/shared/icons/index.ts';
  * shared destructive-action dialog). Covers loading / error states.
  */
 export function AccountSessionsPanel() {
-  const { data: sessions, isLoading, isError } = useSessions();
+  const { data: sessions, isLoading, isError, isFetching, refetch } = useSessions();
   const revoke = useRevokeSession();
   const [toRevoke, setToRevoke] = useState<Session | null>(null);
 
@@ -29,17 +31,47 @@ export function AccountSessionsPanel() {
       />
 
       {isLoading ? (
-        <div className="space-y-2" data-testid="sessions-loading">
-          {['a', 'b'].map((key) => (
-            <Skeleton key={key} className="h-14 w-full" />
-          ))}
-        </div>
+        // Built from the SAME shell as a real row — card, dividers, 12px padding,
+        // a 20px icon and two lines of text — so the panel does not jump when
+        // the answer lands (SET-22).
+        <Card className="gap-0 overflow-hidden py-0" data-testid="sessions-loading">
+          <ul className="divide-border divide-y">
+            {['a', 'b'].map((key) => (
+              <li key={key} className="flex items-center gap-3 p-3">
+                <Skeleton className="size-5 shrink-0 rounded" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
+                <Skeleton className="h-8 w-24 shrink-0" />
+              </li>
+            ))}
+          </ul>
+        </Card>
       ) : null}
 
       {isError ? (
-        <p className="text-destructive text-sm" role="alert">
-          Couldn&apos;t load your sessions. Please try again.
-        </p>
+        // A dead end used to be the whole story here: a sentence, and the only
+        // way to try again was to close Settings and reopen it (SET-20).
+        <div data-testid="sessions-error">
+          <RetryError
+            message="Couldn't load your sessions. Please try again."
+            onRetry={() => {
+              void refetch();
+            }}
+            isRetrying={isFetching}
+          />
+        </div>
+      ) : null}
+
+      {!(isLoading || isError) && sessions?.length === 0 ? (
+        // The skeleton used to hand over to nothing at all — a blank panel that
+        // reads as a still-loading screen (SET-21).
+        <EmptyState
+          icon={<Laptop />}
+          title="No active sessions"
+          description="Sessions appear here once you sign in on a device."
+        />
       ) : null}
 
       {sessions && sessions.length > 0 ? (

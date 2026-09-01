@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type {
   NotificationCategory,
   NotificationChannel,
   NotificationPreference,
 } from '@/shared/api/notification-contracts.ts';
+import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   Card,
   CardContent,
@@ -20,35 +22,45 @@ import {
 } from '@/shared/hooks/useNotifications/index.ts';
 import { requestDesktopPermission } from '@/shared/notifications/desktop.ts';
 
+import { SETTINGS_KEYS, SETTINGS_NS } from '../settings.constants.ts';
 import { SectionHeader } from '../SettingsPanelShell.tsx';
 
-const CATEGORIES: { id: NotificationCategory; label: string; description: string }[] = [
+/**
+ * Category and channel rows carry translation KEYS, not English. The labels are
+ * resolved at render, so switching locale re-renders them like everything else —
+ * a module-level string would have stayed English forever (X-9).
+ */
+const CATEGORIES: {
+  id: NotificationCategory;
+  labelKey: string;
+  descriptionKey: string;
+}[] = [
   {
     id: 'system',
-    label: 'Product & system',
-    description: 'Updates, announcements, and tips.',
+    labelKey: SETTINGS_KEYS.panels.notifications.categories.system,
+    descriptionKey: SETTINGS_KEYS.panels.notifications.categories.systemDescription,
   },
   {
     id: 'member',
-    label: 'Team activity',
-    description: 'Member joins, role changes, and invitations.',
+    labelKey: SETTINGS_KEYS.panels.notifications.categories.member,
+    descriptionKey: SETTINGS_KEYS.panels.notifications.categories.memberDescription,
   },
   {
     id: 'billing',
-    label: 'Billing',
-    description: 'Invoices, plan changes, and renewals.',
+    labelKey: SETTINGS_KEYS.panels.notifications.categories.billing,
+    descriptionKey: SETTINGS_KEYS.panels.notifications.categories.billingDescription,
   },
   {
     id: 'security',
-    label: 'Security',
-    description: 'Sign-ins, password changes, and safety events.',
+    labelKey: SETTINGS_KEYS.panels.notifications.categories.security,
+    descriptionKey: SETTINGS_KEYS.panels.notifications.categories.securityDescription,
   },
 ];
 
-const CHANNELS: { id: NotificationChannel; label: string }[] = [
-  { id: 'email', label: 'Email' },
-  { id: 'inApp', label: 'In-app' },
-  { id: 'desktop', label: 'Desktop' },
+const CHANNELS: { id: NotificationChannel; labelKey: string }[] = [
+  { id: 'email', labelKey: SETTINGS_KEYS.panels.notifications.channels.email },
+  { id: 'inApp', labelKey: SETTINGS_KEYS.panels.notifications.channels.inApp },
+  { id: 'desktop', labelKey: SETTINGS_KEYS.panels.notifications.channels.desktop },
 ];
 
 function prefKey(category: NotificationCategory, channel: NotificationChannel): string {
@@ -109,7 +121,14 @@ function withoutCommitted(
  * permission (FE-64); if it isn't granted the toggle stays off and a hint shows.
  */
 export function AccountNotificationsPanel() {
-  const { data: serverPrefs = [], isLoading, isError } = useNotificationPreferences();
+  const { t } = useTranslation(SETTINGS_NS);
+  const {
+    data: serverPrefs = [],
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  } = useNotificationPreferences();
   const update = useUpdateNotificationPreferences();
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
   const [desktopDenied, setDesktopDenied] = useState(false);
@@ -189,27 +208,51 @@ export function AccountNotificationsPanel() {
   return (
     <div className="space-y-6" data-testid="settings-section-notifications">
       <SectionHeader
-        title="Notifications"
-        description="Choose what you're notified about, and how."
+        title={t(SETTINGS_KEYS.panels.notifications.title)}
+        description={t(SETTINGS_KEYS.panels.notifications.description)}
       />
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Delivery</CardTitle>
-          <CardDescription>Pick a channel for each kind of update.</CardDescription>
+          <CardTitle className="text-base">
+            {t(SETTINGS_KEYS.panels.notifications.deliveryTitle)}
+          </CardTitle>
+          <CardDescription>
+            {t(SETTINGS_KEYS.panels.notifications.deliveryDescription)}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-2" data-testid="notifications-prefs-loading">
-              {['a', 'b', 'c', 'd'].map((key) => (
-                <Skeleton key={key} className="h-12 w-full" />
+            // One block per REAL category, in the same `divide-y` + `py-4` shell
+            // as the rendered rows: a label line, a description line and the
+            // switch row. Four 48px bars were about a third of the real height,
+            // so the card grew under the user when the data landed (SET-22).
+            <div className="divide-y" data-testid="notifications-prefs-loading">
+              {CATEGORIES.map((cat) => (
+                <div key={cat.id} className="py-4 first:pt-0 last:pb-0">
+                  {/* 20px label + 16px description + the switch row: the exact
+                      line boxes the rendered category uses. */}
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-64" />
+                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+                    {CHANNELS.map((ch) => (
+                      <Skeleton key={ch.id} className="h-5 w-24" />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           ) : null}
 
           {isError ? (
-            <p className="text-destructive text-sm" role="alert">
-              Couldn&apos;t load your preferences. Please try again.
-            </p>
+            <div data-testid="notification-prefs-error">
+              <RetryError
+                message="Couldn't load your preferences. Please try again."
+                onRetry={() => {
+                  void refetch();
+                }}
+                isRetrying={isFetching}
+              />
+            </div>
           ) : null}
 
           {!(isLoading || isError) ? (
@@ -217,8 +260,10 @@ export function AccountNotificationsPanel() {
               <div className="divide-y">
                 {CATEGORIES.map((cat) => (
                   <div key={cat.id} className="py-4 first:pt-0 last:pb-0">
-                    <p className="text-sm font-medium">{cat.label}</p>
-                    <p className="text-muted-foreground text-xs">{cat.description}</p>
+                    <p className="text-sm font-medium">{t(cat.labelKey)}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {t(cat.descriptionKey)}
+                    </p>
                     <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
                       {CHANNELS.map((ch) => (
                         <div key={ch.id} className="flex items-center gap-2 text-sm">
@@ -231,10 +276,10 @@ export function AccountNotificationsPanel() {
                             // full replace, so a second edit mid-save has no
                             // payload of its own to send.
                             disabled={update.isPending}
-                            aria-label={`${cat.label} — ${ch.label}`}
+                            aria-label={`${t(cat.labelKey)} — ${t(ch.labelKey)}`}
                             data-testid={`notify-${cat.id}-${ch.id}`}
                           />
-                          <span className="text-muted-foreground">{ch.label}</span>
+                          <span className="text-muted-foreground">{t(ch.labelKey)}</span>
                         </div>
                       ))}
                     </div>

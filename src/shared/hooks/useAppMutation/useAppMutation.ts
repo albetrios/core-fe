@@ -38,7 +38,10 @@ export interface OptimisticInfiniteConfig<TVars, TRow> {
 
 export interface AppMutationOptions<TData, TVars, TCache = unknown, TRow = unknown> {
   mutationFn: (vars: TVars) => Promise<TData>;
-  /** Query keys to invalidate after a successful mutation. */
+  /**
+   * Query keys to invalidate after a successful mutation. Fired, not awaited —
+   * the refetch runs in the background and `isPending` ends with the write.
+   */
   invalidateKeys?: QueryKey[];
   /** Success toast — a string or a fn of (data, vars). Omit for no toast. */
   successMessage?: string | ((data: TData, vars: TVars) => string);
@@ -52,7 +55,7 @@ export interface AppMutationOptions<TData, TVars, TCache = unknown, TRow = unkno
    * where each confirmation refers to a different thing.
    */
   toastId?: string | number;
-  /** Extra success side effect (e.g. close a dialog). Runs after invalidation. */
+  /** Extra success side effect (e.g. close a dialog). Runs once the write lands. */
   onSuccess?: (data: TData, vars: TVars) => void | Promise<void>;
   /** Optimistically patch a cached list; rolled back automatically on error. */
   optimistic?: OptimisticConfig<TVars, TCache>;
@@ -138,12 +141,13 @@ export function useAppMutation<
       return undefined;
     },
     onSuccess: async (data, vars) => {
-      if (options.invalidateKeys?.length) {
-        await Promise.all(
-          options.invalidateKeys.map((queryKey) =>
-            queryClient.invalidateQueries({ queryKey }),
-          ),
-        );
+      // Marked stale synchronously, refetched in the background. Awaiting
+      // `invalidateQueries` waits for every active observer to finish refetching
+      // — and `isPending` stays true for all of it, so a button bound to it
+      // spins through the write AND every list that depends on it. The lists
+      // have their own `isFetching`; the button's job ended with the write (X-4).
+      for (const queryKey of options.invalidateKeys ?? []) {
+        void queryClient.invalidateQueries({ queryKey });
       }
       if (options.successMessage !== undefined) {
         notify.success(

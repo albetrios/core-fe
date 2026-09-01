@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,12 +33,25 @@ const {
   updateStatusMutate: vi.fn(),
   useRolesMock: vi.fn(),
 }));
-vi.mock('@/shared/hooks/useMembers/index.ts', () => ({
-  useMembers: useMembersMock,
-  useRemoveMember: () => ({ mutate: removeMutate, mutateAsync: removeMutate }),
-  useUpdateMemberRole: () => ({ mutate: updateRoleMutate }),
-  useUpdateMemberStatus: () => ({ mutate: updateStatusMutate }),
-}));
+vi.mock('@/shared/hooks/useMembers/index.ts', async () => {
+  const { useState } = await import('react');
+  return {
+    useMembers: useMembersMock,
+    useRemoveMember: () => ({ mutate: removeMutate, mutateAsync: removeMutate }),
+    // Real pending state: the flag is the subject of the SET-12 tests below.
+    useUpdateMemberRole: () => {
+      const [isPending, setIsPending] = useState(false);
+      return {
+        isPending,
+        mutate: (vars: unknown) => {
+          updateRoleMutate(vars);
+          setIsPending(true);
+        },
+      };
+    },
+    useUpdateMemberStatus: () => ({ isPending: false, mutate: updateStatusMutate }),
+  };
+});
 vi.mock('@/shared/hooks/useRoles/index.ts', () => ({ useRoles: useRolesMock }));
 vi.mock('@/shared/components/InviteMemberDialog/index.ts', () => ({
   InviteMemberDialog: () => (
@@ -137,6 +150,9 @@ function setCanManage(value: boolean) {
   useOrganizationStore.setState({
     organizationType: value ? 'TEAM' : 'PERSONAL',
     permissions: value ? ['membership:manage', 'invitation:manage'] : [],
+    // A session whose guard chain has ANSWERED — the unresolved case is its own
+    // test below (SET-23).
+    permissionsResolved: true,
   });
 }
 
@@ -204,6 +220,36 @@ describe('OrganizationMembersPanel', () => {
 
   it('changes a member role to a real org role (sends role_id)', async () => {
     // Regression: the reachable Members panel could not change a member's role.
+    // Picks a DIFFERENT role than the member's own — re-picking the current one
+    // is a no-op by design now (SET-12).
+    useRolesMock.mockReturnValue(
+      rolesResult([
+        role('rol_owner', 'Owner'),
+        role('rol_member', 'Member'),
+        role('rol_admin', 'Admin'),
+      ]),
+    );
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await user.click(screen.getByTestId('member-actions-mem_1'));
+    await user.click(await screen.findByTestId('member-set-role-rol_admin'));
+
+    await waitFor(() =>
+      expect(updateRoleMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ membershipId: 'mem_1', roleId: 'rol_admin' }),
+      ),
+    );
+  });
+
+  // ── SET-12: one membership write per gesture ─────────────────────────────
+
+  it('sends nothing when the role a member already has is re-picked', async () => {
+    // Radix fires onValueChange for the selected item too, so opening the menu
+    // and clicking the current role PATCHed and toasted "Role updated" for a
+    // change that did not happen.
     useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
     setCanManage(true);
     const user = userEvent.setup();
@@ -212,11 +258,58 @@ describe('OrganizationMembersPanel', () => {
     await user.click(screen.getByTestId('member-actions-mem_1'));
     await user.click(await screen.findByTestId('member-set-role-rol_member'));
 
-    await waitFor(() =>
-      expect(updateRoleMutate).toHaveBeenCalledWith(
-        expect.objectContaining({ membershipId: 'mem_1', roleId: 'rol_member' }),
-      ),
+    expect(updateRoleMutate).not.toHaveBeenCalled();
+  });
+
+  it('disables the role menu while a role change is in flight', async () => {
+    // `useAppMutation` JOINS a second call to the one already running, so a
+    // second pick looked accepted and then vanished. Say "busy" instead.
+    useRolesMock.mockReturnValue(
+      rolesResult([
+        role('rol_owner', 'Owner'),
+        role('rol_member', 'Member'),
+        role('rol_admin', 'Admin'),
+      ]),
     );
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await user.click(screen.getByTestId('member-actions-mem_1'));
+    await user.click(await screen.findByTestId('member-set-role-rol_admin'));
+    expect(updateRoleMutate).toHaveBeenCalledTimes(1);
+
+    // The menu closes on select, so the disabled items are out of sight — the
+    // row's own control has to carry the busy state.
+    const trigger = screen.getByTestId('member-actions-mem_1');
+    expect(trigger).toHaveAttribute('aria-busy', 'true');
+    expect(trigger.querySelector('.animate-spin')).not.toBeNull();
+
+    // Radix closes the menu on select; reopen it and try to pick again.
+    await user.click(screen.getByTestId('member-actions-mem_1'));
+    const other = await screen.findByTestId('member-set-role-rol_member');
+    expect(other).toHaveAttribute('aria-disabled', 'true');
+
+    await user.click(other);
+    expect(updateRoleMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('contains a crash in a row menu to that row', async () => {
+    // One member's actions are their own failure domain — a throw there must
+    // not blank the whole list.
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    useRolesMock.mockImplementation(() => {
+      throw new Error('roles hook exploded');
+    });
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    render(<OrganizationMembersPanel />);
+
+    expect(await screen.findByTestId('member-actions-error-mem_1')).toBeInTheDocument();
+    expect(screen.getByTestId('members-list')).toBeInTheDocument();
+    expect(screen.getByText('Jo Rivera')).toBeInTheDocument();
+    consoleError.mockRestore();
   });
 
   it('suspends a member', async () => {
@@ -299,5 +392,55 @@ describe('OrganizationMembersPanel', () => {
     setCanManage(false);
     render(<OrganizationMembersPanel />);
     expect(screen.queryByTestId('invite-member-open')).not.toBeInTheDocument();
+  });
+
+  // ── SET-19: the list says "not current yet" from the first keystroke ──────
+
+  it('dims the rows the moment the search changes, and never blanks them', async () => {
+    // `keepPreviousData` already stops the skeleton swap (X-2). The remaining
+    // gap was the debounce window: for ~300ms the list showed an answer to a
+    // question the user had already changed, and said nothing about it.
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.getByTestId('members-list').closest('[aria-busy="true"]')).toBeNull();
+
+    fireEvent.change(screen.getByTestId('members-search'), { target: { value: 'jo' } });
+
+    // Immediately: before the debounce fires, before any request starts.
+    expect(
+      screen.getByTestId('members-list').closest('[aria-busy="true"]'),
+    ).not.toBeNull();
+    // …and the rows are still there. No skeleton, no height collapse.
+    expect(screen.queryByTestId('members-loading')).not.toBeInTheDocument();
+    expect(screen.getByText('Jo Rivera')).toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(screen.getByTestId('members-list').closest('[aria-busy="true"]')).toBeNull(),
+    );
+  });
+
+  // ── SET-23: the invite slot keeps its place while permissions load ───────
+
+  it('holds the invite slot with a disabled placeholder before permissions land', () => {
+    // Regression: `useCan` is synchronous and the guard chain fills the store a
+    // beat later, so the button was absent and then popped in.
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    useOrganizationStore.setState({ permissionsResolved: false });
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.getByTestId('invite-member-pending')).toBeDisabled();
+    expect(screen.queryByTestId('invite-member-open')).not.toBeInTheDocument();
+  });
+
+  it('swaps the placeholder for the real trigger once they do', () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.getByTestId('invite-member-open')).toBeInTheDocument();
+    expect(screen.queryByTestId('invite-member-pending')).not.toBeInTheDocument();
   });
 });

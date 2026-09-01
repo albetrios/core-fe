@@ -1,11 +1,11 @@
 ---
-description: Twelve standing UI-resilience rules — writes must be single-flight (no double submit / double charge), a component crash must stay contained to that component and its boundary must be able to catch what actually fails, the completion message must match the work that actually happened, no flow may be derived from state that has not loaded, a param change must not blank the list, a failed fetch must be loud unless silence was chosen on purpose, local optimistic state must be rolled back like the cache is, a failed follow-up step must never route the user backwards, a repeatable confirmation must replace itself instead of stacking, every query must render all three of its states, and a try/catch must wrap only the step whose failure it describes, and a deferred action must own its optimism, its messages and its timer. Applies to every mutating control, every composed surface, every success toast, every screen whose shape comes from a query, every optimistic edit held outside the cache, every multi-step flow that ends in a redirect, every repeat-fire control, every value read from a query, and every handler that chains a write to follow-up steps.
+description: Twenty-eight standing UI-resilience rules — writes must be single-flight (no double submit / double charge), a component crash must stay contained to that component and its boundary must be able to catch what actually fails, the completion message must match the work that actually happened, no flow may be derived from state that has not loaded, a param change must not blank the list, a failed fetch must be loud unless silence was chosen on purpose, every write must go through the one hook that already handles writes, a disabled query must not read as a loading one, a cold entry must never be a blank page, a listener must not outlive the thing that installed it, a gate on startup must have a deadline, user-facing copy must live in the locale files, local optimistic state must be rolled back like the cache is, a failed follow-up step must never route the user backwards, a repeatable confirmation must replace itself instead of stacking, every query must render all three of its states, and a try/catch must wrap only the step whose failure it describes, a deferred action must own its optimism, its messages and its timer, an async helper must return its promise, a form pre-fills once rather than on every refetch, a control that can still be pressed must be a control that is still listening, a screen whose SHAPE comes from a query waits for it rather than guessing, anything counting time is anchored to a deadline and owns exactly one timer, a list under a search says it is stale instead of disappearing, every data surface covers all four of its states with the shared components, a placeholder occupies the space its real content will take, per-row state belongs to the row, and a dialog holds every way out while its write runs — and reports the failure where the work is. Applies to every mutating control, every composed surface, every success toast, every screen whose shape comes from a query, every optimistic edit held outside the cache, every multi-step flow that ends in a redirect, every repeat-fire control, every value read from a query, every handler that chains a write to follow-up steps, and every helper that starts async work.
 alwaysApply: true
 ---
 
 # Resilient Interactions
 
-Twelve failure modes cost real money, a whole screen, or the user's trust. Each has a house
+Twenty-eight failure modes cost real money, a whole screen, or the user's trust. Each has a house
 answer; use it rather than re-solving per feature.
 
 ## 1. Writes are single-flight — never trust `disabled` alone
@@ -491,3 +491,512 @@ const sessions = useAppQuery({
   reviewable claim; a bare `false` is the old bug with extra steps.
 - **Test the flag, not the toast.** Assert what the cache saw (`query.meta?.notifyOnError`), so the
   test survives a change of toast library.
+
+## 13. An async helper returns its promise
+
+**Rule: a helper that starts async work returns it.** A `void`-returning wrapper removes the
+caller's only way to know when the work finished — and every busy state, spinner and disabled
+button downstream is built on exactly that.
+
+```tsx
+// WRONG — the caller cannot wait for this.
+const guard = useCallback((action: () => Promise<unknown>): void => {
+  action().catch(handle);
+}, []);
+```
+
+`ConfirmDialog` does `await onConfirm()` to hold its busy state and block dismissal. Handed a
+`void` wrapper it resolved on the same tick: clicking **Disable** on 2FA made the dialog vanish
+instantly, and the step-up prompt arrived afterwards with nothing on screen to attach it to
+(SET-8).
+
+```tsx
+const guard = useCallback(
+  async (action: () => Promise<unknown>, options?: GuardOptions): Promise<void> => {
+    if (guardingRef.current) return;   // rule 1 — one gesture, one run
+    guardingRef.current = true;
+    setIsGuarding(true);
+    try { await action(); }
+    catch (error) { /* step-up opens the dialog; anything else goes to onError */ }
+    finally { guardingRef.current = false; setIsGuarding(false); }
+  }, []);
+```
+
+- **Expose the flag as well as the promise.** `isGuarding` lets plain buttons — not just
+  dialogs — disable themselves for the round-trip.
+- **Returning the promise is also where the single-flight guard belongs** (rule 1). A helper
+  wrapping credential mutations is exactly where a double-click must be dropped.
+- **`void` at the call site, never in the signature.** `void guard(...)` documents a deliberate
+  fire-and-forget; a `void` return type takes that choice away from every caller.
+- **Test that it does not resolve early.** Hold the action open, assert the caller's `.then` has
+  not run, then release. "It eventually resolves" passes on this bug.
+
+## 14. A form pre-fills once, not on every refetch
+
+**Rule: `reset()` belongs on the success TRANSITION, keyed by the record — never on the data
+itself.** A `useEffect` keyed on `query.data` re-runs on every refetch, and a refetch is not an
+edit the user made.
+
+```tsx
+// WRONG — runs again on every new array identity, wiping what was typed.
+useEffect(() => {
+  if (role && rolePermissions.data) reset({ ...role, permissions: rolePermissions.data });
+}, [role, rolePermissions.data, reset]);
+```
+
+The permissions query key is a **descendant of the roles prefix**, so every other role mutation
+invalidates it. Editing one role while anything else touched roles threw away the in-progress
+edit (SET-10).
+
+```tsx
+const hydratedFor = useRef<string | null>(null);
+useEffect(() => {
+  if (!role) { hydratedFor.current = null; return; }
+  if (!rolePermissions.isSuccess || hydratedFor.current === role.id) return;
+  hydratedFor.current = role.id;
+  reset({ ...role, permissions: rolePermissions.data });
+}, [role, rolePermissions.isSuccess, rolePermissions.data, reset]);
+```
+
+- **Check the key hierarchy before you invalidate.** `[...roles(orgId), 'permissions', id]` is
+  matched by an invalidation of `roles(orgId)`. Nesting a detail key under a list prefix is
+  convenient until a detail is being edited.
+- **Gate the body on `isPending` too** (rule 8). A checklist rendered from a list row that omits
+  permissions opens as "this role can do nothing", then ticks itself.
+- **Never overwrite a field the user has set.** A "default the first option" effect must fill an
+  *empty* field only — a refetch that reorders the list otherwise replaces a chosen value
+  mid-session (SET-11).
+- **Test the refetch, not the first paint.** Type, re-render with a fresh-identity payload, and
+  assert the typing survived. "It pre-fills correctly" passes on this bug.
+
+## 15. A live control is a promise to act
+
+**Rule: if a control can be pressed, pressing it must do something — and the user must be able
+to tell which one is working.** Rule 1's single-flight guard is a correctness net under the
+click, not a substitute for the affordance above it: it JOINS a duplicate to the request already
+running, which means the second press is accepted by the UI and then quietly discarded.
+
+```tsx
+// WRONG — the menu stays live through a 2s write.
+<DropdownMenuRadioGroup value={member.role} onValueChange={(role) => updateRole.mutate({ role })}>
+  {ROLES.map((role) => <DropdownMenuRadioItem key={role} value={role}>{role}</DropdownMenuRadioItem>)}
+</DropdownMenuRadioGroup>
+```
+
+```tsx
+const isWriting = updateRole.isPending || updateStatus.isPending;
+// Radix fires onValueChange for the CHECKED item too — a re-pick is not a change.
+if (isWriting || role === member.role) return;
+// …and every item carries `disabled={isWriting}`.
+```
+
+- **A no-op is not a change.** Re-selecting the current value sent a PATCH and toasted "Role
+  updated" for something that did not happen (SET-12). Compare against the current value first.
+- **One pending flag per control, not per screen.** `disabled={mutation.isPending}` spread across
+  a grid of plan buttons greys out all of them and spins none — the click reads as a freeze. Track
+  *which* item is running (`pendingPlanId === plan.id`) and pass `isLoading` to that one only
+  (SET-13).
+- **A confirm dialog waits for its own request.** `AlertDialogAction` closes on click; without
+  `event.preventDefault()`, `disabled={isPending}`, and closing in `onSuccess`, the outcome lands
+  on a screen the dialog has already left. Block `onOpenChange` while the request runs, too.
+- **Never `void` a promise that can reject.** A click handler owns its failure: catch inside, so
+  the handler cannot leave an unhandled rejection and a half-finished write behind (SET-13).
+- **A follow-up step after a successful write needs its own message.** The plan changed and the
+  payment step 503'd — one shared `try` would have blamed the plan change; no `catch` at all left
+  an `incomplete` subscription with no form and no explanation. See rule 9.
+
+## 16. A screen's SHAPE waits for the query; it does not guess
+
+**Rule: when a query decides which controls EXIST, render a skeleton until it answers.**
+Rule 8 covers a value that has not loaded. This is the harder case: the answer decides the
+navigation itself, and "allow everything until we know" paints a menu that is then deleted in
+front of the user.
+
+```ts
+// WRONG — an unknown org type means "every section exists".
+const allowed = (section) => !ctx.orgType || sectionsForOrgType(ctx.orgType).includes(section);
+```
+
+```tsx
+const meContext = useMeContext();
+const orgType = meContext.data?.activeOrganization?.type;
+// `undefined` is "still loading", not "anything goes".
+const contextReady = !meContext.isPending;
+const active = parsed && contextReady ? resolve(parsed, ctx, fallback) : null;
+if (!active) return <ShellWithSkeletonRail />;   // open, sized, and honest
+```
+
+- **A deep link is a claim too.** Resolving `#settings/organization/members` on a guess opened the
+  members panel on a personal workspace and then swapped it for a fallback section (SET-15). Hold
+  the hash; it still resolves once the context lands.
+- **The skeleton keeps the shape.** Same width, same group rhythm, so nothing moves when the real
+  rail replaces it — a modal that renders nothing is its own layout jump.
+- **An error is not "still loading".** Gate on `isPending`, not on `data === undefined`: a failed
+  fetch must fall back to whatever gating still works, never hang on the skeleton.
+- **A permissive helper may keep being permissive — say who it is for.** The command palette
+  prefers an extra row to a missing one; the modal must not render on that answer. When two callers
+  want different answers to "unknown", the caller that paints structure is the one that waits.
+
+## 17. A countdown is a deadline, and it owns exactly one timer
+
+**Rule: derive the number from `Date.now()` against a stored deadline, and clear the running
+timer before starting another.** A counter that subtracts one per tick is only correct while the
+browser is willing to run your ticks — and a background tab is throttled to roughly one a minute.
+
+```ts
+// WRONG — the tab sleeps, the timer stacks, the number lies.
+setCountdown(GRACE_SECONDS);
+intervalRef.current = setInterval(() => setCountdown((prev) => prev - 1), 1000);
+```
+
+```ts
+stopCountdown();                       // a second warn must not stack a second interval
+const deadline = Date.now() + GRACE_MS;
+intervalRef.current = setInterval(() => {
+  const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+  setCountdown(remaining);
+  if (remaining === 0) stopCountdown();
+}, 1000);
+```
+
+- **The number is a promise about when something happens.** A logout countdown that reads 1:29
+  while 0:59 remains is worse than no countdown: the user budgets against it (SET-16).
+- **A deadline is self-healing.** The next tick after the tab wakes up is correct, with no
+  visibility listener and no resync code.
+- **`start` clears before it starts.** A ref that gets overwritten leaks its timer for the tab's
+  lifetime, and the two of them tick the same state down at double speed.
+- **Test the timers, not the display.** Spy on `setInterval` / `clearInterval` and assert the pairs;
+  then jump the clock with `setSystemTime` (or Playwright's `clock.setSystemTime`) WITHOUT firing
+  the ticks — that is what a throttled tab actually does, and it is the only way this bug shows up.
+- **A mount flag is re-armed on every run, not just the first.** `useEffect(() => () => {…}, [])`
+  that only ever sets `false` leaves a Strict-Mode remount permanently "unmounted" to itself — set
+  it to `true` at the top of the effect body (SET-17).
+
+## 18. A list under a search dims; it never disappears
+
+**Rule: hold the previous rows and mark them stale — from the keystroke, not from the request.**
+Search and sort live in the query key, so every keystroke is a new query; a panel that renders a
+skeleton whenever `isPending` is true blanks the list and collapses the container on each one.
+
+```tsx
+// The hook keeps the rows (once, for every list that uses it):
+placeholderData: keepPreviousData,          // isPending now means "the FIRST load"
+isRefreshing: query.isPlaceholderData,      // "these rows answer the previous params"
+
+// The panel dims them — and starts dimming before the request does:
+const { debounced, isPending } = useDebouncedSearch(search);
+const stale = isListStale(list.isRefreshing, isPending);
+<Card className={listRefreshClass(stale)} aria-busy={stale}>
+```
+
+- **The debounce window counts.** Between the keypress and the request there is a ~300ms hole where
+  the list answers a question the user has already changed and says nothing about it (SET-19).
+- **Fix it in the hook, not in the panel.** Three panels had the same bug because they shared one
+  hook; the dim belongs to the panel, but the data policy belongs to `useCursorList`.
+- **`aria-busy` alongside the dim**, so assistive tech hears what the opacity shows.
+- **Measure the height, not just the rows.** The user-visible damage is the jump: idle 440px →
+  in-flight 379px → settled 257px is three layouts for one keystroke.
+- **A skeleton is still right for the first load** — there is nothing to keep. It is only wrong as
+  an answer to "the parameters changed".
+
+## 19. Four states, and the same three components every time
+
+**Rule: a data surface renders loading, error, empty AND list — with `Skeleton`, `RetryError`
+and `EmptyState`.** Rule 8 says all three query states must be rendered; this is the house's
+answer to *how*, and it exists so two panels never answer the same failure differently.
+
+```tsx
+{query.isPending ? <Skeleton … /> : null}
+
+{query.isError ? (
+  <RetryError message="Couldn't load your sessions. Please try again."
+              onRetry={() => void refetch()} isRetrying={isFetching} />
+) : null}
+
+{!(query.isPending || query.isError) && rows.length === 0 ? (
+  <EmptyState icon={<Laptop />} title="No active sessions"
+              description="Sessions appear here once you sign in on a device." />
+) : null}
+```
+
+- **A sentence is not an error state.** Red text with no action means the only way to retry is to
+  close the screen and open it again — measured: the sessions panel could not recover in place at
+  all (SET-20).
+- **Empty is a state, not the absence of one.** `rows.length > 0 && <List/>` with no `else` leaves
+  the skeleton handing over to blank space, which reads as "still loading" (SET-21). A 69px panel
+  is not an answer.
+- **Consistency is the point.** The API-key list printed a sentence while the webhook list directly
+  beneath it offered a retry — same screen, same failure, two different contracts.
+- **Wire the retry to the query, and let it say it is working.** `RetryError` passes `isRetrying`
+  into `Button isLoading`; TanStack Query de-dupes concurrent refetches of a key, so a double-click
+  cannot start two.
+- **Write the empty copy for a first-time user**, not for a developer: what belongs here, and how it
+  gets here.
+
+## 20. Every write goes through `useAppMutation` — including the generic ones
+
+**Rule: `useMutation` appears in exactly one place, inside `useAppMutation`.** Everything a write
+in this app is expected to do lives there: the synchronous single-flight guard, the error toast,
+the optional success toast, optimistic rollback, and invalidation that does not hold `isPending`
+open.
+
+The documented CRUD hooks — `useCreate`, `useUpdate`, `useDelete` — were hand-rolled on raw
+`useMutation` with none of it, and `CLAUDE.md` points new feature work straight at them. Nothing
+was broken yet only because nothing used them; the first resource page built on them would have
+inherited silent failures, no rollback, a double-clickable submit, and a spinner that outlasts the
+write (X-4).
+
+- **A shared hook is a promise about behaviour.** If it is in the docs as the way to do X, it has
+  to carry the house behaviour for X, even while its call-site count is zero. Latent is not
+  harmless; it is harm with a delay.
+- **Do not `await invalidateQueries` in `onSuccess`.** It resolves when every active observer has
+  finished refetching, and `isPending` stays true for all of it — so a button bound to `isPending`
+  spins through the write *and* every list that depends on it. Fire it (`void`) and let each list
+  show its own `isFetching`.
+- **Wrap, don't fork.** A generic hook adds its resource wiring and forwards the rest
+  (`successMessage`, `notifyOnError`, `onSuccess`) — it never re-implements them.
+
+## 21. A disabled query is not a loading one
+
+**Rule: `isPending` alone never decides that a spinner is correct.** In TanStack Query v5 a query
+with `enabled: false` sits at `status: 'pending'` **forever**: no data, and nothing coming. A
+component that branches on `isPending` renders a skeleton that can never resolve.
+
+```tsx
+// WRONG — a gated query parks here permanently
+if (query.isPending) return <Skeleton />;
+
+// RIGHT — 'idle' on a pending query means nothing is in flight
+if (query.isPending && query.fetchStatus === 'idle') return <>{idle ?? null}</>;
+if (query.isPending) return <Skeleton />;
+```
+
+- **Fix it in the shared component, not at the call site.** Two callers had already worked around
+  `QueryBoundary` with a manual early return, which is how a shared component becomes a trap: the
+  workaround is invisible to the next person, and the bug only shows up in their feature (X-5).
+- **Give idle its own branch.** Rendering nothing is the usual right answer, but it must be a
+  *decision* in the component, with a hook for callers that want to say "pick a plan first".
+- **`enabled`-gated hooks are everywhere** — `useOne(id)` with no id yet, org-scoped lists before
+  the org resolves, billing cards behind a subscription check. Assume any query you are handed
+  might be disabled.
+- **Test the disabled state explicitly.** `{ isPending: true, fetchStatus: 'idle' }` renders
+  nothing; `{ isPending: true, fetchStatus: 'fetching' }` renders the skeleton. A test that only
+  sets `isPending` passes on this bug.
+
+## 22. A placeholder is the size and shape of what replaces it
+
+**Rule: build the loading state from the SAME shell as the loaded state, and hold the space of a
+control you are still deciding about.** A placeholder that guesses a height moves the page when
+the answer lands; a control rendered as nothing until permission resolves pops in a moment later.
+
+```tsx
+// WRONG — four 48px bars for rows that render ~108px each.
+{['a','b','c','d'].map((k) => <Skeleton key={k} className="h-12 w-full" />)}
+
+// RIGHT — one block per real category, in the row's own shell.
+<div className="divide-y">
+  {CATEGORIES.map((cat) => (
+    <div key={cat.id} className="py-4 first:pt-0 last:pb-0">
+      <Skeleton className="h-5 w-32" />   {/* the label's line box */}
+      <Skeleton className="h-4 w-64" />   {/* the description's   */}
+      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">…</div>
+    </div>
+  ))}
+</div>
+```
+
+- **Derive the skeleton from the same array and the same paddings** the rendered rows use. Then it
+  cannot drift when the row grows a line: measured 435px → 590px (a 155px jump) before, 590 → 590
+  after (SET-22).
+- **`false` from a permission check is ambiguous.** Store whether the set is an ANSWER, and hold
+  the slot with a disabled placeholder while it is not — the control appears where it will live,
+  and cannot be clicked before the answer arrives (SET-23).
+- **Clear, don't blank.** A guard that writes `setPermissions([])` to drop stale grants makes "we
+  don't know" indistinguishable from "you may not"; give the store an explicit
+  `clearPermissions()`.
+- **Measure the jump, not the intent.** The panel's `boundingBox().height` before and after the
+  data lands is the only number that settles this.
+
+## 23. A cold entry is never a blank page
+
+**Rule: `pendingMs` is a bet that there is something on screen worth keeping.** On an in-app
+navigation there is — the current screen stays up and the progress bar reports the work, which is
+why the default here is 3000 ms. On a **cold load** there is nothing: the boot splash fades after
+first paint, the route is still in `beforeLoad`, and the user watches a blank page with a 2 px bar
+for three seconds (X-6).
+
+```tsx
+// the routes a cold visit can land on — all of them await the network first
+const COLD_ENTRY_PENDING = { pendingMs: 0, pendingComponent: () => <FullPageSpinner /> } as const;
+```
+
+- **Know which routes a cold visit can land on.** Here: `/` (a resolver that renders `null`), the
+  auth shell, `/onboarding`, `/organization`. Every one of them awaits auth or tenancy before it
+  can render anything.
+- **A resolver route is the worst case.** `component: () => null` plus a pending window means the
+  page is *definitionally* blank for that whole window.
+- **Do not raise the global default instead.** In-app navigation genuinely benefits from keeping
+  the old screen; this is a per-route override, not a policy change.
+- **Test the config, not the pixels.** Assert `pendingMs === 0` and a `pendingComponent` on those
+  route ids, and that nothing else picked it up by accident.
+
+## 24. A listener does not outlive the thing that installed it
+
+**Rule: whatever installs a listener owns removing it — on the cancel path too, not just the happy
+one.** `AbortController` makes that one line: pass `{ signal }` to `addEventListener`, abort it
+wherever you tear down.
+
+The refresh timer deferred its work when the tab was hidden by adding a `visibilitychange`
+listener. `cancelTokenRefresh()` — which is what logout calls — cleared the timer id and nothing
+else, so after logout the listener was still there: the next time the user focused the tab it ran a
+refresh for a session that no longer exists. core-be rotates refresh sessions with **reuse
+detection**, so that is not a harmless 401 — it is a session-killer. And one listener was added per
+login/logout cycle, none ever removed (X-7).
+
+```ts
+let deferredAbort: AbortController | null = null;
+
+deferredAbort = new AbortController();
+document.addEventListener('visibilitychange', onVisible, { signal: deferredAbort.signal });
+
+export function cancelTokenRefresh(): void {
+  clearTimeout(timerId);
+  deferredAbort?.abort();   // the half that was missing
+  deferredAbort = null;
+}
+```
+
+- **Cancel means cancel everything.** A teardown that clears one of two handles is worse than none:
+  it reads as correct.
+- **`visibilitychange` fires on hide as well as show.** Guard on `document.hidden` inside, or the
+  deferred work runs at the wrong end.
+- **Anything auth-shaped is a security bug, not a leak.** A stray listener that fires a network
+  call is judged by what that call does to the session, not by the memory it holds.
+- **Test the cancel path.** Defer, cancel, then dispatch the event and assert **nothing** happened —
+  and loop it a few times to prove listeners are not stacking.
+
+## 25. Per-row state belongs to the row
+
+**Rule: a mutation that acts on ONE row is instantiated in that row, not on the list.** One
+`useAppMutation` on the card means one `isPending` for every row — press delete on one and the
+whole list goes grey.
+
+```tsx
+// WRONG — one flag, N rows.
+const remove = useRemovePasskey();
+rows.map((row) => <Button disabled={remove.isPending} onClick={() => remove.mutate(row.id)} />)
+
+// RIGHT — the row owns its own mutation, and its own single-flight guard.
+function PasskeyRow({ passkey }) {
+  const remove = useRemovePasskey();
+  return <Button isLoading={remove.isPending} onClick={() => remove.mutate(passkey.id)} />;
+}
+```
+
+- **A per-row instance is what makes "leave the others enabled" safe.** `useAppMutation` JOINS a
+  second call to the one in flight (rule 1), so sharing one instance across rows would turn a click
+  on row B into a silent no-op. One instance per row keeps the guard where it belongs (SET-24).
+- **Separate "an action is running" from "a ceremony is open."** A step-up dialog is a good reason
+  to freeze sibling controls; a row that is simply saving is not — `useStepUpGuard` exposes
+  `isGuarding` and `isSteppingUp` for exactly that split.
+- **Say what failed, not what is convenient.** A failed SEND is not a wrong code: reusing the
+  "that didn't match" copy answers a question the user has not been asked yet, and a "we emailed
+  you" line rendered beside it is a claim the request just disproved (SET-25).
+- **A message about a failure carries the way out** — the resend link sits next to the error, and
+  it is single-flight so the retry cannot send two.
+
+## 26. A form dialog holds every exit, and keeps its own failure
+
+**Rule: while a form's write is in flight, the submit is not the only control that must be held —
+Cancel, Esc and the overlay are exits too. And when the server rejects the form, the reason
+belongs beside the field, not only in a toast.**
+
+```tsx
+<Dialog open={open} onOpenChange={(next) => { if (!create.isPending) setOpen(next); }}>
+  …
+  <Button variant="ghost" disabled={create.isPending}>Cancel</Button>
+  <Button isLoading={create.isPending} onClick={submit}>
+    {create.isPending ? 'Creating…' : 'Create webhook'}
+  </Button>
+```
+
+```tsx
+create.mutate(input, {
+  onSuccess: close,
+  // The dialog stays open on failure, so the reason goes IN it.
+  onError: (cause) => setError(mapApiError(cause)),
+});
+```
+
+- **Guarding submit is half the job.** Cancel used to stay live through the whole POST, so a user
+  could leave with the write still running and nothing on screen to report it (SET-26).
+- **An inline error slot that only holds zod messages is half an error surface.** The server knows
+  things the schema cannot — "that URL already has a webhook" — and the user is looking at the
+  field, not at the corner of the screen.
+- **One failure, one place to read it.** When the dialog reports inline, the hook opts out of the
+  default toast (`notifyOnError: false`) with a comment saying why — rule 12 wants silence chosen,
+  not inherited.
+- **Use the house error surface, not a local red sentence.** `FormError` — tinted card, icon,
+  `role="alert"` — is what the user already met on the sign-in screen. A bare
+  `<p className="text-destructive">` reads as a caption under the field rather than as the thing
+  that went wrong, and re-inventing the styling per dialog means it drifts. Every inline form
+  failure goes through the same component (SET-25, SET-26).
+
+```tsx
+// not: <p className="text-destructive text-xs">{error}</p>
+<FormError message={error} data-testid="webhook-error" />
+```
+- **The busy state covers the whole job, not just the request.** A `FileReader` pass in front of a
+  mutation is dead time the user can see: `isReading || update.isPending`, one "Uploading…" label
+  across both halves, and the control disabled for both (SET-27). Name the label after the job the
+  user asked for, not the internal step — nobody picked a file in order to have it *read*.
+
+## 27. A gate on startup has a deadline
+
+**Rule: any provider that renders `null` until something resolves owes the user a way out of that
+`null`.** Two things have to be true, and the second is the one that gets forgotten:
+
+1. It renders a **loader**, not nothing. The boot splash is dismissed after first paint, so an empty
+   render is a white screen — no spinner, no error, nothing to click.
+2. It gives up after a **deadline** and continues with a default.
+
+```tsx
+const [ready, setReady] = useState(() => store.persist.hasHydrated());
+
+useEffect(() => {
+  if (ready) return;
+  const stop = store.persist.onFinishHydration(() => setReady(true));
+  const deadline = window.setTimeout(() => setReady(true), HYDRATION_TIMEOUT_MS);
+  return () => { stop(); window.clearTimeout(deadline); };
+}, [ready]);
+
+return <Provider>{ready ? children : <FullPageSpinner />}</Provider>;
+```
+
+- **"It cannot happen today" is the reason to handle it.** Locale hydration is synchronous against
+  `localStorage`, so the gate always opens — until someone swaps in an async adapter, or a browser
+  blocks storage. The failure mode is a white screen with no recovery path (X-8), and nothing about
+  the swap would look risky.
+- **Mount the provider, gate the children.** Keeping the context above the fallback means the
+  loading state can still translate, and a child that renders during the wait is never handed a
+  missing context.
+- **Test the deadline, not just the happy path.** Never resolve the gate, advance the clock, and
+  assert the children rendered anyway.
+
+## 28. User-facing copy lives in the locale files — error screens included
+
+**Rule: if a user can read it, it is a translation key.** Not just the happy path: the 403, the
+suspended-organization screen, the theme menu, the panel headers. A locale switch that leaves half
+the app in English is a half-translated product, and those screens are the ones a stressed user
+reads most carefully (X-9).
+
+- **The screens that get missed are the ones nobody demos.** Status and error pages, settings panel
+  headers, dropdown item labels, `aria-label`s built from two hardcoded halves.
+- **Module-level constants are the trap.** A `const CATEGORIES = [{ label: 'Billing' }]` at module
+  scope is evaluated once, before any locale is chosen, and never re-renders. Hold **keys** in the
+  constant and resolve them with `t()` at render.
+- **A key lands in all eleven locales or it does not land.** `pnpm validate:i18n-parity` is the
+  gate; an English string dropped into ten files is worse than the hardcoded one, because now it
+  looks translated.
+- **Match the key to the namespace the component already reads**, and pass `{ ns }` explicitly when
+  it reads from another one — a key resolved against the wrong namespace renders as the raw key.

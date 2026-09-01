@@ -11,12 +11,17 @@
     "pageMessage": "حدث خطأ أثناء عرض هذه الصفحة.",
     "tryAgain": "حاول مرة أخرى",
     "goHome": "الذهاب للرئيسية",
-    "refresh": "تحديث الصفحة"
+    "refresh": "تحديث الصفحة",
+    "forbidden": "ليس لديك إذن للوصول إلى هذه الصفحة.",
+    "signOut": "تسجيل الخروج",
+    "signingOut": "جارٍ تسجيل الخروج…"
   },
   "widget": {
     "unavailable": "{{title}} غير متاح",
     "message": "حدث خطأ أثناء تحميل هذا القسم. حاول مرة أخرى.",
     "retry": "إعادة المحاولة",
+    "unavailableShort": "غير متاح",
+    "controlRetry": "{{title}} غير متاح. اختر لإعادة المحاولة.",
     "pageContent": "محتوى الصفحة",
     "navigation": "التنقل",
     "emailBanner": "التحقق من البريد",
@@ -29,7 +34,8 @@
     "members": "الأعضاء",
     "schedule": "الجدول",
     "highlights": "أبرز الميزات",
-    "themeShowcase": "عرض السمة"
+    "themeShowcase": "عرض السمة",
+    "sessionTimeout": "مؤقّت الجلسة"
   },
   "toast": {
     "dismiss": "إغلاق الإشعار",
@@ -142,7 +148,10 @@
       },
       "subscription": {
         "changePlanFailed": "تعذّر تغيير الخطة",
-        "changePlanSuccess": "تم التبديل إلى خطة {{plan}}"
+        "changePlanSuccess": "تم التبديل إلى خطة {{plan}}",
+        "paymentSetupFailed": "تم تغيير الخطة، لكن تعذر بدء خطوة الدفع. أعد فتح الفوترة لإكمالها.",
+        "cancelSuccess": "تم ضبط الاشتراك لينتهي مع نهاية الفترة",
+        "resumeSuccess": "تم استئناف الاشتراك"
       },
       "invitations": {
         "sendFailed": "تعذّر إرسال الدعوة",
@@ -150,5 +159,10 @@
       }
     },
     "profileUpdated": "تم تحديث الملف الشخصي"
+  },
+  "suspended": {
+    "title": "المؤسسة موقوفة",
+    "message": "هذه المؤسسة موقوفة حاليًا. تواصل مع مسؤول المؤسسة لمراجعة الفوترة، أو انتقل إلى مؤسسة أخرى.",
+    "switchOrganization": "تبديل المؤسسة"
   }
 }

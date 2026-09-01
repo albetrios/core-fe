@@ -92,6 +92,77 @@ describe('SectionErrorBoundary', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
+  describe('the control fallback keeps the failed control shape', () => {
+    it('names the failure in full to assistive tech, and briefly on screen', () => {
+      render(
+        <SectionErrorBoundary
+          title="Organization switcher"
+          testId="switcher-error"
+          variant="control"
+        >
+          <Boom />
+        </SectionErrorBoundary>,
+      );
+
+      // On screen the label is SHORT on purpose: the full string truncated
+      // mid-word in a 220px sidebar ("Organization switc..."), which is what
+      // made a contained failure look like damage.
+      expect(screen.getByTestId('switcher-error')).toHaveTextContent('Unavailable');
+      expect(
+        screen.queryByText(/Organization switcher unavailable/),
+      ).not.toBeInTheDocument();
+      // Nothing is lost, though — the whole sentence is the accessible name.
+      expect(
+        screen.getByRole('button', {
+          name: 'Organization switcher unavailable. Select to retry.',
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('is announced, and the whole control is the retry', async () => {
+      const user = userEvent.setup();
+      let shouldThrow = true;
+      function Flaky() {
+        if (shouldThrow) throw new Error('switcher failed');
+        return <p>switcher</p>;
+      }
+      render(
+        <SectionErrorBoundary title="Organization switcher" variant="control">
+          <Flaky />
+        </SectionErrorBoundary>,
+      );
+
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      shouldThrow = false;
+      // No separate "Retry" button to hunt for — the control itself is it.
+      await user.click(screen.getByRole('button'));
+      expect(await screen.findByText('switcher')).toBeInTheDocument();
+    });
+
+    it('has no accessibility violations', async () => {
+      const { container } = render(
+        <SectionErrorBoundary title="Organization switcher" variant="control">
+          <Boom />
+        </SectionErrorBoundary>,
+      );
+      expect(await axe(container)).toHaveNoViolations();
+    });
+  });
+
+  it('renders nothing for an overlay, and still reports it', () => {
+    // A fixed-position handle has nowhere in the layout to put a card.
+    const { container } = render(
+      <SectionErrorBoundary title="Appearance" variant="silent">
+        <Boom />
+      </SectionErrorBoundary>,
+    );
+    expect(container).toBeEmptyDOMElement();
+    expect(reportErrorMock).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ widget: 'Appearance' }),
+    );
+  });
+
   describe('a failing query, not a render throw (X-1)', () => {
     it('catches it — a rejected fetch reaches the fallback', async () => {
       const queryFn = vi.fn<() => Promise<string>>().mockRejectedValue(new Error('502'));

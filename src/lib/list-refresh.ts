@@ -20,3 +20,13 @@ export function listRefreshClass(isRefreshing: boolean): string {
   // state (sonar typescript:S2301).
   return cn('transition-opacity duration-200', isRefreshing && 'opacity-60');
 }
+
+/**
+ * True when the rows on screen no longer answer the question the user is
+ * asking: either the new query is in flight (`isRefreshing`) or the search
+ * debounce has not fired yet. Both deserve the same dim — the second one is the
+ * half-second in which the list quietly claims to be current and is not.
+ */
+export function isListStale(isRefreshing: boolean, isSearchPending: boolean): boolean {
+  return isRefreshing || isSearchPending;
+}

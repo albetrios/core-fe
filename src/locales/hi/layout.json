@@ -140,7 +140,8 @@
       "cancel": "रद्द करें",
       "confirmRemove": "हटाएँ",
       "rolePlaceholder": "भूमिका",
-      "searchPlaceholder": "सदस्य खोजें…"
+      "searchPlaceholder": "सदस्य खोजें…",
+      "removing": "हटाया जा रहा है…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
@@ -150,6 +151,12 @@
       "slugLabel": "वर्कस्पेस URL (वैकल्पिक)",
       "submit": "संगठन बनाएँ",
       "submitting": "बनाया जा रहा है…"
+    },
+    "theme": {
+      "light": "लाइट",
+      "dark": "डार्क",
+      "system": "सिस्टम",
+      "shuffle": "थीम शफ़ल करें"
     }
   },
   "public": {

@@ -18,9 +18,15 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { Component as AppLayout, preloadAppLayoutVariants } from './AppLayout.tsx';
 
-const { useMeContextMock, quickLinksMock } = vi.hoisted(() => ({
+const { useMeContextMock, quickLinksMock, switcherMock } = vi.hoisted(() => ({
   useMeContextMock: vi.fn(),
   quickLinksMock: vi.fn(),
+  switcherMock: vi.fn(),
+}));
+// Swapped so a render throw can be injected into the org switcher — the one
+// surface SHELL-8 is about — without touching the rest of the shell.
+vi.mock('@/shared/components/OrganizationSwitcher/index.ts', () => ({
+  OrganizationSwitcher: () => switcherMock() as unknown,
 }));
 // Only the sidebar's quick-links block is swapped, so a render throw can be
 // injected into the shell without touching the rest of the nav surface. It is
@@ -76,6 +82,7 @@ describe('AppLayout', () => {
     useThemeStore.setState({ appVariant: 0 });
     useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });
     quickLinksMock.mockReturnValue(<div data-testid="sidebar-quick-links" />);
+    switcherMock.mockReturnValue(<div data-testid="organization-switcher-trigger" />);
     contextLoaded();
   });
 
@@ -186,6 +193,53 @@ describe('AppLayout', () => {
 
       expect(await findByTestId('app-shell-error')).toBeInTheDocument();
       expect(await findByTestId('app-layout')).toBeInTheDocument();
+    });
+  });
+
+  describe('SHELL-8 — a crashing org switcher costs the switcher, not the shell', () => {
+    let consoleError: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+      consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      switcherMock.mockImplementation(() => {
+        throw new Error('org switcher exploded');
+      });
+    });
+    afterEach(() => {
+      consoleError.mockRestore();
+    });
+
+    // Every mount site, because the sidebar's desktop instance is the one that
+    // has been silently un-wrapped before. A boundary nothing asserts is a
+    // boundary that quietly goes away again.
+    it.each([
+      ['sidebar (desktop)', 0, 'org-switcher-error-sidebar'],
+      ['sidebar (mobile)', 0, 'org-switcher-error-mobile'],
+      ['top-nav', 1, 'org-switcher-error'],
+      ['icon-rail', 2, 'org-switcher-error'],
+    ])('contains the throw in the %s shell', async (_label, appVariant, testId) => {
+      useThemeStore.setState({ appVariant });
+      const { findByTestId, queryByTestId } = renderWithProviders(<AppLayout />);
+
+      // The failure is visible where the switcher was...
+      expect(await findByTestId(testId)).toBeInTheDocument();
+      // ...and the shell around it is untouched: nav, main region, the lot.
+      expect(await findByTestId('main-content')).toBeInTheDocument();
+      expect(queryByTestId('app-shell-error')).not.toBeInTheDocument();
+      expect(queryByTestId('route-error-boundary')).not.toBeInTheDocument();
+    });
+
+    it('does not put the mobile fallback on desktop beside the sidebar one', async () => {
+      // The switcher carried `md:hidden`; its FALLBACK did not. So a throw
+      // replaced a hidden control with a visible error, and desktop showed two
+      // error controls at once. jsdom has no media queries, so assert the
+      // responsive class sits on the wrapper that survives the throw.
+      useThemeStore.setState({ appVariant: 0 });
+      const { findByTestId } = renderWithProviders(<AppLayout />);
+
+      const mobile = await findByTestId('org-switcher-error-mobile');
+      // Attribute match, not `.md\:hidden`: the escaped colon in a class
+      // selector is a footgun inside a JS string literal.
+      expect(mobile.closest('[class~="md:hidden"]')).not.toBeNull();
     });
   });
 });

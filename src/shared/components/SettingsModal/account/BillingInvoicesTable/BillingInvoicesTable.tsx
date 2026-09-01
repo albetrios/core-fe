@@ -92,9 +92,9 @@ function InvoicesTable({ invoices }: { invoices: BillingInvoice[] }) {
 export function BillingInvoicesTable({ enabled = true }: { enabled?: boolean }) {
   const query = useBillingInvoices(enabled);
 
-  // Hide when disabled (no subscription): the query is disabled too, and a
-  // disabled query reports `isPending`, which would strand the card on a
-  // permanent loading skeleton.
+  // Hide the whole card when there is no subscription to invoice against. The
+  // guard is about the card, not about the query: QueryBoundary tells a disabled
+  // query apart from a loading one by itself now (X-5).
   if (!enabled) return null;
 
   return (
@@ -109,6 +109,7 @@ export function BillingInvoicesTable({ enabled = true }: { enabled?: boolean }) 
         <QueryBoundary
           query={query}
           errorMessage="Couldn't load invoices. Please try again."
+          title="Invoices"
         >
           {(invoices) => <InvoicesTable invoices={invoices} />}
         </QueryBoundary>

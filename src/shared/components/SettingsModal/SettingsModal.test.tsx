@@ -40,18 +40,28 @@ const ALL_PERMS: OrganizationPermission[] = [
 ];
 const meCtx = (type: 'PERSONAL' | 'TEAM') => ({
   data: { activeOrganization: { type } },
+  isPending: false,
   isLoading: false,
   isError: false,
 });
+/** Session context still in flight — the modal cannot know its own shape yet. */
+const meCtxLoading = {
+  data: undefined,
+  isPending: true,
+  isLoading: true,
+  isError: false,
+};
 
 describe('SettingsModal', () => {
   beforeEach(() => {
     useAuthStore.setState({ user: USER, isAuthenticated: true });
     useOrganizationStore.getState().clearOrganization();
-    // default: context still loading → permission-only gating
+    // default: context resolved with no active organization → permission-only
+    // gating. (`isPending` matters now: see the SET-15 tests below.)
     useMeContextMock.mockReturnValue({
       data: undefined,
-      isLoading: true,
+      isPending: false,
+      isLoading: false,
       isError: false,
     });
   });
@@ -181,5 +191,62 @@ describe('SettingsModal', () => {
       notificationsPanelThrows.value = false;
       consoleSpy.mockRestore();
     }
+  });
+
+  // ── SET-15: the rail does not guess its own shape ────────────────────────
+
+  it('holds a skeleton rail until the session context lands', async () => {
+    // Regression: WHICH organization sections exist depends on the org TYPE, and
+    // an unknown type was read as "allow everything" — so the Organization group
+    // painted in full and was then deleted in front of the user.
+    useOrganizationStore.getState().setOrganization('org_x', 'acme');
+    useOrganizationStore.getState().setPermissions(ALL_PERMS);
+    useMeContextMock.mockReturnValue(meCtxLoading);
+    renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+
+    // The modal is open and sized — it just does not claim a shape yet.
+    expect(await screen.findByTestId('settings-modal')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-nav-loading')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('settings-nav-organization-members'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('settings-nav-organization-roles'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('never opens an organization deep link before the org type is known', async () => {
+    // The members panel used to render on the optimistic answer and then swap
+    // itself for a fallback section a beat later.
+    useOrganizationStore.getState().setOrganization('org_x', 'acme');
+    useOrganizationStore.getState().setPermissions(ALL_PERMS);
+    useMeContextMock.mockReturnValue(meCtxLoading);
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/organization/members'],
+    });
+
+    expect(await screen.findByTestId('settings-nav-loading')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-organization-members')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('settings-content')).not.toBeInTheDocument();
+    // …and the hash is untouched, so the link still resolves once the context is in.
+    expect(router.state.location.hash).toBe('settings/organization/members');
+  });
+
+  it('renders normally once the context resolves, with no organization group', async () => {
+    useOrganizationStore.getState().setOrganization('org_personal', 'personal');
+    useOrganizationStore.getState().setPermissions(ALL_PERMS);
+    useMeContextMock.mockReturnValue(meCtx('PERSONAL'));
+    renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+
+    expect(await screen.findByTestId('settings-nav-account-profile')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-nav-loading')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('settings-nav-organization-members'),
+    ).not.toBeInTheDocument();
   });
 });

@@ -93,6 +93,9 @@ function setCanManage(value: boolean) {
   useOrganizationStore.setState({
     organizationType: value ? 'TEAM' : 'PERSONAL',
     permissions: value ? ['role:manage'] : [],
+    // These tests stand in for a session whose guard chain has ANSWERED; the
+    // unresolved case has its own test below (SET-23).
+    permissionsResolved: true,
   });
 }
 
@@ -216,5 +219,16 @@ describe('OrganizationRolesPanel', () => {
 
     await user.click(screen.getByTestId('roles-load-more'));
     expect(fetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  // ── SET-23: the New role slot keeps its place ────────────────────────────
+
+  it('holds the New role slot with a disabled placeholder before permissions land', () => {
+    setCanManage(true);
+    useOrganizationStore.setState({ permissionsResolved: false });
+    render(<OrganizationRolesPanel />);
+
+    expect(screen.getByTestId('role-create-pending')).toBeDisabled();
+    expect(screen.queryByTestId('role-create-open')).not.toBeInTheDocument();
   });
 });
