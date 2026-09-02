@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { reportError } from '@/shared/errors/errorHandler.ts';
 import { notify } from '@/shared/notify/index.ts';
 import {
   type DeferredCommit,
@@ -178,6 +179,38 @@ export function useDeferredRowRemoval<TRow extends { id: string }>(queryKey: Que
 
   return useCallback(
     (input: DeferredRowRemovalInput) => {
+      /*
+       * RACE A — a second schedule for the SAME row must not leave two timers.
+       *
+       * `pending` is keyed by row id, so a duplicate schedule used to overwrite
+       * the entry while the FIRST commit's timer kept running: two DELETEs for
+       * one row. Worse, the first handle's `settle()` deletes whatever sits at
+       * that key, so it removed the SECOND schedule's entry and left that timer
+       * uncancellable at unmount.
+       *
+       * A double-click on Remove reaches this, so "callers must pass unique
+       * ids" is not a defence for a hook that owns destructive writes. The
+       * latest gesture wins: cancel the live one (restoring the row) before
+       * scheduling its replacement, so exactly one timer is ever armed and the
+       * user gets a full undo window from the click they actually made.
+       */
+      pending.current.get(input.id)?.cancel();
+
+      /*
+       * RACE B — patch the cache only once nothing can overwrite it.
+       *
+       * The optimistic removal below is a plain `setQueriesData`. A list
+       * refetch already in flight resolves AFTER it and writes the row back, so
+       * the row reappears mid-undo-window — and if the user then does nothing,
+       * the commit deletes a row that is visibly on screen. Cancelling first is
+       * the documented TanStack pattern; a cancelled query never writes its
+       * result. Not awaited (this callback is sync by contract) but not
+       * swallowed either — a genuine failure is reported.
+       */
+      void queryClient.cancelQueries({ queryKey }).catch((error: unknown) => {
+        reportError(error, { scope: 'deferred-row-removal.cancel-queries' });
+      });
+
       const sites = sitesOf<TRow>(
         queryClient.getQueriesData<InfiniteData<ListPage<TRow>>>({ queryKey }),
         input.id,

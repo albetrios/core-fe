@@ -506,6 +506,51 @@ describe('AuthForm', () => {
         vi.useRealTimers();
       }
     });
+
+    /*
+     * The other half of LOGIN-10. The watchdog fixed a redirect that never
+     * happens; it then broke the redirect that is merely SLOW. Past 8s the
+     * document is still on screen, so the timer fired on a WORKING sign-in:
+     * "sign-in failed" mid-navigation, and because the watchdog also releases
+     * `methodStartedRef`, a second oauthStart could go out for one click.
+     *
+     * `pagehide` is the document actually leaving. Once it fires, the watchdog
+     * must never speak again however long the navigation takes.
+     */
+    it('stays quiet when the page is genuinely leaving, however slow', async () => {
+      const { authApi } = await import('@/shared/api/auth-api.ts');
+      vi.mocked(authApi.oauthStart).mockResolvedValue('https://oauth.example/go');
+
+      renderForm();
+      const google = await screen.findByTestId('auth-continue-google');
+
+      vi.useFakeTimers();
+      try {
+        act(() => {
+          google.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(0);
+        });
+        expect(screen.getByTestId('auth-continue-google')).toBeDisabled();
+
+        // The navigation commits — slowly, but it commits.
+        act(() => {
+          window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+        });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(30000);
+        });
+
+        // No false failure...
+        expect(screen.queryByTestId('auth-method-error-banner')).not.toBeInTheDocument();
+        // ...and the control is NOT handed back, so no second oauthStart.
+        expect(screen.getByTestId('auth-continue-google')).toBeDisabled();
+        expect(vi.mocked(authApi.oauthStart)).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   it('has no accessibility violations', async () => {

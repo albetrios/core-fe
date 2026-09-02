@@ -287,4 +287,42 @@ describe('useDeferredRowRemoval', () => {
     // Ada's removal was NOT undone, so Ada must stay out of the list.
     expect(rowIds(client)).toEqual(['b']);
   });
+
+  /*
+   * RACE A. A double-click on Remove schedules the same row twice. The map is
+   * keyed by row id, so the second schedule used to overwrite the first while
+   * the first's timer kept running — two DELETEs — and the first handle's
+   * `settle()` then deleted the SECOND entry, leaving that timer uncancellable
+   * at unmount.
+   */
+  it('cancels the live commit when the same row is scheduled again', () => {
+    const handles = stubHandles();
+    const { client, view } = setup();
+
+    remove(view.result.current, 'a');
+    remove(view.result.current, 'a');
+
+    // The first handle was cancelled, not abandoned.
+    expect(handles).toHaveLength(2);
+    expect(handles[0]?.cancel()).toBe(false); // already cancelled by the hook
+    // Exactly one live commit: unmount cancels it and restores the row.
+    view.unmount();
+    expect(rowIds(client)).toEqual(['a', 'b']);
+  });
+
+  /*
+   * RACE B. The optimistic patch ran without cancelling in-flight fetches, so a
+   * list refetch resolving afterwards wrote the row back — visible again inside
+   * the undo window, and then deleted anyway when the commit landed.
+   */
+  it('cancels in-flight list fetches before patching the cache', () => {
+    const { client, view } = setup();
+    const cancelQueries = vi.spyOn(client, 'cancelQueries');
+
+    remove(view.result.current, 'a');
+
+    expect(cancelQueries).toHaveBeenCalledWith(
+      expect.objectContaining({ queryKey: QUERY_KEY }),
+    );
+  });
 });

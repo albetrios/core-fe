@@ -135,6 +135,13 @@ export function AuthForm() {
   const methodStartedRef = useRef(false);
 
   const redirectWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Disarms the redirect watchdog AND removes its `pagehide` listener.
+   *
+   * Held in a ref so unmount can run it: the listener is registered on `window`,
+   * so clearing only the timer would leak it for the life of the page.
+   */
+  const redirectWatchdogDisarmRef = useRef<(() => void) | null>(null);
 
   /**
    * Take the single-flight slot for a method button. Returns false when a start
@@ -176,12 +183,38 @@ export function AuthForm() {
         throw new Error('Unsafe OAuth redirect URL');
       }
       window.location.assign(url);
-      // `assign` resolves nothing and throws nothing when the navigation never
-      // happens — a popup/redirect blocker, an extension, or a deferred nav all
-      // look identical to success from here. Without this the form stayed
-      // disabled behind a spinner with no way back (LOGIN-10). If the page is
-      // really leaving, this timer leaves with it.
+      /*
+       * `assign` resolves nothing and throws nothing when the navigation never
+       * happens — a popup/redirect blocker, an extension, or a deferred nav all
+       * look identical to success from here. Without this the form stayed
+       * disabled behind a spinner with no way back (LOGIN-10).
+       *
+       * The original comment claimed "if the page is really leaving, this timer
+       * leaves with it". That is only true once the document is actually torn
+       * down. A redirect that is merely SLOW is still in flight at 8s, so the
+       * watchdog fired on a working sign-in: the user was shown "sign-in failed"
+       * mid-navigation, and because it also releases `methodStartedRef`, a
+       * second `oauthStart` could go out — two OAuth starts for one click.
+       *
+       * `pagehide` is the signal that the document is going away. It fires for
+       * bfcache-eligible navigations where `unload` does not, and it fires for a
+       * cross-origin redirect. Deliberately NOT `visibilitychange`: that fires
+       * when the user merely switches tab, which would disarm a watchdog that
+       * should still be armed. `beforeunload` is skipped too — it is throttled,
+       * unreliable without user interaction, and adds nothing `pagehide` misses.
+       */
+      const disarmWatchdog = () => {
+        clearTimerRef(redirectWatchdogRef);
+        window.removeEventListener('pagehide', disarmWatchdog);
+        redirectWatchdogDisarmRef.current = null;
+      };
+      window.addEventListener('pagehide', disarmWatchdog);
+      redirectWatchdogDisarmRef.current = disarmWatchdog;
       redirectWatchdogRef.current = setTimeout(() => {
+        // Not `disarmWatchdog()`: that clears the ref this callback is running
+        // from. Drop the listener, then report — the navigation never happened.
+        window.removeEventListener('pagehide', disarmWatchdog);
+        redirectWatchdogDisarmRef.current = null;
         redirectWatchdogRef.current = null;
         methodStartedRef.current = false;
         setAutoGooglePending(false);
@@ -261,7 +294,15 @@ export function AuthForm() {
   // The redirect watchdog is the one timer that can outlive this component:
   // it is armed just before the page is expected to leave, so if the form
   // unmounts for any other reason it has to be released here.
-  useEffect(() => () => clearTimerRef(redirectWatchdogRef), []);
+  useEffect(
+    () => () => {
+      // Runs the disarm, not just the timer clear — otherwise the `pagehide`
+      // listener outlives the component.
+      redirectWatchdogDisarmRef.current?.();
+      clearTimerRef(redirectWatchdogRef);
+    },
+    [],
+  );
 
   const handlePasskey = async () => {
     if (!claimMethodStart()) return;

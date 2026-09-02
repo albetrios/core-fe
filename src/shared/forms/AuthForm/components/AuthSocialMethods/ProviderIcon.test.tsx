@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { axe } from 'vitest-axe';
 
 import { ProviderIcon } from './ProviderIcon.tsx';
 
@@ -27,5 +28,29 @@ describe('ProviderIcon', () => {
     // Nothing — not a fallback or placeholder glyph in the button's icon slot.
     expect(container).toBeEmptyDOMElement();
     expect(container.querySelector('svg')).toBeNull();
+  });
+
+  /*
+   * These marks sit inside auth buttons that already carry their own label
+   * ("Continue with Google"), so the icon must be decorative — an accessible
+   * name here would be read twice. Plain `axe`, not `axeForDialog`: nothing
+   * portals, so the aria-hidden-focus rule that helper relaxes should stay on.
+   */
+  describe('accessibility', () => {
+    it.each(DRAWN_PROVIDERS)('has no axe violations for %s', async (provider) => {
+      const container = renderIcon(provider);
+      expect(await axe(container)).toHaveNoViolations();
+    });
+
+    it.each(DRAWN_PROVIDERS)('exposes %s decoratively, not as an image', (provider) => {
+      const svg = renderIcon(provider).querySelector('svg');
+      expect(svg).not.toBeNull();
+      // Either hidden from the tree, or carrying no accessible name of its own.
+      const hidden = svg?.getAttribute('aria-hidden') === 'true';
+      const named = Boolean(
+        svg?.getAttribute('aria-label') ?? svg?.getAttribute('title'),
+      );
+      expect(hidden || !named).toBe(true);
+    });
   });
 });

@@ -32,6 +32,7 @@ Complete inventory of project skills. Use this to find the right skill for any t
 - ...org-scoped route, guards, gateway, session context, settings hash -> **routing-tenancy**
 - ...backend resource CRUD (list, URL dialogs, resource manifest) -> **resource-crud**
 - ...form mutation errors, 422 mapping, rate limit, QueryBoundary -> **http-forms-errors**
+- ...double-submit, a crash escaping its boundary, a toast that outruns the work, a screen guessing its shape -> **resilient-interactions**
 - ...platform config, knip, vite-env / client-env validators -> **platform-hygiene**
 - ...add a validate gate / lint restriction / static-sync CI step -> **guard-authoring** (prove it fires)
 - ...RTL mirroring / logical properties / physical ml-mr-left-right -> **rtl-logical-css**
@@ -65,7 +66,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 | **New page / route / sub-route**                          | route-island → page-scaffolding → code-structure → shadcn (UI) → test-generation → e2e-testids → lint-guard → documentation-maintenance                                                                                     |
 | **Org-scoped route / guards / gateway**                   | route-island → **routing-tenancy** → test-generation → lint-guard → documentation-maintenance                                                                                                                               |
 | **Backend resource CRUD island**                          | route-island → **resource-crud** → **routing-tenancy** (if org-scoped) → **http-forms-errors** (forms) → test-generation → e2e-testids → lint-guard                                                                         |
-| **Form + API mutation**                                   | composition-patterns → **http-forms-errors** → test-generation → lint-guard                                                                                                                                                 |
+| **Form + API mutation**                                   | composition-patterns → **http-forms-errors** → **resilient-interactions** → test-generation → lint-guard                                                                                                                                                 |
 | **Platform / env hygiene**                                | **platform-hygiene** → env-schema-add (if key changed) → documentation-maintenance → lint-guard                                                                                                                             |
 | **New machine-enforced invariant (gate / lint rule)**     | **guard-authoring** (probe both directions) → code-quality-security (CI wiring) → documentation-maintenance                                                                                                                 |
 | **Any user-visible date / number / money value**          | **locale-formatting** → i18n-constants (labels) → test-generation                                                                                                                                                           |
@@ -106,7 +107,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 > If a task has **no** matching row here or in `skill-router.mdc`, use **find-skills** to look for one before building from scratch; if none exists, proceed with general capabilities.
 
-## Skill Inventory (49 skills)
+## Skill Inventory (50 skills)
 
 ### 0a. auto-implement (Master Orchestrator)
 
@@ -896,7 +897,24 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 - 422 → RHF `setError` before toast
 - Read panels use `QueryBoundary` — no duplicate loading/error branches
 
-**Related skills:** composition-patterns, test-generation, resource-crud
+**Related skills:** composition-patterns, test-generation, resource-crud, resilient-interactions
+
+### 10e. resilient-interactions
+
+**Path:** `agent-os/skills/resilient-interactions/SKILL.md`  
+**Rule:** `agent-os/rules/resilient-interactions.mdc` (the 28 one-liners, `alwaysApply`)
+
+**Purpose:** The worked reasoning behind the 28 always-on resilience rules — the failure each came from, the fix that looked right and was not, and the code that holds. The rule states them; this explains them.
+
+**Trigger keywords:** "single-flight", "double submit", "error boundary", "optimistic rollback", "loading state", "success toast", "§1", "§6"
+
+**Key behaviors:**
+
+- Section numbers match the rule file and are cited from code — never renumber
+- Read before arguing with a rule or applying an unfamiliar one
+- Pairs with `http-forms-errors` for the mutation/error wiring itself
+
+**Related skills:** http-forms-errors, composition-patterns, react-best-practices
 
 ---
 
@@ -1066,6 +1084,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 | `src/shared/tenancy/`                                 | **routing-tenancy**, test-generation                                                                                                             |
 | `**/*.resource.ts`, `*ListPage.tsx`, `**/dialogs/**`  | **resource-crud**, route-island, e2e-testids                                                                                                     |
 | `**/forms/**`, mutation hooks                         | **http-forms-errors**, composition-patterns, test-generation                                                                                     |
+| `useAppMutation`, `useDeferredRowRemoval`, boundaries | **resilient-interactions**, http-forms-errors, test-generation                                                                                    |
 | `src/core/config/env-schema.ts`, `platform-config.ts` | **platform-hygiene**, **env-schema-add**, documentation-maintenance                                                                              |
 | `src/shared/components/`                              | component-promotion, composition-patterns, **shadcn** (`agent-os/skills/shadcn`), test-generation                                                |
 | `src/shared/components/ui/`                           | composition-patterns, web-design-guidelines, **shadcn** (`agent-os/skills/shadcn`)                                                               |

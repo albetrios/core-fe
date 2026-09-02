@@ -186,7 +186,7 @@ core-fe/
 │   │   ├── testing-requirements.mdc
 │   │   ├── theme-axis-audit.mdc
 │   │   └── ui-sources.mdc
-│   ├── skills/  (49 skills: auto-implement, shadcn, route-island, …)
+│   ├── skills/  (50 skills: auto-implement, shadcn, route-island, …)
 │   └── skills-lock.json
 ├── docs/
 │   ├── deployment/
