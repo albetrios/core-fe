@@ -1,3 +1,18 @@
+/**
+ * Vendored shadcn/ui primitive carrying LOCAL EDITS — re-apply after a shadcn
+ * refresh. `pnpm dlx shadcn@latest add alert-dialog` regenerates this file and
+ * silently drops both of them:
+ *
+ * 1. `AlertDialogAction` accepts an optional `isLoading` prop — it disables the
+ *    button (`disabled={isLoading || disabled}`), sets `aria-busy`, and renders
+ *    a spinner before `children`.
+ * 2. The `Loader2` import from `lucide-react` that spinner needs. The direct
+ *    icon import is deliberate: vendored `ui/` is exempt from the
+ *    `@/shared/icons` rule, so do not "fix" it to the icon registry.
+ *
+ * Per `agent-os/skills/pre-pr-sweep/SKILL.md` (§9), also note this edit in the
+ * PR body as "re-apply after a shadcn refresh".
+ */
 import { Loader2 } from 'lucide-react';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import type * as React from 'react';

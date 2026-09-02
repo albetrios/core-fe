@@ -61,7 +61,18 @@ To add another language:
 | Components     | `useTranslation(ONBOARDING_NS)` + `t(ONBOARDING_KEYS.…)`       |
 | Non-React      | `import i18n from '@/lib/i18n/i18n.ts'`                        |
 | Rich text      | `<Trans ns={…} i18nKey={…} components={…} />`                  |
-| Plurals        | `key_one` / `key_other` in JSON + `{ count }` in `t()`         |
+| Plurals        | Suffixed keys + `{ count }` in `t()` — categories per language |
+
+**Plural categories are per language, never per English.** A `{ count }` key owes one
+entry for every cardinal category the TARGET language selects — exactly
+`new Intl.PluralRules('<locale>').resolvedOptions().pluralCategories`. English is
+`_one` / `_other` (and may lean on the bare, unsuffixed key to serve `one`); **es, fr, it
+and pt add `_many`** (exact millions); **Arabic ships all six** — `_zero`, `_one`, `_two`,
+`_few`, `_many`, `_other`; de and hi are `one` / `other`; ja, ko and zh take `_other`
+alone. A locale that ships only `_one` / `_other` leaves its own categories unresolved,
+i18next walks on to `fallbackLng`, and the user reads English inside a translated UI —
+silently, with no crash and no raw key. `_zero` is an i18next extension rather than a
+CLDR category (an exact-0 lookup is honoured in every language), so it is always allowed.
 
 ---
 
@@ -87,6 +98,9 @@ Fix by adding the key to locale JSON before merging.
 `pnpm validate:i18n-parity` complements it on the cross-locale axis: English is
 the source of truth and every other locale in `I18N_LOCALES` must carry every
 English key in every namespace (and must not hold keys English has dropped).
+Plural coverage is judged **per category against `Intl.PluralRules` for the target
+language**, not against English's two-form shape — accepting any of bare / `_one` /
+`_other` is exactly what let a missing `_many` fall through to English.
 `PARTIAL_UI_LOCALES` is reserved for languages that temporarily ship only
 `common.json`; it is empty when all languages have full coverage. The locale
 sets are read from `src/lib/i18n/locales.ts`, so the gate can't drift from the

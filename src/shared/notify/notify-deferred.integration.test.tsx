@@ -20,6 +20,8 @@ import { type DeferredCommit, notifyDeferredCommit } from './notify-deferred.ts'
  */
 
 const undoneCopy = () => i18n.t(ERRORS_KEYS.toast.undone, { ns: ERRORS_NS });
+/** Stand-in for the copy a caller hands over as `committedMessage`. */
+const COMMITTED_COPY = 'Member removed';
 /** Comfortably past sonner's 200ms unmount, comfortably inside its 4s lifetime. */
 const settle = () => new Promise((resolve) => setTimeout(resolve, 700));
 /** The sonner row a piece of toast copy is rendered in. */
@@ -38,7 +40,10 @@ describe('notifyDeferredCommit (real toast surface)', () => {
     });
   });
 
-  function schedule(onCommit = vi.fn()) {
+  function schedule(
+    onCommit = vi.fn(),
+    overrides: Partial<Parameters<typeof notifyDeferredCommit>[0]> = {},
+  ) {
     let handle!: DeferredCommit;
     act(() => {
       handle = notifyDeferredCommit({
@@ -48,6 +53,7 @@ describe('notifyDeferredCommit (real toast surface)', () => {
         // here is about the undo window, not about what happens after it.
         delayMs: 60_000,
         toastId: 'remove-member-mem_1',
+        ...overrides,
       });
     });
     scheduled.push(handle);
@@ -115,5 +121,39 @@ describe('notifyDeferredCommit (real toast surface)', () => {
     expect(onCommit).not.toHaveBeenCalled();
     // Already cancelled — a second cancel reports that it did nothing.
     expect(handle.cancel()).toBe(false);
+  });
+
+  it('auto-dismisses the committed toast instead of leaving it up forever', async () => {
+    // Regression: `flush()` writes the processing toast with `notify.loading`,
+    // which carries `duration: Infinity` — and sonner MERGES a same-id write
+    // onto the toast already on screen (`ToastState.create` returns
+    // `{ ...toast, ...data }`). The committed toast passes no `duration`, so the
+    // key was absent from `data` and `Infinity` survived onto it; sonner's
+    // auto-close effect returns early on `toast.duration === Infinity`, so the
+    // success confirmation never went away. The unit suite beside this one
+    // structurally cannot catch it — the leak happens inside sonner's store,
+    // not at the call site, so a mocked `notify` sees a perfectly correct call.
+    render(<AppToaster />);
+    const handle = schedule(vi.fn(), {
+      committedMessage: COMMITTED_COPY,
+      // Its own id: the pending write of a toast id an earlier test dismissed
+      // takes sonner's `wasDismissed` branch, which replaces instead of merging.
+      toastId: 'remove-member-mem_2',
+    });
+
+    // Commit now rather than waiting out the 60s window. `onCommit` settles on a
+    // microtask, so this runs the whole pending → processing → committed sequence.
+    await act(async () => {
+      handle.flush();
+    });
+    await waitFor(() => expect(screen.getByText(COMMITTED_COPY)).toBeInTheDocument());
+
+    // `AppToaster` sets no `duration`, so a finite toast lives for sonner's 4s
+    // TOAST_LIFETIME plus its 200ms unmount. Still on screen after twice that
+    // and it is on no timer at all — which is exactly the bug.
+    await waitFor(
+      () => expect(screen.queryByText(COMMITTED_COPY)).not.toBeInTheDocument(),
+      { timeout: 9000, interval: 100 },
+    );
   });
 });

@@ -2,9 +2,11 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type ComponentType, lazy, Suspense, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { axe } from 'vitest-axe';
 
 import { onceAsync } from '@/lib/lazy-module.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { axeForDialog } from '@/tests/utils/axe-for-dialog.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 const { reportErrorMock } = vi.hoisted(() => ({ reportErrorMock: vi.fn() }));
@@ -13,7 +15,7 @@ vi.mock('@/shared/errors/errorHandler.ts', async (importOriginal) => {
   return { ...actual, reportError: reportErrorMock };
 });
 
-import { LazyOverlay } from './LazyOverlay.tsx';
+import { LazyOverlay, LazyOverlaySkeleton } from './LazyOverlay.tsx';
 
 function Loaded() {
   return <div data-testid="loaded-overlay">loaded</div>;
@@ -22,6 +24,9 @@ function Loaded() {
 /** Never settles: a STALLED chunk fetch, which never rejects and so never
  *  reaches the error boundary's Close button. */
 const stalledLoad = () => new Promise<{ default: ComponentType }>(() => {});
+
+/** Always rejects: the chunk 404 that puts the failure surface on screen. */
+const failedLoad = () => Promise.reject(new Error('chunk 404'));
 
 /**
  * Mirrors the real callers: the OWNER holds the open state and unmounts the
@@ -227,5 +232,153 @@ describe('LazyOverlay', () => {
       expect.any(Error),
       expect.objectContaining({ scope: 'lazy-overlay', widget: 'Appearance' }),
     );
+  });
+
+  /**
+   * The failure surface has always announced itself as `role="alertdialog"` +
+   * `aria-modal="true"` while providing none of what those claim: focus stayed
+   * out on the trigger, Tab walked straight off into the page behind a scrim
+   * that blocks every pointer route to it, and Escape did nothing. Dropping the
+   * attributes would have been the other honest answer, but a `fixed inset-0`
+   * scrim IS modal for everyone using a mouse — so the claim is kept and made
+   * true instead.
+   */
+  describe('the failure surface is as modal as it claims to be', () => {
+    it('moves focus into the card on mount', async () => {
+      renderWithProviders(
+        <LazyOverlay
+          load={failedLoad}
+          pending={<div data-testid="pending" />}
+          title="Settings"
+          onDismiss={vi.fn()}
+        />,
+      );
+
+      const retry = await screen.findByTestId('lazy-overlay-retry');
+      await waitFor(() => expect(retry).toHaveFocus());
+    });
+
+    it('traps Tab inside the card instead of letting it walk behind the scrim', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <>
+          <button type="button" data-testid="behind-the-scrim">
+            behind
+          </button>
+          <LazyOverlay
+            load={failedLoad}
+            pending={<div data-testid="pending" />}
+            title="Settings"
+            onDismiss={vi.fn()}
+          />
+        </>,
+      );
+
+      await screen.findByTestId('lazy-overlay-error');
+      const retry = screen.getByTestId('lazy-overlay-retry');
+      const dismiss = screen.getByTestId('lazy-overlay-dismiss');
+      // Placed explicitly rather than leaning on the mount focus above: this
+      // test is about what Tab does once focus is inside, and it should fail on
+      // the trap alone, not on the other test's assertion.
+      retry.focus();
+
+      await user.tab();
+      expect(dismiss).toHaveFocus();
+
+      // Wraps back to the first control rather than escaping the card — the
+      // page behind is covered by the scrim and unreachable by pointer, so it
+      // must be unreachable by keyboard too. Untrapped, this second Tab leaves
+      // the card for good.
+      await user.tab();
+      expect(retry).toHaveFocus();
+      expect(screen.getByTestId('lazy-overlay-error')).toContainElement(
+        document.activeElement as HTMLElement,
+      );
+    });
+
+    it('lets Escape out of the failure surface, not just the pending one', async () => {
+      const onDismiss = vi.fn();
+      const user = userEvent.setup();
+      renderWithProviders(
+        <LazyOverlay
+          load={failedLoad}
+          pending={<div data-testid="pending" />}
+          title="Settings"
+          onDismiss={onDismiss}
+        />,
+      );
+
+      await screen.findByTestId('lazy-overlay-error');
+      await user.keyboard('{Escape}');
+
+      await waitFor(() => expect(onDismiss).toHaveBeenCalledTimes(1));
+    });
+
+    it('hands focus back to the opener when it is dismissed', async () => {
+      const user = userEvent.setup();
+      // Starts closed and is opened by a click, like every real caller: that
+      // click is what leaves focus on the trigger for the card to hand back.
+      function DismissHost() {
+        const [open, setOpen] = useState(false);
+        return (
+          <>
+            <button type="button" data-testid="opener" onClick={() => setOpen(true)}>
+              open
+            </button>
+            {open ? (
+              <LazyOverlay
+                load={failedLoad}
+                pending={<div data-testid="pending" />}
+                title="Settings"
+                onDismiss={() => setOpen(false)}
+              />
+            ) : null}
+          </>
+        );
+      }
+
+      renderWithProviders(<DismissHost />);
+      const opener = await screen.findByTestId('opener');
+      await user.click(opener);
+      await screen.findByTestId('lazy-overlay-error');
+
+      await user.click(screen.getByTestId('lazy-overlay-dismiss'));
+
+      // Moving focus into a card and then dropping it on <body> is its own
+      // keyboard trap; the opener gets it back.
+      await waitFor(() => expect(opener).toHaveFocus());
+    });
+
+    it('has no axe violations on the failure surface', async () => {
+      const { baseElement } = renderWithProviders(
+        <LazyOverlay
+          load={failedLoad}
+          pending={<div data-testid="pending" />}
+          title="Settings"
+          onDismiss={vi.fn()}
+        />,
+      );
+
+      await screen.findByTestId('lazy-overlay-error');
+      expect(await axeForDialog(baseElement)).toHaveNoViolations();
+    });
+
+    it('has no axe violations on the pending surface', async () => {
+      // The real skeleton, not a bare div: it carries the live region and the
+      // `aria-busy` output that the floating dismiss control sits beside.
+      // Plain `axe`, not `axeForDialog`: nothing here portals or marks siblings
+      // `aria-hidden`, so the rule that helper relaxes should stay on.
+      const { container } = renderWithProviders(
+        <LazyOverlay
+          load={stalledLoad}
+          pending={<LazyOverlaySkeleton />}
+          title="Settings"
+          onDismiss={vi.fn()}
+        />,
+      );
+
+      await screen.findByTestId('lazy-overlay-pending');
+      expect(await axe(container)).toHaveNoViolations();
+    });
   });
 });
