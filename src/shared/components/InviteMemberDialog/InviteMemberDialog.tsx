@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { translateFormMessage } from '@/lib/i18n/translate-form-message.ts';
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
+import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
@@ -65,6 +66,7 @@ export function InviteMemberDialog() {
     handleSubmit,
     control,
     reset,
+    getValues,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<InviteInput>({
@@ -74,10 +76,14 @@ export function InviteMemberDialog() {
 
   // Default the role once the list loads (react-hook-form keeps the field
   // otherwise empty, which would fail validation on an all-valid-looking form).
+  // Only while the field is UNTOUCHED: this effect re-runs whenever the first
+  // role id changes, and a refetch that reorders the list used to overwrite a
+  // role the user had already picked, mid-session (SET-11).
   useEffect(() => {
-    if (hasRoles) setValue('roleId', invitableRoles[0]?.id ?? '');
+    if (!hasRoles || getValues('roleId')) return;
+    setValue('roleId', invitableRoles[0]?.id ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- key off the first id, not the array identity
-  }, [invitableRoles[0]?.id, hasRoles, setValue]);
+  }, [invitableRoles[0]?.id, hasRoles, getValues, setValue]);
 
   const onSubmit = async (data: InviteInput) => {
     await invite.mutateAsync(data);
@@ -156,6 +162,18 @@ export function InviteMemberDialog() {
           </Button>
         </DialogFooter>
       </form>
+    );
+  } else if (roles.isError) {
+    // "Create a role first" is a claim about the organization. A failed fetch is
+    // not evidence for it — the roles almost certainly exist (SET-11).
+    body = (
+      <div data-testid="invite-member-roles-error">
+        <RetryError
+          message={t(SETTINGS_KEYS.panels.roles.loadFailed)}
+          onRetry={roles.refetch}
+          isRetrying={roles.isFetching}
+        />
+      </div>
     );
   } else {
     body = (

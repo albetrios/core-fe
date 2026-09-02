@@ -20,7 +20,14 @@ const inviteEmailSchema = z.string().trim().pipe(z.email());
 /** Collects optional teammate emails; the final step sends the invitations. */
 export function InviteStep() {
   const { t } = useTranslation(ONBOARDING_NS);
-  const { data, patch } = useOnboardingStore();
+  /*
+   * Field-level selectors (ONB-13). `useOnboardingStore()` with no selector
+   * subscribes to the whole store, and `patch` replaces the entire `data`
+   * object, so this component re-rendered on every keystroke anywhere in the
+   * wizard. `patch` is a stable store closure.
+   */
+  const invites = useOnboardingStore((s) => s.data.invites);
+  const patch = useOnboardingStore((s) => s.patch);
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -31,11 +38,11 @@ export function InviteStep() {
       return;
     }
     const trimmed = parsed.data.toLowerCase();
-    if (data.invites.includes(trimmed)) {
+    if (invites.includes(trimmed)) {
       setError(t(ONBOARDING_KEYS.invite.duplicateEmail));
       return;
     }
-    patch({ invites: [...data.invites, trimmed] });
+    patch({ invites: [...invites, trimmed] });
     setEmail('');
     setError(null);
   };
@@ -85,9 +92,9 @@ export function InviteStep() {
           {error}
         </p>
       )}
-      {data.invites.length > 0 && (
+      {invites.length > 0 && (
         <ul className="space-y-2" data-testid={ONBOARDING_TEST_IDS.inviteList}>
-          {data.invites.map((invite) => (
+          {invites.map((invite) => (
             <li
               key={invite}
               className="bg-muted/50 flex items-center justify-between rounded-md px-3 py-2 text-sm"
@@ -97,9 +104,7 @@ export function InviteStep() {
                 type="button"
                 data-slot="button"
                 aria-label={t(ONBOARDING_KEYS.invite.removeAriaLabel, { email: invite })}
-                onClick={() =>
-                  patch({ invites: data.invites.filter((i) => i !== invite) })
-                }
+                onClick={() => patch({ invites: invites.filter((i) => i !== invite) })}
                 className={closeControlClassName}
               >
                 <X className="h-4 w-4" />

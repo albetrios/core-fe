@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,22 +11,47 @@ const {
   useWebhooksMock,
   createWebhookMutate,
   deleteWebhookMutateAsync,
+  webhookCtl,
 } = vi.hoisted(() => ({
   useApiKeysMock: vi.fn(),
   revokeMutateAsync: vi.fn(),
   useWebhooksMock: vi.fn(),
   createWebhookMutate: vi.fn(),
   deleteWebhookMutateAsync: vi.fn(),
+  /** Settles the in-flight create (set by the stub when `mutate` is called). */
+  webhookCtl: { settle: null as null | ((error?: Error) => void) },
 }));
 vi.mock('@/shared/hooks/useApiKeys/index.ts', () => ({
   useApiKeys: useApiKeysMock,
   useRevokeApiKey: () => ({ mutateAsync: revokeMutateAsync }),
 }));
-vi.mock('@/shared/hooks/useWebhooks/index.ts', () => ({
-  useWebhooks: useWebhooksMock,
-  useCreateWebhook: () => ({ mutate: createWebhookMutate, isPending: false }),
-  useDeleteWebhook: () => ({ mutateAsync: deleteWebhookMutateAsync }),
-}));
+vi.mock('@/shared/hooks/useWebhooks/index.ts', async () => {
+  const { useState } = await import('react');
+  return {
+    useWebhooks: useWebhooksMock,
+    // Real pending state: the dialog's hold-and-report behaviour is the subject
+    // of the SET-26 test below, and a frozen `isPending: false` cannot show it.
+    useCreateWebhook: () => {
+      const [isPending, setIsPending] = useState(false);
+      return {
+        isPending,
+        mutate: (
+          input: unknown,
+          options?: { onSuccess?: () => void; onError?: (error: Error) => void },
+        ) => {
+          createWebhookMutate(input, options);
+          setIsPending(true);
+          webhookCtl.settle = (error) => {
+            setIsPending(false);
+            if (error) options?.onError?.(error);
+            else options?.onSuccess?.();
+          };
+        },
+      };
+    },
+    useDeleteWebhook: () => ({ mutateAsync: deleteWebhookMutateAsync }),
+  };
+});
 
 import { OrganizationIntegrationsPanel } from './OrganizationIntegrationsPanel.tsx';
 
@@ -200,5 +225,78 @@ describe('OrganizationIntegrationsPanel — webhooks', () => {
     await user.click(screen.getByTestId('webhook-delete-whk_1'));
     await user.click(screen.getByTestId('confirm-accept'));
     await waitFor(() => expect(deleteWebhookMutateAsync).toHaveBeenCalledWith('whk_1'));
+  });
+
+  // ── SET-4: a failed webhooks fetch is not an empty workspace ──────────────
+
+  it('shows an error with a retry when the webhooks fetch fails', async () => {
+    // Regression: `isError` was never read, so `hooks` stayed undefined, every
+    // branch fell through, and the user saw a bare heading — no list, no empty
+    // state, no error — and concluded there were no webhooks.
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    setCanManage(true); // webhook:read — the sub-section renders at all
+    useWebhooksMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      isFetching: false,
+      refetch,
+    });
+    render(<OrganizationIntegrationsPanel />);
+
+    expect(screen.getByTestId('webhooks-error')).toBeInTheDocument();
+    expect(screen.queryByTestId('webhooks-list')).not.toBeInTheDocument();
+    // Crucially NOT the empty state — that would still say "No webhooks".
+    expect(screen.queryByText('No webhooks')).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('retry-error').querySelector('button')!);
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('still shows the empty state when the fetch succeeds with no webhooks', async () => {
+    setCanManage(true);
+    useWebhooksMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      refetch: vi.fn(),
+    });
+    render(<OrganizationIntegrationsPanel />);
+
+    expect(screen.getByText('No webhooks')).toBeInTheDocument();
+    expect(screen.queryByTestId('webhooks-error')).not.toBeInTheDocument();
+  });
+
+  // ── SET-26: the dialog holds itself, and owns its failure ────────────────
+
+  it('holds Cancel and shows the server error inline while creating', async () => {
+    // Regression: Cancel stayed live through the request, and a server-side
+    // rejection only ever appeared as a toast — never beside the URL field.
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+
+    await user.click(screen.getByTestId('webhook-add'));
+    await user.type(screen.getByTestId('webhook-url'), 'https://hooks.acme.test/core');
+    await user.click(screen.getByTestId('webhook-event-member.created'));
+    await user.click(screen.getByTestId('webhook-create'));
+
+    // Mid-flight: the way out is held, not live.
+    expect(screen.getByTestId('webhook-cancel')).toBeDisabled();
+    expect(screen.getByTestId('webhook-create')).toHaveAttribute('aria-busy', 'true');
+
+    await act(async () => webhookCtl.settle?.(new Error('Endpoint already registered')));
+
+    // The reason lands in the dialog, next to the field the server rejected.
+    expect(screen.getByTestId('webhook-add-dialog')).toBeInTheDocument();
+    // …on the shared error card — the surface the sign-in form and the step-up
+    // dialog use — not as a bare red caption under the event chips.
+    const inline = screen.getByTestId('webhook-error');
+    expect(inline).toHaveTextContent(/already registered|went wrong/i);
+    expect(inline).toHaveAttribute('role', 'alert');
+    expect(inline).toHaveClass('bg-destructive/10');
+    expect(inline.querySelector('svg')).not.toBeNull();
   });
 });

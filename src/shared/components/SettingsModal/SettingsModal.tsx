@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select.tsx';
+import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
@@ -69,7 +70,7 @@ import type {
   SettingsSection,
   SettingsSectionRef,
 } from './settings-sections.ts';
-import { SettingsNav } from './SettingsNav.tsx';
+import { SettingsNav, SettingsNavSkeleton } from './SettingsNav.tsx';
 
 /**
  * Global settings modal — ONE modal for account + organization settings,
@@ -88,6 +89,11 @@ export function SettingsModal() {
   );
 }
 
+/** One dialog shell for both the loading and the resolved states. */
+const SETTINGS_DIALOG_CLASS =
+  'h-dvh max-h-dvh w-full max-w-full gap-0 overflow-hidden rounded-none p-0 ' +
+  'sm:h-[640px] sm:max-h-[85vh] sm:max-w-[960px]';
+
 function SettingsModalBody() {
   const { t } = useTranslation(SETTINGS_NS);
   const dirtyCtx = useSettingsDirty();
@@ -96,9 +102,17 @@ function SettingsModalBody() {
   const user = useAuthStore((s) => s.user);
   const organizationId = useOrganizationStore((s) => s.organizationId);
   const permissions = useOrganizationStore((s) => s.permissions);
-  // Active org type (PERSONAL/TEAM) drives which org sections exist. Undefined
-  // while me/context loads → fall back to permission-only gating.
-  const orgType = useMeContext().data?.activeOrganization?.type;
+  // Active org type (PERSONAL/TEAM) drives which org sections EXIST — so until
+  // me/context answers, the shape of this modal is unknown. Read the whole
+  // query, not just its data: `undefined` is "still loading", and treating it
+  // as "everything is allowed" is what made the Organization group appear and
+  // then vanish, and a deep link open the members panel and then swap itself
+  // for a fallback (SET-15).
+  const meContext = useMeContext();
+  const orgType = meContext.data?.activeOrganization?.type;
+  // A failed fetch is not a reason to hang on the skeleton forever: fall back to
+  // permission-only gating, which is what the modal did before.
+  const contextReady = !meContext.isPending;
   const deploymentFlags = useDeploymentFlags();
   const navigate = useNavigate();
   const router = useRouter();
@@ -132,7 +146,10 @@ function SettingsModalBody() {
     () => firstVisibleSettingsSection(visibleGroups),
     [visibleGroups],
   );
-  const active = parsed ? resolveSettingsSection(parsed, navCtx, fallbackSection) : null;
+  const active =
+    parsed && contextReady
+      ? resolveSettingsSection(parsed, navCtx, fallbackSection)
+      : null;
   const scope = active?.scope;
   const section = active?.section;
 
@@ -174,7 +191,35 @@ function SettingsModalBody() {
     [dirtyCtx?.isDirty],
   );
 
-  if (!active) return null;
+  if (!parsed) return null;
+
+  if (!active) {
+    // Open, sized, and honest: the rail holds its space while the session
+    // context lands. Nothing here can be dirty yet, so Esc closes directly.
+    return (
+      <Dialog open onOpenChange={(open) => !open && close()}>
+        <DialogContent
+          className={SETTINGS_DIALOG_CLASS}
+          data-testid="settings-modal"
+          aria-busy
+        >
+          <DialogTitle className="sr-only">Settings</DialogTitle>
+          <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
+            <SettingsNavSkeleton />
+            <div
+              className="min-h-0 flex-1 space-y-4 px-4 pt-6 pb-6 sm:px-8"
+              data-testid="settings-content-loading"
+            >
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-72" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const guardedClose = () => runOrConfirmDiscard(close);
 
@@ -202,7 +247,7 @@ function SettingsModalBody() {
     <>
       <Dialog open onOpenChange={(o) => !o && guardedClose()}>
         <DialogContent
-          className="h-dvh max-h-dvh w-full max-w-full gap-0 overflow-hidden rounded-none p-0 sm:h-[640px] sm:max-h-[85vh] sm:max-w-[960px]"
+          className={SETTINGS_DIALOG_CLASS}
           data-testid="settings-modal"
           onInteractOutside={(e) => {
             // Toasts render outside the dialog (sonner) — clicking one (e.g. its

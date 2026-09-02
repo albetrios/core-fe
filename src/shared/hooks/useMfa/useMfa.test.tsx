@@ -54,6 +54,32 @@ describe('useMfa', () => {
     await waitFor(() => expect(beginMock).toHaveBeenCalledTimes(1));
   });
 
+  // Rule 1: "Set up" is a write — `disabled={begin.isPending}` only lands after
+  // React re-renders, so two clicks in one frame used to mint TWO enrollment
+  // secrets. The server keeps the last one, the dialog shows whichever resolved
+  // first, and the code the user types then never verifies.
+  it('mints one enrollment secret when fired twice before the first settles', async () => {
+    // Deferred created up front so `release` exists before the mutation runs.
+    let release!: (value: unknown) => void;
+    const enrollment = { secret: 'S', otpauthUri: 'otpauth://x' };
+    const inFlight = new Promise((resolve) => {
+      release = resolve;
+    });
+    beginMock.mockImplementationOnce(() => inFlight);
+    const { result } = renderHook(() => useBeginMfaEnrollment(), { wrapper });
+
+    const first = result.current.mutateAsync();
+    const second = result.current.mutateAsync();
+    await waitFor(() => expect(beginMock).toHaveBeenCalledTimes(1));
+    release(enrollment);
+    const [a, b] = await Promise.all([first, second]);
+
+    expect(beginMock).toHaveBeenCalledTimes(1);
+    // The duplicate joins the in-flight request, so the caller still gets a
+    // result — and it is the SAME enrollment, not a second one.
+    expect(a).toEqual(b);
+  });
+
   it('confirms enrollment with the code', async () => {
     const { result } = renderHook(() => useConfirmMfaEnrollment(), { wrapper });
     result.current.mutate('123456');

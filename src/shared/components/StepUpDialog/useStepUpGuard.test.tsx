@@ -87,4 +87,105 @@ describe('useStepUpGuard', () => {
     await waitFor(() => expect(onError).toHaveBeenCalledWith(failure));
     expect(screen.queryByTestId('stub-step-up')).not.toBeInTheDocument();
   });
+
+  // ── SET-8: the guard's promise is what a dialog holds its busy state on ────
+
+  it('resolves only once the action settles', async () => {
+    // Regression: `guard` returned void, so ConfirmDialog's `await onConfirm()`
+    // resolved instantly — the dialog vanished the moment you clicked Disable,
+    // and the step-up prompt arrived seconds later with nothing to attach it to.
+    let release!: (value: unknown) => void;
+    const action = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
+    );
+    const settled = vi.fn();
+
+    function Await() {
+      const { guard } = useStepUpGuard();
+      return (
+        <button
+          type="button"
+          data-testid="run"
+          onClick={() => void guard(action).then(settled)}
+        >
+          run
+        </button>
+      );
+    }
+    const user = userEvent.setup();
+    render(<Await />);
+    await user.click(screen.getByTestId('run'));
+
+    await waitFor(() => expect(action).toHaveBeenCalled());
+    expect(settled).not.toHaveBeenCalled(); // still in flight — dialog stays busy
+
+    release(undefined);
+    await waitFor(() => expect(settled).toHaveBeenCalledTimes(1));
+  });
+
+  it('reports isGuarding while the action is in flight', async () => {
+    let release!: (value: unknown) => void;
+    const action = () =>
+      new Promise((resolve) => {
+        release = resolve;
+      });
+
+    function Flagged() {
+      const { guard, isGuarding } = useStepUpGuard();
+      return (
+        <>
+          <span data-testid="flag">{String(isGuarding)}</span>
+          <button type="button" data-testid="run" onClick={() => void guard(action)}>
+            run
+          </button>
+        </>
+      );
+    }
+    const user = userEvent.setup();
+    render(<Flagged />);
+    expect(screen.getByTestId('flag')).toHaveTextContent('false');
+
+    await user.click(screen.getByTestId('run'));
+    await waitFor(() => expect(screen.getByTestId('flag')).toHaveTextContent('true'));
+
+    release(undefined);
+    await waitFor(() => expect(screen.getByTestId('flag')).toHaveTextContent('false'));
+  });
+
+  it('drops a second guarded run fired before the first settles', async () => {
+    // These are credential mutations — disable 2FA, revoke a passkey. One
+    // gesture, one run, even inside the frame before the button disables.
+    let release!: (value: unknown) => void;
+    const action = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
+    );
+
+    function Twice() {
+      const { guard } = useStepUpGuard();
+      return (
+        <button
+          type="button"
+          data-testid="run"
+          onClick={() => {
+            void guard(action);
+            void guard(action);
+          }}
+        >
+          run
+        </button>
+      );
+    }
+    const user = userEvent.setup();
+    render(<Twice />);
+    await user.click(screen.getByTestId('run'));
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1));
+    release(undefined);
+  });
 });

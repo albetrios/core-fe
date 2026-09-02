@@ -3,6 +3,7 @@ import { notFound, redirect } from '@tanstack/react-router';
 import { platformConfig } from '@/core/config/env.ts';
 import { queryClient } from '@/core/http/queryClient.ts';
 import { parseOrganizationSlugParam } from '@/lib/routes/params.ts';
+import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { mergeDeploymentFlags } from '@/shared/tenancy/deployment-mode.ts';
 import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
@@ -135,6 +136,12 @@ export function requirePersonalOrganizationsDeployment(): void {
  */
 export async function requireOnboardingWorkspace(): Promise<void> {
   const ctx = await ensureSessionContext();
+  // Bind the persisted wizard to the signed-in user BEFORE the page renders. A
+  // store left behind by a DIFFERENT user on this browser is wiped here, so its
+  // data can never reach the DOM — doing it from an effect painted the previous
+  // user's name and workspace for a frame first (ONB-4). `claimForUser` is a
+  // no-op once the store already belongs to this user.
+  useOnboardingStore.getState().claimForUser(ctx.user.id);
   const target = resolveRootTarget(ctx);
   if (target.to !== '/onboarding') throwWorkspaceRedirect(target);
 }

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -27,6 +27,7 @@ import {
 } from '@/shared/components/ui/dialog.tsx';
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
+import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { Textarea } from '@/shared/components/ui/textarea.tsx';
 import {
   useCreateRole,
@@ -100,16 +101,28 @@ export function CreateRoleDialog({
     defaultValues: initialValues,
   });
 
-  // Pre-fill the permission checklist once the role's real grants load.
+  /**
+   * Which role this form has already been pre-filled for. The permissions query
+   * key is a DESCENDANT of the roles prefix, so every other role mutation
+   * invalidates it: keying the pre-fill on `rolePermissions.data` re-ran `reset`
+   * on each refetch and wiped whatever the user had typed or ticked (SET-10).
+   * Pre-fill once per role, on the success transition, and never again.
+   */
+  const hydratedFor = useRef<string | null>(null);
+
   useEffect(() => {
-    if (role && rolePermissions.data) {
-      reset({
-        name: role.name,
-        description: role.description,
-        permissions: rolePermissions.data,
-      });
+    if (!role) {
+      hydratedFor.current = null;
+      return;
     }
-  }, [role, rolePermissions.data, reset]);
+    if (!rolePermissions.isSuccess || hydratedFor.current === role.id) return;
+    hydratedFor.current = role.id;
+    reset({
+      name: role.name,
+      description: role.description,
+      permissions: rolePermissions.data,
+    });
+  }, [role, rolePermissions.isSuccess, rolePermissions.data, reset]);
 
   // In edit mode, don't allow a save before the real permissions load.
   const permissionsPending = isEdit && !rolePermissions.isSuccess;
@@ -148,77 +161,92 @@ export function CreateRoleDialog({
           className="space-y-4"
           data-testid="role-create-form"
         >
-          <div className="space-y-2">
-            <Label htmlFor="role-name">Name</Label>
-            <Input
-              id="role-name"
-              placeholder={t(SETTINGS_KEYS.panels.roles.namePlaceholder)}
-              aria-invalid={!!errors.name}
-              data-testid="role-create-name"
-              {...register('name')}
-            />
-            {errors.name && (
-              <p className="text-destructive text-xs" role="alert">
-                {translateFormMessage(errors.name.message)}
-              </p>
-            )}
-          </div>
+          {permissionsPending ? (
+            // The checklist is a statement about what this role can do. Rendered
+            // from the list row — which carries no permissions — it opens with
+            // every box unchecked and then visibly ticks itself.
+            <div className="space-y-3" data-testid="role-edit-loading">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="role-name">Name</Label>
+                <Input
+                  id="role-name"
+                  placeholder={t(SETTINGS_KEYS.panels.roles.namePlaceholder)}
+                  aria-invalid={!!errors.name}
+                  data-testid="role-create-name"
+                  {...register('name')}
+                />
+                {errors.name && (
+                  <p className="text-destructive text-xs" role="alert">
+                    {translateFormMessage(errors.name.message)}
+                  </p>
+                )}
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role-description">Description</Label>
-            <Textarea
-              id="role-description"
-              placeholder={t(SETTINGS_KEYS.panels.roles.descriptionPlaceholder)}
-              aria-invalid={!!errors.description}
-              data-testid="role-create-description"
-              {...register('description')}
-            />
-            {errors.description && (
-              <p className="text-destructive text-xs" role="alert">
-                {translateFormMessage(errors.description.message)}
-              </p>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="role-description">Description</Label>
+                <Textarea
+                  id="role-description"
+                  placeholder={t(SETTINGS_KEYS.panels.roles.descriptionPlaceholder)}
+                  aria-invalid={!!errors.description}
+                  data-testid="role-create-description"
+                  {...register('description')}
+                />
+                {errors.description && (
+                  <p className="text-destructive text-xs" role="alert">
+                    {translateFormMessage(errors.description.message)}
+                  </p>
+                )}
+              </div>
 
-          <div className="space-y-2">
-            <Label>Permissions</Label>
-            <Controller
-              control={control}
-              name="permissions"
-              render={({ field }) => (
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {ASSIGNABLE_ROLE_PERMISSIONS.map((perm) => (
-                    <div key={perm} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`role-perm-${perm}`}
-                        checked={field.value.includes(perm)}
-                        onCheckedChange={(value) =>
-                          field.onChange(
-                            value === true
-                              ? withPermission(field.value, perm)
-                              : withoutPermission(field.value, perm),
-                          )
-                        }
-                        data-testid={`role-perm-${perm}`}
-                      />
-                      <Label
-                        htmlFor={`role-perm-${perm}`}
-                        className="text-muted-foreground font-mono text-xs font-normal"
-                      >
-                        {perm}
-                      </Label>
+              <div className="space-y-2">
+                <Label>Permissions</Label>
+                <Controller
+                  control={control}
+                  name="permissions"
+                  render={({ field }) => (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {ASSIGNABLE_ROLE_PERMISSIONS.map((perm) => (
+                        <div key={perm} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`role-perm-${perm}`}
+                            checked={field.value.includes(perm)}
+                            onCheckedChange={(value) =>
+                              field.onChange(
+                                value === true
+                                  ? withPermission(field.value, perm)
+                                  : withoutPermission(field.value, perm),
+                              )
+                            }
+                            data-testid={`role-perm-${perm}`}
+                          />
+                          <Label
+                            htmlFor={`role-perm-${perm}`}
+                            className="text-muted-foreground font-mono text-xs font-normal"
+                          >
+                            {perm}
+                          </Label>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            />
-            {errors.permissions && (
-              <p className="text-destructive text-xs" role="alert">
-                {translateFormMessage(errors.permissions.message)}
-              </p>
-            )}
-          </div>
+                  )}
+                />
+                {errors.permissions && (
+                  <p className="text-destructive text-xs" role="alert">
+                    {translateFormMessage(errors.permissions.message)}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
+          {/* Always rendered — the dialog keeps its action, disabled, rather
+              than losing it while the grants load. */}
           <DialogFooter>
             <Button
               type="submit"

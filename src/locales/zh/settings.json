@@ -21,6 +21,7 @@
     "integrations": "集成"
   },
   "security": {
+    "loadFailed": "无法加载你的安全设置。请重试。",
     "heading": "安全",
     "description": "双因素认证与通行密钥。",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "验证",
       "verifying": "验证中…",
       "invalid": "验证失败，请重试。",
-      "passwordRequired": "此操作需要您的密码或验证器代码。"
+      "passwordRequired": "此操作需要您的密码或验证器代码。",
+      "sendFailed": "无法发送验证码，请重试。"
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "取消"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "组织 · 常规",
+      "description": "贵组织在平台上的标识信息。",
+      "loadFailed": "无法加载组织信息。"
     },
     "integrations": {
       "searchPlaceholder": "搜索 API 密钥…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "选择你要接收哪些通知，以及通过什么方式。",
+      "deliveryTitle": "送达方式",
+      "deliveryDescription": "为每类更新选择一个渠道。",
+      "categories": {
+        "system": "产品与系统",
+        "systemDescription": "更新、公告和使用技巧。",
+        "member": "团队动态",
+        "memberDescription": "成员加入、角色变更和邀请。",
+        "billing": "账单",
+        "billingDescription": "发票、套餐变更和续订。",
+        "security": "安全",
+        "securityDescription": "登录、密码修改和安全事件。"
+      },
+      "channels": {
+        "email": "邮件",
+        "inApp": "应用内",
+        "desktop": "桌面"
+      }
+    },
+    "appearance": {
+      "title": "外观",
+      "description": "保存在此设备上，更改即时生效。",
+      "shuffle": "随机"
+    },
+    "sessions": {
+      "title": "会话",
+      "description": "当前已登录您账户的设备。",
+      "loadFailed": "无法加载您的会话。请重试。",
+      "emptyTitle": "暂无活跃会话",
+      "emptyDescription": "在设备上登录后，会话将显示在这里。",
+      "currentBadge": "此设备",
+      "lastActive": "{{details}} · <1></1>活跃",
+      "signOut": "退出登录",
+      "revokeTitle": "退出此会话？",
+      "revokeDescription": "{{device}} 将立即退出登录。",
+      "revokeConfirm": "退出登录",
+      "deviceFallback": "此设备"
     }
   }
 }

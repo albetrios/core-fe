@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { AlertDialog as AlertDialogPrimitive } from 'radix-ui';
 import type * as React from 'react';
 
@@ -103,16 +104,32 @@ function AlertDialogDescription({
   );
 }
 
+/**
+ * The confirm button of an alert dialog. Mirrors {@link Button}'s `isLoading`:
+ * this is a Radix primitive, not our Button, so a confirm that runs a request
+ * would otherwise have no way to spin — and every one of them had to hand-roll
+ * a busy label with no spinner beside it (SET-12, SET-14).
+ */
 function AlertDialogAction({
   className,
+  isLoading,
+  disabled,
+  children,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Action> & {
+  isLoading?: boolean;
+}) {
   return (
     <AlertDialogPrimitive.Action
       data-slot="alert-dialog-action"
       className={cn(buttonVariants(), className)}
+      disabled={isLoading || disabled}
+      aria-busy={isLoading}
       {...props}
-    />
+    >
+      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+      {children}
+    </AlertDialogPrimitive.Action>
   );
 }
 

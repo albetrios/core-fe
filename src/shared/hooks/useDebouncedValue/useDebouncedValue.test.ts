@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useDebouncedValue } from './useDebouncedValue.ts';
+import { useDebouncedSearch, useDebouncedValue } from './useDebouncedValue.ts';
 
 describe('useDebouncedValue', () => {
   beforeEach(() => {
@@ -56,5 +56,40 @@ describe('useDebouncedValue', () => {
       vi.advanceTimersByTime(100);
     });
     expect(result.current).toBe('xyz');
+  });
+});
+
+describe('useDebouncedSearch', () => {
+  // The rows on screen answer the PREVIOUS query for as long as the debounce
+  // is catching up. `keepPreviousData` keeps them there (X-2); this flag is how
+  // a panel says they are not current yet — from the first keystroke, not a
+  // beat later (SET-19).
+  it('reports pending while the debounce catches up, then settles', () => {
+    vi.useFakeTimers();
+    const { result, rerender } = renderHook(({ value }) => useDebouncedSearch(value), {
+      initialProps: { value: 'ada' },
+    });
+
+    expect(result.current).toEqual({ debounced: 'ada', isPending: false });
+
+    rerender({ value: 'ada l' });
+    expect(result.current.isPending).toBe(true);
+    expect(result.current.debounced).toBe('ada');
+
+    act(() => vi.advanceTimersByTime(300));
+    expect(result.current).toEqual({ debounced: 'ada l', isPending: false });
+    vi.useRealTimers();
+  });
+
+  it('trims, so trailing whitespace is not a new query', () => {
+    vi.useFakeTimers();
+    const { result, rerender } = renderHook(({ value }) => useDebouncedSearch(value), {
+      initialProps: { value: 'ada' },
+    });
+
+    rerender({ value: 'ada  ' });
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.debounced).toBe('ada');
+    vi.useRealTimers();
   });
 });

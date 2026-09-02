@@ -119,7 +119,9 @@
       "invited": "Invitato",
       "suspended": "Sospeso"
     },
-    "error": "Impossibile caricare i membri."
+    "error": "Impossibile caricare i membri.",
+    "empty": "Nessuno si è ancora unito a questo spazio di lavoro.",
+    "noWorkspace": "Nessuno spazio di lavoro selezionato."
   },
   "trends": {
     "heading": "Tendenze di utilizzo",

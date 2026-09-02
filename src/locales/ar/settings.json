@@ -21,6 +21,7 @@
     "integrations": "التكاملات"
   },
   "security": {
+    "loadFailed": "تعذّر تحميل إعدادات الأمان. يرجى المحاولة مرة أخرى.",
     "heading": "الأمان",
     "description": "المصادقة الثنائية ومفاتيح المرور.",
     "mfa": {
@@ -71,7 +72,11 @@
       "mfaOn": "المصادقة الثنائية مفعّلة",
       "mfaOff": "المصادقة الثنائية معطّلة",
       "passkeysOn": "مفتاح مرور واحد مسجّل ({{count}})",
-      "passkeysOn_other": "{{count}} مفاتيح مرور مسجّلة",
+      "passkeysOn_zero": "{{count}} مفتاح مرور مسجّل",
+      "passkeysOn_two": "{{count}} مفتاحا مرور مسجّلان",
+      "passkeysOn_few": "{{count}} مفاتيح مرور مسجّلة",
+      "passkeysOn_many": "{{count}} مفتاح مرور مسجّلًا",
+      "passkeysOn_other": "{{count}} مفتاح مرور مسجّل",
       "passkeysOff": "لا مفاتيح مرور مسجّلة",
       "idleProtection": "تسجيل الخروج التلقائي عند الخمول نشط"
     },
@@ -98,7 +103,8 @@
       "verify": "تحقق",
       "verifying": "جارٍ التحقق…",
       "invalid": "لم يتطابق. حاول مرة أخرى.",
-      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة."
+      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة.",
+      "sendFailed": "تعذّر إرسال الرمز. حاول مرة أخرى."
     }
   },
   "discard": {
@@ -141,7 +147,11 @@
       "loadMore": "تحميل المزيد",
       "systemBadge": "نظام",
       "memberCount": "عضو {{count}}",
-      "memberCount_other": "{{count}} أعضاء",
+      "memberCount_zero": "{{count}} عضو",
+      "memberCount_two": "{{count}} عضوان",
+      "memberCount_few": "{{count}} أعضاء",
+      "memberCount_many": "{{count}} عضوًا",
+      "memberCount_other": "{{count}} عضو",
       "actionsAria": "إجراءات لـ {{name}}",
       "editAction": "تعديل الدور",
       "deleteAction": "حذف الدور",
@@ -180,11 +190,54 @@
       "deleteCancel": "إلغاء"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "المؤسسة · عام",
+      "description": "هوية مؤسستك عبر المنصة.",
+      "loadFailed": "تعذّر تحميل تفاصيل المؤسسة."
     },
     "integrations": {
       "searchPlaceholder": "ابحث عن مفاتيح API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "description": "اختر ما تُشعر به وكيفية ذلك.",
+      "deliveryTitle": "التسليم",
+      "deliveryDescription": "اختر قناة لكل نوع من التحديثات.",
+      "categories": {
+        "system": "المنتج والنظام",
+        "systemDescription": "التحديثات والإعلانات والنصائح.",
+        "member": "نشاط الفريق",
+        "memberDescription": "انضمام الأعضاء وتغييرات الأدوار والدعوات.",
+        "billing": "الفوترة",
+        "billingDescription": "الفواتير وتغييرات الخطة والتجديدات.",
+        "security": "الأمان",
+        "securityDescription": "عمليات تسجيل الدخول وتغييرات كلمة المرور وأحداث الأمان."
+      },
+      "channels": {
+        "email": "البريد الإلكتروني",
+        "inApp": "داخل التطبيق",
+        "desktop": "سطح المكتب"
+      }
+    },
+    "appearance": {
+      "title": "المظهر",
+      "description": "محفوظ على هذا الجهاز — تُطبَّق التغييرات فورًا.",
+      "shuffle": "عشوائي"
+    },
+    "sessions": {
+      "title": "الجلسات",
+      "description": "الأجهزة التي سجّلت الدخول حاليًا إلى حسابك.",
+      "loadFailed": "تعذّر تحميل جلساتك. حاول مرة أخرى.",
+      "emptyTitle": "لا توجد جلسات نشطة",
+      "emptyDescription": "تظهر الجلسات هنا بعد تسجيل الدخول على أحد الأجهزة.",
+      "currentBadge": "هذا الجهاز",
+      "lastActive": "{{details}} · نشط <1></1>",
+      "signOut": "تسجيل الخروج",
+      "revokeTitle": "تسجيل الخروج من هذه الجلسة؟",
+      "revokeDescription": "سيتم تسجيل الخروج من {{device}} فورًا.",
+      "revokeConfirm": "تسجيل الخروج",
+      "deviceFallback": "هذا الجهاز"
     }
   }
 }

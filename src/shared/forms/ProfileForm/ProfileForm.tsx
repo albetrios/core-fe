@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -72,6 +72,28 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
   });
 
   useRegisterSettingsDirty('profile', isDirty && !showConfirm);
+
+  /**
+   * react-hook-form reads `defaultValues` on its FIRST render only. When the
+   * profile arrives after that, re-seed the fields — but never over an edit in
+   * progress: a late store write must fill an untouched form and leave a
+   * touched one alone (SET-18, and rule 14).
+   */
+  const seededRef = useRef(toDefaults(defaultValues));
+  useEffect(() => {
+    const next = toDefaults(defaultValues);
+    if (
+      next.name === seededRef.current.name &&
+      next.jobTitle === seededRef.current.jobTitle
+    ) {
+      return;
+    }
+    seededRef.current = next;
+    if (!isDirty) reset(next);
+    // Compare the VALUES, not the object identity: the panel rebuilds this
+    // object on every store write.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the two fields, not the object
+  }, [defaultValues?.name, defaultValues?.jobTitle, isDirty, reset]);
 
   useEffect(() => {
     if (!onValuesChange) return undefined;
@@ -205,10 +227,10 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
                 e.preventDefault();
                 void onConfirmedSubmit();
               }}
-              disabled={save.isPending}
+              isLoading={save.isPending}
               data-testid="profile-confirm-save"
             >
-              {t(panels.confirmSave)}
+              {save.isPending ? t(panels.saving) : t(panels.confirmSave)}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

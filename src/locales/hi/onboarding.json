@@ -76,7 +76,8 @@
     "slugLabel": "वर्कस्पेस URL (वैकल्पिक)",
     "slugPlaceholder": "acme",
     "urlPreview": "आपका वर्कस्पेस <1>core.app/{{slug}}</1> पर रहेगा",
-    "slugFallback": "your-workspace"
+    "slugFallback": "your-workspace",
+    "slugInvalid": "केवल छोटे अक्षर, अंक और हाइफ़न का उपयोग करें।"
   },
   "invite": {
     "emailLabel": "साथी का ईमेल",
@@ -107,9 +108,15 @@
   },
   "toast": {
     "finishSuccess": "स्वागत है! आपका वर्कस्पेस तैयार है।",
+    "finishSuccessWithInvites_one": "स्वागत है! आपका वर्कस्पेस तैयार है — {{count}} आमंत्रण भेजा गया.",
+    "finishSuccessWithInvites_other": "स्वागत है! आपका वर्कस्पेस तैयार है — {{count}} आमंत्रण भेजे गए.",
     "finishError": "सेटअप पूरा करते समय कुछ गलत हो गया। कृपया फिर कोशिश करें।",
+    "profileSaveFailed": "हम आपका नाम सहेज नहीं सके। आपका वर्कस्पेस तैयार है — इसे सेटिंग्स में जोड़ें।",
     "invitePartialFailure_one": "वर्कस्पेस तैयार — {{count}} निमंत्रण नहीं भेजा जा सका। आप सदस्यों से फिर भेज सकते हैं।",
     "invitePartialFailure_other": "वर्कस्पेस तैयार — {{count}} निमंत्रण नहीं भेजे जा सके। आप सदस्यों से फिर भेज सकते हैं।"
+  },
+  "session": {
+    "loadError": "हम आपके खाते का सेटअप लोड नहीं कर सके. अपना कनेक्शन जाँचें और फिर से कोशिश करें."
   },
   "guard": {
     "title": "ऑनबोर्डिंग छोड़ें?",

@@ -76,7 +76,8 @@
     "slugLabel": "ワークスペース URL（任意）",
     "slugPlaceholder": "acme",
     "urlPreview": "ワークスペースは <1>core.app/{{slug}}</1> で利用できます",
-    "slugFallback": "your-workspace"
+    "slugFallback": "your-workspace",
+    "slugInvalid": "小文字、数字、ハイフンのみ使用できます。"
   },
   "invite": {
     "emailLabel": "同僚のメール",
@@ -107,9 +108,15 @@
   },
   "toast": {
     "finishSuccess": "ようこそ！ワークスペースの準備ができました。",
+    "finishSuccessWithInvites_one": "ようこそ！ワークスペースの準備ができました — 招待を {{count}} 件送信しました。",
+    "finishSuccessWithInvites_other": "ようこそ！ワークスペースの準備ができました — 招待を {{count}} 件送信しました。",
     "finishError": "セットアップの完了中に問題が発生しました。もう一度お試しください。",
+    "profileSaveFailed": "お名前を保存できませんでした。ワークスペースは準備完了です。設定から追加してください。",
     "invitePartialFailure_one": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。",
     "invitePartialFailure_other": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。"
+  },
+  "session": {
+    "loadError": "アカウントのセットアップを読み込めませんでした。接続を確認して、もう一度お試しください。"
   },
   "guard": {
     "title": "オンボーディングを終了しますか？",

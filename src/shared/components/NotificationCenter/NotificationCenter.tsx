@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils.ts';
@@ -91,9 +91,18 @@ export function NotificationCenter({
   const { data: unread = 0 } = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  // One row, one PATCH. `markRead.isPending` is React state and is shared by
+  // every row anyway, so it can neither stop a double-click on one row nor
+  // allow a legitimate click on another. The ref is per id and flips
+  // synchronously (agent-os/rules/resilient-interactions section 1).
+  const markingRef = useRef(new Set<string>());
 
   function handleItemClick(item: Notification) {
-    if (!item.isRead) markRead.mutate(item.id);
+    if (item.isRead || markingRef.current.has(item.id)) return;
+    markingRef.current.add(item.id);
+    markRead.mutate(item.id, {
+      onSettled: () => markingRef.current.delete(item.id),
+    });
   }
 
   const triggerSurfaceClass =
@@ -164,7 +173,7 @@ export function NotificationCenter({
           ) : null}
 
           {isError ? (
-            <div className="p-4" data-testid="notifications-error">
+            <div className="p-4" data-testid="notifications-query-error">
               <RetryError
                 message={t(LAYOUT_KEYS.app.notifications.loadError)}
                 onRetry={() => {

@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-router';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { type ReactElement, type ReactNode, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
@@ -64,14 +65,15 @@ vi.mock('@/core/http/queryClient.ts', () => ({
 
 import { queryClient } from '@/core/http/queryClient.ts';
 
+import type { AuthContinuePending } from './auth-form-pending.ts';
 import { AuthEmailPanel } from './AuthEmailPanel.tsx';
 
-function createTestRouter() {
+function createTestRouter(component: () => ReactNode = () => <AuthEmailPanel />) {
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',
-    component: () => <AuthEmailPanel />,
+    component,
   });
   const tree = rootRoute.addChildren([indexRoute]);
   const history = createMemoryHistory({ initialEntries: ['/'] });
@@ -84,21 +86,31 @@ function createTestRouter() {
  * destination renders a marker island (no `/login` chrome) so a bounce back
  * through the login screen would be observable.
  */
-function createDestinationRouter(initialEntry = '/login') {
+function createDestinationRouter(
+  initialEntry = '/login',
+  hangAt?: string,
+  LoginComponent: () => ReactElement = () => <AuthEmailPanel />,
+) {
+  // `beforeLoad` that never settles keeps the navigation pending, so the screen
+  // being left behind stays mounted — the LOGIN-5 handoff window, held open.
+  const hold = (path: string) =>
+    hangAt === path ? { beforeLoad: () => new Promise<void>(() => {}) } : {};
   const rootRoute = createRootRoute({ component: () => <Outlet /> });
   const loginRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/login',
-    component: () => <AuthEmailPanel />,
+    component: LoginComponent,
   });
   const dashboardRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/dashboard',
+    ...hold('/dashboard'),
     component: () => <div data-testid="dest-dashboard" />,
   });
   const onboardingRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/onboarding',
+    ...hold('/onboarding'),
     component: () => <div data-testid="dest-onboarding" />,
   });
   const orgDashboardRoute = createRoute({
@@ -368,7 +380,10 @@ describe('AuthEmailPanel', () => {
     });
     render(<RouterProvider router={router} />);
 
-    await waitFor(() => expect(onStepChange).toHaveBeenCalledWith('email', undefined));
+    // No mount-time echo: the parent already initialises to 'email', and the
+    // effect that used to re-announce it is what made the step change land a
+    // commit late (LOGIN-6). The contract is now "report transitions".
+    expect(onStepChange).not.toHaveBeenCalled();
 
     await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
     await user.click(screen.getByTestId('auth-email-submit'));
@@ -376,6 +391,45 @@ describe('AuthEmailPanel', () => {
     await waitFor(() =>
       expect(onStepChange).toHaveBeenCalledWith('verify', 'user@example.com'),
     );
+  });
+
+  // Regression (LOGIN-6): the parent must learn about the step in the SAME
+  // commit that renders it. When this was reported from an effect there was one
+  // frame where the code boxes were on screen while the parent still showed the
+  // welcome header and the OAuth picker, then the layout visibly collapsed.
+  // Asserting "was told" is not enough — it has to be true by first paint.
+  it('tells the parent about the verify step in the same commit that renders it', async () => {
+    let sawVerifyInputBeforeParentWasTold = false;
+    const onStepChange = vi.fn();
+    const user = userEvent.setup();
+
+    const Probe = () => {
+      // Runs during the commit that first paints the verify step.
+      const verifyPanelPainted = Boolean(
+        document.querySelector('[data-testid="auth-email-verify-panel"]'),
+      );
+      if (verifyPanelPainted && onStepChange.mock.calls.length === 0) {
+        sawVerifyInputBeforeParentWasTold = true;
+      }
+      return null;
+    };
+
+    const router = createTestRouter(() => (
+      <>
+        <AuthEmailPanel onStepChange={onStepChange} />
+        <Probe />
+      </>
+    ));
+    render(<RouterProvider router={router} />);
+
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-email-verify-panel')).toBeInTheDocument(),
+    );
+    expect(onStepChange).toHaveBeenCalledWith('verify', 'user@example.com');
+    expect(sawVerifyInputBeforeParentWasTold).toBe(false);
   });
 
   // Regression: a failed send-code must surface a VISIBLE error. Toasts fired
@@ -414,6 +468,66 @@ describe('AuthEmailPanel', () => {
     const banner = await screen.findByTestId('auth-email-error-banner');
     expect(banner).toHaveTextContent(/bad code/i);
     expect(banner).toHaveAttribute('role', 'alert');
+  });
+
+  // ── LOGIN-5 ───────────────────────────────────────────────────────────────
+  // navigateAfterEmailLogin was fire-and-forget and `pending` was cleared in a
+  // `finally`, so the moment the code was ACCEPTED the verify screen handed the
+  // button back — still mounted, still holding the code — while the destination
+  // guards were only just starting. A second click then re-sent an already-used
+  // code and painted a red error over a screen that was about to disappear.
+  describe('post-login handoff (LOGIN-5)', () => {
+    // `pending` is owned by AuthForm, not the panel — rendering the panel bare
+    // means onPendingChange goes nowhere and the button can never lock. This
+    // mirrors the parent's contract so the real lock is under test.
+    function PanelWithPending() {
+      const [pending, setPending] = useState<AuthContinuePending | null>(null);
+      return <AuthEmailPanel pending={pending} onPendingChange={setPending} />;
+    }
+
+    // The default mocked context routes a fresh user to /onboarding, and that
+    // branch is taken before any saved redirect — so that is the guard to hold.
+    const pendingRouter = () =>
+      createDestinationRouter('/login', '/onboarding', PanelWithPending);
+
+    it('keeps the verify button locked while the navigation is still resolving', async () => {
+      const user = userEvent.setup();
+      render(<RouterProvider router={pendingRouter()} />);
+      await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+      await user.click(screen.getByTestId('auth-email-submit'));
+      await screen.findByTestId('auth-email-verify-panel');
+      await user.type(await screen.findByTestId('auth-email-code'), '123456');
+
+      await waitFor(() => expect(emailLogin).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(establishSession).toHaveBeenCalledTimes(1));
+
+      // The screen is on its way out but still mounted: the guard has not resolved.
+      expect(screen.getByTestId('auth-email-verify-panel')).toBeInTheDocument();
+      expect(screen.queryByTestId('dest-onboarding')).not.toBeInTheDocument();
+
+      // It must not invite another attempt with a code that is already spent.
+      const verify = screen.getByTestId('auth-email-verify');
+      expect(verify).toBeDisabled();
+      expect(verify).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('does not re-send an already-consumed code when the user clicks again', async () => {
+      const user = userEvent.setup();
+      render(<RouterProvider router={pendingRouter()} />);
+      await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+      await user.click(screen.getByTestId('auth-email-submit'));
+      await screen.findByTestId('auth-email-verify-panel');
+      await user.type(await screen.findByTestId('auth-email-code'), '123456');
+
+      await waitFor(() => expect(emailLogin).toHaveBeenCalledTimes(1));
+
+      // The impatient second click, on a screen that is mid-handoff.
+      await user.click(screen.getByTestId('auth-email-verify')).catch(() => undefined);
+
+      expect(emailLogin).toHaveBeenCalledTimes(1);
+      // ...and therefore no red "invalid code" banner over the departing screen.
+      expect(screen.queryByTestId('auth-email-error-banner')).not.toBeInTheDocument();
+    });
   });
 
   it('has no accessibility violations on the email step', async () => {

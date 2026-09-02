@@ -21,6 +21,7 @@
     "integrations": "Integrazioni"
   },
   "security": {
+    "loadFailed": "Non siamo riusciti a caricare le impostazioni di sicurezza. Riprova.",
     "heading": "Sicurezza",
     "description": "Autenticazione a due fattori e passkey.",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "Verifica",
       "verifying": "Verifica…",
       "invalid": "Non corrisponde. Riprova.",
-      "passwordRequired": "Questa azione richiede la password o un codice autenticatore."
+      "passwordRequired": "Questa azione richiede la password o un codice autenticatore.",
+      "sendFailed": "Non è stato possibile inviare il codice. Riprova."
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "Annulla"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organizzazione · Generale",
+      "description": "L'identità della tua organizzazione sulla piattaforma.",
+      "loadFailed": "Impossibile caricare i dettagli dell'organizzazione."
     },
     "integrations": {
       "searchPlaceholder": "Cerca chiavi API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "description": "Scegli di cosa vuoi essere avvisato, e come.",
+      "deliveryTitle": "Recapito",
+      "deliveryDescription": "Scegli un canale per ogni tipo di aggiornamento.",
+      "categories": {
+        "system": "Prodotto e sistema",
+        "systemDescription": "Aggiornamenti, annunci e consigli.",
+        "member": "Attività del team",
+        "memberDescription": "Nuovi membri, cambi di ruolo e inviti.",
+        "billing": "Fatturazione",
+        "billingDescription": "Fatture, cambi di piano e rinnovi.",
+        "security": "Sicurezza",
+        "securityDescription": "Accessi, cambi password ed eventi di sicurezza."
+      },
+      "channels": {
+        "email": "Email",
+        "inApp": "Nell'app",
+        "desktop": "Desktop"
+      }
+    },
+    "appearance": {
+      "title": "Aspetto",
+      "description": "Salvato su questo dispositivo: le modifiche sono immediate.",
+      "shuffle": "Casuale"
+    },
+    "sessions": {
+      "title": "Sessioni",
+      "description": "Dispositivi attualmente connessi al tuo account.",
+      "loadFailed": "Impossibile caricare le tue sessioni. Riprova.",
+      "emptyTitle": "Nessuna sessione attiva",
+      "emptyDescription": "Le sessioni compaiono qui dopo che accedi da un dispositivo.",
+      "currentBadge": "Questo dispositivo",
+      "lastActive": "{{details}} · attivo <1></1>",
+      "signOut": "Esci",
+      "revokeTitle": "Disconnettere questa sessione?",
+      "revokeDescription": "{{device}} verrà disconnesso immediatamente.",
+      "revokeConfirm": "Esci",
+      "deviceFallback": "Questo dispositivo"
     }
   }
 }

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { ERRORS_KEYS } from '@/lib/i18n/errors.constants.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { cn } from '@/lib/utils.ts';
 import { NotificationCenter } from '@/shared/components/NotificationCenter/index.ts';
 import { OrganizationSwitcher } from '@/shared/components/OrganizationSwitcher/index.ts';
@@ -75,11 +75,17 @@ export function SidebarShell({
                 {t(LAYOUT_KEYS.brand.name)}
               </p>
               {showOrgSwitcher ? (
-                <OrganizationSwitcher
-                  className="w-full"
-                  align="start"
-                  surface="sidebar"
-                />
+                <SectionErrorBoundary
+                  title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
+                  testId="org-switcher-error-sidebar"
+                  variant="control"
+                >
+                  <OrganizationSwitcher
+                    className="w-full"
+                    align="start"
+                    surface="sidebar"
+                  />
+                </SectionErrorBoundary>
               ) : null}
             </div>
           </div>
@@ -134,18 +140,27 @@ export function SidebarShell({
             <Menu className="h-5 w-5" />
           </Button>
           {showOrgSwitcher ? (
-            <SectionErrorBoundary
-              title={t(ERRORS_KEYS.widget.organizationSwitcher)}
-              testId="org-switcher-error-mobile"
-            >
-              <OrganizationSwitcher className="min-w-0 flex-1 md:hidden" align="start" />
-            </SectionErrorBoundary>
+            // `md:hidden` belongs on the WRAPPER, not on the switcher: when the
+            // switcher throws it is replaced by the fallback, which carried no
+            // responsive class of its own — so a failure put a second error
+            // control on desktop, next to the sidebar one, where the mobile
+            // switcher itself never appears.
+            <div className="min-w-0 flex-1 md:hidden">
+              <SectionErrorBoundary
+                title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
+                testId="org-switcher-error-mobile"
+                variant="control"
+              >
+                <OrganizationSwitcher className="w-full" align="start" />
+              </SectionErrorBoundary>
+            </div>
           ) : null}
           <SearchTrigger />
           <div className="flex-1" />
           <SectionErrorBoundary
-            title={t(ERRORS_KEYS.widget.notifications)}
-            testId="notifications-error"
+            title={t(ERRORS_KEYS.widget.notifications, { ns: ERRORS_NS })}
+            testId="notifications-widget-error"
+            variant="inline"
           >
             <NotificationCenter />
           </SectionErrorBoundary>

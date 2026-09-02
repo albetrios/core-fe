@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { type ChangeEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +20,7 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
 import { useUpdateOrganization } from '@/shared/hooks/useUpdateOrganization/index.ts';
 import { notify } from '@/shared/notify/index.ts';
@@ -50,6 +50,14 @@ function OrgLogoCard({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const initial = (name || '?').charAt(0).toUpperCase();
+  /**
+   * Reading the file is part of the upload as far as the user is concerned. A
+   * multi-megabyte logo spends that whole window in `FileReader`, before the
+   * mutation exists — so `update.isPending` covered none of it and the click
+   * looked like it had done nothing (SET-27).
+   */
+  const [isReading, setIsReading] = useState(false);
+  const busy = isReading || update.isPending;
 
   function onLogoFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -68,13 +76,17 @@ function OrgLogoCard({
       return;
     }
     const reader = new FileReader();
+    setIsReading(true);
     reader.onload = () => {
+      setIsReading(false);
       if (typeof reader.result === 'string') update.mutate({ logoUrl: reader.result });
     };
-    reader.onerror = () =>
+    reader.onerror = () => {
+      setIsReading(false);
       notify.error(
         i18n.t(ERRORS_KEYS.frontend.organization.logoReadFailed, { ns: ERRORS_NS }),
       );
+    };
     reader.readAsDataURL(file);
   }
 
@@ -116,17 +128,17 @@ function OrgLogoCard({
               size="sm"
               variant="outline"
               onClick={() => fileRef.current?.click()}
-              disabled={update.isPending}
+              isLoading={busy}
               data-testid="org-logo-upload"
             >
-              Upload logo
+              {busy ? 'Uploading…' : 'Upload logo'}
             </Button>
             {logoUrl ? (
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => update.mutate({ logoUrl: null })}
-                disabled={update.isPending}
+                disabled={busy}
                 data-testid="org-logo-remove"
               >
                 Remove
@@ -151,6 +163,7 @@ function OrgLogoCard({
  * prop→state effect); saving updates via {@link useUpdateOrganization}.
  */
 export function OrganizationGeneralPanel() {
+  const { t } = useTranslation(SETTINGS_NS);
   const organizationId = useOrganizationStore((s) => s.organizationId);
   const organizationSlug = useOrganizationStore((s) => s.organizationSlug);
   const canManage = useCan({
@@ -159,18 +172,23 @@ export function OrganizationGeneralPanel() {
   });
   const update = useUpdateOrganization();
 
-  const orgsQuery = useQuery({
+  const orgsQuery = useAppQuery({
     queryKey: ['organizations'],
     queryFn: listMyOrganizations,
+    // The panel wraps this in a QueryBoundary.
+    notifyOnError: false,
   });
 
   return (
     <div className="space-y-6" data-testid="settings-section-org-general">
       <SectionHeader
-        title="Organization · General"
-        description="Identity for your organization across the platform."
+        title={t(SETTINGS_KEYS.panels.general.title)}
+        description={t(SETTINGS_KEYS.panels.general.description)}
       />
-      <QueryBoundary query={orgsQuery} errorMessage="Couldn't load organization details.">
+      <QueryBoundary
+        query={orgsQuery}
+        errorMessage={t(SETTINGS_KEYS.panels.general.loadFailed)}
+      >
         {(orgs) => (
           <OrganizationGeneralForm
             orgs={orgs}

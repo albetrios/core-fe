@@ -26,6 +26,17 @@ const MIN_DELAY_MS = 5_000;
 let refreshTimerId: ReturnType<typeof setTimeout> | null = null;
 
 /**
+ * Aborts the deferred `visibilitychange` listener the timer installs when it
+ * fires against a hidden tab. Cancelling the timer id alone left that listener
+ * on `document` forever: after logout, the next time the user focused the tab it
+ * ran a refresh for a session that no longer exists — and core-be rotates
+ * refresh sessions with **reuse detection**, so that request is not a harmless
+ * 401, it is a session-killer. Worse, one listener was added per login/logout
+ * cycle and none were ever removed (X-7).
+ */
+let deferredRefreshAbort: AbortController | null = null;
+
+/**
  * Schedule the next proactive refresh based on the current token's `exp` claim.
  * Safe to call multiple times — cancels any existing timer first.
  */
@@ -38,14 +49,23 @@ export function scheduleTokenRefresh(): void {
   const expiresAt = exp * 1000; // convert to ms
   const delay = Math.max(expiresAt - Date.now() - BUFFER_MS, MIN_DELAY_MS);
 
-  refreshTimerId = setTimeout(async () => {
-    // If tab is hidden, defer until it becomes visible
+  refreshTimerId = setTimeout(() => {
+    refreshTimerId = null;
+    // If tab is hidden, defer until it becomes visible.
     if (document.hidden) {
-      const onVisible = () => {
-        document.removeEventListener('visibilitychange', onVisible);
-        void doProactiveRefresh();
-      };
-      document.addEventListener('visibilitychange', onVisible);
+      const abort = new AbortController();
+      deferredRefreshAbort = abort;
+      document.addEventListener(
+        'visibilitychange',
+        () => {
+          // visibilitychange also fires on hide; only a return to visible counts.
+          if (document.hidden) return;
+          abort.abort();
+          deferredRefreshAbort = null;
+          void doProactiveRefresh();
+        },
+        { signal: abort.signal },
+      );
       return;
     }
 
@@ -72,10 +92,21 @@ async function doProactiveRefresh(): Promise<void> {
   }
 }
 
-/** Cancel any pending refresh timer. Called on logout. */
+/**
+ * Cancel any pending refresh — the timer AND the deferred visibility listener it
+ * may have installed. Called on logout; both halves matter, because the listener
+ * is the one that outlives the session.
+ */
 export function cancelTokenRefresh(): void {
   if (refreshTimerId !== null) {
     clearTimeout(refreshTimerId);
     refreshTimerId = null;
   }
+  deferredRefreshAbort?.abort();
+  deferredRefreshAbort = null;
+}
+
+/** Test-only: is a deferred visibility listener currently installed? */
+export function hasDeferredVisibilityListener(): boolean {
+  return deferredRefreshAbort !== null;
 }

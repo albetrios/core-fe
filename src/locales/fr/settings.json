@@ -21,6 +21,7 @@
     "integrations": "Intégrations"
   },
   "security": {
+    "loadFailed": "Impossible de charger vos paramètres de sécurité. Veuillez réessayer.",
     "heading": "Sécurité",
     "description": "Authentification à deux facteurs et clés d'accès.",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "Vérifier",
       "verifying": "Vérification…",
       "invalid": "Cela ne correspond pas. Veuillez réessayer.",
-      "passwordRequired": "Cette action nécessite votre mot de passe ou un code d'authentificateur."
+      "passwordRequired": "Cette action nécessite votre mot de passe ou un code d'authentificateur.",
+      "sendFailed": "Impossible d'envoyer le code. Réessaie."
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "Annuler"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organisation · Général",
+      "description": "L'identité de votre organisation sur la plateforme.",
+      "loadFailed": "Impossible de charger les informations de l'organisation."
     },
     "integrations": {
       "searchPlaceholder": "Rechercher des clés d'API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choisissez ce dont vous êtes averti, et comment.",
+      "deliveryTitle": "Réception",
+      "deliveryDescription": "Choisissez un canal pour chaque type de mise à jour.",
+      "categories": {
+        "system": "Produit et système",
+        "systemDescription": "Mises à jour, annonces et conseils.",
+        "member": "Activité de l'équipe",
+        "memberDescription": "Arrivées, changements de rôle et invitations.",
+        "billing": "Facturation",
+        "billingDescription": "Factures, changements de forfait et renouvellements.",
+        "security": "Sécurité",
+        "securityDescription": "Connexions, changements de mot de passe et événements de sécurité."
+      },
+      "channels": {
+        "email": "E-mail",
+        "inApp": "Dans l'app",
+        "desktop": "Bureau"
+      }
+    },
+    "appearance": {
+      "title": "Apparence",
+      "description": "Enregistré sur cet appareil — les changements sont immédiats.",
+      "shuffle": "Aléatoire"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Appareils actuellement connectés à votre compte.",
+      "loadFailed": "Impossible de charger vos sessions. Veuillez réessayer.",
+      "emptyTitle": "Aucune session active",
+      "emptyDescription": "Les sessions apparaîtront ici dès que vous vous connecterez sur un appareil.",
+      "currentBadge": "Cet appareil",
+      "lastActive": "{{details}} · actif <1></1>",
+      "signOut": "Se déconnecter",
+      "revokeTitle": "Déconnecter cette session ?",
+      "revokeDescription": "{{device}} sera déconnecté immédiatement.",
+      "revokeConfirm": "Se déconnecter",
+      "deviceFallback": "Cet appareil"
     }
   }
 }

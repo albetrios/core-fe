@@ -35,6 +35,7 @@ export const ONBOARDING_KEYS = {
     slugPlaceholder: 'workspace.slugPlaceholder',
     urlPreview: 'workspace.urlPreview',
     slugFallback: 'workspace.slugFallback',
+    slugInvalid: 'workspace.slugInvalid',
   },
   invite: {
     emailLabel: 'invite.emailLabel',
@@ -64,8 +65,13 @@ export const ONBOARDING_KEYS = {
   },
   toast: {
     finishSuccess: 'toast.finishSuccess',
+    finishSuccessWithInvites: 'toast.finishSuccessWithInvites',
     finishError: 'toast.finishError',
     invitePartialFailure: 'toast.invitePartialFailure',
+    profileSaveFailed: 'toast.profileSaveFailed',
+  },
+  session: {
+    loadError: 'session.loadError',
   },
   guard: {
     title: 'guard.title',
@@ -102,10 +108,14 @@ export const ONBOARDING_TEST_IDS = {
   next: 'onboarding-next',
   finish: 'onboarding-finish',
   stepMotion: 'onboarding-step-motion',
+  stepError: 'onboarding-step-error',
+  finishError: 'onboarding-finish-error',
+  contextGate: 'onboarding-context-gate',
   firstName: 'onboarding-first-name',
   lastName: 'onboarding-last-name',
   organizationName: 'onboarding-organization-name',
   organizationSlug: 'onboarding-organization-slug',
+  slugError: 'onboarding-slug-error',
   urlPreview: 'onboarding-url-preview',
   inviteEmail: 'onboarding-invite-email',
   inviteAdd: 'onboarding-invite-add',

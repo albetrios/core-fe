@@ -4,6 +4,8 @@ export { AUTH_KEYS, AUTH_NS };
 
 export const LOGIN_TEST_IDS = {
   page: 'login-page',
+  /** Fallback shown when the auth form itself throws (section boundary). */
+  formError: 'login-form-error',
 } as const;
 
 export const LOGIN_MANIFEST = {

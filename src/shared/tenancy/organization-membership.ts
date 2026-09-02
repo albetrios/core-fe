@@ -78,7 +78,9 @@ export async function ensurePermissionsFor(organizationId: string): Promise<void
   // permissions — never carry one tenant's grants into another.
   if (permissionsLoadedFor !== organizationId) {
     permissionsLoadedFor = null;
-    store.setPermissions([]);
+    // Clear, not "set to empty": an empty ANSWER hides gated controls, while an
+    // unresolved set holds their place until the real one lands (SET-23).
+    store.clearPermissions();
   }
   // Permissions come live from the me-context (`getMyPermissions` filters the
   // active org's grants, which the token already scopes to this organization).

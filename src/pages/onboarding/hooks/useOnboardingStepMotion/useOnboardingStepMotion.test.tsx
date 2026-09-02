@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { OnboardingStep } from '@/shared/store/useOnboardingStore/index.ts';
 
 const { animateMock, createTimelineMock } = vi.hoisted(() => ({
-  animateMock: vi.fn(() => ({ pause: vi.fn() })),
+  animateMock: vi.fn((_el: unknown, _params: unknown) => ({ pause: vi.fn() })),
   createTimelineMock: vi.fn(() => ({
     add: vi.fn().mockReturnThis(),
     pause: vi.fn(),
@@ -53,7 +53,18 @@ describe('useOnboardingStepMotion', () => {
         <MotionHarness index={0} step="welcome" />
       </StrictMode>,
     );
-    expect(animateMock).toHaveBeenCalledTimes(1);
+    /*
+     * ONB-12. Strict Mode mounts twice: run 1 starts the entrance and its
+     * cleanup pauses it, run 2 is the one the user actually sees. The
+     * "already done" flag used to be set when the animation STARTED, so run 2
+     * took the settle-at-rest branch and the entrance never played in
+     * development — two calls here is the fix, not a regression.
+     */
+    expect(animateMock).toHaveBeenCalledTimes(2);
+    // The mechanism: the flag is now flipped by the animation finishing.
+    const entranceParams = animateMock.mock.calls.at(-1)?.[1] as
+      { onComplete?: () => void } | undefined;
+    expect(typeof entranceParams?.onComplete).toBe('function');
     expect(createTimelineMock).not.toHaveBeenCalled();
 
     rerender(
@@ -90,5 +101,26 @@ describe('useOnboardingStepMotion', () => {
     render(<MotionHarness index={0} step="welcome" />);
     expect(animateMock).not.toHaveBeenCalled();
     expect(createTimelineMock).not.toHaveBeenCalled();
+  });
+
+  it('plays the card entrance exactly once outside Strict Mode', () => {
+    vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: false,
+      media: '(prefers-reduced-motion: reduce)',
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    });
+
+    // Production mounts once, so the doubled Strict Mode count above must not
+    // mean the user ever sees the entrance twice.
+    const { rerender } = render(<MotionHarness index={0} step="welcome" />);
+    expect(animateMock).toHaveBeenCalledTimes(1);
+
+    rerender(<MotionHarness index={0} step="welcome" />);
+    expect(animateMock).toHaveBeenCalledTimes(1);
   });
 });

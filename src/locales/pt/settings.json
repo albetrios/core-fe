@@ -21,6 +21,7 @@
     "integrations": "Integrações"
   },
   "security": {
+    "loadFailed": "Não foi possível carregar as suas definições de segurança. Tente novamente.",
     "heading": "Segurança",
     "description": "Autenticação de dois fatores e passkeys.",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "Verificar",
       "verifying": "Verificando…",
       "invalid": "Isso não correspondeu. Tente novamente.",
-      "passwordRequired": "Esta ação precisa da sua senha ou de um código do autenticador."
+      "passwordRequired": "Esta ação precisa da sua senha ou de um código do autenticador.",
+      "sendFailed": "Não foi possível enviar o código. Tente novamente."
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "Cancelar"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organização · Geral",
+      "description": "A identidade da sua organização na plataforma.",
+      "loadFailed": "Não foi possível carregar os dados da organização."
     },
     "integrations": {
       "searchPlaceholder": "Pesquisar chaves de API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "description": "Escolha sobre o que você é notificado e como.",
+      "deliveryTitle": "Entrega",
+      "deliveryDescription": "Escolha um canal para cada tipo de atualização.",
+      "categories": {
+        "system": "Produto e sistema",
+        "systemDescription": "Atualizações, anúncios e dicas.",
+        "member": "Atividade da equipe",
+        "memberDescription": "Entradas de membros, mudanças de função e convites.",
+        "billing": "Cobrança",
+        "billingDescription": "Faturas, mudanças de plano e renovações.",
+        "security": "Segurança",
+        "securityDescription": "Entradas, alterações de senha e eventos de segurança."
+      },
+      "channels": {
+        "email": "E-mail",
+        "inApp": "No app",
+        "desktop": "Área de trabalho"
+      }
+    },
+    "appearance": {
+      "title": "Aparência",
+      "description": "Salvo neste dispositivo — as mudanças valem na hora.",
+      "shuffle": "Aleatório"
+    },
+    "sessions": {
+      "title": "Sessões",
+      "description": "Dispositivos atualmente conectados à sua conta.",
+      "loadFailed": "Não foi possível carregar suas sessões. Tente novamente.",
+      "emptyTitle": "Nenhuma sessão ativa",
+      "emptyDescription": "As sessões aparecem aqui depois que você entra em um dispositivo.",
+      "currentBadge": "Este dispositivo",
+      "lastActive": "{{details}} · ativo <1></1>",
+      "signOut": "Sair",
+      "revokeTitle": "Sair desta sessão?",
+      "revokeDescription": "{{device}} será desconectado imediatamente.",
+      "revokeConfirm": "Sair",
+      "deviceFallback": "Este dispositivo"
     }
   }
 }

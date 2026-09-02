@@ -216,7 +216,26 @@ export async function establishSession(accessToken: string): Promise<void> {
   }
 }
 
+let logoutPromise: Promise<void> | null = null;
+
+/**
+ * Sign out — revoke the session server-side, then clear everything locally.
+ *
+ * **Single-flight.** The menu item is an async handler with no `disabled` state
+ * to speak of, and the command palette and the session-timeout dialog can fire
+ * it too. A second call would POST `/auth/logout` again — the first has already
+ * cleared the access token by then, so it goes out unauthenticated against a
+ * backend that treats refresh-session reuse as an attack. One gesture, one
+ * revoke (agent-os/rules/resilient-interactions section 1).
+ */
 export async function logout(): Promise<void> {
+  logoutPromise ??= doLogout().finally(() => {
+    logoutPromise = null;
+  });
+  return logoutPromise;
+}
+
+async function doLogout(): Promise<void> {
   try {
     // core-be identifies the session to revoke BY the bearer token
     // (revokeSessionByAccessToken) and 401s without one — expired is fine,

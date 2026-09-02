@@ -21,6 +21,7 @@
     "integrations": "Integraciones"
   },
   "security": {
+    "loadFailed": "No pudimos cargar tu configuración de seguridad. Inténtalo de nuevo.",
     "heading": "Seguridad",
     "description": "Autenticación en dos pasos y llaves de acceso.",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "Verificar",
       "verifying": "Verificando…",
       "invalid": "No coincide. Inténtalo de nuevo.",
-      "passwordRequired": "Esta acción requiere tu contraseña o un código del autenticador."
+      "passwordRequired": "Esta acción requiere tu contraseña o un código del autenticador.",
+      "sendFailed": "No pudimos enviar el código. Inténtalo de nuevo."
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "Cancelar"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organización · General",
+      "description": "La identidad de tu organización en la plataforma.",
+      "loadFailed": "No se pudieron cargar los datos de la organización."
     },
     "integrations": {
       "searchPlaceholder": "Buscar claves de API…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "description": "Elige sobre qué quieres recibir notificaciones y cómo.",
+      "deliveryTitle": "Entrega",
+      "deliveryDescription": "Elige un canal para cada tipo de actualización.",
+      "categories": {
+        "system": "Producto y sistema",
+        "systemDescription": "Novedades, anuncios y consejos.",
+        "member": "Actividad del equipo",
+        "memberDescription": "Nuevas personas, cambios de rol e invitaciones.",
+        "billing": "Facturación",
+        "billingDescription": "Facturas, cambios de plan y renovaciones.",
+        "security": "Seguridad",
+        "securityDescription": "Inicios de sesión, cambios de contraseña y eventos de seguridad."
+      },
+      "channels": {
+        "email": "Correo",
+        "inApp": "En la app",
+        "desktop": "Escritorio"
+      }
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "description": "Se guarda en este dispositivo: los cambios se aplican al instante.",
+      "shuffle": "Aleatorio"
+    },
+    "sessions": {
+      "title": "Sesiones",
+      "description": "Dispositivos con la sesión iniciada en tu cuenta.",
+      "loadFailed": "No se pudieron cargar tus sesiones. Inténtalo de nuevo.",
+      "emptyTitle": "No hay sesiones activas",
+      "emptyDescription": "Las sesiones aparecerán aquí cuando inicies sesión en un dispositivo.",
+      "currentBadge": "Este dispositivo",
+      "lastActive": "{{details}} · activa <1></1>",
+      "signOut": "Cerrar sesión",
+      "revokeTitle": "¿Cerrar esta sesión?",
+      "revokeDescription": "La sesión de {{device}} se cerrará de inmediato.",
+      "revokeConfirm": "Cerrar sesión",
+      "deviceFallback": "Este dispositivo"
     }
   }
 }

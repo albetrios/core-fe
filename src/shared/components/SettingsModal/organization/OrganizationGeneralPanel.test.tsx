@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -106,5 +106,46 @@ describe('OrganizationGeneralPanel', () => {
     await waitFor(() =>
       expect(updateMock).toHaveBeenCalledWith('org_acme', { logoUrl: null }),
     );
+  });
+
+  // ── SET-27: reading the file is part of the upload ───────────────────────
+
+  it('says it is working while the file is being read', async () => {
+    // Regression: `disabled={update.isPending}` covered the request but not the
+    // FileReader window in front of it, so picking a large logo looked like
+    // nothing had happened. A controlled reader holds that window open.
+    const readerCtl: { finish?: () => void } = {};
+    class ControlledFileReader {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      result: string | null = null;
+      readAsDataURL() {
+        readerCtl.finish = () => {
+          this.result = 'data:image/png;base64,AAAA';
+          this.onload?.();
+        };
+      }
+    }
+    vi.stubGlobal('FileReader', ControlledFileReader);
+
+    setCanManage(true);
+    const user = userEvent.setup();
+    renderWithProviders(<OrganizationGeneralPanel />);
+
+    const input = await screen.findByTestId('org-logo-input');
+    await user.upload(
+      input,
+      new File(['x'.repeat(2048)], 'logo.png', { type: 'image/png' }),
+    );
+
+    // Still reading: the button says so, and cannot be pressed again.
+    const upload = screen.getByTestId('org-logo-upload');
+    expect(upload).toHaveAttribute('aria-busy', 'true');
+    expect(upload).toHaveTextContent(/uploading/i);
+    expect(upload).toBeDisabled();
+
+    await act(async () => readerCtl.finish?.());
+    await waitFor(() => expect(updateMock).toHaveBeenCalled());
+    vi.unstubAllGlobals();
   });
 });

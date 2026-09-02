@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { ERRORS_KEYS } from '@/lib/i18n/errors.constants.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { NotificationCenter } from '@/shared/components/NotificationCenter/index.ts';
 import { OrganizationSwitcher } from '@/shared/components/OrganizationSwitcher/index.ts';
 import { ThemeModeToggle } from '@/shared/components/ThemeModeToggle/index.ts';
@@ -43,8 +43,9 @@ export function RailShell({
           />
         </nav>
         <SectionErrorBoundary
-          title={t(ERRORS_KEYS.widget.notifications)}
-          testId="notifications-error"
+          title={t(ERRORS_KEYS.widget.notifications, { ns: ERRORS_NS })}
+          testId="notifications-widget-error"
+          variant="inline"
         >
           <NotificationCenter
             surface="sidebar"
@@ -62,8 +63,9 @@ export function RailShell({
           data-testid="header"
         >
           <SectionErrorBoundary
-            title={t(ERRORS_KEYS.widget.organizationSwitcher)}
+            title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
             testId="org-switcher-error"
+            variant="control"
           >
             <OrganizationSwitcher
               className="min-w-0 flex-1 sm:max-w-[11rem]"

@@ -40,7 +40,10 @@ export function isSettingsSectionAvailable(
     );
   }
 
-  // Org type still loading — keep the hash until me/context resolves (team deployments).
+  // Org type still loading — keep the hash until me/context resolves (team
+  // deployments). The caller must not RENDER on this answer: SettingsModal
+  // holds a skeleton until the context is in, so a deep link never opens the
+  // members panel and then swaps it for a fallback section (SET-15).
   return true;
 }
 

@@ -56,6 +56,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select.tsx';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useDataTableUrlState } from '@/shared/hooks/useDataTableUrlState/index.ts';
 import {
   useRemoveMember,
@@ -63,7 +64,7 @@ import {
   useUpdateMemberStatus,
 } from '@/shared/hooks/useMembers/index.ts';
 import { useHasPermission } from '@/shared/hooks/useRBAC/index.ts';
-import { Download, MoreHorizontal } from '@/shared/icons/index.ts';
+import { Download, Loader2, MoreHorizontal } from '@/shared/icons/index.ts';
 
 import { MEMBERS_TABLE_KEYS, MEMBERS_TABLE_NS } from './members-table.constants.ts';
 
@@ -94,6 +95,13 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
   }
 
   const isSuspended = member.status === 'suspended';
+  /**
+   * One membership write at a time. The menu stays mounted and clickable while
+   * a role/status change is in flight, and `useAppMutation`'s single-flight
+   * guard JOINS the second call to the first - so a second pick was accepted by
+   * the UI and then silently dropped. Disable instead of swallowing (SET-12).
+   */
+  const isWriting = updateRole.isPending || updateStatus.isPending;
 
   return (
     <>
@@ -105,25 +113,43 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
             aria-label={t(MEMBERS_TABLE_KEYS.actionsAria, { name: member.name })}
             data-testid={`member-actions-${member.id}`}
           >
-            <MoreHorizontal className="h-4 w-4" />
+            {/* The menu is usually shut while the write runs, so the row itself
+                has to carry the busy state — a greyed-out item nobody can see
+                is not feedback. */}
+            {isWriting ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <MoreHorizontal className="h-4 w-4" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{t(MEMBERS_TABLE_KEYS.changeRole)}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={member.role}
-            onValueChange={(role) =>
-              updateRole.mutate({ membershipId: member.id, role: role as OrgRole })
-            }
+            onValueChange={(role) => {
+              // Radix fires this for the already-selected item too: re-picking
+              // the role a member already has is not a change, and used to send
+              // a PATCH and toast "Role updated" for nothing.
+              if (isWriting || role === member.role) return;
+              updateRole.mutate({ membershipId: member.id, role: role as OrgRole });
+            }}
           >
             {ASSIGNABLE_ROLES.map((role) => (
-              <DropdownMenuRadioItem key={role} value={role} className="capitalize">
+              <DropdownMenuRadioItem
+                key={role}
+                value={role}
+                className="capitalize"
+                disabled={isWriting}
+                data-testid={`member-set-role-${role}`}
+              >
                 {role}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            disabled={isWriting}
             onSelect={() =>
               updateStatus.mutate({
                 membershipId: member.id,
@@ -142,13 +168,20 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
               e.preventDefault();
               setConfirmOpen(true);
             }}
+            data-testid={`member-remove-${member.id}`}
           >
             {t(MEMBERS_TABLE_KEYS.remove)}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog
+        open={confirmOpen}
+        // Esc or an overlay click must not abandon a removal already running.
+        onOpenChange={(open) => {
+          if (!removeMember.isPending) setConfirmOpen(open);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -159,12 +192,26 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t(MEMBERS_TABLE_KEYS.cancel)}</AlertDialogCancel>
+            <AlertDialogCancel disabled={removeMember.isPending}>
+              {t(MEMBERS_TABLE_KEYS.cancel)}
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => removeMember.mutate(member.id)}
+              onClick={(event) => {
+                // Radix closes on click. Hold the dialog open until the request
+                // resolves, so the confirm - not a toast fired into a screen the
+                // dialog already left - owns the outcome (the AccountPanel
+                // delete pattern).
+                event.preventDefault();
+                removeMember.mutate(member.id, {
+                  onSuccess: () => setConfirmOpen(false),
+                });
+              }}
+              isLoading={removeMember.isPending}
               data-testid={`member-remove-confirm-${member.id}`}
             >
-              {t(MEMBERS_TABLE_KEYS.confirmRemove)}
+              {removeMember.isPending
+                ? t(MEMBERS_TABLE_KEYS.removing)
+                : t(MEMBERS_TABLE_KEYS.confirmRemove)}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -242,7 +289,17 @@ function buildColumns(
     },
     {
       id: 'actions',
-      cell: ({ row }) => <RowActions member={row.original} canManage={canManage} />,
+      // A row's menu is its own failure domain: one member with malformed data
+      // must not blank the whole table.
+      cell: ({ row }) => (
+        <SectionErrorBoundary
+          variant="inline"
+          title={row.original.name}
+          testId={`member-actions-error-${row.original.id}`}
+        >
+          <RowActions member={row.original} canManage={canManage} />
+        </SectionErrorBoundary>
+      ),
       enableSorting: false,
       enableHiding: false,
     },

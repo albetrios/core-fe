@@ -11,16 +11,35 @@
     "pageMessage": "このページの表示中に問題が発生しました。",
     "tryAgain": "再試行",
     "goHome": "ホームへ",
-    "refresh": "ページを更新"
+    "refresh": "ページを更新",
+    "forbidden": "このページにアクセスする権限がありません。",
+    "signOut": "サインアウト",
+    "signingOut": "サインアウトしています…"
   },
   "widget": {
     "unavailable": "{{title}} は利用できません",
     "message": "このセクションの読み込み中に問題が発生しました。再試行してください。",
     "retry": "再試行",
+    "unavailableShort": "利用できません",
+    "controlRetry": "{{title}}を利用できません。選択して再試行します。",
     "pageContent": "ページコンテンツ",
+    "navigation": "ナビゲーション",
     "emailBanner": "メール確認",
     "notifications": "通知",
-    "organizationSwitcher": "組織スイッチャー"
+    "organizationSwitcher": "組織スイッチャー",
+    "commandPalette": "コマンドパレット",
+    "settings": "設定",
+    "appearance": "外観",
+    "analytics": "分析",
+    "members": "メンバー",
+    "schedule": "スケジュール",
+    "highlights": "ハイライト",
+    "themeShowcase": "テーマショーケース",
+    "sessionTimeout": "セッションタイマー",
+    "securityCheck": "セキュリティチェック",
+    "appearanceControls": "外観コントロール",
+    "payment": "お支払い",
+    "cancellation": "解約"
   },
   "toast": {
     "dismiss": "通知を閉じる",
@@ -65,7 +84,8 @@
       "logoReadFailed": "そのファイルを読み取れませんでした。",
       "formCheck": "フォームを確認",
       "updateSuccess": "組織を更新しました",
-      "createSuccess": "{{name}} を作成しました"
+      "createSuccess": "{{name}} を作成しました",
+      "createdSwitchFailed": "{{name}} を作成しましたが、開けませんでした。組織スイッチャーから選択してください。"
     },
     "account": {
       "copyFailed": "クリップボードにコピーできませんでした",
@@ -132,7 +152,10 @@
       },
       "subscription": {
         "changePlanFailed": "プランを変更できませんでした",
-        "changePlanSuccess": "{{plan}} プランに切り替えました"
+        "changePlanSuccess": "{{plan}} プランに切り替えました",
+        "paymentSetupFailed": "プランは変更されましたが、支払い手続きを開始できませんでした。請求画面を開き直して完了してください。",
+        "cancelSuccess": "請求期間の終了時にサブスクリプションを終了します",
+        "resumeSuccess": "サブスクリプションを再開しました"
       },
       "invitations": {
         "sendFailed": "招待を送信できませんでした",
@@ -140,5 +163,10 @@
       }
     },
     "profileUpdated": "プロフィールを更新しました"
+  },
+  "suspended": {
+    "title": "組織は停止中です",
+    "message": "この組織は現在停止されています。請求内容の確認は組織管理者にご連絡いただくか、別の組織に切り替えてください。",
+    "switchOrganization": "組織を切り替える"
   }
 }

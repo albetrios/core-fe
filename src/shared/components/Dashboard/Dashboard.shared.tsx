@@ -261,17 +261,14 @@ export function TrendsSection() {
   );
 }
 
-/** Sessions-by-source donut (lazy chart), wrapped in its error boundary. */
+/**
+ * Sessions-by-source donut (lazy chart). The boundary lives inside
+ * `DeferredSourceDonut` — same testId — because only the one wired to the
+ * lazy loader's `retry` can recover from a failed chunk (SHELL-3). Wrapping it
+ * again here would just shadow that fallback with a dead retry button.
+ */
 export function SourceDonutSection() {
-  const { t } = useTranslation(DASHBOARD_NS);
-  return (
-    <SectionErrorBoundary
-      title={t(DASHBOARD_KEYS.donut.heading)}
-      testId="dashboard-donut-error"
-    >
-      <DeferredSourceDonut />
-    </SectionErrorBoundary>
-  );
+  return <DeferredSourceDonut />;
 }
 
 /** Feature-usage leaderboard, wrapped in its section error boundary. */
@@ -300,17 +297,9 @@ export function TimelineSection() {
   );
 }
 
-/** Weekly usage bars (lazy chart), wrapped in its error boundary. */
+/** Weekly usage bars (lazy chart) — boundary inside, same reason as above. */
 export function UsageBarsSection() {
-  const { t } = useTranslation(DASHBOARD_NS);
-  return (
-    <SectionErrorBoundary
-      title={t(DASHBOARD_KEYS.usageBars.heading)}
-      testId="dashboard-usage-bars-error"
-    >
-      <DeferredUsageBars />
-    </SectionErrorBoundary>
-  );
+  return <DeferredUsageBars />;
 }
 
 /** Contribution heatmap, wrapped in its section error boundary. */

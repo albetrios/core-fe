@@ -39,13 +39,27 @@ export function useOnboardingStepMotion(stepIndex: number) {
       settleMotionTarget(card);
       return;
     }
-    cardEntranceDone.current = true;
 
+    /*
+     * Marked done when the animation FINISHES, not when it starts.
+     *
+     * Setting it up front meant Strict Mode's second mount always took the
+     * branch above: run 1 started the entrance and its cleanup paused it, run 2
+     * saw the flag and settled the card at rest. The entrance therefore never
+     * played in development — invisible in production, but it made the one
+     * animation on this screen impossible to iterate on locally (ONB-12).
+     *
+     * Leaving the flag false until completion lets the second mount replay it,
+     * while a genuine later remount still settles instead of re-animating.
+     */
     const animation = animate(card, {
       translateY: [ONBOARDING_MOTION.cardOffsetY, 0],
       scale: [ONBOARDING_MOTION.cardScaleFrom, 1],
       duration: ONBOARDING_MOTION.cardDurationMs,
       ease: EASE_CARD_ENTER,
+      onComplete: () => {
+        cardEntranceDone.current = true;
+      },
     });
 
     return () => {

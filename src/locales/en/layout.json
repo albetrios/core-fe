@@ -140,11 +140,23 @@
       "cancel": "Cancel",
       "confirmRemove": "Remove",
       "rolePlaceholder": "Role",
-      "searchPlaceholder": "Search members…"
+      "searchPlaceholder": "Search members…",
+      "removing": "Removing…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "Create organization",
+      "nameLabel": "Organization name",
+      "slugLabel": "Workspace URL (optional)",
+      "submit": "Create organization",
+      "submitting": "Creating…"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
+      "shuffle": "Shuffle theme"
     }
   },
   "public": {

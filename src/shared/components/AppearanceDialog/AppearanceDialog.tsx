@@ -4,6 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Sparkles, X } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
@@ -22,6 +26,7 @@ import { AppearancePanel } from './AppearancePanel.tsx';
  */
 export function AppearanceDialog() {
   const { t } = useTranslation(LOCALE_NS);
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
   const open = useUIStore((s) => s.appearanceOpen);
   const setOpen = useUIStore((s) => s.setAppearanceOpen);
   const shuffleTheme = useThemeStore((s) => s.shuffleTheme);
@@ -75,10 +80,10 @@ export function AppearanceDialog() {
       <div className="border-border flex items-start justify-between gap-3 border-b px-5 py-3">
         <div className="space-y-0.5">
           <h2 id="appearance-popover-title" className="text-sm font-semibold">
-            Appearance
+            {tSettings(SETTINGS_KEYS.panels.appearance.title)}
           </h2>
           <p className="text-muted-foreground text-xs">
-            Saved on this device — changes apply live.
+            {tSettings(SETTINGS_KEYS.panels.appearance.description)}
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -90,7 +95,7 @@ export function AppearanceDialog() {
             data-testid="theme-shuffle"
           >
             <Sparkles className="me-1.5 size-3.5" aria-hidden="true" />
-            Shuffle
+            {tSettings(SETTINGS_KEYS.panels.appearance.shuffle)}
           </Button>
           <button
             type="button"

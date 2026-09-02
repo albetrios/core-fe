@@ -21,6 +21,7 @@
     "integrations": "एकीकरण"
   },
   "security": {
+    "loadFailed": "हम आपकी सुरक्षा सेटिंग्स लोड नहीं कर सके. कृपया फिर से कोशिश करें.",
     "heading": "सुरक्षा",
     "description": "दो-कारक प्रमाणीकरण और पासकी।",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "सत्यापित करें",
       "verifying": "सत्यापित हो रहा है…",
       "invalid": "मेल नहीं खाया। कृपया फिर कोशिश करें।",
-      "passwordRequired": "इस क्रिया के लिए आपका पासवर्ड या ऑथेंटिकेटर कोड चाहिए।"
+      "passwordRequired": "इस क्रिया के लिए आपका पासवर्ड या ऑथेंटिकेटर कोड चाहिए।",
+      "sendFailed": "हम कोड नहीं भेज सके। कृपया फिर से प्रयास करें।"
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "रद्द करें"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "संगठन · सामान्य",
+      "description": "प्लेटफ़ॉर्म पर आपके संगठन की पहचान।",
+      "loadFailed": "संगठन का विवरण लोड नहीं हो सका।"
     },
     "integrations": {
       "searchPlaceholder": "API कुंजियाँ खोजें…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "सूचनाएँ",
+      "description": "चुनें कि आपको किस बारे में और कैसे सूचित किया जाए।",
+      "deliveryTitle": "डिलीवरी",
+      "deliveryDescription": "हर तरह के अपडेट के लिए एक चैनल चुनें।",
+      "categories": {
+        "system": "उत्पाद और सिस्टम",
+        "systemDescription": "अपडेट, घोषणाएँ और सुझाव।",
+        "member": "टीम गतिविधि",
+        "memberDescription": "सदस्य जुड़ना, भूमिका बदलाव और आमंत्रण।",
+        "billing": "बिलिंग",
+        "billingDescription": "चालान, प्लान बदलाव और नवीनीकरण।",
+        "security": "सुरक्षा",
+        "securityDescription": "साइन-इन, पासवर्ड बदलाव और सुरक्षा घटनाएँ।"
+      },
+      "channels": {
+        "email": "ईमेल",
+        "inApp": "ऐप में",
+        "desktop": "डेस्कटॉप"
+      }
+    },
+    "appearance": {
+      "title": "दिखावट",
+      "description": "इस डिवाइस पर सहेजा गया — बदलाव तुरंत लागू होते हैं।",
+      "shuffle": "शफ़ल"
+    },
+    "sessions": {
+      "title": "सत्र",
+      "description": "आपके खाते में अभी साइन इन डिवाइस।",
+      "loadFailed": "आपके सत्र लोड नहीं हो सके। कृपया फिर कोशिश करें।",
+      "emptyTitle": "कोई सक्रिय सत्र नहीं",
+      "emptyDescription": "किसी डिवाइस पर साइन इन करने के बाद सत्र यहाँ दिखेंगे।",
+      "currentBadge": "यह डिवाइस",
+      "lastActive": "{{details}} · सक्रिय <1></1>",
+      "signOut": "साइन आउट",
+      "revokeTitle": "इस सत्र से साइन आउट करें?",
+      "revokeDescription": "{{device}} तुरंत साइन आउट हो जाएगा।",
+      "revokeConfirm": "साइन आउट",
+      "deviceFallback": "यह डिवाइस"
     }
   }
 }

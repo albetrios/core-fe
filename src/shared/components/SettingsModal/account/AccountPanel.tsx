@@ -182,7 +182,7 @@ export function AccountPanel() {
                 e.preventDefault();
                 deleteAccount.mutate();
               }}
-              disabled={deleteAccount.isPending}
+              isLoading={deleteAccount.isPending}
               data-testid="account-delete-confirm"
             >
               {t(accountPanels.deleteConfirm)}

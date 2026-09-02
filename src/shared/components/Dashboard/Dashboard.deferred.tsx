@@ -1,99 +1,165 @@
-import { lazy, type ReactNode, Suspense } from 'react';
+import { type ComponentType, type ReactNode, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { SkeletonShimmer } from '@/lib/animations/Skeleton.tsx';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import { onceAsync, useRetryableLazy } from '@/lib/lazy-module.ts';
+import {
+  DASHBOARD_KEYS,
+  DASHBOARD_NS,
+} from '@/shared/components/Dashboard/dashboard.constants.ts';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 
-const LazyAnalyticsChart = lazy(() =>
+// Every factory goes through `onceAsync`: one shared in-flight promise per
+// chunk, and — the point — a rejection is NOT cached, so a retry refetches
+// rather than replaying the failure for the rest of the session (SHELL-3).
+const loadAnalyticsChart = onceAsync(() =>
   import('./AnalyticsChart/index.ts').then((m) => ({ default: m.AnalyticsChart })),
 );
-const LazyMembersTable = lazy(() =>
+const loadMembersTable = onceAsync(() =>
   import('./MembersTable/index.ts').then((m) => ({ default: m.MembersTable })),
 );
-const LazyScheduleCalendar = lazy(() =>
+const loadScheduleCalendar = onceAsync(() =>
   import('./ScheduleCalendar/index.ts').then((m) => ({ default: m.ScheduleCalendar })),
 );
-const LazyHighlightsCarousel = lazy(() =>
+const loadHighlightsCarousel = onceAsync(() =>
   import('./HighlightsCarousel/index.ts').then((m) => ({
     default: m.HighlightsCarousel,
   })),
 );
-const LazyThemeShowcase = lazy(() =>
+const loadThemeShowcase = onceAsync(() =>
   import('@/shared/components/ThemeShowcase/index.ts').then((m) => ({
     default: m.ThemeShowcase,
   })),
 );
-const LazySourceDonut = lazy(() =>
+const loadSourceDonut = onceAsync(() =>
   import('./SourceDonut/index.ts').then((m) => ({ default: m.SourceDonut })),
 );
-const LazyUsageBars = lazy(() =>
+const loadUsageBars = onceAsync(() =>
   import('./UsageBars/index.ts').then((m) => ({ default: m.UsageBars })),
 );
 
+/**
+ * One deferred dashboard widget: skeleton while its chunk loads, contained
+ * failure surface if the chunk never arrives, and a Retry that actually
+ * retries.
+ *
+ * `React.lazy` caches a rejection permanently — its factory is never called
+ * again — so resetting the boundary alone re-renders straight back into the
+ * same error. `attempt` is therefore part of the memo key: a retry builds a
+ * NEW lazy component, which is the only way back out.
+ */
 function DeferredSection({
+  load,
   fallback,
-  children,
+  title,
+  testId,
 }: {
+  load: () => Promise<{ default: ComponentType }>;
   fallback: ReactNode;
-  children: ReactNode;
+  title: string;
+  testId: string;
 }) {
-  return <Suspense fallback={fallback}>{children}</Suspense>;
+  const { Component: Widget, retry } = useRetryableLazy(load);
+
+  return (
+    <SectionErrorBoundary title={title} testId={testId} onReset={retry}>
+      <Suspense fallback={fallback}>
+        <Widget />
+      </Suspense>
+    </SectionErrorBoundary>
+  );
 }
 
 export function DeferredAnalyticsChart() {
+  const { t } = useTranslation(ERRORS_NS);
   return (
     <DeferredSection
+      load={loadAnalyticsChart}
       fallback={<SkeletonShimmer className="h-[360px] w-full rounded-xl" />}
-    >
-      <LazyAnalyticsChart />
-    </DeferredSection>
+      title={t(ERRORS_KEYS.widget.analytics)}
+      testId="dashboard-analytics-error"
+    />
   );
 }
 
 export function DeferredMembersTable() {
+  const { t } = useTranslation(ERRORS_NS);
   return (
-    <DeferredSection fallback={<SkeletonShimmer className="h-72 w-full rounded-xl" />}>
-      <LazyMembersTable />
-    </DeferredSection>
+    <DeferredSection
+      load={loadMembersTable}
+      fallback={<SkeletonShimmer className="h-72 w-full rounded-xl" />}
+      title={t(ERRORS_KEYS.widget.members)}
+      testId="dashboard-members-error"
+    />
   );
 }
 
 export function DeferredScheduleCalendar() {
+  const { t } = useTranslation(ERRORS_NS);
   return (
-    <DeferredSection fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}>
-      <LazyScheduleCalendar />
-    </DeferredSection>
+    <DeferredSection
+      load={loadScheduleCalendar}
+      fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}
+      title={t(ERRORS_KEYS.widget.schedule)}
+      testId="dashboard-schedule-error"
+    />
   );
 }
 
 export function DeferredHighlightsCarousel() {
+  const { t } = useTranslation(ERRORS_NS);
   return (
-    <DeferredSection fallback={<SkeletonShimmer className="h-44 w-full rounded-xl" />}>
-      <LazyHighlightsCarousel />
-    </DeferredSection>
+    <DeferredSection
+      load={loadHighlightsCarousel}
+      fallback={<SkeletonShimmer className="h-44 w-full rounded-xl" />}
+      title={t(ERRORS_KEYS.widget.highlights)}
+      testId="dashboard-highlights-error"
+    />
   );
 }
 
 export function DeferredThemeShowcase() {
+  const { t } = useTranslation(ERRORS_NS);
   return (
-    <DeferredSection fallback={<SkeletonShimmer className="h-56 w-full rounded-xl" />}>
-      <LazyThemeShowcase />
-    </DeferredSection>
+    <DeferredSection
+      load={loadThemeShowcase}
+      fallback={<SkeletonShimmer className="h-56 w-full rounded-xl" />}
+      title={t(ERRORS_KEYS.widget.themeShowcase)}
+      testId="dashboard-theme-error"
+    />
   );
 }
 
-/** Lazily loads the weekly usage bars (recharts stays off first paint). */
+/**
+ * Weekly usage bars (recharts stays off first paint).
+ *
+ * Carries its own boundary like every other widget in this file, rather than
+ * borrowing one from the section around it: only a boundary wired to
+ * `useRetryableLazy`'s `retry` can actually recover from a failed chunk, and
+ * `React.lazy` caches a rejection for the rest of the session (SHELL-3).
+ */
 export function DeferredUsageBars() {
+  const { t } = useTranslation(DASHBOARD_NS);
   return (
-    <DeferredSection fallback={<SkeletonShimmer className="h-72 w-full rounded-xl" />}>
-      <LazyUsageBars />
-    </DeferredSection>
+    <DeferredSection
+      load={loadUsageBars}
+      fallback={<SkeletonShimmer className="h-72 w-full rounded-xl" />}
+      title={t(DASHBOARD_KEYS.usageBars.heading)}
+      testId="dashboard-usage-bars-error"
+    />
   );
 }
 
-/** Lazily loads the sessions-by-source donut (recharts stays off first paint). */
+/** Sessions-by-source donut (recharts stays off first paint), same contract. */
 export function DeferredSourceDonut() {
+  const { t } = useTranslation(DASHBOARD_NS);
   return (
-    <DeferredSection fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}>
-      <LazySourceDonut />
-    </DeferredSection>
+    <DeferredSection
+      load={loadSourceDonut}
+      fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}
+      title={t(DASHBOARD_KEYS.donut.heading)}
+      testId="dashboard-donut-error"
+    />
   );
 }

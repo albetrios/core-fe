@@ -21,6 +21,7 @@
     "integrations": "Integrations"
   },
   "security": {
+    "loadFailed": "Couldn't load your security settings. Please try again.",
     "heading": "Security",
     "description": "Two-factor authentication and passkeys.",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "Verify",
       "verifying": "Verifying…",
       "invalid": "That didn’t match. Please try again.",
-      "passwordRequired": "This action needs your password or an authenticator code."
+      "passwordRequired": "This action needs your password or an authenticator code.",
+      "sendFailed": "We couldn't send the code. Please try again."
     }
   },
   "discard": {
@@ -180,11 +182,54 @@
       "deleteCancel": "Cancel"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organization · General",
+      "description": "Identity for your organization across the platform.",
+      "loadFailed": "Couldn't load organization details."
     },
     "integrations": {
       "searchPlaceholder": "Search API keys…",
       "webhookUrlPlaceholder": "https://example.com/hooks"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choose what you're notified about, and how.",
+      "deliveryTitle": "Delivery",
+      "deliveryDescription": "Pick a channel for each kind of update.",
+      "categories": {
+        "system": "Product & system",
+        "systemDescription": "Updates, announcements, and tips.",
+        "member": "Team activity",
+        "memberDescription": "Member joins, role changes, and invitations.",
+        "billing": "Billing",
+        "billingDescription": "Invoices, plan changes, and renewals.",
+        "security": "Security",
+        "securityDescription": "Sign-ins, password changes, and safety events."
+      },
+      "channels": {
+        "email": "Email",
+        "inApp": "In-app",
+        "desktop": "Desktop"
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Saved on this device — changes apply live.",
+      "shuffle": "Shuffle"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Devices currently signed in to your account.",
+      "loadFailed": "Couldn't load your sessions. Please try again.",
+      "emptyTitle": "No active sessions",
+      "emptyDescription": "Sessions appear here once you sign in on a device.",
+      "currentBadge": "This device",
+      "lastActive": "{{details}} · active <1></1>",
+      "signOut": "Sign out",
+      "revokeTitle": "Sign out this session?",
+      "revokeDescription": "{{device}} will be signed out immediately.",
+      "revokeConfirm": "Sign out",
+      "deviceFallback": "This device"
     }
   }
 }

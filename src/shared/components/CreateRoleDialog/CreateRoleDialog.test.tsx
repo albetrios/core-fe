@@ -118,4 +118,48 @@ describe('CreateRoleDialog', () => {
       ),
     );
   });
+
+  // ── SET-10: pre-fill once, on the success transition ──────────────────────
+
+  it('shows a skeleton instead of an all-unchecked checklist while grants load', async () => {
+    // Regression: the list row carries no permissions, so the edit form opened
+    // with every box unchecked and then visibly ticked itself.
+    useRolePermissionsMock.mockReturnValue({ data: undefined, isSuccess: false });
+    render(<CreateRoleDialog role={EDIT_ROLE} open onOpenChange={() => {}} />);
+
+    expect(await screen.findByTestId('role-edit-loading')).toBeInTheDocument();
+    expect(screen.queryByTestId('role-perm-membership:read')).not.toBeInTheDocument();
+    expect(screen.getByTestId('role-create-submit')).toBeDisabled();
+  });
+
+  it('keeps in-progress edits when the permissions query refetches', async () => {
+    // The permissions key is a DESCENDANT of the roles prefix, so ANY other role
+    // mutation invalidates it. Keying the pre-fill on `data` re-ran reset() on
+    // every refetch and wiped whatever the user had typed.
+    const user = userEvent.setup();
+    useRolePermissionsMock.mockReturnValue({
+      data: ['membership:read'],
+      isSuccess: true,
+    });
+    const { rerender } = render(
+      <CreateRoleDialog role={EDIT_ROLE} open onOpenChange={() => {}} />,
+    );
+
+    const name = await screen.findByTestId('role-create-name');
+    await user.clear(name);
+    await user.type(name, 'Editor');
+    await user.click(screen.getByTestId('role-perm-invitation:manage'));
+
+    // A refetch lands: same values, brand-new array identity.
+    useRolePermissionsMock.mockReturnValue({
+      data: ['membership:read'],
+      isSuccess: true,
+    });
+    rerender(<CreateRoleDialog role={EDIT_ROLE} open onOpenChange={() => {}} />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId('role-create-name')).toHaveValue('Editor'),
+    );
+    expect(screen.getByTestId('role-perm-invitation:manage')).toBeChecked();
+  });
 });
