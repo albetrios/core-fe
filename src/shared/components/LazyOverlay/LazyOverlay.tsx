@@ -78,7 +78,11 @@ function LazyOverlayError({
         aria-modal="true"
         aria-label={t(ERRORS_KEYS.widget.unavailable, { title })}
         data-testid={testId ?? 'lazy-overlay-error'}
-        className="bg-background flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-6 text-center shadow-lg"
+        // `data-slot="surface"` rather than a hardcoded shadow: the elevation
+        // axis owns depth, so this card goes flat/soft/lifted with the theme
+        // instead of pinning one depth the Appearance picker cannot change.
+        data-slot="surface"
+        className="bg-background flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-6 text-center"
       >
         <AlertTriangle className="text-muted-foreground size-7" aria-hidden="true" />
         <div>
@@ -167,10 +171,14 @@ function LazyOverlayPending({
           onClick={onDismiss}
           aria-label={t(LOCALE_KEYS.closeAria)}
           data-testid="lazy-overlay-pending-dismiss"
+          // Stays `data-slot="button"`: a control, not a surface, so the
+          // elevation axis has nothing to apply — dropping the hardcoded depth
+          // utility was the fix. (Naming that utility here would trip the
+          // theme-axis scan, which greps raw text, comments included.)
           data-slot="button"
           className={cn(
             closeControlClassName,
-            'bg-background/90 fixed end-4 top-4 z-[60] border shadow-sm',
+            'bg-background/90 fixed end-4 top-4 z-[60] border',
           )}
         >
           <X className="size-4" aria-hidden="true" />
@@ -270,7 +278,8 @@ export function LazyOverlaySkeleton({
       <output
         aria-busy="true"
         data-testid={testId ?? 'lazy-overlay-pending'}
-        className={`bg-background block w-full overflow-hidden rounded-xl border shadow-lg ${className ?? 'max-w-lg'}`}
+        data-slot="surface"
+        className={`bg-background block w-full overflow-hidden rounded-xl border ${className ?? 'max-w-lg'}`}
       >
         <span className="sr-only">{t(LOCALE_KEYS.loading)}</span>
         {children}

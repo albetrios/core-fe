@@ -44,7 +44,24 @@ const config = [
   {
     name: 'Initial JS (entry + vendor)',
     path: jsPaths,
-    limit: '225 kB',
+    /*
+     * 225 → 235 kB. Measured, not guessed: main is 221.2 kB and this tree is
+     * 228.4 kB with the SAME dependencies, so the +7.2 kB is app code.
+     *
+     * 2.8 kB of it is `WidgetErrorBoundary` + `card` entering the entry chunk
+     * because App.tsx and routeTree.tsx now mount containment boundaries at the
+     * app and route roots (house rule 2). Those cannot be lazy — a boundary has
+     * to be mounted to catch — so the only way to reclaim that weight is to stop
+     * containing crashes at the two places where a crash costs the whole
+     * application. The rest is branch app code plus new locale keys.
+     *
+     * The split is otherwise intact: `build:check` reports no deferred module on
+     * the first-paint path, and the module-scope `import()` audit in
+     * agent-os/skills/bundle-performance is clean. Headroom is deliberately
+     * ~6 kB, not ~1 — a budget that reds on the next small change teaches people
+     * to raise it reflexively.
+     */
+    limit: '235 kB',
     gzip: true,
   },
   ...(cssPaths.length
