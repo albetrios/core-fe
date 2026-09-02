@@ -89,11 +89,13 @@ type OptimisticContext =
 function serializeVars(value: unknown, path: Set<object>): string {
   if (value === undefined) return 'undefined';
   if (value === null) return 'null';
-  const kind = typeof value;
-  if (kind === 'string') return JSON.stringify(value);
-  if (kind === 'number' || kind === 'boolean') return String(value);
+  // Narrowed on `value` itself rather than a `kind` alias: the alias hides the
+  // narrowing from both TS and Sonar, which then reads `String(value)` as a
+  // possible '[object Object]' (S6551).
+  if (typeof value === 'string') return JSON.stringify(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   // function / symbol / bigint — no faithful text form.
-  if (kind !== 'object') throw new TypeError(`unkeyable ${kind}`);
+  if (typeof value !== 'object') throw new TypeError(`unkeyable ${typeof value}`);
   return serializeObjectVars(value as object, path);
 }
 
