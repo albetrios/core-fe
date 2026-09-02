@@ -1,9 +1,10 @@
-import { Dialog as DialogPrimitive } from 'radix-ui';
 import {
   type ComponentType,
   type ReactNode,
   Suspense,
+  useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
@@ -54,8 +55,8 @@ export interface LazyOverlayProps {
 
 /**
  * Shared by both viewport-covering surfaces so the failure card and the skeleton
- * sit at the same depth and tint. Named once because the failure surface paints
- * it through Radix's `Dialog.Overlay` and the skeleton through a plain div.
+ * sit at the same depth and tint. Named once because both paint it — the failure
+ * card and the skeleton each wrap themselves in the same plain div.
  */
 const SCRIM_CLASS =
   'bg-overlay/50 fixed inset-0 z-50 flex items-center justify-center p-4';
@@ -63,6 +64,14 @@ const SCRIM_CLASS =
 function OverlayScrim({ children }: { children: ReactNode }) {
   return <div className={SCRIM_CLASS}>{children}</div>;
 }
+
+/**
+ * What the Tab trap cycles through. Deliberately the same shape as the command
+ * palette's SHELL-7 trap: a flat `querySelectorAll` over the card, in DOM order,
+ * so "first" and "last" mean what the browser's own tab order means.
+ */
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
  * The overlay's failure surface. Module-level on purpose: a component defined
@@ -76,6 +85,18 @@ interface OverlayChrome {
   onDismiss?: () => void;
 }
 
+/**
+ * The failure card, and the modal behaviour it claims.
+ *
+ * **Hand-rolled, not `Dialog` from `radix-ui`.** Radix would give the same
+ * behaviour for free, but this component sits on the FIRST-PAINT path — every
+ * lazy overlay in the shell renders through it — so importing Radix's Dialog
+ * pulled its focus scope, dismissable layer, presence and scroll-lock into the
+ * entry chunk and pushed initial JS 8.5 kB over budget. The budget is a ratchet,
+ * not a dial, so the weight goes instead of the accessibility: focus move, Tab
+ * trap, Escape and focus-restore are ~40 lines here, and the house already runs
+ * exactly that pattern in the command palette (SHELL-7).
+ */
 function LazyOverlayError({
   title,
   testId,
@@ -85,12 +106,19 @@ function LazyOverlayError({
   const { t } = useTranslation(ERRORS_NS);
   const { t: tLocale } = useTranslation(LOCALE_NS);
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  // Radix named the dialog from its Title/Description subcomponents; without it
+  // the wiring is explicit, so the accessible name is still the heading string
+  // and the message is still the description rather than unannounced body text.
+  const titleId = useId();
+  const descriptionId = useId();
+
   /**
    * Whatever held focus when the chunk failed. A lazy state initializer, not an
    * effect: this has to read `document.activeElement` during the FIRST render,
-   * because Radix moves focus into the card on commit — an effect would capture
-   * the Retry button and "restoring" it would be a no-op (same reasoning as the
-   * command palette's SHELL-7 fix).
+   * before the mount effect below moves focus into the card — an effect would
+   * capture the Retry button and "restoring" it would be a no-op (same reasoning
+   * as the command palette's SHELL-7 fix).
    */
   const [previousFocus] = useState<HTMLElement | null>(
     () => document.activeElement as HTMLElement | null,
@@ -98,107 +126,152 @@ function LazyOverlayError({
 
   /**
    * Retry is not a close. It swaps this card for the overlay that is finally
-   * loading, and that overlay moves focus itself — while Radix runs its unmount
-   * focus handler on a macrotask, i.e. potentially AFTER the new overlay has
-   * arrived. Handing focus back on that path would yank it off the thing the
-   * user just asked for, so only a real dismiss arms the restore.
+   * loading, and that overlay moves focus itself. Handing focus back on that
+   * path would yank it off the thing the user just asked for, so only a real
+   * dismiss arms the restore.
+   *
+   * It doubles as the StrictMode guard the palette needed a store read for: a
+   * development mount -> cleanup -> mount cycle runs the cleanup below with the
+   * flag still `false`, so it cannot steal focus from the card 2 ms after it
+   * opened.
    */
   const restoreFocus = useRef(false);
-  const dismiss = onDismiss
-    ? () => {
-        restoreFocus.current = true;
-        onDismiss();
+  const dismiss = useCallback(() => {
+    if (!onDismiss) return;
+    restoreFocus.current = true;
+    onDismiss();
+  }, [onDismiss]);
+
+  /** Move focus in on mount — the first control in the card is Retry. */
+  useEffect(() => {
+    cardRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus();
+  }, []);
+
+  /**
+   * Hand focus back when the card goes away.
+   *
+   * The restore lives in the CLEANUP, like the palette's: there is never a
+   * render of this component with "dismissed" state to react to — the owner
+   * unmounts the whole overlay the instant `onDismiss` flips it, and unmount
+   * cleanup is the one thing React guarantees. Moving focus into a card and then
+   * dropping it on `<body>` is its own keyboard trap.
+   */
+  useEffect(
+    () => () => {
+      // Only if it is still in the document: focusing a detached node just
+      // drops focus again.
+      if (restoreFocus.current && previousFocus?.isConnected) previousFocus.focus();
+    },
+    [previousFocus],
+  );
+
+  /**
+   * Escape out, and Tab round.
+   *
+   * On `document` rather than the card, so Escape works even if something moved
+   * focus back out — the same reason the pending surface listens on `window`.
+   */
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const card = cardRef.current;
+      if (!card) return;
+
+      if (event.key === 'Escape') {
+        dismiss();
+        return;
       }
-    : undefined;
+      if (event.key !== 'Tab') return;
+
+      const focusable = card.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusable.length === 0) return;
+
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement;
+
+      // Focus escaped the card entirely (or never got in) — the scrim blocks
+      // every pointer route to the page behind, so Tab must not be a way there.
+      if (!(active instanceof HTMLElement) || !card.contains(active)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+
+      // Wrap at the ends. In between, the browser's own tab order is already
+      // correct and inside the card, so leave it alone.
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [dismiss]);
 
   return (
-    <DialogPrimitive.Root
-      open
-      // `open` is a constant: this surface exists only while the boundary is in
-      // its fallback, so what makes it go away is the OWNER's state, never
-      // Radix's. Escape and the close control both route through `onDismiss` —
-      // and without one there is nothing to flip, so they do nothing rather
-      // than pretending to close (same contract as the pending surface).
-      onOpenChange={(next) => {
-        if (!next) dismiss?.();
-      }}
-    >
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className={SCRIM_CLASS}>
-          <DialogPrimitive.Content
-            // Radix's Content is a plain `role="dialog"` and sets no
-            // `aria-modal`; both are spread-after-defaults, so these keep the
-            // semantics this card always claimed. The difference is that they
-            // are now TRUE: Radix's FocusScope moves focus to Retry on mount and
-            // traps Tab, and its DismissableLayer handles Escape. Dropping the
-            // attributes was the other honest answer, but this card sits on a
-            // `fixed inset-0` scrim that blocks every pointer route to the page
-            // behind it — so a screen-reader user must not be able to browse out
-            // to content nobody else can reach. It IS a modal (unlike
-            // AppearanceDialog, which has no scrim and says `aria-modal="false"`
-            // for exactly that reason), so the claim is made true, not dropped.
-            role="alertdialog"
-            aria-modal="true"
-            data-testid={testId ?? 'lazy-overlay-error'}
-            // `data-slot="surface"` rather than a hardcoded shadow: the elevation
-            // axis owns depth, so this card goes flat/soft/lifted with the theme
-            // instead of pinning one depth the Appearance picker cannot change.
-            data-slot="surface"
-            className="bg-background flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-6 text-center outline-none"
-            // A failed chunk is a decision — Retry or Close. A stray click on
-            // the scrim must not answer it, which is also how this card behaved
-            // before it became a real dialog.
-            onPointerDownOutside={(event) => event.preventDefault()}
-            onInteractOutside={(event) => event.preventDefault()}
-            // Radix's modal default hands focus back to a `Dialog.Trigger`;
-            // there is none here, so it would drop focus on <body>. Moving focus
-            // in without ever handing it back is its own keyboard trap.
-            onCloseAutoFocus={(event) => {
-              event.preventDefault();
-              if (restoreFocus.current && previousFocus?.isConnected) {
-                previousFocus.focus();
-              }
-            }}
+    <OverlayScrim>
+      <div
+        ref={cardRef}
+        // The semantics this card always claimed — and they are now TRUE: the
+        // effects above move focus to Retry on mount, trap Tab, and handle
+        // Escape. Dropping the attributes was the other honest answer, but this
+        // card sits on a `fixed inset-0` scrim that blocks every pointer route
+        // to the page behind it — so a screen-reader user must not be able to
+        // browse out to content nobody else can reach. It IS a modal (unlike
+        // AppearanceDialog, which has no scrim and says `aria-modal="false"` for
+        // exactly that reason), so the claim is made true, not dropped.
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        data-testid={testId ?? 'lazy-overlay-error'}
+        // `data-slot="surface"` rather than a hardcoded depth utility: the
+        // elevation axis owns depth, so this card goes flat/soft/lifted with the
+        // theme instead of pinning one depth the Appearance picker cannot change.
+        data-slot="surface"
+        className="bg-background flex w-full max-w-sm flex-col items-center gap-3 rounded-xl border p-6 text-center outline-none"
+      >
+        {/* A failed chunk is a decision — Retry or Close. Nothing here answers it
+            on a stray scrim click, which is also how this card behaved before it
+            became a real dialog: there is no outside-click dismissal to opt out
+            of once Radix's dismissable layer is gone. */}
+        <AlertTriangle className="text-muted-foreground size-7" aria-hidden="true" />
+        <div>
+          <h2 id={titleId} className="text-sm font-medium">
+            {t(ERRORS_KEYS.widget.unavailable, { title })}
+          </h2>
+          <p id={descriptionId} className="text-muted-foreground mt-1 text-xs">
+            {t(ERRORS_KEYS.widget.message)}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onRetry}
+            data-testid="lazy-overlay-retry"
           >
-            <AlertTriangle className="text-muted-foreground size-7" aria-hidden="true" />
-            <div>
-              {/* Title/Description rather than an `aria-label`: Radix names the
-                  dialog from them, so the accessible name is the same string as
-                  before, and the message becomes the description instead of
-                  unannounced body text. */}
-              <DialogPrimitive.Title className="text-sm font-medium">
-                {t(ERRORS_KEYS.widget.unavailable, { title })}
-              </DialogPrimitive.Title>
-              <DialogPrimitive.Description className="text-muted-foreground mt-1 text-xs">
-                {t(ERRORS_KEYS.widget.message)}
-              </DialogPrimitive.Description>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onRetry}
-                data-testid="lazy-overlay-retry"
-              >
-                {t(ERRORS_KEYS.widget.retry)}
-              </Button>
-              {onDismiss ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={dismiss}
-                  data-testid="lazy-overlay-dismiss"
-                >
-                  {tLocale(LOCALE_KEYS.closeAria)}
-                </Button>
-              ) : null}
-            </div>
-          </DialogPrimitive.Content>
-        </DialogPrimitive.Overlay>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+            {t(ERRORS_KEYS.widget.retry)}
+          </Button>
+          {onDismiss ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={dismiss}
+              data-testid="lazy-overlay-dismiss"
+            >
+              {tLocale(LOCALE_KEYS.closeAria)}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </OverlayScrim>
   );
 }
 

@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~609 src files · ~337 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
+Stats: ~609 src files · ~339 tests in src/ · 39 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -677,7 +677,7 @@ core-fe/
 │   │   │   ├── session-lifetime.ts
 │   │   │   ├── token.ts
 │   │   │   ├── types.ts
-│   │   │   └── [10 test files]
+│   │   │   └── [11 test files]
 │   │   ├── billing/
 │   │   │   ├── load-stripe.ts
 │   │   │   ├── stripe-config.ts
@@ -1091,7 +1091,7 @@ core-fe/
 │   │   │   │   │   │   ├── AuthSocialMethods.tsx
 │   │   │   │   │   │   ├── index.ts
 │   │   │   │   │   │   ├── ProviderIcon.tsx
-│   │   │   │   │   │   └── [1 test file]
+│   │   │   │   │   │   └── [2 test files]
 │   │   │   │   │   ├── AuthWelcomeHeader/
 │   │   │   │   │   │   ├── AuthWelcomeHeader.tsx
 │   │   │   │   │   │   ├── index.ts
