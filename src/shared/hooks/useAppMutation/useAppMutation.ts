@@ -96,7 +96,8 @@ function serializeVars(value: unknown, path: Set<object>): string {
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   // function / symbol / bigint — no faithful text form.
   if (typeof value !== 'object') throw new TypeError(`unkeyable ${typeof value}`);
-  return serializeObjectVars(value as object, path);
+  // No cast: the throw above narrows `value` to a non-null object already.
+  return serializeObjectVars(value, path);
 }
 
 /** Arrays and objects, with cycle detection along the current path. */
