@@ -29,9 +29,11 @@ describe('signInWithPasskey', () => {
   it('does not prompt the user when the flow cannot complete', async () => {
     getMock.mockResolvedValue({ id: 'pk_mock' });
 
+    // 501 is what distinguishes "we have not wired this yet" from "your browser
+    // cannot do it" (400) — they share a code, and the message is now that code.
     await expect(signInWithPasskey()).rejects.toMatchObject({
       code: 'AUTH_PASSKEY_UNAVAILABLE',
-      message: 'Passkey sign-in is not available yet.',
+      statusCode: 501,
     });
     expect(getMock).not.toHaveBeenCalled();
   });
@@ -41,7 +43,7 @@ describe('signInWithPasskey', () => {
 
     await expect(signInWithPasskey()).rejects.toMatchObject({
       code: 'AUTH_PASSKEY_UNAVAILABLE',
-      message: 'Passkeys are not supported in this browser.',
+      statusCode: 400,
     });
     expect(getMock).not.toHaveBeenCalled();
   });

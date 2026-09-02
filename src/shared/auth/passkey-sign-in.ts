@@ -22,12 +22,21 @@ export function isPasskeySignInAvailable(): boolean {
 
 function assertPasskeySupported(): void {
   if (typeof window === 'undefined' || !window.PublicKeyCredential) {
-    // Args are (message, statusCode, code). These were previously passed in the
-    // wrong order, so the thrown `code` was the human sentence and never matched
-    // CODE_TO_AUTH_KEY — an unsupported browser fell through to the generic
-    // message instead of its own.
+    /*
+     * Args are (message, statusCode, code). These were previously passed in the
+     * wrong order, so the thrown `code` was the human sentence and never matched
+     * CODE_TO_AUTH_KEY — an unsupported browser fell through to the generic
+     * message instead of its own.
+     *
+     * The message is the CODE, not an English sentence, matching the four other
+     * AppError sites. `resolveKnownFrontendError` resolves by `code` first and
+     * this code IS mapped, so the message was already shadowed for display — an
+     * English string here could only ever drift from the locale copy it can
+     * never replace. `statusCode` is what separates this from the not-yet-wired
+     * case below, and it is what the tests assert on.
+     */
     throw new AppError(
-      'Passkeys are not supported in this browser.',
+      FRONTEND_ERROR_CODES.AUTH_PASSKEY_UNAVAILABLE,
       400,
       FRONTEND_ERROR_CODES.AUTH_PASSKEY_UNAVAILABLE,
     );
@@ -47,8 +56,10 @@ export async function signInWithPasskey(): Promise<void> {
   // was then told the passkey was "cancelled" — the product's own gap reported
   // as the user's action (LOGIN-7). If it cannot complete, never prompt.
   if (!isPasskeySignInAvailable()) {
+    // 501, not 400: the same code as an unsupported browser, but the gap is
+    // ours rather than the user's — the status is what tells them apart.
     throw new AppError(
-      'Passkey sign-in is not available yet.',
+      FRONTEND_ERROR_CODES.AUTH_PASSKEY_UNAVAILABLE,
       501,
       FRONTEND_ERROR_CODES.AUTH_PASSKEY_UNAVAILABLE,
     );
@@ -67,7 +78,7 @@ export async function signInWithPasskey(): Promise<void> {
   // user dismissing the OS prompt, so this is the one honest "cancelled".
   if (!credential) {
     throw new AppError(
-      'Passkey sign-in was cancelled.',
+      FRONTEND_ERROR_CODES.AUTH_PASSKEY_CANCELLED,
       400,
       FRONTEND_ERROR_CODES.AUTH_PASSKEY_CANCELLED,
     );

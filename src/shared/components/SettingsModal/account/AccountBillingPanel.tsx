@@ -301,7 +301,10 @@ function BillingContent({ sub, plans }: BillingContentProps) {
           <CardContent>
             {/* Stripe Elements is third-party and mounts an iframe: a throw in
                 there must cost the payment card, not the billing panel. */}
-            <SectionErrorBoundary title="Payment" testId="billing-payment-form-error">
+            <SectionErrorBoundary
+              title={i18n.t(ERRORS_KEYS.widget.payment, { ns: ERRORS_NS })}
+              testId="billing-payment-form-error"
+            >
               <StripePaymentForm
                 clientSecret={paymentClientSecret}
                 intent="payment"
@@ -379,7 +382,10 @@ function BillingContent({ sub, plans }: BillingContentProps) {
       {sub ? (
         // Ending a subscription is its own failure domain: a throw here must not
         // take the plan grid and the invoice history with it.
-        <SectionErrorBoundary title="Cancellation" testId="billing-cancellation-error">
+        <SectionErrorBoundary
+          title={i18n.t(ERRORS_KEYS.widget.cancellation, { ns: ERRORS_NS })}
+          testId="billing-cancellation-error"
+        >
           <BillingCancellationSection subscription={sub} canManage={canManage} />
         </SectionErrorBoundary>
       ) : null}

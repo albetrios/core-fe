@@ -35,7 +35,11 @@
     "schedule": "日程",
     "highlights": "精选",
     "themeShowcase": "主题展示",
-    "sessionTimeout": "会话计时器"
+    "sessionTimeout": "会话计时器",
+    "securityCheck": "安全检查",
+    "appearanceControls": "外观控件",
+    "payment": "付款",
+    "cancellation": "取消订阅"
   },
   "toast": {
     "dismiss": "关闭通知",

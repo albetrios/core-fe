@@ -35,7 +35,11 @@
     "schedule": "Zeitplan",
     "highlights": "Highlights",
     "themeShowcase": "Theme-Vorschau",
-    "sessionTimeout": "Sitzungs-Timer"
+    "sessionTimeout": "Sitzungs-Timer",
+    "securityCheck": "Sicherheitsprüfung",
+    "appearanceControls": "Darstellungsoptionen",
+    "payment": "Zahlung",
+    "cancellation": "Kündigung"
   },
   "toast": {
     "dismiss": "Benachrichtigung schließen",

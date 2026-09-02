@@ -35,7 +35,11 @@
     "schedule": "शेड्यूल",
     "highlights": "मुख्य बातें",
     "themeShowcase": "थीम शोकेस",
-    "sessionTimeout": "सत्र टाइमर"
+    "sessionTimeout": "सत्र टाइमर",
+    "securityCheck": "सुरक्षा जाँच",
+    "appearanceControls": "दिखावट नियंत्रण",
+    "payment": "भुगतान",
+    "cancellation": "रद्दीकरण"
   },
   "toast": {
     "dismiss": "सूचना खारिज करें",

@@ -22,6 +22,8 @@ import { requireOnboardingWorkspace } from '@/app/guards/route-guards.ts';
 import { redirectIfAuthenticated, requireAuth } from '@/core/rbac/guards.ts';
 import { toGateContext } from '@/core/security/gate-context.ts';
 import { gatewayFromManifest } from '@/core/security/gateway.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import i18n from '@/lib/i18n/i18n.ts';
 import {
   APP_DESCRIPTION,
   APP_TITLE,
@@ -144,7 +146,10 @@ const rootRoute = createRootRoute({
           a throw in here reached the global fallback and replaced the entire
           app. Silent, because an overlay has nowhere in the layout to put an
           error card — the dialog just is not there, and the throw is reported. */}
-      <SectionErrorBoundary title="Appearance" variant="silent">
+      <SectionErrorBoundary
+        title={i18n.t(ERRORS_KEYS.widget.appearance, { ns: ERRORS_NS })}
+        variant="silent"
+      >
         <AppearanceDialogLazy />
       </SectionErrorBoundary>
       {/* Dedicated Language & region dialog — mirrors Appearance, opened via useUIStore. */}

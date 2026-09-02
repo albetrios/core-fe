@@ -50,6 +50,8 @@ function GlobalErrorFallback({
 }
 
 export default function App() {
+  const { t } = useTranslation(ERRORS_NS);
+
   return (
     <AppProviders>
       <ErrorBoundary
@@ -65,7 +67,10 @@ export default function App() {
             boundary a throw inside it reaches the GLOBAL fallback and replaces
             the entire application. Contained, the captcha degrades and the auth
             forms fall back to their existing captcha-gate notice. */}
-        <SectionErrorBoundary title="Security check" testId="captcha-widget-error">
+        <SectionErrorBoundary
+          title={t(ERRORS_KEYS.widget.securityCheck)}
+          testId="captcha-widget-error"
+        >
           <InvisibleTurnstile />
         </SectionErrorBoundary>
         <Suspense fallback={<FullPageSpinner />}>

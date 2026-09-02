@@ -35,7 +35,11 @@
     "schedule": "الجدول",
     "highlights": "أبرز الميزات",
     "themeShowcase": "عرض السمة",
-    "sessionTimeout": "مؤقّت الجلسة"
+    "sessionTimeout": "مؤقّت الجلسة",
+    "securityCheck": "فحص الأمان",
+    "appearanceControls": "عناصر المظهر",
+    "payment": "الدفع",
+    "cancellation": "الإلغاء"
   },
   "toast": {
     "dismiss": "إغلاق الإشعار",

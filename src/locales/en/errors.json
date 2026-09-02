@@ -35,7 +35,11 @@
     "schedule": "Schedule",
     "highlights": "Highlights",
     "themeShowcase": "Theme showcase",
-    "sessionTimeout": "Session timer"
+    "sessionTimeout": "Session timer",
+    "securityCheck": "Security check",
+    "appearanceControls": "Appearance controls",
+    "payment": "Payment",
+    "cancellation": "Cancellation"
   },
   "toast": {
     "dismiss": "Dismiss notification",

@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next';
+
 import { platformConfig } from '@/core/config/env.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { FloatingSettingsButton } from '@/shared/components/FloatingSettingsButton/index.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
@@ -37,8 +40,13 @@ function FloatingEdgeControlsInner() {
  * rather than hand-rolling a second copy of the same decision.
  */
 export function FloatingEdgeControls() {
+  const { t } = useTranslation(ERRORS_NS);
+
   return (
-    <SectionErrorBoundary title="Appearance controls" variant="silent">
+    <SectionErrorBoundary
+      title={t(ERRORS_KEYS.widget.appearanceControls)}
+      variant="silent"
+    >
       <FloatingEdgeControlsInner />
     </SectionErrorBoundary>
   );

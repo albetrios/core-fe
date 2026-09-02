@@ -35,7 +35,11 @@
     "schedule": "Calendrier",
     "highlights": "Points forts",
     "themeShowcase": "Aperçu du thème",
-    "sessionTimeout": "Minuteur de session"
+    "sessionTimeout": "Minuteur de session",
+    "securityCheck": "Vérification de sécurité",
+    "appearanceControls": "Commandes d'apparence",
+    "payment": "Paiement",
+    "cancellation": "Annulation"
   },
   "toast": {
     "dismiss": "Fermer la notification",

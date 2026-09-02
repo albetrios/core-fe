@@ -35,7 +35,11 @@
     "schedule": "일정",
     "highlights": "하이라이트",
     "themeShowcase": "테마 쇼케이스",
-    "sessionTimeout": "세션 타이머"
+    "sessionTimeout": "세션 타이머",
+    "securityCheck": "보안 확인",
+    "appearanceControls": "모양 컨트롤",
+    "payment": "결제",
+    "cancellation": "해지"
   },
   "toast": {
     "dismiss": "알림 닫기",

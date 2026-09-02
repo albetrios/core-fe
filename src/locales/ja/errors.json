@@ -35,7 +35,11 @@
     "schedule": "スケジュール",
     "highlights": "ハイライト",
     "themeShowcase": "テーマショーケース",
-    "sessionTimeout": "セッションタイマー"
+    "sessionTimeout": "セッションタイマー",
+    "securityCheck": "セキュリティチェック",
+    "appearanceControls": "外観コントロール",
+    "payment": "お支払い",
+    "cancellation": "解約"
   },
   "toast": {
     "dismiss": "通知を閉じる",

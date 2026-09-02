@@ -35,7 +35,11 @@
     "schedule": "Agenda",
     "highlights": "Destaques",
     "themeShowcase": "Vitrine de temas",
-    "sessionTimeout": "Temporizador de sessão"
+    "sessionTimeout": "Temporizador de sessão",
+    "securityCheck": "Verificação de segurança",
+    "appearanceControls": "Controles de aparência",
+    "payment": "Pagamento",
+    "cancellation": "Cancelamento"
   },
   "toast": {
     "dismiss": "Dispensar notificação",

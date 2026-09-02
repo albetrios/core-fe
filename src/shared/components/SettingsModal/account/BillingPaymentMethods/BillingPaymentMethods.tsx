@@ -171,7 +171,7 @@ export function BillingPaymentMethods({
           // Stripe Elements is third-party and mounts an iframe: a throw in
           // there costs the card form, not the whole billing panel.
           <SectionErrorBoundary
-            title="Payment method"
+            title={i18n.t(ERRORS_KEYS.widget.payment, { ns: ERRORS_NS })}
             testId="billing-payment-form-error"
           >
             <StripePaymentForm

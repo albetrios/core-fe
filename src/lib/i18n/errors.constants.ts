@@ -46,6 +46,10 @@ export const ERRORS_KEYS = {
     highlights: 'widget.highlights',
     themeShowcase: 'widget.themeShowcase',
     sessionTimeout: 'widget.sessionTimeout',
+    securityCheck: 'widget.securityCheck',
+    appearanceControls: 'widget.appearanceControls',
+    payment: 'widget.payment',
+    cancellation: 'widget.cancellation',
   },
   toast: {
     dismiss: 'toast.dismiss',
