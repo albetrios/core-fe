@@ -21,7 +21,7 @@
     "integrations": "Integrationen"
   },
   "security": {
-    "loadFailed": "Deine Sicherheitseinstellungen konnten nicht geladen werden. Bitte versuche es erneut.",
+    "loadFailed": "Ihre Sicherheitseinstellungen konnten nicht geladen werden. Bitte erneut versuchen.",
     "heading": "Sicherheit",
     "description": "Zwei-Faktor-Authentifizierung und Passkeys.",
     "mfa": {
@@ -100,7 +100,7 @@
       "verifying": "Wird geprüft…",
       "invalid": "Das stimmte nicht. Bitte erneut versuchen.",
       "passwordRequired": "Diese Aktion erfordert Ihr Passwort oder einen Authenticator-Code.",
-      "sendFailed": "Der Code konnte nicht gesendet werden. Bitte versuche es erneut."
+      "sendFailed": "Der Code konnte nicht gesendet werden. Bitte erneut versuchen."
     }
   },
   "discard": {
@@ -108,6 +108,9 @@
     "description": "Sie haben ungespeicherte Änderungen. Beim Verlassen dieses Bereichs gehen sie verloren.",
     "stay": "Weiter bearbeiten",
     "leave": "Änderungen verwerfen"
+  },
+  "dialog": {
+    "title": "Einstellungen"
   },
   "panels": {
     "members": {
@@ -130,7 +133,9 @@
       "removeConfirm": "Entfernen",
       "removePending": "{{name}} wird entfernt…",
       "emailPlaceholder": "kollege@firma.com",
-      "rolePlaceholder": "Rolle auswählen"
+      "rolePlaceholder": "Rolle auswählen",
+      "invite": "Mitglied einladen",
+      "memberFallback": "dieses Mitglied"
     },
     "roles": {
       "title": "Rollen",
@@ -153,7 +158,9 @@
       "deleteConfirm": "Löschen",
       "deletePending": "{{name}} wird gelöscht…",
       "namePlaceholder": "z. B. Mitglied",
-      "descriptionPlaceholder": "Was darf diese Rolle tun?"
+      "descriptionPlaceholder": "Was darf diese Rolle tun?",
+      "create": "Neue Rolle",
+      "roleFallback": "diese Rolle"
     },
     "listSort": {
       "label": "Sortieren nach",
@@ -179,17 +186,75 @@
       "deleteTitle": "Ihr Konto löschen?",
       "deleteDescription": "Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden. Alle Ihre Daten werden entfernt.",
       "deleteConfirm": "Konto löschen",
-      "deleteCancel": "Abbrechen"
+      "deleteCancel": "Abbrechen",
+      "title": "Konto",
+      "description": "Kontodaten und unwiderrufliche Aktionen.",
+      "infoTitle": "Kontoinformationen",
+      "infoDescription": "Details zu Ihrem Konto.",
+      "accountIdLabel": "Konto-ID",
+      "emailLabel": "E-Mail",
+      "roleLabel": "Rolle",
+      "emailVerifiedLabel": "E-Mail bestätigt",
+      "verified": "Bestätigt",
+      "dangerZone": "Gefahrenzone",
+      "dangerZoneDescription": "Unwiderrufliche Aktionen für Ihr Konto.",
+      "deleteHeading": "Konto löschen",
+      "deleteBody": "Löschen Sie Ihr Konto und alle zugehörigen Daten dauerhaft.",
+      "deleteAction": "Konto löschen"
     },
     "general": {
       "namePlaceholder": "Acme Inc.",
       "title": "Organisation · Allgemein",
       "description": "Die Identität Ihrer Organisation auf der Plattform.",
-      "loadFailed": "Organisationsdetails konnten nicht geladen werden."
+      "loadFailed": "Organisationsdetails konnten nicht geladen werden.",
+      "basicsTitle": "Grunddaten",
+      "basicsDescription": "Diese erscheinen im Organisationswechsler, in Einladungen und in E-Mail-Belegen.",
+      "nameLabel": "Name der Organisation",
+      "slugLabel": "Slug",
+      "slugHint": "Wird in URLs und API-Pfaden verwendet. Wenden Sie sich an den Support, um ihn zu ändern.",
+      "save": "Änderungen speichern",
+      "logoTitle": "Logo",
+      "logoDescription": "Wird im Organisationswechsler und in Einladungen angezeigt. Quadratische Bilder wirken am besten.",
+      "logoAlt": "Logo von {{name}}",
+      "logoAltFallback": "Logo der Organisation",
+      "uploadLogo": "Logo hochladen",
+      "uploading": "Wird hochgeladen…",
+      "removeLogo": "Entfernen",
+      "logoReadOnly": "Nur Administratoren der Organisation können das Logo ändern."
     },
     "integrations": {
       "searchPlaceholder": "API-Schlüssel suchen…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "Integrationen",
+      "description": "API-Schlüssel und Webhooks.",
+      "apiKeysTitle": "API-Schlüssel",
+      "apiKeysLoadFailed": "API-Schlüssel konnten nicht geladen werden. Bitte erneut versuchen.",
+      "apiKeysEmptyTitle": "Keine API-Schlüssel",
+      "apiKeysEmptyDescription": "Mit API-Schlüsseln können externe Dienste mit Ihrer Organisation kommunizieren.",
+      "apiKeysNoResults": "Keine passenden API-Schlüssel",
+      "apiKeysNoResultsDescription": "Keine API-Schlüssel entsprechen Ihrer Suche.",
+      "apiKeyFallback": "diesen API-Schlüssel",
+      "revokeAria": "{{name}} widerrufen",
+      "revokeTitle": "{{name}} widerrufen?",
+      "revokeDescription": "Jeder Dienst, der diesen Schlüssel verwendet, verliert sofort den Zugriff. Das lässt sich nicht rückgängig machen.",
+      "revokeConfirm": "Widerrufen",
+      "loadMore": "Mehr laden",
+      "webhooksTitle": "Webhooks",
+      "webhooksLoadFailed": "Webhooks konnten nicht geladen werden. Bitte erneut versuchen.",
+      "webhooksEmptyTitle": "Keine Webhooks",
+      "webhooksEmptyDescription": "Senden Sie Organisationsereignisse an eine externe URL.",
+      "addWebhook": "Webhook hinzufügen",
+      "addWebhookTitle": "Webhook hinzufügen",
+      "addWebhookDescription": "Wir senden die ausgewählten Ereignisse per POST an diese URL.",
+      "payloadUrlLabel": "Payload-URL",
+      "eventsLabel": "Ereignisse",
+      "cancel": "Abbrechen",
+      "createWebhook": "Webhook erstellen",
+      "creating": "Wird erstellt…",
+      "deleteWebhookAria": "Webhook {{url}} löschen",
+      "deleteWebhookTitle": "Diesen Webhook löschen?",
+      "deleteWebhookDescription": "An diese URL werden keine Ereignisse mehr gesendet. Das lässt sich nicht rückgängig machen.",
+      "deleteConfirm": "Löschen"
     },
     "notifications": {
       "title": "Benachrichtigungen",
@@ -230,6 +295,70 @@
       "revokeDescription": "{{device}} wird sofort abgemeldet.",
       "revokeConfirm": "Abmelden",
       "deviceFallback": "Dieses Gerät"
+    },
+    "billing": {
+      "title": "Abrechnung",
+      "description": "Ihr Tarif, Ihre Zahlungsmethoden und Rechnungen.",
+      "loadFailed": "Abrechnung konnte nicht geladen werden. Bitte erneut versuchen.",
+      "plansLoadFailed": "Tarife konnten nicht geladen werden. Bitte erneut versuchen.",
+      "planHeading": "Tarif {{name}}",
+      "noPlan": "Kein Tarif",
+      "noSubscription": "Noch kein aktives Abo. Wählen Sie unten einen Tarif.",
+      "summary": "{{used}} von {{total}} Plätzen belegt · Verlängerung am {{date}}",
+      "billedMonthly": "Monatliche Abrechnung",
+      "billedYearly": "Jährliche Abrechnung",
+      "pricePerMonth": "{{price}} / Mon.",
+      "pricePerYear": "{{price}} / Jahr",
+      "planFallbackDescription": "Abrechnungstarif für den Workspace.",
+      "currentPlan": "Aktueller Tarif",
+      "switchTo": "Zu {{name}} wechseln",
+      "choose": "{{name}} wählen",
+      "switching": "Wird gewechselt…",
+      "completePaymentTitle": "Zahlung abschließen",
+      "completePaymentDescription": "Bestätigen Sie Ihre Zahlungsmethode, um das Abo zu aktivieren. Sie bleiben in der App – Stripe öffnet nur dann einen gesicherten Schritt, wenn Ihre Bank eine Bestätigung verlangt.",
+      "changePlanTitle": "Tarif wechseln",
+      "changePlanDescription": "Vergleichen Sie die Tarife und wechseln Sie, wenn Ihr Team so weit ist.",
+      "cycleLegend": "Abrechnungszeitraum",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich",
+      "paymentMethods": {
+        "title": "Zahlungsmethoden",
+        "description": "Karten für Abo-Verlängerungen. Sicher in der App über Stripe verwaltet.",
+        "loadFailed": "Zahlungsmethoden konnten nicht geladen werden. Bitte erneut versuchen.",
+        "empty": "Noch keine Zahlungsmethoden hinterlegt.",
+        "add": "Zahlungsmethode hinzufügen",
+        "adding": "Wird geladen…",
+        "cardFallback": "Karte",
+        "expires": "Gültig bis {{month}}/{{year}}",
+        "defaultBadge": "Standard"
+      },
+      "invoices": {
+        "title": "Rechnungen",
+        "description": "Datum, Fälligkeit, Betrag und Status von Ihrem Abrechnungsanbieter.",
+        "loadFailed": "Rechnungen konnten nicht geladen werden. Bitte erneut versuchen.",
+        "empty": "Noch keine Rechnungen.",
+        "view": "Rechnung ansehen",
+        "columns": {
+          "date": "Datum",
+          "due": "Fällig",
+          "total": "Gesamt",
+          "status": "Status",
+          "actions": "Aktionen"
+        }
+      },
+      "cancellation": {
+        "title": "Kündigung",
+        "endsOn": "Ihr Abo endet am {{date}}. Bis dahin behalten Sie den Zugriff.",
+        "cancelAnytime": "Jederzeit kündbar – der Zugriff läuft bis zum {{date}} weiter.",
+        "resume": "Abo fortsetzen",
+        "resuming": "Wird fortgesetzt…",
+        "cancelAction": "Zum Periodenende kündigen",
+        "confirmTitle": "Abo kündigen?",
+        "confirmDescription": "Ihr Workspace behält bis zum {{date}} vollen Zugriff. Danach endet das Abo und kostenpflichtige Funktionen können eingeschränkt werden.",
+        "keep": "Abo behalten",
+        "confirm": "Kündigung bestätigen",
+        "cancelling": "Wird gekündigt…"
+      }
     }
   }
 }

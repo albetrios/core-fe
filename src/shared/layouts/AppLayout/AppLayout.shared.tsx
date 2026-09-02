@@ -380,11 +380,46 @@ export function MobileNav({
  * mounts a different node — the browser has nothing to restore and the user is
  * thrown back to the top of a page they were reading (SHELL-1). Module scope,
  * not state: it must outlive the component that is being replaced.
+ *
+ * Outliving the component also meant outliving the SESSION. Signing out and
+ * signing back in as somebody else left the fresh session being chase-scrolled
+ * to the previous user's offset for the whole restore window below, on a page
+ * they had never scrolled. A logout now clears it — see
+ * {@link bindScrollResetToSession}.
  */
 let lastMainScrollTop = 0;
 
 /** How long a restore keeps chasing content that is still rendering in. */
 const SCROLL_RESTORE_WINDOW_MS = 1500;
+
+let scrollResetBound = false;
+
+/**
+ * Drop the carried offset when the session ends.
+ *
+ * Every local logout path — the user menu, a dead/expired session, the
+ * cross-tab logout broadcast — funnels through the auth service's
+ * `clearLocalAuthState()`, and its one effect observable from here is
+ * `useAuthStore.clearAuth()`. Watching that one transition therefore covers all
+ * of them without this shell having to know about any of them, and follows the
+ * store-subscription pattern already used for auth transitions in
+ * `shared/icons/icon-registry.ts`.
+ *
+ * Bound once from the first `AppMain` mount and deliberately never unbound. The
+ * offset it guards cannot be non-zero unless `AppMain` has mounted, so binding
+ * on mount misses nothing; keeping the subscription alive afterwards is what
+ * makes it correct, because the logout it has to hear is usually the same event
+ * that unmounts `AppMain` (a subscription owned by the effect would be torn
+ * down in that same teardown), and a cross-tab logout can arrive while this tab
+ * already sits on `/login` with no shell mounted at all.
+ */
+function bindScrollResetToSession(): void {
+  if (scrollResetBound) return;
+  scrollResetBound = true;
+  useAuthStore.subscribe((state, prev) => {
+    if (prev.isAuthenticated && !state.isAuthenticated) lastMainScrollTop = 0;
+  });
+}
 
 /** The scrolling content region (email banner + routed page). */
 export function AppMain() {
@@ -397,6 +432,7 @@ export function AppMain() {
   );
 
   useEffect(() => {
+    bindScrollResetToSession();
     const el = mainRef.current;
     if (!el) return;
     const target = lastMainScrollTop;

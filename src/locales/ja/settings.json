@@ -109,6 +109,9 @@
     "stay": "編集を続ける",
     "leave": "変更を破棄"
   },
+  "dialog": {
+    "title": "設定"
+  },
   "panels": {
     "members": {
       "title": "メンバー",
@@ -130,7 +133,9 @@
       "removeConfirm": "削除",
       "removePending": "{{name}} を削除中…",
       "emailPlaceholder": "member@example.com",
-      "rolePlaceholder": "ロールを選択"
+      "rolePlaceholder": "ロールを選択",
+      "invite": "メンバーを招待",
+      "memberFallback": "このメンバー"
     },
     "roles": {
       "title": "ロール",
@@ -153,7 +158,9 @@
       "deleteConfirm": "削除",
       "deletePending": "{{name}} を削除中…",
       "namePlaceholder": "例: メンバー",
-      "descriptionPlaceholder": "このロールで何ができますか？"
+      "descriptionPlaceholder": "このロールで何ができますか？",
+      "create": "新しいロール",
+      "roleFallback": "このロール"
     },
     "listSort": {
       "label": "並び替え",
@@ -179,17 +186,75 @@
       "deleteTitle": "アカウントを削除しますか？",
       "deleteDescription": "この操作は永続的で元に戻せません。すべてのデータが削除されます。",
       "deleteConfirm": "アカウントを削除",
-      "deleteCancel": "キャンセル"
+      "deleteCancel": "キャンセル",
+      "title": "アカウント",
+      "description": "アカウント情報と取り消せない操作。",
+      "infoTitle": "アカウント情報",
+      "infoDescription": "アカウントの詳細。",
+      "accountIdLabel": "アカウント ID",
+      "emailLabel": "メールアドレス",
+      "roleLabel": "ロール",
+      "emailVerifiedLabel": "メール確認済み",
+      "verified": "確認済み",
+      "dangerZone": "危険な操作",
+      "dangerZoneDescription": "アカウントに対する取り消せない操作。",
+      "deleteHeading": "アカウントを削除",
+      "deleteBody": "アカウントと関連するすべてのデータを完全に削除します。",
+      "deleteAction": "アカウントを削除"
     },
     "general": {
       "namePlaceholder": "Acme Inc.",
       "title": "組織 · 一般",
       "description": "プラットフォーム全体での組織の表示情報。",
-      "loadFailed": "組織情報を読み込めませんでした。"
+      "loadFailed": "組織情報を読み込めませんでした。",
+      "basicsTitle": "基本情報",
+      "basicsDescription": "組織切り替え、招待、メールの領収書に表示されます。",
+      "nameLabel": "組織名",
+      "slugLabel": "スラッグ",
+      "slugHint": "URL と API パスで使用されます。変更するにはサポートにご連絡ください。",
+      "save": "変更を保存",
+      "logoTitle": "ロゴ",
+      "logoDescription": "組織切り替えと招待に表示されます。正方形の画像が最適です。",
+      "logoAlt": "{{name}} のロゴ",
+      "logoAltFallback": "組織のロゴ",
+      "uploadLogo": "ロゴをアップロード",
+      "uploading": "アップロード中…",
+      "removeLogo": "削除",
+      "logoReadOnly": "ロゴを変更できるのは組織の管理者のみです。"
     },
     "integrations": {
       "searchPlaceholder": "API キーを検索…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "連携",
+      "description": "API キーと Webhook。",
+      "apiKeysTitle": "API キー",
+      "apiKeysLoadFailed": "API キーを読み込めませんでした。もう一度お試しください。",
+      "apiKeysEmptyTitle": "API キーがありません",
+      "apiKeysEmptyDescription": "API キーを使うと外部サービスが組織と通信できます。",
+      "apiKeysNoResults": "一致する API キーがありません",
+      "apiKeysNoResultsDescription": "検索に一致する API キーがありません。",
+      "apiKeyFallback": "この API キー",
+      "revokeAria": "{{name}} を失効",
+      "revokeTitle": "{{name}} を失効しますか？",
+      "revokeDescription": "このキーを使用しているサービスはただちにアクセスできなくなります。元に戻せません。",
+      "revokeConfirm": "失効",
+      "loadMore": "さらに読み込む",
+      "webhooksTitle": "Webhook",
+      "webhooksLoadFailed": "Webhook を読み込めませんでした。もう一度お試しください。",
+      "webhooksEmptyTitle": "Webhook がありません",
+      "webhooksEmptyDescription": "組織のイベントを外部 URL に送信します。",
+      "addWebhook": "Webhook を追加",
+      "addWebhookTitle": "Webhook を追加",
+      "addWebhookDescription": "選択したイベントをこの URL に POST します。",
+      "payloadUrlLabel": "ペイロード URL",
+      "eventsLabel": "イベント",
+      "cancel": "キャンセル",
+      "createWebhook": "Webhook を作成",
+      "creating": "作成中…",
+      "deleteWebhookAria": "Webhook {{url}} を削除",
+      "deleteWebhookTitle": "この Webhook を削除しますか？",
+      "deleteWebhookDescription": "この URL へのイベント配信が停止します。元に戻せません。",
+      "deleteConfirm": "削除"
     },
     "notifications": {
       "title": "通知",
@@ -230,6 +295,70 @@
       "revokeDescription": "{{device}} はただちにサインアウトされます。",
       "revokeConfirm": "サインアウト",
       "deviceFallback": "このデバイス"
+    },
+    "billing": {
+      "title": "請求",
+      "description": "プラン、支払い方法、請求書。",
+      "loadFailed": "請求情報を読み込めませんでした。もう一度お試しください。",
+      "plansLoadFailed": "プランを読み込めませんでした。もう一度お試しください。",
+      "planHeading": "{{name}} プラン",
+      "noPlan": "プランなし",
+      "noSubscription": "有効なサブスクリプションがありません。下からプランを選んでください。",
+      "summary": "{{total}} 席中 {{used}} 席使用中 · {{date}} に更新",
+      "billedMonthly": "月払い",
+      "billedYearly": "年払い",
+      "pricePerMonth": "{{price}} / 月",
+      "pricePerYear": "{{price}} / 年",
+      "planFallbackDescription": "ワークスペースの請求プラン。",
+      "currentPlan": "現在のプラン",
+      "switchTo": "{{name}} に変更",
+      "choose": "{{name}} を選択",
+      "switching": "変更中…",
+      "completePaymentTitle": "支払いを完了",
+      "completePaymentDescription": "サブスクリプションを有効にするには支払い方法を確認してください。アプリ内で完結します — 銀行が確認を求める場合のみ Stripe が安全な手順を開きます。",
+      "changePlanTitle": "プランを変更",
+      "changePlanDescription": "プランを比較して、チームの準備ができたら変更しましょう。",
+      "cycleLegend": "請求サイクル",
+      "monthly": "月額",
+      "yearly": "年額",
+      "paymentMethods": {
+        "title": "支払い方法",
+        "description": "サブスクリプション更新に使うカード。Stripe を通じてアプリ内で安全に管理されます。",
+        "loadFailed": "支払い方法を読み込めませんでした。もう一度お試しください。",
+        "empty": "登録された支払い方法はまだありません。",
+        "add": "支払い方法を追加",
+        "adding": "読み込み中…",
+        "cardFallback": "カード",
+        "expires": "有効期限 {{month}}/{{year}}",
+        "defaultBadge": "既定"
+      },
+      "invoices": {
+        "title": "請求書",
+        "description": "請求プロバイダーからの日付、支払期日、金額、ステータス。",
+        "loadFailed": "請求書を読み込めませんでした。もう一度お試しください。",
+        "empty": "請求書はまだありません。",
+        "view": "請求書を表示",
+        "columns": {
+          "date": "日付",
+          "due": "支払期日",
+          "total": "合計",
+          "status": "ステータス",
+          "actions": "操作"
+        }
+      },
+      "cancellation": {
+        "title": "解約",
+        "endsOn": "サブスクリプションは {{date}} に終了します。それまでアクセスは維持されます。",
+        "cancelAnytime": "いつでも解約できます — アクセスは {{date}} まで続きます。",
+        "resume": "サブスクリプションを再開",
+        "resuming": "再開中…",
+        "cancelAction": "期間終了時に解約",
+        "confirmTitle": "サブスクリプションを解約しますか？",
+        "confirmDescription": "ワークスペースは {{date}} まで完全なアクセスを維持します。その後はサブスクリプションが終了し、有料機能が制限される場合があります。",
+        "keep": "解約しない",
+        "confirm": "解約を確定",
+        "cancelling": "解約中…"
+      }
     }
   }
 }

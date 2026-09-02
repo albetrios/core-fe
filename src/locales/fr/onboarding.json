@@ -93,6 +93,7 @@
     "invitesLabel": "Invitations",
     "emptyValue": "—",
     "invitesPending_one": "{{count}} en attente",
+    "invitesPending_many": "{{count}} en attente",
     "invitesPending_other": "{{count}} en attente"
   },
   "actions": {
@@ -109,10 +110,12 @@
   "toast": {
     "finishSuccess": "Bienvenue ! Votre espace de travail est prêt.",
     "finishSuccessWithInvites_one": "Bienvenue ! Votre espace est prêt — {{count}} invitation envoyée.",
+    "finishSuccessWithInvites_many": "Bienvenue ! Votre espace est prêt — {{count}} d'invitations envoyées.",
     "finishSuccessWithInvites_other": "Bienvenue ! Votre espace est prêt — {{count}} invitations envoyées.",
     "finishError": "Une erreur s'est produite lors de la finalisation. Veuillez réessayer.",
     "profileSaveFailed": "Nous n'avons pas pu enregistrer votre nom. Votre espace de travail est prêt — ajoutez-le dans les paramètres.",
     "invitePartialFailure_one": "Espace prêt — {{count}} invitation n'a pas pu être envoyée. Vous pouvez la renvoyer depuis Membres.",
+    "invitePartialFailure_many": "Espace prêt — {{count}} d'invitations n'ont pas pu être envoyées. Vous pouvez les renvoyer depuis Membres.",
     "invitePartialFailure_other": "Espace prêt — {{count}} invitations n'ont pas pu être envoyées. Vous pouvez les renvoyer depuis Membres."
   },
   "session": {

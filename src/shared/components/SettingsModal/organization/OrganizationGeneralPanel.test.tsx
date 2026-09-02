@@ -2,9 +2,17 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import i18n from '@/lib/i18n/i18n.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
+
+/** The panel's copy as the bundle renders it — never the English literal. */
+const copy = (key: string, lng = 'en') => i18n.t(key, { ns: SETTINGS_NS, lng });
 
 const { listMock, updateMock } = vi.hoisted(() => ({
   listMock: vi.fn(),
@@ -141,7 +149,7 @@ describe('OrganizationGeneralPanel', () => {
     // Still reading: the button says so, and cannot be pressed again.
     const upload = screen.getByTestId('org-logo-upload');
     expect(upload).toHaveAttribute('aria-busy', 'true');
-    expect(upload).toHaveTextContent(/uploading/i);
+    expect(upload).toHaveTextContent(copy(SETTINGS_KEYS.panels.general.uploading));
     expect(upload).toBeDisabled();
 
     await act(async () => readerCtl.finish?.());

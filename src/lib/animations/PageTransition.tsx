@@ -1,5 +1,5 @@
 import { useLocation } from '@tanstack/react-router';
-import { type ReactNode, useEffect, useRef } from 'react';
+import { type ReactNode, useLayoutEffect, useRef } from 'react';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -25,7 +25,25 @@ export function PageTransition({ children }: PageTransitionProps) {
   const { pathname } = useLocation();
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  /*
+   * Layout effect, not a passive one. `useEffect` runs AFTER the browser has
+   * painted, so the commit that swapped in the new route painted one frame with
+   * no animation class on the node: the page showed up at its resting position
+   * and then snapped back to the animation's first keyframe on the next frame.
+   * That one-frame snap is the route-change flicker.
+   *
+   * `useLayoutEffect` runs inside the same commit, before paint, so the first
+   * frame the user ever sees is already frame 0 of the animation.
+   *
+   * No isomorphic-layout-effect guard, and none exists in this repo to reuse:
+   * React only warns about `useLayoutEffect` while rendering on the server, and
+   * nothing here renders on the server — `main.tsx` is a client `createRoot`
+   * SPA with no `react-dom/server` anywhere, and the unit suite runs in jsdom,
+   * which is a DOM environment. Every other layout effect in the codebase is
+   * called bare for the same reason (`useOnboardingStepMotion`,
+   * `SettingsModal`, `SettingsModalLazy`).
+   */
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.classList.remove(ROUTE_ANIMATION_CLASS);

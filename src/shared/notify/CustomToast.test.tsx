@@ -37,6 +37,29 @@ describe('CustomToast', () => {
     expect(dismissMock).toHaveBeenCalledWith('t3');
   });
 
+  it('dismisses its OWN id right after running the inline action', async () => {
+    // The mechanism behind the deferred-commit bug: whatever the action does,
+    // the toast that carried it is torn down immediately afterwards. Anything
+    // the action writes back to THIS id therefore disappears with it — which is
+    // why `notifyDeferredCommit` gives its "Undone" toast an id of its own.
+    const user = userEvent.setup();
+    const order: string[] = [];
+    dismissMock.mockImplementation((id: string) => order.push(`dismiss:${id}`));
+    render(
+      <CustomToast
+        id="deferred-commit"
+        type="success"
+        title="Removing Jo…"
+        action={{ label: 'Undo', onClick: () => order.push('action') }}
+      />,
+    );
+
+    await user.click(screen.getByTestId('toast-action'));
+
+    expect(order).toEqual(['action', 'dismiss:deferred-commit']);
+    dismissMock.mockReset();
+  });
+
   it('renders a loading toast with a spinner', () => {
     render(<CustomToast id="t4" type="loading" title="Saving…" />);
     const el = screen.getByTestId('app-toast');

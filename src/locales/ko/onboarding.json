@@ -92,7 +92,6 @@
     "organizationLabel": "조직",
     "invitesLabel": "초대",
     "emptyValue": "—",
-    "invitesPending_one": "{{count}}건 대기",
     "invitesPending_other": "{{count}}건 대기"
   },
   "actions": {
@@ -108,11 +107,9 @@
   },
   "toast": {
     "finishSuccess": "환영합니다! 워크스페이스가 준비되었습니다.",
-    "finishSuccessWithInvites_one": "환영합니다! 워크스페이스가 준비되었습니다 — 초대 {{count}}건을 보냈습니다.",
     "finishSuccessWithInvites_other": "환영합니다! 워크스페이스가 준비되었습니다 — 초대 {{count}}건을 보냈습니다.",
     "finishError": "설정을 완료하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
     "profileSaveFailed": "이름을 저장하지 못했습니다. 워크스페이스는 준비되었습니다. 설정에서 추가하세요.",
-    "invitePartialFailure_one": "워크스페이스 준비 완료 — 초대 {{count}}건을 보내지 못했습니다. 멤버에서 다시 보낼 수 있습니다.",
     "invitePartialFailure_other": "워크스페이스 준비 완료 — 초대 {{count}}건을 보내지 못했습니다. 멤버에서 다시 보낼 수 있습니다."
   },
   "session": {

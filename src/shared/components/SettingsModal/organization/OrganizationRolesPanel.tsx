@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import i18n from '@/lib/i18n/i18n.ts';
 import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
 import { cn } from '@/lib/utils.ts';
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
+import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { CreateRoleDialog } from '@/shared/components/CreateRoleDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
@@ -28,9 +31,10 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
 import { useDeleteRole, useRoles } from '@/shared/hooks/useRoles/index.ts';
 import { MoreHorizontal, Plus, ShieldCheck } from '@/shared/icons/index.ts';
-import { notifyDeferredCommit } from '@/shared/notify/notify-deferred.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
   DEFAULT_ORG_LIST_SORT,
@@ -221,7 +225,15 @@ export function OrganizationRolesPanel() {
   // See the members panel: a `false` before the guard chain answers is "not yet",
   // not "not allowed" (SET-23).
   const accessResolved = useAccessResolved();
-  const deleteRole = useDeleteRole();
+  // See the members panel: the undo toast owns the message sequence, so the
+  // mutation must not confirm the same deletion a second time (SET-7).
+  const deleteRole = useDeleteRole({ suppressSuccessToast: true });
+  const organizationId = useOrganizationStore((s) => s.organizationId);
+  // Row leaves at schedule time; undo, a failed write, and an unmount inside
+  // the window all put it back. See the members panel for the full rationale.
+  const scheduleDeletion = useDeferredRowRemoval<RoleSummary>(
+    orgQueryKeys.roles(organizationId),
+  );
   const [toDelete, setToDelete] = useState<RoleSummary | null>(null);
   const [toEdit, setToEdit] = useState<RoleSummary | null>(null);
 
@@ -253,7 +265,7 @@ export function OrganizationRolesPanel() {
         {accessResolved ? null : (
           <Button size="sm" disabled data-testid="role-create-pending">
             <Plus className="me-2 h-4 w-4" />
-            New role
+            {t(panels.create)}
           </Button>
         )}
         {accessResolved && canManage ? <CreateRoleDialog /> : null}
@@ -273,7 +285,9 @@ export function OrganizationRolesPanel() {
         onOpenChange={(open) => {
           if (!open) setToDelete(null);
         }}
-        title={t(panels.deleteTitle, { name: toDelete?.name ?? 'role' })}
+        title={t(panels.deleteTitle, {
+          name: toDelete?.name ?? t(panels.roleFallback),
+        })}
         description={t(panels.deleteDescription)}
         confirmLabel={t(panels.deleteConfirm)}
         destructive
@@ -281,10 +295,16 @@ export function OrganizationRolesPanel() {
           if (!toDelete) return;
           const role = toDelete;
           setToDelete(null);
-          notifyDeferredCommit({
+          scheduleDeletion({
+            id: role.id,
             pendingMessage: t(panels.deletePending, { name: role.name }),
+            committedMessage: i18n.t(ERRORS_KEYS.frontend.hooks.roles.deleteSuccess, {
+              ns: ERRORS_NS,
+            }),
             toastId: `delete-role-${role.id}`,
-            onCommit: () => deleteRole.mutate(role.id),
+            // `mutateAsync`, never `mutate` — see the members panel: `mutate`
+            // returns void, so nothing was awaited and nothing could reject.
+            commit: () => deleteRole.mutateAsync(role.id),
           });
         }}
       />

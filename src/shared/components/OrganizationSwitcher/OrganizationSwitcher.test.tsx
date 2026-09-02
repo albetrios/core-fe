@@ -204,6 +204,62 @@ describe('OrganizationSwitcher', () => {
       expect(trigger).toHaveAttribute('aria-busy', 'true');
     });
 
+    it('holds the menu open for the round trip, then closes it once the switch lands', async () => {
+      /*
+       * The other half of the deliberate hold-open. `onSelect` calls
+       * `preventDefault()` so the menu survives the round trip and the pressed
+       * row can act as the progress indicator — but the menu was UNCONTROLLED,
+       * so nothing ever closed it again. Team → team is a param change on the
+       * `$organizationSlug` shell this control lives inside, which keeps the
+       * component mounted, so the menu hung open over the new dashboard.
+       *
+       * `useNavigate` is stubbed at module level ON PURPOSE (see the top of this
+       * file). A real navigation renders "Not Found" and unmounts the switcher,
+       * which would make this pass for the wrong reason — the menu would be gone
+       * only because the whole control was gone.
+       */
+      let settle: (() => void) | undefined;
+      switchToPersonalMock.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            settle = resolve;
+          }),
+      );
+
+      const user = userEvent.setup();
+      renderWithProviders(<OrganizationSwitcher />);
+      await user.click(await screen.findByTestId('organization-switcher-trigger'));
+      await user.click(
+        await screen.findByTestId('organization-switcher-option-personal'),
+      );
+
+      // STILL OPEN mid-flight — the SHELL-2 behaviour this must not regress.
+      // It also stops the assertion below passing for the trivial reason that
+      // the menu never opened in the first place.
+      expect(
+        await screen.findByTestId('organization-switcher-option-spinner'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId('organization-switcher-option-personal'),
+      ).toBeInTheDocument();
+
+      await act(async () => {
+        settle?.();
+        await Promise.resolve();
+      });
+
+      // ...and CLOSED once it settles. Nothing used to do this.
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('organization-switcher-option-personal'),
+        ).not.toBeInTheDocument(),
+      );
+      expect(screen.getByTestId('organization-switcher-trigger')).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+    });
+
     it('surfaces and reports a failed switch instead of swallowing it', async () => {
       switchToPersonalMock.mockRejectedValue(new Error('Switch failed'));
       const user = userEvent.setup();
@@ -253,7 +309,7 @@ describe('OrganizationSwitcher', () => {
      * route — so it stays mounted with the latch still armed and the user
      * cannot switch again without reloading.
      */
-    it('re-arms the menu after a SUCCESSFUL switch (the component stays mounted)', async () => {
+    it('re-arms the latch after a SUCCESSFUL switch (the component stays mounted)', async () => {
       /*
        * `useNavigate` is stubbed to a no-op ON PURPOSE. The harness router has
        * no /dashboard route, so a real navigation renders "Not Found" and tears
@@ -275,8 +331,13 @@ describe('OrganizationSwitcher', () => {
       await waitFor(() =>
         expect(screen.getByTestId('organization-switcher-trigger')).not.toBeDisabled(),
       );
-      // ...and a second, different switch still goes out.
-      await user.click(screen.getByTestId('organization-switcher-option-personal'));
+      // ...and a second, different switch still goes out. The menu has to be
+      // reopened first — unlike the failure path, a SUCCESSFUL switch closes it
+      // (the user is on the destination org; the menu would just cover it).
+      await user.click(screen.getByTestId('organization-switcher-trigger'));
+      await user.click(
+        await screen.findByTestId('organization-switcher-option-personal'),
+      );
       await waitFor(() => expect(switchToPersonalMock).toHaveBeenCalledTimes(2));
     });
 

@@ -1097,19 +1097,20 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 These Cursor rules are always loaded and do not need to be invoked:
 
-| Rule                  | File                                       | Purpose                                                                                                   |
-| --------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| project-conventions   | `agent-os/rules/project-conventions.mdc`   | Architecture, imports, state management                                                                   |
-| ui-sources            | `agent-os/rules/ui-sources.mdc`            | Allowed 20 shadcn UI sources; for all shadcn work read the single skill `agent-os/skills/shadcn/SKILL.md` |
-| file-structure        | `agent-os/rules/file-structure.mdc`        | Directory layout, route.tsx convention                                                                    |
-| testing-requirements  | `agent-os/rules/testing-requirements.mdc`  | Test generation auto-trigger, data-testid convention                                                      |
-| context7-libraries    | `agent-os/rules/context7-libraries.mdc`    | Library doc lookup via Context7 MCP                                                                       |
-| skill-router          | `agent-os/rules/skill-router.mdc`          | Auto-routes tasks to the right skill; complete all steps without asking                                   |
-| routing-tenancy-sync  | `agent-os/rules/routing-tenancy-sync.mdc`  | Org routes, guards, gateway — read routing-tenancy skill                                                  |
-| platform-hygiene-sync | `agent-os/rules/platform-hygiene-sync.mdc` | Env/platform config — read platform-hygiene skill                                                         |
-| pwa-manifest-sync     | `agent-os/rules/pwa-manifest-sync.mdc`     | PWA manifest/icon — read pwa-manifest skill                                                               |
-| env-schema-add-sync   | `agent-os/rules/env-schema-add-sync.mdc`   | Env schema / `.env.example` — read env-schema-add skill                                                   |
-| agent-behavior        | `agent-os/rules/agent-behavior.mdc`        | Complete tests, route reg, RBAC, docs without asking; never ask "Do you want X?"                          |
+| Rule                   | File                                        | Purpose                                                                                                   |
+| ---------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| project-conventions    | `agent-os/rules/project-conventions.mdc`    | Architecture, imports, state management                                                                   |
+| ui-sources             | `agent-os/rules/ui-sources.mdc`             | Allowed 20 shadcn UI sources; for all shadcn work read the single skill `agent-os/skills/shadcn/SKILL.md` |
+| file-structure         | `agent-os/rules/file-structure.mdc`         | Directory layout, route.tsx convention                                                                    |
+| testing-requirements   | `agent-os/rules/testing-requirements.mdc`   | Test generation auto-trigger, data-testid convention                                                      |
+| context7-libraries     | `agent-os/rules/context7-libraries.mdc`     | Library doc lookup via Context7 MCP                                                                       |
+| skill-router           | `agent-os/rules/skill-router.mdc`           | Auto-routes tasks to the right skill; complete all steps without asking                                   |
+| routing-tenancy-sync   | `agent-os/rules/routing-tenancy-sync.mdc`   | Org routes, guards, gateway — read routing-tenancy skill                                                  |
+| platform-hygiene-sync  | `agent-os/rules/platform-hygiene-sync.mdc`  | Env/platform config — read platform-hygiene skill                                                         |
+| pwa-manifest-sync      | `agent-os/rules/pwa-manifest-sync.mdc`      | PWA manifest/icon — read pwa-manifest skill                                                               |
+| env-schema-add-sync    | `agent-os/rules/env-schema-add-sync.mdc`    | Env schema / `.env.example` — read env-schema-add skill                                                   |
+| agent-behavior         | `agent-os/rules/agent-behavior.mdc`         | Complete tests, route reg, RBAC, docs without asking; never ask "Do you want X?"                          |
+| resilient-interactions | `agent-os/rules/resilient-interactions.mdc` | 28 UI-resilience rules: single-flight writes, contained crashes, honest loading/empty/error states        |
 
 ## Orchestration manifests (machine-readable)
 

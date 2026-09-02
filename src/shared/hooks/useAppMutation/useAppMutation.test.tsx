@@ -297,6 +297,97 @@ describe('useAppMutation', () => {
       expect(mutationFn).toHaveBeenCalledTimes(1);
     });
 
+    // Joining is about the REQUEST, not about the caller. The duplicate never
+    // reaches TanStack's observer, so the promise it rides is the ONLY place its
+    // options can run — returning that promise bare drops them. NotificationCenter
+    // does `markRead.mutate(id, { onSettled: () => markingRef.delete(id) })`; the
+    // second tap of a double tap then leaves that row unclickable for good.
+    it("runs BOTH callers' own callbacks exactly once when a duplicate joins", async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      let release: ((value: string) => void) | undefined;
+      const mutationFn = vi.fn(
+        () =>
+          new Promise<string>((resolve) => {
+            release = resolve;
+          }),
+      );
+      const { result } = renderHook(() => useAppMutation({ mutationFn }), {
+        wrapper: makeWrapper(client),
+      });
+
+      const onSuccessA = vi.fn();
+      const onSettledA = vi.fn();
+      const onSuccessB = vi.fn();
+      const onSettledB = vi.fn();
+
+      // Identical vars — the second call joins the first instead of sending a
+      // second request — and each caller passes its own per-call options.
+      const first = result.current.mutateAsync('note-1', {
+        onSuccess: onSuccessA,
+        onSettled: onSettledA,
+      });
+      const second = result.current.mutateAsync('note-1', {
+        onSuccess: onSuccessB,
+        onSettled: onSettledB,
+      });
+
+      await vi.waitFor(() => expect(mutationFn).toHaveBeenCalledTimes(1));
+      release?.('read-once');
+      await expect(first).resolves.toBe('read-once');
+      await expect(second).resolves.toBe('read-once');
+
+      // Still ONE request: what a duplicate means has not changed.
+      expect(mutationFn).toHaveBeenCalledTimes(1);
+
+      // The joining caller is served too, and neither caller is served twice.
+      await vi.waitFor(() => {
+        expect(onSettledB).toHaveBeenCalledTimes(1);
+        expect(onSettledA).toHaveBeenCalledTimes(1);
+      });
+      expect(onSuccessA).toHaveBeenCalledTimes(1);
+      expect(onSuccessB).toHaveBeenCalledTimes(1);
+      // Each sees the shared result and its own vars, through either delivery path.
+      expect(onSuccessA.mock.calls[0]?.slice(0, 2)).toEqual(['read-once', 'note-1']);
+      expect(onSuccessB.mock.calls[0]?.slice(0, 2)).toEqual(['read-once', 'note-1']);
+      expect(onSettledB.mock.calls[0]?.slice(0, 3)).toEqual([
+        'read-once',
+        null,
+        'note-1',
+      ]);
+    });
+
+    // Same join, error branch — and the branch that matters most, because a
+    // failure is exactly when nothing else is around to clear the busy flag.
+    it('reports a joined failure to both callers, each exactly once', async () => {
+      const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      let fail: ((reason: Error) => void) | undefined;
+      const mutationFn = vi.fn(
+        () =>
+          new Promise<string>((_resolve, reject) => {
+            fail = reject;
+          }),
+      );
+      const { result } = renderHook(
+        () => useAppMutation({ mutationFn, notifyOnError: false }),
+        { wrapper: makeWrapper(client) },
+      );
+      const onSettledA = vi.fn();
+      const onSettledB = vi.fn();
+      const first = result.current.mutateAsync('note-1', { onSettled: onSettledA });
+      const second = result.current.mutateAsync('note-1', { onSettled: onSettledB });
+      await vi.waitFor(() => expect(mutationFn).toHaveBeenCalledTimes(1));
+      fail?.(new Error('offline'));
+      await expect(first).rejects.toThrow('offline');
+      await expect(second).rejects.toThrow('offline');
+      await vi.waitFor(() => {
+        expect(onSettledA).toHaveBeenCalledTimes(1);
+        expect(onSettledB).toHaveBeenCalledTimes(1);
+      });
+      expect(onSettledB.mock.calls[0]?.[1]).toBeInstanceOf(Error);
+      expect(onSettledB.mock.calls[0]?.[2]).toBe('note-1');
+      expect(mutationFn).toHaveBeenCalledTimes(1);
+    });
+
     it('sends one request per distinct vars, each with its own call options', async () => {
       const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
       const releases = new Map<string, (value: string) => void>();

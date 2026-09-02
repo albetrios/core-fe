@@ -177,6 +177,11 @@ function once<TArgs extends unknown[]>(
  * it flips synchronously inside the first call. Keep using `disabled={isPending}` for
  * the visible affordance — this is the correctness net underneath it.
  *
+ * Joining is about the REQUEST, not about the caller: the duplicate still runs its
+ * own `onSuccess` / `onError` / `onSettled`, exactly once each, off the joined
+ * promise. Swallowing them is the same freeze in a different place — a row that
+ * unlocks itself in `onSettled` never unlocks after a double tap.
+ *
  * Calls with DIFFERENT variables are different writes and never join each other —
  * one hook instance serves every row of a list, and joining row B's delete to row
  * A's in-flight delete means B's request is never sent at all.
@@ -272,9 +277,6 @@ export function useAppMutation<
      */
     (...mutateArgs) => {
       const [vars, mutateOptions] = mutateArgs;
-      // A duplicate submit joins the request already in flight rather than
-      // starting a second one, so callers awaiting it still get a result.
-      //
       // Keyed on the VARIABLES, never on the hook instance. A settings panel
       // funnels every row's write through ONE instance, so an instance-wide
       // latch joined the removal of member B to the still-running removal of
@@ -285,8 +287,6 @@ export function useAppMutation<
       // and its own options. Vars with no stable key start their own request.
       const pending = inFlightRef.current;
       const key = variablesKey(vars);
-      const inFlight = key === null ? undefined : pending.get(key);
-      if (inFlight) return inFlight;
 
       // Bind this call's `mutateOptions` to THIS call. TanStack's mutation
       // observer keeps a single options slot and detaches from its previous
@@ -294,8 +294,11 @@ export function useAppMutation<
       // are in flight together it delivers only the LAST call's callbacks — the
       // first row's confirm dialog never closes, its busy flag never clears.
       // The observer still runs them (with its richer arguments) whenever it
-      // can; these one-shot wrappers make the promise below a fallback for the
-      // calls it abandons, never a second delivery.
+      // can; these one-shot wrappers make the delivery below a fallback for the
+      // calls it abandons, never a second delivery. A call that JOINS a
+      // duplicate never reaches the observer at all, so for that call the
+      // wrappers are the only delivery there is — hence built before the join
+      // check, not after it.
       const calls = {
         onSuccess: once(mutateOptions?.onSuccess),
         onError: once(mutateOptions?.onError),
@@ -304,6 +307,34 @@ export function useAppMutation<
       // What TanStack passes as the callbacks' last argument — this hook sets
       // neither `meta` nor a `mutationKey`.
       const callContext = { client: queryClient, meta: undefined };
+      // `vars` is `TVars | undefined` only because the tuple allows omission;
+      // TanStack hands the callbacks whatever was actually passed.
+      const callVars = vars as TVars;
+
+      /** Run THIS call's one-shot options off whichever promise it rides. */
+      const deliverTo = (settled: Promise<TData>) =>
+        settled
+          .then((data) => {
+            calls.onSuccess(data, callVars, undefined, callContext);
+            calls.onSettled(data, null, callVars, undefined, callContext);
+            return data;
+          })
+          .catch((error: unknown) => {
+            calls.onError(error as Error, callVars, undefined, callContext);
+            calls.onSettled(undefined, error as Error, callVars, undefined, callContext);
+            throw error;
+          });
+
+      // A duplicate submit joins the request already in flight rather than
+      // starting a second one, so callers awaiting it still get a result. What
+      // it joins is the REQUEST — the duplicate rides the same promise and the
+      // same result, but its own options still run off it. Returning the joined
+      // promise bare dropped them on the floor, which is the original freeze
+      // wearing a different hat: a caller that clears a busy flag in
+      // `onSettled` (a notification row, a confirm dialog) never hears back,
+      // and the row it locked stays locked for the rest of the session.
+      const inFlight = key === null ? undefined : pending.get(key);
+      if (inFlight) return deliverTo(inFlight);
 
       /*
        * The same call, with only the options slot swapped for the wrappers.
@@ -312,25 +343,11 @@ export function useAppMutation<
        * is on the tuple rather than on `vars` itself.
        */
       const forwarded = [vars, calls] as unknown as typeof mutateArgs;
-      // `vars` is `TVars | undefined` only because the tuple allows omission;
-      // TanStack hands the callbacks whatever was actually passed.
-      const callVars = vars as TVars;
 
-      const promise = mutateAsync(...forwarded)
-        .then((data) => {
-          calls.onSuccess(data, callVars, undefined, callContext);
-          calls.onSettled(data, null, callVars, undefined, callContext);
-          return data;
-        })
-        .catch((error: unknown) => {
-          calls.onError(error as Error, callVars, undefined, callContext);
-          calls.onSettled(undefined, error as Error, callVars, undefined, callContext);
-          throw error;
-        })
-        .finally(() => {
-          // Identity-checked: only ever retire the entry this call put there.
-          if (key !== null && pending.get(key) === promise) pending.delete(key);
-        });
+      const promise = deliverTo(mutateAsync(...forwarded)).finally(() => {
+        // Identity-checked: only ever retire the entry this call put there.
+        if (key !== null && pending.get(key) === promise) pending.delete(key);
+      });
       if (key !== null) pending.set(key, promise);
       return promise;
     },

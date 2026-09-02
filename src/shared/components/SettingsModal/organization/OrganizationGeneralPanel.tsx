@@ -48,6 +48,8 @@ function OrgLogoCard({
   canManage: boolean;
   update: UpdateMutation;
 }) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const general = SETTINGS_KEYS.panels.general;
   const fileRef = useRef<HTMLInputElement>(null);
   const initial = (name || '?').charAt(0).toUpperCase();
   /**
@@ -93,10 +95,8 @@ function OrgLogoCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Logo</CardTitle>
-        <CardDescription>
-          Shown in the org switcher and on invites. Square images look best.
-        </CardDescription>
+        <CardTitle className="text-base">{t(general.logoTitle)}</CardTitle>
+        <CardDescription>{t(general.logoDescription)}</CardDescription>
       </CardHeader>
       <CardContent className="flex items-center gap-4">
         <div
@@ -107,7 +107,7 @@ function OrgLogoCard({
           {logoUrl ? (
             <img
               src={logoUrl}
-              alt={`${name || 'Organization'} logo`}
+              alt={name ? t(general.logoAlt, { name }) : t(general.logoAltFallback)}
               className="size-full object-cover"
             />
           ) : (
@@ -131,7 +131,7 @@ function OrgLogoCard({
               isLoading={busy}
               data-testid="org-logo-upload"
             >
-              {busy ? 'Uploading…' : 'Upload logo'}
+              {busy ? t(general.uploading) : t(general.uploadLogo)}
             </Button>
             {logoUrl ? (
               <Button
@@ -141,14 +141,12 @@ function OrgLogoCard({
                 disabled={busy}
                 data-testid="org-logo-remove"
               >
-                Remove
+                {t(general.removeLogo)}
               </Button>
             ) : null}
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">
-            Only organization admins can change the logo.
-          </p>
+          <p className="text-muted-foreground text-sm">{t(general.logoReadOnly)}</p>
         )}
       </CardContent>
     </Card>
@@ -217,6 +215,7 @@ function OrganizationGeneralForm({
   update: UpdateMutation;
 }) {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const general = SETTINGS_KEYS.panels.general;
   const activeOrg = orgs.find((o) => o.id === organizationId);
 
   const serverName = activeOrg?.name ?? '';
@@ -235,25 +234,23 @@ function OrganizationGeneralForm({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Basics</CardTitle>
-          <CardDescription>
-            These appear in the org switcher, invites, and email receipts.
-          </CardDescription>
+          <CardTitle className="text-base">{tSettings(general.basicsTitle)}</CardTitle>
+          <CardDescription>{tSettings(general.basicsDescription)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="org-name">Organization name</Label>
+            <Label htmlFor="org-name">{tSettings(general.nameLabel)}</Label>
             <Input
               id="org-name"
               value={name}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder={tSettings(SETTINGS_KEYS.panels.general.namePlaceholder)}
+              placeholder={tSettings(general.namePlaceholder)}
               disabled={!canManage}
               data-testid="org-name"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="org-slug">Slug</Label>
+            <Label htmlFor="org-slug">{tSettings(general.slugLabel)}</Label>
             <Input
               id="org-slug"
               value={activeOrg?.slug ?? organizationSlug ?? ''}
@@ -261,9 +258,7 @@ function OrganizationGeneralForm({
               disabled
               data-testid="org-slug"
             />
-            <p className="text-muted-foreground text-xs">
-              Used in URLs and API paths. Contact support to change it.
-            </p>
+            <p className="text-muted-foreground text-xs">{tSettings(general.slugHint)}</p>
           </div>
           {canManage ? (
             <div className="flex justify-end">
@@ -273,7 +268,7 @@ function OrganizationGeneralForm({
                 disabled={!dirty || update.isPending}
                 data-testid="org-general-save"
               >
-                Save changes
+                {tSettings(general.save)}
               </Button>
             </div>
           ) : null}

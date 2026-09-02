@@ -65,6 +65,19 @@ export function OrganizationSwitcher({
   const { t } = useTranslation(LAYOUT_NS);
   const [createOpen, setCreateOpen] = useState(false);
   /**
+   * The menu is CONTROLLED so it can be closed once a switch settles.
+   *
+   * `onSelect` calls `preventDefault()` to hold the menu open for the whole
+   * round trip (SHELL-2 — see `renderOrg`), but an uncontrolled menu has no
+   * second half to that: nothing ever closed it again. Team → team is a param
+   * change on the `$organizationSlug` shell this control lives inside, so the
+   * component stays mounted and the menu was left hanging open over the
+   * freshly-switched dashboard. Radix still drives every OTHER open/close —
+   * trigger, Escape, outside click, re-picking the active row — through
+   * `onOpenChange`; this state only adds the missing close-on-success.
+   */
+  const [menuOpen, setMenuOpen] = useState(false);
+  /**
    * WHICH row's switch is in flight — not just "a" switch, so the row the user
    * actually pressed is the one that spins.
    *
@@ -133,6 +146,18 @@ export function OrganizationSwitcher({
     setSwitchingId(org.id);
 
     applySelect(org)
+      .then(() => {
+        // The switch landed — now close the menu. It was held open for the
+        // round trip on purpose (the pressed row IS the progress indicator),
+        // but once the switch settles the user is looking at the destination
+        // org with the menu still covering it.
+        //
+        // Deliberately in `.then` and NOT `.finally`: a FAILED switch keeps the
+        // menu open so the retry is one click away rather than four, and so the
+        // failure has somewhere to land other than a screen the user has
+        // already been handed back.
+        setMenuOpen(false);
+      })
       .catch((error: unknown) => {
         // The bare `.catch(() => undefined)` was the bug: a failed switch looked
         // exactly like a slow one — no toast, no error, still on the old org, and
@@ -220,7 +245,7 @@ export function OrganizationSwitcher({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"

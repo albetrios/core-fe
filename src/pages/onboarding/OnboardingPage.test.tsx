@@ -55,11 +55,44 @@ vi.mock('@/shared/tenancy/session-context.ts', () => ({
 
 const navigate = vi.fn();
 const searchRef = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
-vi.mock('@tanstack/react-router', async (importOriginal) => ({
-  ...(await importOriginal<Record<string, unknown>>()),
-  useNavigate: () => navigate,
-  useSearch: () => searchRef.value,
+/**
+ * The router location the page watches, as a real external store rather than a
+ * plain ref: the page's latch-release effect only fires when the pathname
+ * CHANGES, so a test that cannot make the pathname change (and re-render) cannot
+ * tell the two cases apart. `renderWithProviders` mounts a memory router at `/`,
+ * which is not where this wizard lives — so the pathname is driven from here,
+ * starting on `/onboarding`.
+ */
+const routerPathRef = vi.hoisted(() => ({
+  value: '/onboarding',
+  listeners: new Set<() => void>(),
 }));
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const { useSyncExternalStore } = await import('react');
+  return {
+    ...(await importOriginal<Record<string, unknown>>()),
+    useNavigate: () => navigate,
+    useSearch: () => searchRef.value,
+    useRouterState: ({ select }: { select: (state: unknown) => unknown }) => {
+      const pathname = useSyncExternalStore(
+        (onChange: () => void) => {
+          routerPathRef.listeners.add(onChange);
+          return () => routerPathRef.listeners.delete(onChange);
+        },
+        () => routerPathRef.value,
+      );
+      return select({ location: { pathname } });
+    },
+  };
+});
+
+/** Move the mocked router to `pathname` and let React re-render on it. */
+function setRouterPathname(pathname: string) {
+  act(() => {
+    routerPathRef.value = pathname;
+    for (const onStoreChange of routerPathRef.listeners) onStoreChange();
+  });
+}
 
 const switchToOrganization = vi.fn();
 const switchToPersonal = vi.fn();
@@ -257,6 +290,7 @@ describe('OnboardingPage', () => {
      * test answers a later one.
      */
     queryClient.clear();
+    routerPathRef.value = '/onboarding';
     deploymentFlagsRef.value = { personalOrganizations: false, teamOrganizations: true };
     // Default: team-only deployment, context LOADED. Without this the readiness
     // gate renders instead of the wizard — which is the whole point of ONB-2.
@@ -794,6 +828,58 @@ describe('OnboardingPage', () => {
         expect.objectContaining({ params: { organizationSlug: 'acme' }, replace: true }),
       );
       expect(finishButton).toBeEnabled();
+    } finally {
+      clearAccessToken();
+    }
+  });
+
+  it('finishes for real again after the destination guard bounces the user back', async () => {
+    /*
+     * The other side of the latch above, and the reason it cannot simply live
+     * until unmount. `completeOnboarding` can answer 200 without sticking (the
+     * case the ref's own comment names): the destination's workspace guard then
+     * redirects the user straight back to `/onboarding`, which does NOT remount
+     * this page. With the latch still armed every further "Enter dashboard"
+     * click only replayed a navigation that bounced again — a wizard the user
+     * could not complete and could not leave.
+     *
+     * So: same journey the router really takes — away to the dashboard, then
+     * back here — and the next click must run the writes again, not replay.
+     */
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    const { setAccessToken, clearAccessToken } = await import('@/shared/auth/token.ts');
+    setAccessToken(FAKE_JWT);
+    try {
+      seedDoneStep(['a@acme.com']);
+      renderWithProviders(<OnboardingPage />);
+      const finishButton = await screen.findByTestId('onboarding-finish');
+
+      await user.click(finishButton);
+      await waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+      expect(authApi.completeOnboarding).toHaveBeenCalledTimes(1);
+      expect(inviteMember).toHaveBeenCalledTimes(1);
+
+      // The router leaves for the dashboard, whose guard refuses us and
+      // redirects back — the page stays mounted through both.
+      setRouterPathname('/organization/acme/dashboard');
+      setRouterPathname('/onboarding');
+      expect(screen.getByTestId('onboarding-page')).toBeInTheDocument();
+      expect(finishButton).toBeEnabled();
+
+      await user.click(finishButton);
+
+      // A real finish, not a replayed navigation: the writes go out again.
+      await waitFor(() => expect(authApi.completeOnboarding).toHaveBeenCalledTimes(2));
+      expect(inviteMember).toHaveBeenCalledTimes(2);
+      expect(switchToOrganization).toHaveBeenCalledTimes(2);
+      expect(navigate).toHaveBeenCalledTimes(2);
+      expect(navigate).toHaveBeenLastCalledWith(
+        expect.objectContaining({ params: { organizationSlug: 'acme' }, replace: true }),
+      );
+      // The org the first attempt created is reused, not duplicated — the
+      // re-finish is a retry of the flow, not a second workspace.
+      expect(createOrganization).toHaveBeenCalledTimes(1);
     } finally {
       clearAccessToken();
     }

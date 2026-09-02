@@ -98,17 +98,17 @@ export function AccountPanel() {
   return (
     <div className="space-y-6" data-testid="settings-section-account">
       <SectionHeader
-        title="Account"
-        description="Account metadata and irreversible actions."
+        title={t(accountPanels.title)}
+        description={t(accountPanels.description)}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Account information</CardTitle>
-          <CardDescription>Details about your account.</CardDescription>
+          <CardTitle className="text-base">{t(accountPanels.infoTitle)}</CardTitle>
+          <CardDescription>{t(accountPanels.infoDescription)}</CardDescription>
         </CardHeader>
         <CardContent className="divide-y">
-          <InfoRow label="Account ID">
+          <InfoRow label={t(accountPanels.accountIdLabel)}>
             <span className="flex items-center gap-2">
               <code className="bg-muted rounded px-1.5 py-0.5 text-xs">{userId}</code>
               <Button
@@ -122,15 +122,15 @@ export function AccountPanel() {
               </Button>
             </span>
           </InfoRow>
-          <InfoRow label="Email">{email}</InfoRow>
-          <InfoRow label="Role">
+          <InfoRow label={t(accountPanels.emailLabel)}>{email}</InfoRow>
+          <InfoRow label={t(accountPanels.roleLabel)}>
             <Badge variant="secondary" className="capitalize">
               {role}
             </Badge>
           </InfoRow>
-          <InfoRow label="Email verified">
+          <InfoRow label={t(accountPanels.emailVerifiedLabel)}>
             <Badge variant="success">
-              <ShieldCheck className="h-3 w-3" /> Verified
+              <ShieldCheck className="h-3 w-3" /> {t(accountPanels.verified)}
             </Badge>
           </InfoRow>
         </CardContent>
@@ -139,16 +139,16 @@ export function AccountPanel() {
       <Card className="border-destructive/40" data-testid="danger-zone">
         <CardHeader>
           <CardTitle className="text-destructive flex items-center gap-2 text-base">
-            <TriangleAlert className="h-4 w-4" /> Danger zone
+            <TriangleAlert className="h-4 w-4" /> {t(accountPanels.dangerZone)}
           </CardTitle>
-          <CardDescription>Irreversible actions for your account.</CardDescription>
+          <CardDescription>{t(accountPanels.dangerZoneDescription)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium">Delete account</p>
+              <p className="text-sm font-medium">{t(accountPanels.deleteHeading)}</p>
               <p className="text-muted-foreground text-sm">
-                Permanently delete your account and all associated data.
+                {t(accountPanels.deleteBody)}
               </p>
             </div>
             <Button
@@ -156,7 +156,7 @@ export function AccountPanel() {
               onClick={() => setConfirmDelete(true)}
               data-testid="account-delete"
             >
-              <Trash2 className="me-2 h-4 w-4" /> Delete account
+              <Trash2 className="me-2 h-4 w-4" /> {t(accountPanels.deleteAction)}
             </Button>
           </div>
         </CardContent>

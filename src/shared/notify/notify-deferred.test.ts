@@ -145,9 +145,29 @@ describe('notifyDeferredCommit', () => {
 
     clickUndo();
 
-    expect(notifyInfo).toHaveBeenCalledWith(undoneCopy(), { id: 'r' });
+    expect(notifyInfo).toHaveBeenCalledWith(undoneCopy(), { id: 'r-undone' });
     vi.advanceTimersByTime(200);
     expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('writes "Undone" to an id the toast surface will NOT dismiss', () => {
+    // The bug this pins: `CustomToast` runs `action.onClick(); toast.dismiss(id)`
+    // on the toast that owns the Undo button. Writing the confirmation back to
+    // that same id meant the very next statement dismissed it — the user saw it
+    // blink out. The id must differ from the pending toast's; the integration
+    // test beside this one proves it actually survives against real sonner.
+    notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      onCommit: vi.fn(),
+      delayMs: 100,
+      toastId: 'remove-member-mem_1',
+    });
+
+    clickUndo();
+
+    const undoneId = (notifyInfo.mock.calls[0]?.[1] as { id?: string } | undefined)?.id;
+    expect(undoneId).toBeDefined();
+    expect(undoneId).not.toBe('remove-member-mem_1');
   });
 
   it('does not claim "Undone" for an undo that lands after the commit started', async () => {

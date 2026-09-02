@@ -109,6 +109,9 @@
     "stay": "편집 계속",
     "leave": "변경 사항 버리기"
   },
+  "dialog": {
+    "title": "설정"
+  },
   "panels": {
     "members": {
       "title": "멤버",
@@ -130,7 +133,9 @@
       "removeConfirm": "제거",
       "removePending": "{{name}} 제거 중…",
       "emailPlaceholder": "member@example.com",
-      "rolePlaceholder": "역할 선택"
+      "rolePlaceholder": "역할 선택",
+      "invite": "멤버 초대",
+      "memberFallback": "이 멤버"
     },
     "roles": {
       "title": "역할",
@@ -153,7 +158,9 @@
       "deleteConfirm": "삭제",
       "deletePending": "{{name}} 삭제 중…",
       "namePlaceholder": "예: 멤버",
-      "descriptionPlaceholder": "이 역할은 무엇을 할 수 있나요?"
+      "descriptionPlaceholder": "이 역할은 무엇을 할 수 있나요?",
+      "create": "새 역할",
+      "roleFallback": "이 역할"
     },
     "listSort": {
       "label": "정렬 기준",
@@ -179,17 +186,75 @@
       "deleteTitle": "계정을 삭제하시겠습니까?",
       "deleteDescription": "이 작업은 영구적이며 취소할 수 없습니다. 모든 데이터가 제거됩니다.",
       "deleteConfirm": "계정 삭제",
-      "deleteCancel": "취소"
+      "deleteCancel": "취소",
+      "title": "계정",
+      "description": "계정 정보와 되돌릴 수 없는 작업.",
+      "infoTitle": "계정 정보",
+      "infoDescription": "계정에 대한 세부 정보.",
+      "accountIdLabel": "계정 ID",
+      "emailLabel": "이메일",
+      "roleLabel": "역할",
+      "emailVerifiedLabel": "이메일 인증됨",
+      "verified": "인증됨",
+      "dangerZone": "위험 구역",
+      "dangerZoneDescription": "계정에 대한 되돌릴 수 없는 작업.",
+      "deleteHeading": "계정 삭제",
+      "deleteBody": "계정과 관련된 모든 데이터를 영구적으로 삭제합니다.",
+      "deleteAction": "계정 삭제"
     },
     "general": {
       "namePlaceholder": "Acme Inc.",
       "title": "조직 · 일반",
       "description": "플랫폼 전반에서 사용되는 조직 정보.",
-      "loadFailed": "조직 정보를 불러오지 못했습니다."
+      "loadFailed": "조직 정보를 불러오지 못했습니다.",
+      "basicsTitle": "기본 정보",
+      "basicsDescription": "조직 전환기, 초대장, 이메일 영수증에 표시됩니다.",
+      "nameLabel": "조직 이름",
+      "slugLabel": "슬러그",
+      "slugHint": "URL과 API 경로에 사용됩니다. 변경하려면 지원팀에 문의하세요.",
+      "save": "변경 사항 저장",
+      "logoTitle": "로고",
+      "logoDescription": "조직 전환기와 초대장에 표시됩니다. 정사각형 이미지가 가장 좋습니다.",
+      "logoAlt": "{{name}} 로고",
+      "logoAltFallback": "조직 로고",
+      "uploadLogo": "로고 업로드",
+      "uploading": "업로드 중…",
+      "removeLogo": "제거",
+      "logoReadOnly": "조직 관리자만 로고를 변경할 수 있습니다."
     },
     "integrations": {
       "searchPlaceholder": "API 키 검색…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "연동",
+      "description": "API 키와 웹훅.",
+      "apiKeysTitle": "API 키",
+      "apiKeysLoadFailed": "API 키를 불러올 수 없습니다. 다시 시도해 주세요.",
+      "apiKeysEmptyTitle": "API 키 없음",
+      "apiKeysEmptyDescription": "API 키를 사용하면 외부 서비스가 조직과 통신할 수 있습니다.",
+      "apiKeysNoResults": "일치하는 API 키 없음",
+      "apiKeysNoResultsDescription": "검색과 일치하는 API 키가 없습니다.",
+      "apiKeyFallback": "이 API 키",
+      "revokeAria": "{{name}} 해지",
+      "revokeTitle": "{{name}}을(를) 해지하시겠습니까?",
+      "revokeDescription": "이 키를 사용하는 모든 서비스가 즉시 액세스 권한을 잃습니다. 되돌릴 수 없습니다.",
+      "revokeConfirm": "해지",
+      "loadMore": "더 불러오기",
+      "webhooksTitle": "웹훅",
+      "webhooksLoadFailed": "웹훅을 불러올 수 없습니다. 다시 시도해 주세요.",
+      "webhooksEmptyTitle": "웹훅 없음",
+      "webhooksEmptyDescription": "조직 이벤트를 외부 URL로 전송합니다.",
+      "addWebhook": "웹훅 추가",
+      "addWebhookTitle": "웹훅 추가",
+      "addWebhookDescription": "선택한 이벤트를 이 URL로 POST합니다.",
+      "payloadUrlLabel": "페이로드 URL",
+      "eventsLabel": "이벤트",
+      "cancel": "취소",
+      "createWebhook": "웹훅 만들기",
+      "creating": "만드는 중…",
+      "deleteWebhookAria": "웹훅 {{url}} 삭제",
+      "deleteWebhookTitle": "이 웹훅을 삭제하시겠습니까?",
+      "deleteWebhookDescription": "이 URL로 이벤트가 더 이상 전송되지 않습니다. 되돌릴 수 없습니다.",
+      "deleteConfirm": "삭제"
     },
     "notifications": {
       "title": "알림",
@@ -230,6 +295,70 @@
       "revokeDescription": "{{device}}에서 즉시 로그아웃됩니다.",
       "revokeConfirm": "로그아웃",
       "deviceFallback": "이 기기"
+    },
+    "billing": {
+      "title": "결제",
+      "description": "요금제, 결제 수단, 청구서.",
+      "loadFailed": "결제 정보를 불러올 수 없습니다. 다시 시도해 주세요.",
+      "plansLoadFailed": "요금제를 불러올 수 없습니다. 다시 시도해 주세요.",
+      "planHeading": "{{name}} 요금제",
+      "noPlan": "요금제 없음",
+      "noSubscription": "활성 구독이 아직 없습니다. 아래에서 요금제를 선택하세요.",
+      "summary": "{{total}}석 중 {{used}}석 사용 중 · {{date}}에 갱신",
+      "billedMonthly": "월간 청구",
+      "billedYearly": "연간 청구",
+      "pricePerMonth": "{{price}} / 월",
+      "pricePerYear": "{{price}} / 년",
+      "planFallbackDescription": "워크스페이스 결제 요금제.",
+      "currentPlan": "현재 요금제",
+      "switchTo": "{{name}}(으)로 변경",
+      "choose": "{{name}} 선택",
+      "switching": "변경 중…",
+      "completePaymentTitle": "결제 완료",
+      "completePaymentDescription": "구독을 활성화하려면 결제 수단을 확인하세요. 앱을 벗어나지 않으며, 은행이 확인을 요구할 때만 Stripe가 보안 단계를 엽니다.",
+      "changePlanTitle": "요금제 변경",
+      "changePlanDescription": "요금제를 비교하고 팀이 준비되면 변경하세요.",
+      "cycleLegend": "청구 주기",
+      "monthly": "월간",
+      "yearly": "연간",
+      "paymentMethods": {
+        "title": "결제 수단",
+        "description": "구독 갱신에 사용되는 카드입니다. Stripe를 통해 앱 안에서 안전하게 관리됩니다.",
+        "loadFailed": "결제 수단을 불러올 수 없습니다. 다시 시도해 주세요.",
+        "empty": "등록된 결제 수단이 아직 없습니다.",
+        "add": "결제 수단 추가",
+        "adding": "불러오는 중…",
+        "cardFallback": "카드",
+        "expires": "만료 {{month}}/{{year}}",
+        "defaultBadge": "기본"
+      },
+      "invoices": {
+        "title": "청구서",
+        "description": "결제 제공업체의 날짜, 지급 기한, 금액, 상태.",
+        "loadFailed": "청구서를 불러올 수 없습니다. 다시 시도해 주세요.",
+        "empty": "아직 청구서가 없습니다.",
+        "view": "청구서 보기",
+        "columns": {
+          "date": "날짜",
+          "due": "기한",
+          "total": "합계",
+          "status": "상태",
+          "actions": "작업"
+        }
+      },
+      "cancellation": {
+        "title": "해지",
+        "endsOn": "구독이 {{date}}에 종료됩니다. 그때까지 액세스가 유지됩니다.",
+        "cancelAnytime": "언제든 해지할 수 있습니다 — 액세스는 {{date}}까지 유지됩니다.",
+        "resume": "구독 재개",
+        "resuming": "재개 중…",
+        "cancelAction": "기간 종료 시 해지",
+        "confirmTitle": "구독을 해지하시겠습니까?",
+        "confirmDescription": "워크스페이스는 {{date}}까지 전체 액세스를 유지합니다. 이후 구독이 종료되고 유료 기능이 제한될 수 있습니다.",
+        "keep": "구독 유지",
+        "confirm": "해지 확인",
+        "cancelling": "해지 중…"
+      }
     }
   }
 }

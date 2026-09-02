@@ -108,7 +108,6 @@
   "members": {
     "ariaLabel": "팀 멤버",
     "heading": "팀 멤버",
-    "description_one": "이 워크스페이스에 {{count}}명",
     "description_other": "이 워크스페이스에 {{count}}명",
     "columnMember": "멤버",
     "columnRole": "역할",

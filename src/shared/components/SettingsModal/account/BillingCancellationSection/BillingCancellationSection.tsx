@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { BillingSubscription } from '@/shared/api/billing-contracts.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +41,8 @@ export function BillingCancellationSection({
   subscription,
   canManage,
 }: BillingCancellationSectionProps) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const keys = SETTINGS_KEYS.panels.billing.cancellation;
   const { formatDate } = useLocaleFormat();
   const cancelSubscription = useCancelSubscription();
   const resumeSubscription = useResumeSubscription();
@@ -49,11 +56,11 @@ export function BillingCancellationSection({
   return (
     <Card data-testid="billing-cancellation-card">
       <CardHeader>
-        <CardTitle className="text-base">Cancellation</CardTitle>
+        <CardTitle className="text-base">{t(keys.title)}</CardTitle>
         <CardDescription>
-          {subscription.cancelAtPeriodEnd
-            ? `Your subscription ends on ${periodEnd}. You keep access until then.`
-            : `Cancel anytime — access continues through ${periodEnd}.`}
+          {t(subscription.cancelAtPeriodEnd ? keys.endsOn : keys.cancelAnytime, {
+            date: periodEnd,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -65,7 +72,7 @@ export function BillingCancellationSection({
             onClick={() => resumeSubscription.mutate(subscription.id)}
             data-testid="billing-resume"
           >
-            {resumeSubscription.isPending ? 'Resuming…' : 'Resume subscription'}
+            {resumeSubscription.isPending ? t(keys.resuming) : t(keys.resume)}
           </Button>
         ) : (
           <AlertDialog
@@ -85,20 +92,19 @@ export function BillingCancellationSection({
                 }
                 data-testid="billing-cancel"
               >
-                Cancel at period end
+                {t(keys.cancelAction)}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent data-testid="billing-cancel-dialog">
               <AlertDialogHeader>
-                <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
+                <AlertDialogTitle>{t(keys.confirmTitle)}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Your workspace keeps full access until {periodEnd}. After that, the
-                  subscription ends and paid features may be limited.
+                  {t(keys.confirmDescription, { date: periodEnd })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={cancelSubscription.isPending}>
-                  Keep subscription
+                  {t(keys.keep)}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={(event) => {
@@ -114,7 +120,7 @@ export function BillingCancellationSection({
                   isLoading={cancelSubscription.isPending}
                   data-testid="billing-cancel-confirm"
                 >
-                  {cancelSubscription.isPending ? 'Cancelling…' : 'Confirm cancellation'}
+                  {cancelSubscription.isPending ? t(keys.cancelling) : t(keys.confirm)}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

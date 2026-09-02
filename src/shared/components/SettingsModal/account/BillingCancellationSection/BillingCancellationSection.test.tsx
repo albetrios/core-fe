@@ -4,7 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
+import i18n from '@/lib/i18n/i18n.ts';
 import type { BillingSubscription } from '@/shared/api/billing-contracts.ts';
+
+import { SETTINGS_KEYS, SETTINGS_NS } from '../../settings.constants.ts';
+
+const KEYS = SETTINGS_KEYS.panels.billing.cancellation;
+
+/** The section's copy as the bundle renders it — never the English literal. */
+const copy = (key: string, lng = 'en') => i18n.t(key, { ns: SETTINGS_NS, lng });
 
 const { cancelMutate, resumeMutate, ctl } = vi.hoisted(() => ({
   cancelMutate: vi.fn(),
@@ -110,7 +118,7 @@ describe('BillingCancellationSection', () => {
     expect(confirm).toBeDisabled();
     expect(confirm).toHaveAttribute('aria-busy', 'true');
     expect(confirm.querySelector('.animate-spin')).not.toBeNull();
-    expect(confirm).toHaveTextContent('Cancelling');
+    expect(confirm).toHaveTextContent(copy(KEYS.cancelling));
 
     act(() => ctl.finish?.());
     expect(screen.queryByTestId('billing-cancel-confirm')).not.toBeInTheDocument();
@@ -125,6 +133,6 @@ describe('BillingCancellationSection', () => {
     const resume = screen.getByTestId('billing-resume');
     expect(resume).toHaveAttribute('aria-busy', 'true');
     expect(resume.querySelector('.animate-spin')).not.toBeNull();
-    expect(resume).toHaveTextContent('Resuming');
+    expect(resume).toHaveTextContent(copy(KEYS.resuming));
   });
 });

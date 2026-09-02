@@ -93,6 +93,7 @@
     "invitesLabel": "Convites",
     "emptyValue": "—",
     "invitesPending_one": "{{count}} pendente",
+    "invitesPending_many": "{{count}} pendentes",
     "invitesPending_other": "{{count}} pendentes"
   },
   "actions": {
@@ -109,10 +110,12 @@
   "toast": {
     "finishSuccess": "Bem-vindo! Seu espaço de trabalho está pronto.",
     "finishSuccessWithInvites_one": "Bem-vindo! O seu espaço está pronto — {{count}} convite enviado.",
+    "finishSuccessWithInvites_many": "Bem-vindo! O seu espaço está pronto — {{count}} de convites enviados.",
     "finishSuccessWithInvites_other": "Bem-vindo! O seu espaço está pronto — {{count}} convites enviados.",
     "finishError": "Algo deu errado ao concluir a configuração. Tente novamente.",
     "profileSaveFailed": "Não foi possível salvar seu nome. Seu workspace está pronto — adicione-o nas Configurações.",
     "invitePartialFailure_one": "Espaço pronto — {{count}} convite não pôde ser enviado. Você pode reenviar em Membros.",
+    "invitePartialFailure_many": "Espaço pronto — {{count}} de convites não puderam ser enviados. Você pode reenviá-los em Membros.",
     "invitePartialFailure_other": "Espaço pronto — {{count}} convites não puderam ser enviados. Você pode reenviá-los em Membros."
   },
   "session": {

@@ -1,6 +1,6 @@
 import type { UseQueryResult } from '@tanstack/react-query';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useRouterState, useSearch } from '@tanstack/react-router';
+import { type RefObject, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -399,6 +399,37 @@ function navigateAfterOnboarding(
   void navigate({ to: '/', replace: true });
 }
 
+/** This wizard's own pathname — where a destination guard bounces the user back to. */
+const ONBOARDING_PATHNAME = '/onboarding';
+
+/**
+ * Release the "already finished" latch once the router has settled back on the
+ * wizard.
+ *
+ * `finishedContextRef` (armed in `OnboardingPage.finish`) makes a repeat click
+ * replay the post-finish navigation instead of re-running the writes. That is
+ * right for as long as the destination is still resolving — and wrong the moment
+ * the destination REFUSES us. When a workspace guard bounces the user back to
+ * `/onboarding` (the `completeOnboarding` that answered 200 without sticking,
+ * named on the ref) this page is never unmounted, so the latch outlived the
+ * navigation it was armed for and every further click replayed a navigation that
+ * bounced straight back: the un-finishable wizard again, this time produced by
+ * the fix for the duplicate writes.
+ *
+ * The dependency array is what separates the two cases, and nothing else needs
+ * to: an effect re-runs only when its deps CHANGE, and while the post-finish
+ * navigation is merely in flight the pathname never leaves `/onboarding`. A
+ * second click inside that window therefore still finds the latch armed and
+ * still only replays — no duplicate invitations. The latch is dropped only after
+ * the router has been somewhere else and come back, which is exactly the bounce.
+ */
+function useReleaseFinishLatchOnReturn(latchRef: RefObject<MeContext | null>): void {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    if (pathname === ONBOARDING_PATHNAME) latchRef.current = null;
+  }, [pathname, latchRef]);
+}
+
 /**
  * Stand-in for the wizard while `me/context` is loading or failed.
  *
@@ -619,8 +650,14 @@ export function OnboardingPage() {
    * wizard the rest of this file works to avoid. Scoped to the mount, the latch
    * covers exactly the window the bug lives in and dies with a remount, where
    * finishing again is the correct behaviour.
+   *
+   * A remount is not the only way that window can end, though: a destination
+   * that bounces the user straight back to `/onboarding` leaves this page
+   * mounted with the latch still armed and the wizard un-finishable — so the
+   * hook below disarms it when the router settles back here.
    */
   const finishedContextRef = useRef<MeContext | null>(null);
+  useReleaseFinishLatchOnReturn(finishedContextRef);
   /*
    * `stepIndex` is persisted in localStorage and is NOT re-clamped when the step
    * list shrinks — which happens when the deployment mode changes, or a team org
@@ -704,13 +741,14 @@ export function OnboardingPage() {
     // goes out; `disabled={submitting}` remains the visible affordance.
     if (finishingRef.current) return;
     /*
-     * Already finished on this mount: replay the navigation and run nothing
-     * else. Deliberately not a silent no-op — the user is clicking again
-     * *because* they are still looking at the wizard while the destination's
-     * guards resolve, and a button that does nothing at all is its own bug. The
-     * same `replace` navigation is idempotent; re-running the writes above is
-     * not. `submitting` is still cleared in the `finally` below, so the button
-     * is never left stuck disabled either.
+     * Already finished on this mount, and the navigation it started has not been
+     * bounced back here (`useReleaseFinishLatchOnReturn`): replay that navigation
+     * and run nothing else. Deliberately not a silent no-op — the user is
+     * clicking again *because* they are still looking at the wizard while the
+     * destination's guards resolve, and a button that does nothing at all is its
+     * own bug. The same `replace` navigation is idempotent; re-running the writes
+     * above is not. `submitting` is still cleared in the `finally` below, so the
+     * button is never left stuck disabled either.
      */
     if (finishedContextRef.current) {
       navigateAfterOnboarding(navigate, finishedContextRef.current, redirectSearch);

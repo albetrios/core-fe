@@ -131,10 +131,27 @@ export function Component() {
    * could not help because nothing ever threw during render.
    *
    * Held in state and re-thrown in render so it reaches that boundary, which is
-   * where the retry already lives. `onceAsync` does not cache rejections, so the
-   * boundary's reset genuinely refetches rather than replaying the failure.
+   * where the retry already lives. Clearing it is only half of a retry, though —
+   * see `preloadAttempt` for the other half.
    */
   const [shellError, setShellError] = useState<unknown>(null);
+  /**
+   * Retry epoch — the only effect dep that pressing Retry actually changes.
+   *
+   * Clearing `shellError` alone looks like a retry and is not one. The preload
+   * lives in an effect keyed on the shell it is fetching, and a reset moves
+   * neither key: `target` is derived from session context that has not changed,
+   * and `mounted` is still null precisely because the fetch never landed. So
+   * `preloadAppShellVariant` was never called again, and the render after Retry
+   * fell through to `LayoutVariantFallback` — the same `<Outlet/>`-less
+   * permanent skeleton described above, now with the error card gone too, so
+   * there was nothing left to press. The button was decoration.
+   *
+   * Bumping this re-runs the effect, and `onceAsync` drops its cached promise on
+   * rejection (see `lib/lazy-module.ts`), so the loader really refetches instead
+   * of replaying the stored failure.
+   */
+  const [preloadAttempt, setPreloadAttempt] = useState(0);
 
   useEffect(() => {
     if (target === null || target === mounted) return;
@@ -148,13 +165,20 @@ export function Component() {
       })
       .catch((error: unknown) => {
         if (cancelled) return;
-        reportError(error, { scope: 'app-shell-preload', variant: String(target) });
+        reportError(error, {
+          scope: 'app-shell-preload',
+          variant: String(target),
+          // Distinguishes "the chunk is gone" from "one blip, recovered on
+          // retry" in Sentry — and keeps `preloadAttempt` an honest dependency
+          // rather than a suppressed one.
+          attempt: String(preloadAttempt),
+        });
         setShellError(error);
       });
     return () => {
       cancelled = true;
     };
-  }, [target, mounted]);
+  }, [target, mounted, preloadAttempt]);
 
   return (
     <div className="bg-background flex h-screen overflow-hidden" data-testid="app-layout">
@@ -166,7 +190,14 @@ export function Component() {
       <SectionErrorBoundary
         title={t(ERRORS_KEYS.widget.navigation)}
         testId="app-shell-error"
-        onReset={() => setShellError(null)}
+        onReset={() => {
+          // Both halves, or neither works: clear the stored failure so the
+          // boundary stops re-throwing, AND bump the epoch so the effect
+          // actually refetches. Clearing alone just swaps the error card for a
+          // skeleton that never resolves and offers no second try.
+          setShellError(null);
+          setPreloadAttempt((attempt) => attempt + 1);
+        }}
       >
         {/*
           Thrown from INSIDE the boundary, not from AppLayout's own render — a

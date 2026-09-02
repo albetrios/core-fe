@@ -92,7 +92,6 @@
     "organizationLabel": "組織",
     "invitesLabel": "招待",
     "emptyValue": "—",
-    "invitesPending_one": "{{count}} 件保留",
     "invitesPending_other": "{{count}} 件保留"
   },
   "actions": {
@@ -108,11 +107,9 @@
   },
   "toast": {
     "finishSuccess": "ようこそ！ワークスペースの準備ができました。",
-    "finishSuccessWithInvites_one": "ようこそ！ワークスペースの準備ができました — 招待を {{count}} 件送信しました。",
     "finishSuccessWithInvites_other": "ようこそ！ワークスペースの準備ができました — 招待を {{count}} 件送信しました。",
     "finishError": "セットアップの完了中に問題が発生しました。もう一度お試しください。",
     "profileSaveFailed": "お名前を保存できませんでした。ワークスペースは準備完了です。設定から追加してください。",
-    "invitePartialFailure_one": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。",
     "invitePartialFailure_other": "ワークスペース準備完了 — {{count}} 件の招待を送信できませんでした。メンバーから再送信できます。"
   },
   "session": {

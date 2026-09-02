@@ -21,7 +21,7 @@
     "integrations": "Integrações"
   },
   "security": {
-    "loadFailed": "Não foi possível carregar as suas definições de segurança. Tente novamente.",
+    "loadFailed": "Não foi possível carregar suas configurações de segurança. Tente novamente.",
     "heading": "Segurança",
     "description": "Autenticação de dois fatores e passkeys.",
     "mfa": {
@@ -72,6 +72,7 @@
       "mfaOn": "A autenticação de dois fatores está ativada",
       "mfaOff": "A autenticação de dois fatores está desativada",
       "passkeysOn": "{{count}} passkey registrada",
+      "passkeysOn_many": "{{count}} de passkeys registradas",
       "passkeysOn_other": "{{count}} passkeys registradas",
       "passkeysOff": "Nenhuma passkey registrada",
       "idleProtection": "Saída automática por inatividade está ativa"
@@ -109,6 +110,9 @@
     "stay": "Continuar editando",
     "leave": "Descartar alterações"
   },
+  "dialog": {
+    "title": "Configurações"
+  },
   "panels": {
     "members": {
       "title": "Membros",
@@ -130,7 +134,9 @@
       "removeConfirm": "Remover",
       "removePending": "Removendo {{name}}…",
       "emailPlaceholder": "colega@empresa.com",
-      "rolePlaceholder": "Selecione uma função"
+      "rolePlaceholder": "Selecione uma função",
+      "invite": "Convidar membro",
+      "memberFallback": "este membro"
     },
     "roles": {
       "title": "Funções",
@@ -143,6 +149,7 @@
       "loadMore": "Carregar mais",
       "systemBadge": "Sistema",
       "memberCount": "{{count}} membro",
+      "memberCount_many": "{{count}} de membros",
       "memberCount_other": "{{count}} membros",
       "actionsAria": "Ações para {{name}}",
       "editAction": "Editar função",
@@ -153,7 +160,9 @@
       "deleteConfirm": "Excluir",
       "deletePending": "Excluindo {{name}}…",
       "namePlaceholder": "ex.: Membro",
-      "descriptionPlaceholder": "O que esta função pode fazer?"
+      "descriptionPlaceholder": "O que esta função pode fazer?",
+      "create": "Nova função",
+      "roleFallback": "esta função"
     },
     "listSort": {
       "label": "Ordenar por",
@@ -179,17 +188,75 @@
       "deleteTitle": "Excluir sua conta?",
       "deleteDescription": "Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão removidos.",
       "deleteConfirm": "Excluir conta",
-      "deleteCancel": "Cancelar"
+      "deleteCancel": "Cancelar",
+      "title": "Conta",
+      "description": "Dados da conta e ações irreversíveis.",
+      "infoTitle": "Informações da conta",
+      "infoDescription": "Detalhes sobre sua conta.",
+      "accountIdLabel": "ID da conta",
+      "emailLabel": "E-mail",
+      "roleLabel": "Função",
+      "emailVerifiedLabel": "E-mail verificado",
+      "verified": "Verificado",
+      "dangerZone": "Zona de risco",
+      "dangerZoneDescription": "Ações irreversíveis para sua conta.",
+      "deleteHeading": "Excluir conta",
+      "deleteBody": "Exclua permanentemente sua conta e todos os dados associados.",
+      "deleteAction": "Excluir conta"
     },
     "general": {
       "namePlaceholder": "Acme Inc.",
       "title": "Organização · Geral",
       "description": "A identidade da sua organização na plataforma.",
-      "loadFailed": "Não foi possível carregar os dados da organização."
+      "loadFailed": "Não foi possível carregar os dados da organização.",
+      "basicsTitle": "Informações básicas",
+      "basicsDescription": "Aparecem no seletor de organização, nos convites e nos recibos por e-mail.",
+      "nameLabel": "Nome da organização",
+      "slugLabel": "Slug",
+      "slugHint": "Usado em URLs e caminhos de API. Fale com o suporte para alterá-lo.",
+      "save": "Salvar alterações",
+      "logoTitle": "Logo",
+      "logoDescription": "Aparece no seletor de organização e nos convites. Imagens quadradas ficam melhores.",
+      "logoAlt": "Logo de {{name}}",
+      "logoAltFallback": "Logo da organização",
+      "uploadLogo": "Enviar logo",
+      "uploading": "Enviando…",
+      "removeLogo": "Remover",
+      "logoReadOnly": "Apenas administradores da organização podem alterar o logo."
     },
     "integrations": {
       "searchPlaceholder": "Pesquisar chaves de API…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "Integrações",
+      "description": "Chaves de API e webhooks.",
+      "apiKeysTitle": "Chaves de API",
+      "apiKeysLoadFailed": "Não foi possível carregar as chaves de API. Tente novamente.",
+      "apiKeysEmptyTitle": "Nenhuma chave de API",
+      "apiKeysEmptyDescription": "As chaves de API permitem que serviços externos se comuniquem com sua organização.",
+      "apiKeysNoResults": "Nenhuma chave de API correspondente",
+      "apiKeysNoResultsDescription": "Nenhuma chave de API corresponde à sua pesquisa.",
+      "apiKeyFallback": "esta chave de API",
+      "revokeAria": "Revogar {{name}}",
+      "revokeTitle": "Revogar {{name}}?",
+      "revokeDescription": "Qualquer serviço que use esta chave perderá o acesso imediatamente. Isso não pode ser desfeito.",
+      "revokeConfirm": "Revogar",
+      "loadMore": "Carregar mais",
+      "webhooksTitle": "Webhooks",
+      "webhooksLoadFailed": "Não foi possível carregar os webhooks. Tente novamente.",
+      "webhooksEmptyTitle": "Nenhum webhook",
+      "webhooksEmptyDescription": "Envie eventos da organização para uma URL externa.",
+      "addWebhook": "Adicionar webhook",
+      "addWebhookTitle": "Adicionar um webhook",
+      "addWebhookDescription": "Enviaremos os eventos selecionados para esta URL via POST.",
+      "payloadUrlLabel": "URL de destino",
+      "eventsLabel": "Eventos",
+      "cancel": "Cancelar",
+      "createWebhook": "Criar webhook",
+      "creating": "Criando…",
+      "deleteWebhookAria": "Excluir o webhook {{url}}",
+      "deleteWebhookTitle": "Excluir este webhook?",
+      "deleteWebhookDescription": "Os eventos deixarão de ser entregues nesta URL. Isso não pode ser desfeito.",
+      "deleteConfirm": "Excluir"
     },
     "notifications": {
       "title": "Notificações",
@@ -230,6 +297,70 @@
       "revokeDescription": "{{device}} será desconectado imediatamente.",
       "revokeConfirm": "Sair",
       "deviceFallback": "Este dispositivo"
+    },
+    "billing": {
+      "title": "Cobrança",
+      "description": "Seu plano, formas de pagamento e faturas.",
+      "loadFailed": "Não foi possível carregar a cobrança. Tente novamente.",
+      "plansLoadFailed": "Não foi possível carregar os planos. Tente novamente.",
+      "planHeading": "Plano {{name}}",
+      "noPlan": "Sem plano",
+      "noSubscription": "Ainda não há assinatura ativa. Escolha um plano abaixo.",
+      "summary": "{{used}} de {{total}} assentos usados · renova em {{date}}",
+      "billedMonthly": "Cobrança mensal",
+      "billedYearly": "Cobrança anual",
+      "pricePerMonth": "{{price}} / mês",
+      "pricePerYear": "{{price}} / ano",
+      "planFallbackDescription": "Plano de cobrança do workspace.",
+      "currentPlan": "Plano atual",
+      "switchTo": "Mudar para {{name}}",
+      "choose": "Escolher {{name}}",
+      "switching": "Mudando…",
+      "completePaymentTitle": "Concluir pagamento",
+      "completePaymentDescription": "Confirme sua forma de pagamento para ativar a assinatura. Você continua no app — o Stripe só abre uma etapa segura se o seu banco exigir verificação.",
+      "changePlanTitle": "Mudar de plano",
+      "changePlanDescription": "Compare os planos e mude quando sua equipe estiver pronta.",
+      "cycleLegend": "Ciclo de cobrança",
+      "monthly": "Mensal",
+      "yearly": "Anual",
+      "paymentMethods": {
+        "title": "Formas de pagamento",
+        "description": "Cartões usados nas renovações da assinatura. Gerenciados com segurança no app via Stripe.",
+        "loadFailed": "Não foi possível carregar as formas de pagamento. Tente novamente.",
+        "empty": "Ainda não há formas de pagamento cadastradas.",
+        "add": "Adicionar forma de pagamento",
+        "adding": "Carregando…",
+        "cardFallback": "Cartão",
+        "expires": "Vence em {{month}}/{{year}}",
+        "defaultBadge": "Padrão"
+      },
+      "invoices": {
+        "title": "Faturas",
+        "description": "Data, vencimento, valor e status do seu provedor de cobrança.",
+        "loadFailed": "Não foi possível carregar as faturas. Tente novamente.",
+        "empty": "Ainda não há faturas.",
+        "view": "Ver fatura",
+        "columns": {
+          "date": "Data",
+          "due": "Vencimento",
+          "total": "Total",
+          "status": "Status",
+          "actions": "Ações"
+        }
+      },
+      "cancellation": {
+        "title": "Cancelamento",
+        "endsOn": "Sua assinatura termina em {{date}}. Você mantém o acesso até lá.",
+        "cancelAnytime": "Cancele quando quiser — o acesso continua até {{date}}.",
+        "resume": "Retomar assinatura",
+        "resuming": "Retomando…",
+        "cancelAction": "Cancelar no fim do período",
+        "confirmTitle": "Cancelar assinatura?",
+        "confirmDescription": "Seu workspace mantém acesso completo até {{date}}. Depois disso, a assinatura termina e os recursos pagos podem ficar limitados.",
+        "keep": "Manter assinatura",
+        "confirm": "Confirmar cancelamento",
+        "cancelling": "Cancelando…"
+      }
     }
   }
 }

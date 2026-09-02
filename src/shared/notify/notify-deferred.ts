@@ -29,7 +29,9 @@ export interface DeferredCommit {
  * next instead of stacking them. The mutation behind `onCommit` must therefore
  * not raise a success toast of its own — pass its "suppress" flag and hand the
  * copy here as `committedMessage`; otherwise the user gets two success toasts
- * five seconds apart for one action.
+ * five seconds apart for one action. The one exception is the undo
+ * confirmation, which takes `${toastId}-undone` — see `undoneToastId` below for
+ * why reusing the id makes that toast invisible rather than tidy.
  *
  * **Cancelling means undoing.** `onCancel` fires when the user hits Undo or
  * dismisses the toast — that is where a caller that already removed a row
@@ -97,6 +99,24 @@ export function notifyDeferredCommit({
 
   const timer = setTimeout(flush, delayMs);
 
+  /**
+   * The undo confirmation gets its OWN id, and must keep it.
+   *
+   * The shared toast surface dismisses the toast that owns the inline action
+   * the instant the action returns (`CustomToast` → `ToastInlineAction`:
+   * `action.onClick(); toast.dismiss(id)`). Anything written back to `toastId`
+   * from inside `onClick` is therefore torn down one frame after it appears —
+   * the user saw "Action cancelled" blink out. Written to a separate id, the
+   * pending toast still goes away on that dismiss and this one survives it.
+   *
+   * Nothing else in this file has the same hazard: every other write
+   * (`loading` / `success` / `dismiss` in `flush`) is driven by the timer or by
+   * the caller's `flush()`, never from inside a toast action, so no dismiss of
+   * `toastId` follows it. Keep it that way — a same-id write reached from
+   * `onClick` is silently invisible.
+   */
+  const undoneToastId = `${toastId}-undone`;
+
   notify.success(pendingMessage, {
     id: toastId,
     duration: delayMs + 800,
@@ -116,7 +136,7 @@ export function notifyDeferredCommit({
         // real outcome with a false one.
         if (!cancel()) return;
         notify.info(i18n.t(ERRORS_KEYS.toast.undone, { ns: ERRORS_NS }), {
-          id: toastId,
+          id: undoneToastId,
         });
       },
     },

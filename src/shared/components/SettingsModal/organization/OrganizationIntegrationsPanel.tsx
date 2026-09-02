@@ -59,6 +59,7 @@ function useCanManageIntegrations(): boolean {
 /** API keys — windowed list (masked) + search + cap-gated revoke. */
 function ApiKeysSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const integrations = SETTINGS_KEYS.panels.integrations;
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<OrgListSortPreset>(DEFAULT_ORG_LIST_SORT);
   const { debounced: debouncedSearch, isPending: isSearchPending } =
@@ -76,13 +77,13 @@ function ApiKeysSection() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium">API keys</h3>
+      <h3 className="text-sm font-medium">{tSettings(integrations.apiKeysTitle)}</h3>
       <OrgListControls
         search={search}
         onSearchChange={setSearch}
         sort={sort}
         onSortChange={setSort}
-        searchPlaceholder={tSettings(SETTINGS_KEYS.panels.integrations.searchPlaceholder)}
+        searchPlaceholder={tSettings(integrations.searchPlaceholder)}
         searchTestId="apikeys-search"
         sortTestId="apikeys-sort"
       />
@@ -98,7 +99,7 @@ function ApiKeysSection() {
         // list answered the same failure with a dead sentence (SET-20).
         <div data-testid="apikeys-error">
           <RetryError
-            message="Couldn't load API keys. Please try again."
+            message={tSettings(integrations.apiKeysLoadFailed)}
             onRetry={keys.refetch}
             isRetrying={keys.isFetching}
           />
@@ -107,12 +108,14 @@ function ApiKeysSection() {
       {!(keys.isPending || keys.isError) && keys.rows.length === 0 ? (
         <EmptyState
           icon={<Boxes />}
-          title={isSearching ? 'No matching API keys' : 'No API keys'}
-          description={
+          title={tSettings(
+            isSearching ? integrations.apiKeysNoResults : integrations.apiKeysEmptyTitle,
+          )}
+          description={tSettings(
             isSearching
-              ? 'No API keys match your search.'
-              : 'API keys let external services talk to your organization.'
-          }
+              ? integrations.apiKeysNoResultsDescription
+              : integrations.apiKeysEmptyDescription,
+          )}
         />
       ) : null}
       {!keys.isError && keys.rows.length > 0 ? (
@@ -133,7 +136,7 @@ function ApiKeysSection() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`Revoke ${key.name}`}
+                    aria-label={tSettings(integrations.revokeAria, { name: key.name })}
                     onClick={() => setToRevoke(key)}
                     data-testid={`apikey-revoke-${key.id}`}
                   >
@@ -154,7 +157,7 @@ function ApiKeysSection() {
             disabled={keys.isFetchingNextPage}
             data-testid="apikeys-load-more"
           >
-            Load more
+            {tSettings(integrations.loadMore)}
           </Button>
         </div>
       ) : null}
@@ -163,9 +166,11 @@ function ApiKeysSection() {
         onOpenChange={(open) => {
           if (!open) setToRevoke(null);
         }}
-        title={`Revoke ${toRevoke?.name ?? 'API key'}?`}
-        description="Any service using this key will immediately lose access. This can't be undone."
-        confirmLabel="Revoke"
+        title={tSettings(integrations.revokeTitle, {
+          name: toRevoke?.name ?? tSettings(integrations.apiKeyFallback),
+        })}
+        description={tSettings(integrations.revokeDescription)}
+        confirmLabel={tSettings(integrations.revokeConfirm)}
         destructive
         onConfirm={async () => {
           if (toRevoke) await revokeKey.mutateAsync(toRevoke.id);
@@ -178,6 +183,7 @@ function ApiKeysSection() {
 /** Webhooks — list + cap-gated create (url + events) + delete. */
 function WebhooksSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const integrations = SETTINGS_KEYS.panels.integrations;
   const { data: hooks, isLoading, isError, isFetching, refetch } = useWebhooks();
   const canManage = useCanManageIntegrations();
   const create = useCreateWebhook();
@@ -220,7 +226,7 @@ function WebhooksSection() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Webhooks</h3>
+        <h3 className="text-sm font-medium">{tSettings(integrations.webhooksTitle)}</h3>
         {canManage ? (
           <Button
             size="sm"
@@ -229,7 +235,7 @@ function WebhooksSection() {
             data-testid="webhook-add"
           >
             <Plus className="me-1.5 size-4" />
-            Add webhook
+            {tSettings(integrations.addWebhook)}
           </Button>
         ) : null}
       </div>
@@ -241,7 +247,7 @@ function WebhooksSection() {
       {isError ? (
         <div data-testid="webhooks-error">
           <RetryError
-            message="Couldn't load webhooks. Please try again."
+            message={tSettings(integrations.webhooksLoadFailed)}
             onRetry={() => {
               void refetch();
             }}
@@ -253,8 +259,8 @@ function WebhooksSection() {
       {!isError && hooks && hooks.length === 0 ? (
         <EmptyState
           icon={<Boxes />}
-          title="No webhooks"
-          description="Send organization events to an external URL."
+          title={tSettings(integrations.webhooksEmptyTitle)}
+          description={tSettings(integrations.webhooksEmptyDescription)}
         />
       ) : null}
 
@@ -273,7 +279,9 @@ function WebhooksSection() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`Delete webhook ${hook.url}`}
+                    aria-label={tSettings(integrations.deleteWebhookAria, {
+                      url: hook.url,
+                    })}
                     onClick={() => setToDelete(hook)}
                     data-testid={`webhook-delete-${hook.id}`}
                   >
@@ -296,26 +304,26 @@ function WebhooksSection() {
       >
         <DialogContent data-testid="webhook-add-dialog">
           <DialogHeader>
-            <DialogTitle>Add a webhook</DialogTitle>
+            <DialogTitle>{tSettings(integrations.addWebhookTitle)}</DialogTitle>
             <DialogDescription>
-              We&apos;ll POST the selected events to this URL.
+              {tSettings(integrations.addWebhookDescription)}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="webhook-url">Payload URL</Label>
+              <Label htmlFor="webhook-url">
+                {tSettings(integrations.payloadUrlLabel)}
+              </Label>
               <Input
                 id="webhook-url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder={tSettings(
-                  SETTINGS_KEYS.panels.integrations.webhookUrlPlaceholder,
-                )}
+                placeholder={tSettings(integrations.webhookUrlPlaceholder)}
                 data-testid="webhook-url"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Events</Label>
+              <Label>{tSettings(integrations.eventsLabel)}</Label>
               <div className="flex flex-wrap gap-2">
                 {WEBHOOK_EVENTS.map((event) => (
                   <Button
@@ -347,14 +355,16 @@ function WebhooksSection() {
               disabled={create.isPending}
               data-testid="webhook-cancel"
             >
-              Cancel
+              {tSettings(integrations.cancel)}
             </Button>
             <Button
               onClick={submit}
               isLoading={create.isPending}
               data-testid="webhook-create"
             >
-              {create.isPending ? 'Creating…' : 'Create webhook'}
+              {create.isPending
+                ? tSettings(integrations.creating)
+                : tSettings(integrations.createWebhook)}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -365,9 +375,9 @@ function WebhooksSection() {
         onOpenChange={(open) => {
           if (!open) setToDelete(null);
         }}
-        title="Delete this webhook?"
-        description="Events will stop being delivered to this URL. This can't be undone."
-        confirmLabel="Delete"
+        title={tSettings(integrations.deleteWebhookTitle)}
+        description={tSettings(integrations.deleteWebhookDescription)}
+        confirmLabel={tSettings(integrations.deleteConfirm)}
         destructive
         onConfirm={async () => {
           if (toDelete) await remove.mutateAsync(toDelete.id);
@@ -383,6 +393,7 @@ function WebhooksSection() {
  * with one-time-secret reveal remains a follow-up.
  */
 export function OrganizationIntegrationsPanel() {
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
   // Webhooks are only shown when the caller can actually read them; API keys are
   // the always-available part of this section (see settings-permissions.ts).
   const canReadWebhooks = useCan({
@@ -391,7 +402,10 @@ export function OrganizationIntegrationsPanel() {
   });
   return (
     <section className="space-y-8" data-testid="settings-organization-integrations">
-      <SectionHeader title="Integrations" description="API keys and webhooks." />
+      <SectionHeader
+        title={tSettings(SETTINGS_KEYS.panels.integrations.title)}
+        description={tSettings(SETTINGS_KEYS.panels.integrations.description)}
+      />
       <ApiKeysSection />
       {canReadWebhooks ? <WebhooksSection /> : null}
     </section>

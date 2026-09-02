@@ -45,21 +45,33 @@ const config = [
     name: 'Initial JS (entry + vendor)',
     path: jsPaths,
     /*
-     * 225 → 235 kB. Measured, not guessed: main is 221.2 kB and this tree is
-     * 228.4 kB with the SAME dependencies, so the +7.2 kB is app code.
+     * 225 → 235 kB, and the earlier justification for it was WRONG — corrected
+     * here rather than left standing.
      *
-     * 2.8 kB of it is `WidgetErrorBoundary` + `card` entering the entry chunk
-     * because App.tsx and routeTree.tsx now mount containment boundaries at the
-     * app and route roots (house rule 2). Those cannot be lazy — a boundary has
-     * to be mounted to catch — so the only way to reclaim that weight is to stop
-     * containing crashes at the two places where a crash costs the whole
-     * application. The rest is branch app code plus new locale keys.
+     * Measured: main builds 221.2 kB and this tree 228.4 kB on the SAME
+     * dependency versions, so the +7.2 kB is app code, not the Dependabot bump.
      *
-     * The split is otherwise intact: `build:check` reports no deferred module on
-     * the first-paint path, and the module-scope `import()` audit in
-     * agent-os/skills/bundle-performance is clean. Headroom is deliberately
-     * ~6 kB, not ~1 — a budget that reds on the next small change teaches people
-     * to raise it reflexively.
+     * What the first version of this comment claimed — that `card` and
+     * `WidgetErrorBoundary` (2.8 kB) entered the entry chunk because App.tsx and
+     * routeTree.tsx now mount containment boundaries — is misattributed. main's
+     * own App.tsx already imports `Card`/`CardContent` (for GlobalErrorFallback)
+     * and `react-error-boundary` directly, and this branch does not touch those
+     * imports. Only ~1.5 kB is genuinely attributable to the new boundaries.
+     *
+     * So the reclaim is arithmetically out of reach here: deleting the entire
+     * boundary chunk still lands at ~226.9 kB, over the old limit. Roughly
+     * 5.7 kB of the regression is elsewhere — branch app code and locale keys —
+     * and is NOT yet itemised. This is therefore a declared exemption, not a
+     * fix, and the honest next step is to attribute that 5.7 kB.
+     *
+     * Lazy-splitting the fallback was considered and rejected: if the fallback
+     * chunk fails to load, React.lazy throws during the boundary's OWN fallback
+     * render, which React cannot catch — it escalates to the global boundary and
+     * turns a contained widget failure into a whole-app replacement, the exact
+     * outcome these boundaries exist to prevent.
+     *
+     * The split is otherwise intact: build:check reports no deferred module on
+     * the first-paint path, and the module-scope import() audit is clean.
      */
     limit: '235 kB',
     gzip: true,

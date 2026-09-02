@@ -1,7 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
+import type { TFunction } from 'i18next';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   omitStripeReturnParams,
@@ -22,6 +24,10 @@ import { QueryBoundary } from '@/shared/components/QueryBoundary/index.ts';
 import { BillingCancellationSection } from '@/shared/components/SettingsModal/account/BillingCancellationSection/index.ts';
 import { BillingInvoicesTable } from '@/shared/components/SettingsModal/account/BillingInvoicesTable/index.ts';
 import { BillingPaymentMethods } from '@/shared/components/SettingsModal/account/BillingPaymentMethods/index.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { StripePaymentForm } from '@/shared/components/StripePaymentForm/index.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
@@ -43,22 +49,30 @@ import {
 } from '@/shared/hooks/useSubscription/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 
+const BILLING_KEYS = SETTINGS_KEYS.panels.billing;
+
 function planPriceLabel(
   plan: BillingPlan,
   billingCycle: BillingCycle,
   formatCurrency: (cents: number, currency: string) => string,
+  t: TFunction,
 ) {
-  if (billingCycle === 'yearly') {
-    if (plan.priceYearly === 0) return '$0 / yr';
-    return `${formatCurrency(plan.priceYearly, plan.currency)} / yr`;
-  }
-  if (plan.priceMonthly === 0) return '$0 / mo';
-  return `${formatCurrency(plan.priceMonthly, plan.currency)} / mo`;
+  const yearly = billingCycle === 'yearly';
+  const cents = yearly ? plan.priceYearly : plan.priceMonthly;
+  // A free plan still gets formatted in the viewer's locale — a hardcoded "$0"
+  // was both untranslated and wrong for every non-USD workspace.
+  const price = formatCurrency(cents, plan.currency);
+  return t(yearly ? BILLING_KEYS.pricePerYear : BILLING_KEYS.pricePerMonth, { price });
 }
 
-function planActionLabel(name: string, hasSubscription: boolean, busy: boolean) {
-  if (busy) return 'Switching…';
-  return hasSubscription ? `Switch to ${name}` : `Choose ${name}`;
+function planActionLabel(
+  name: string,
+  hasSubscription: boolean,
+  busy: boolean,
+  t: TFunction,
+) {
+  if (busy) return t(BILLING_KEYS.switching);
+  return t(hasSubscription ? BILLING_KEYS.switchTo : BILLING_KEYS.choose, { name });
 }
 
 function statusBadgeVariant(status: BillingSubscription['status']) {
@@ -122,10 +136,11 @@ function PlanCard({
   onSelect,
   formatCurrency,
 }: PlanCardProps) {
+  const { t } = useTranslation(SETTINGS_NS);
   const busy = pendingPlanId === plan.id;
   let action: ReactNode = null;
   if (current) {
-    action = <Badge variant="secondary">Current plan</Badge>;
+    action = <Badge variant="secondary">{t(BILLING_KEYS.currentPlan)}</Badge>;
   } else if (canManage) {
     action = (
       <Button
@@ -138,7 +153,7 @@ function PlanCard({
         onClick={() => void onSelect(plan.id)}
         data-testid={`plan-${plan.id}`}
       >
-        {planActionLabel(plan.name, hasSubscription, busy)}
+        {planActionLabel(plan.name, hasSubscription, busy, t)}
       </Button>
     );
   }
@@ -148,12 +163,12 @@ function PlanCard({
       <CardHeader>
         <CardTitle className="text-base">{plan.name}</CardTitle>
         <CardDescription>
-          {planPriceLabel(plan, billingCycle, formatCurrency)}
+          {planPriceLabel(plan, billingCycle, formatCurrency, t)}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-muted-foreground text-sm">
-          {plan.description ?? 'Workspace billing plan.'}
+          {plan.description ?? t(BILLING_KEYS.planFallbackDescription)}
         </p>
         {action}
       </CardContent>
@@ -167,6 +182,7 @@ interface BillingContentProps {
 }
 
 function BillingContent({ sub, plans }: BillingContentProps) {
+  const { t } = useTranslation(SETTINGS_NS);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { formatCurrency, formatDate } = useLocaleFormat();
@@ -263,8 +279,12 @@ function BillingContent({ sub, plans }: BillingContentProps) {
   }
 
   const summaryDescription = sub
-    ? `${sub.seatsUsed} of ${sub.seatsTotal ?? '∞'} seats used · renews ${formatDate(sub.currentPeriodEnd)}`
-    : 'No active subscription yet. Choose a plan below.';
+    ? t(BILLING_KEYS.summary, {
+        used: sub.seatsUsed,
+        total: sub.seatsTotal ?? '∞',
+        date: formatDate(sub.currentPeriodEnd),
+      })
+    : t(BILLING_KEYS.noSubscription);
 
   return (
     <div className="space-y-6">
@@ -272,7 +292,9 @@ function BillingContent({ sub, plans }: BillingContentProps) {
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <CardTitle className="text-base">
-              {currentPlan?.name ?? 'No plan'} {currentPlan ? 'plan' : ''}
+              {currentPlan
+                ? t(BILLING_KEYS.planHeading, { name: currentPlan.name })
+                : t(BILLING_KEYS.noPlan)}
             </CardTitle>
             {sub ? (
               <Badge variant={statusBadgeVariant(sub.status)}>
@@ -283,7 +305,11 @@ function BillingContent({ sub, plans }: BillingContentProps) {
           <CardDescription>{summaryDescription}</CardDescription>
           {sub ? (
             <p className="text-muted-foreground text-sm">
-              Billed {sub.billingCycle === 'yearly' ? 'yearly' : 'monthly'}
+              {t(
+                sub.billingCycle === 'yearly'
+                  ? BILLING_KEYS.billedYearly
+                  : BILLING_KEYS.billedMonthly,
+              )}
             </p>
           ) : null}
         </CardHeader>
@@ -292,10 +318,11 @@ function BillingContent({ sub, plans }: BillingContentProps) {
       {paymentClientSecret ? (
         <Card data-testid="billing-payment-card">
           <CardHeader>
-            <CardTitle className="text-base">Complete payment</CardTitle>
+            <CardTitle className="text-base">
+              {t(BILLING_KEYS.completePaymentTitle)}
+            </CardTitle>
             <CardDescription>
-              Confirm your payment method to activate the subscription. You stay in the
-              app — Stripe only opens a secure step if your bank requires verification.
+              {t(BILLING_KEYS.completePaymentDescription)}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -334,9 +361,9 @@ function BillingContent({ sub, plans }: BillingContentProps) {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-medium">Change plan</h3>
+            <h3 className="text-sm font-medium">{t(BILLING_KEYS.changePlanTitle)}</h3>
             <p className="text-muted-foreground text-sm">
-              Compare plans and switch when your team is ready.
+              {t(BILLING_KEYS.changePlanDescription)}
             </p>
           </div>
           {canManage ? (
@@ -344,7 +371,7 @@ function BillingContent({ sub, plans }: BillingContentProps) {
               className="inline-flex rounded-md border p-0.5"
               data-testid="billing-cycle-toggle"
             >
-              <legend className="sr-only">Billing cycle</legend>
+              <legend className="sr-only">{t(BILLING_KEYS.cycleLegend)}</legend>
               {(['monthly', 'yearly'] as const).map((cycle) => (
                 <Button
                   key={cycle}
@@ -355,7 +382,7 @@ function BillingContent({ sub, plans }: BillingContentProps) {
                   onClick={() => setBillingCycle(cycle)}
                   data-testid={`billing-cycle-${cycle}`}
                 >
-                  {cycle === 'monthly' ? 'Monthly' : 'Yearly'}
+                  {t(cycle === 'monthly' ? BILLING_KEYS.monthly : BILLING_KEYS.yearly)}
                 </Button>
               ))}
             </fieldset>
@@ -398,23 +425,21 @@ function BillingContent({ sub, plans }: BillingContentProps) {
  * Plan changes are gated on subscription:manage for team organizations.
  */
 export function AccountBillingPanel() {
+  const { t } = useTranslation(SETTINGS_NS);
   const subscriptionQuery = useSubscription();
   const plansQuery = useBillingPlans();
 
   return (
     <section className="space-y-6" data-testid="settings-account-billing">
       <SectionHeader
-        title="Billing"
-        description="Your plan, payment methods, and invoices."
+        title={t(BILLING_KEYS.title)}
+        description={t(BILLING_KEYS.description)}
       />
-      <QueryBoundary
-        query={subscriptionQuery}
-        errorMessage="Couldn't load billing. Please try again."
-      >
+      <QueryBoundary query={subscriptionQuery} errorMessage={t(BILLING_KEYS.loadFailed)}>
         {(sub) => (
           <QueryBoundary
             query={plansQuery}
-            errorMessage="Couldn't load plans. Please try again."
+            errorMessage={t(BILLING_KEYS.plansLoadFailed)}
           >
             {(plans) => (
               <BillingContent sub={sub} plans={plans.filter((plan) => plan.isActive)} />

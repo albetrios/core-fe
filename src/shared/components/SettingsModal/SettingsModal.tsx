@@ -203,7 +203,7 @@ function SettingsModalBody() {
           data-testid="settings-modal"
           aria-busy
         >
-          <DialogTitle className="sr-only">Settings</DialogTitle>
+          <DialogTitle className="sr-only">{t(SETTINGS_KEYS.dialog.title)}</DialogTitle>
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
             <SettingsNavSkeleton />
             <div
@@ -256,7 +256,7 @@ function SettingsModalBody() {
             if (node?.closest('[data-sonner-toaster]')) e.preventDefault();
           }}
         >
-          <DialogTitle className="sr-only">Settings</DialogTitle>
+          <DialogTitle className="sr-only">{t(SETTINGS_KEYS.dialog.title)}</DialogTitle>
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
             <SettingsNav groups={visibleGroups} active={active} onSelect={goTo} />
             <div className="flex min-h-0 flex-col">

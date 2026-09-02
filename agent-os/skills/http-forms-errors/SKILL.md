@@ -9,6 +9,7 @@ Use this skill when connecting **react-hook-form + Zod** mutations to **`apiClie
 when choosing how **read vs write** paths surface failures.
 
 **Data fetching patterns:** `react-best-practices` + `agent-os/rules/api-data-patterns.mdc`  
+**Resilience rules:** `agent-os/rules/resilient-interactions.mdc` — single-flight writes (§1), `useAppMutation` for every write (§20), all three query states (§8), four states with the shared components (§19), dialog exits held during a write (§26)  
 **Platform overview:** `docs/reference/frontend-platform.md` (HTTP errors, QueryBoundary, offline stance)
 
 ---
@@ -145,4 +146,4 @@ pnpm test -- --run src/shared/forms/ src/shared/components/RateLimitNotice/ src/
 
 - Skills: `composition-patterns`, `test-generation`, `resource-crud`
 - Components: `QueryBoundary`, `RetryError`, `OfflineIndicator`
-- Rule: `agent-os/rules/api-data-patterns.mdc`
+- Rules: `agent-os/rules/api-data-patterns.mdc`, `agent-os/rules/resilient-interactions.mdc`

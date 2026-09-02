@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
+import type { TFunction } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   omitStripeReturnParams,
@@ -13,6 +15,10 @@ import type { BillingPaymentMethod } from '@/shared/api/billing-contracts.ts';
 import { billingQueryKeys } from '@/shared/api/billing-query-keys.ts';
 import { isStripeEnabled } from '@/shared/billing/stripe-config.ts';
 import { QueryBoundary } from '@/shared/components/QueryBoundary/index.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { StripePaymentForm } from '@/shared/components/StripePaymentForm/index.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -33,12 +39,15 @@ import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.
 /** One toast id for the add-card button — a retry replaces, never stacks. */
 const ADD_METHOD_TOAST = 'billing-add-payment-method';
 
-function formatCardLabel(method: BillingPaymentMethod) {
-  const brand = method.brand ? method.brand.toUpperCase() : 'Card';
+const METHOD_KEYS = SETTINGS_KEYS.panels.billing.paymentMethods;
+
+function formatCardLabel(method: BillingPaymentMethod, t: TFunction) {
+  const brand = method.brand ? method.brand.toUpperCase() : t(METHOD_KEYS.cardFallback);
   return `${brand} ···· ${method.last4}`;
 }
 
 function PaymentMethodRow({ method }: { method: BillingPaymentMethod }) {
+  const { t } = useTranslation(SETTINGS_NS);
   return (
     <li
       className="flex items-center justify-between gap-3 rounded-md border px-3 py-2"
@@ -47,13 +56,15 @@ function PaymentMethodRow({ method }: { method: BillingPaymentMethod }) {
       <div className="flex items-center gap-2">
         <CreditCard className="text-muted-foreground size-4" data-icon />
         <div>
-          <p className="text-sm font-medium">{formatCardLabel(method)}</p>
+          <p className="text-sm font-medium">{formatCardLabel(method, t)}</p>
           <p className="text-muted-foreground text-xs">
-            Expires {method.expMonth}/{method.expYear}
+            {t(METHOD_KEYS.expires, { month: method.expMonth, year: method.expYear })}
           </p>
         </div>
       </div>
-      {method.isDefault ? <Badge variant="secondary">Default</Badge> : null}
+      {method.isDefault ? (
+        <Badge variant="secondary">{t(METHOD_KEYS.defaultBadge)}</Badge>
+      ) : null}
     </li>
   );
 }
@@ -68,6 +79,7 @@ export function BillingPaymentMethods({
   enabled = true,
   canManage = false,
 }: BillingPaymentMethodsProps) {
+  const { t } = useTranslation(SETTINGS_NS);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const orgId = useOrganizationStore((s) => s.organizationId);
@@ -161,10 +173,8 @@ export function BillingPaymentMethods({
   return (
     <Card data-testid="billing-payment-methods-card">
       <CardHeader>
-        <CardTitle className="text-base">Payment methods</CardTitle>
-        <CardDescription>
-          Cards used for subscription renewals. Managed securely in-app via Stripe.
-        </CardDescription>
+        <CardTitle className="text-base">{t(METHOD_KEYS.title)}</CardTitle>
+        <CardDescription>{t(METHOD_KEYS.description)}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {setupSecret ? (
@@ -183,10 +193,7 @@ export function BillingPaymentMethods({
           </SectionErrorBoundary>
         ) : (
           <>
-            <QueryBoundary
-              query={query}
-              errorMessage="Couldn't load payment methods. Please try again."
-            >
+            <QueryBoundary query={query} errorMessage={t(METHOD_KEYS.loadFailed)}>
               {(methods) =>
                 methods.length > 0 ? (
                   <ul className="space-y-2" data-testid="billing-payment-methods-list">
@@ -199,7 +206,7 @@ export function BillingPaymentMethods({
                     className="text-muted-foreground text-sm"
                     data-testid="billing-payment-methods-empty"
                   >
-                    No payment methods on file yet.
+                    {t(METHOD_KEYS.empty)}
                   </p>
                 )
               }
@@ -213,7 +220,7 @@ export function BillingPaymentMethods({
                 onClick={() => void handleAddPaymentMethod()}
                 data-testid="billing-add-payment-method"
               >
-                {isAdding ? 'Loading…' : 'Add payment method'}
+                {isAdding ? t(METHOD_KEYS.adding) : t(METHOD_KEYS.add)}
               </Button>
             ) : null}
           </>

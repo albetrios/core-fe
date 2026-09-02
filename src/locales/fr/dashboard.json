@@ -109,6 +109,7 @@
     "ariaLabel": "Membres de l'équipe",
     "heading": "Membres de l'équipe",
     "description_one": "{{count}} personne dans cet espace",
+    "description_many": "{{count}} de personnes dans cet espace",
     "description_other": "{{count}} personnes dans cet espace",
     "columnMember": "Membre",
     "columnRole": "Rôle",

@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render as rtlRender,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -23,12 +29,19 @@ function render(ui: ReactElement) {
 const {
   useMembersMock,
   removeMutate,
+  removeMutateSync,
+  removeMemberOptions,
   updateRoleMutate,
   updateStatusMutate,
   useRolesMock,
 } = vi.hoisted(() => ({
   useMembersMock: vi.fn(),
+  /** `mutateAsync` — the only removal entry point the panel may use. */
   removeMutate: vi.fn(),
+  /** `mutate` — kept separate so a regression to the void-returning call shows. */
+  removeMutateSync: vi.fn(),
+  /** Every options object `useRemoveMember` was constructed with. */
+  removeMemberOptions: [] as (Record<string, unknown> | undefined)[],
   updateRoleMutate: vi.fn(),
   updateStatusMutate: vi.fn(),
   useRolesMock: vi.fn(),
@@ -37,7 +50,10 @@ vi.mock('@/shared/hooks/useMembers/index.ts', async () => {
   const { useState } = await import('react');
   return {
     useMembers: useMembersMock,
-    useRemoveMember: () => ({ mutate: removeMutate, mutateAsync: removeMutate }),
+    useRemoveMember: (options?: Record<string, unknown>) => {
+      removeMemberOptions.push(options);
+      return { mutate: removeMutateSync, mutateAsync: removeMutate };
+    },
     // Real pending state: the flag is the subject of the SET-12 tests below.
     useUpdateMemberRole: () => {
       const [isPending, setIsPending] = useState(false);
@@ -60,15 +76,36 @@ vi.mock('@/shared/components/InviteMemberDialog/index.ts', () => ({
     </button>
   ),
 }));
+/**
+ * Each scheduled commit, with the promise `onCommit()` handed back. The real
+ * helper is what turns that promise into "committed" or `onCommitError`, so
+ * whether the panel's write is actually inside it is the thing to assert.
+ */
+const deferredCommits = vi.hoisted(
+  () => [] as { onCommit: () => void | Promise<void>; commit: Promise<unknown> }[],
+);
 vi.mock('@/shared/notify/notify-deferred.ts', () => ({
   // Commit immediately and hand back the real handle shape the caller stores.
-  notifyDeferredCommit: ({ onCommit }: { onCommit: () => void | Promise<void> }) => {
-    void onCommit();
+  notifyDeferredCommit: (options: { onCommit: () => void | Promise<void> }) => {
+    const commit = Promise.resolve(options.onCommit());
+    // The real helper routes a rejection to `onCommitError`; keep it handled
+    // here so tests can assert on `commit` without an unhandled rejection.
+    commit.catch(() => undefined);
+    deferredCommits.push({ onCommit: options.onCommit, commit });
     return { cancel: vi.fn(), flush: vi.fn() };
   },
 }));
 
 import { OrganizationMembersPanel } from './OrganizationMembersPanel.tsx';
+
+/** The most recently scheduled deferred commit. */
+const lastDeferred = () => {
+  const call = deferredCommits.at(-1);
+  if (!call) throw new Error('no deferred commit was scheduled');
+  return call;
+};
+/** Let queued microtasks run without advancing any timer. */
+const flushMicrotasks = () => act(async () => undefined);
 
 const OWNER = {
   id: 'mem_owner',
@@ -158,11 +195,24 @@ function setCanManage(value: boolean) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // `clearAllMocks` keeps implementations, so a per-test `mockReturnValue` for
+  // the write would leak into the next case.
+  removeMutate.mockReset();
+  removeMutateSync.mockReset();
+  removeMemberOptions.length = 0;
+  deferredCommits.length = 0;
   useOrganizationStore.getState().clearOrganization();
   useRolesMock.mockReturnValue(
     rolesResult([role('rol_owner', 'Owner'), role('rol_member', 'Member')]),
   );
 });
+
+/** Open the row menu, pick Remove, and accept the confirm dialog. */
+async function confirmRemoval(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByTestId('member-actions-mem_1'));
+  await user.click(await screen.findByTestId('member-remove-mem_1'));
+  await user.click(await screen.findByTestId('confirm-accept'));
+}
 
 describe('OrganizationMembersPanel', () => {
   it('shows an empty state when there are no members', () => {
@@ -348,11 +398,74 @@ describe('OrganizationMembersPanel', () => {
     const user = userEvent.setup();
     render(<OrganizationMembersPanel />);
 
-    await user.click(screen.getByTestId('member-actions-mem_1'));
-    await user.click(await screen.findByTestId('member-remove-mem_1'));
-    await user.click(await screen.findByTestId('confirm-accept'));
+    await confirmRemoval(user);
 
     await waitFor(() => expect(removeMutate).toHaveBeenCalledWith('mem_1'));
+    // Through `mutateAsync` only — `mutate` returns void and cannot be awaited.
+    expect(removeMutateSync).not.toHaveBeenCalled();
+  });
+
+  // ── SET-7: the deferred removal is tied to the write it defers ───────────
+
+  it('does not resolve the deferred commit until the DELETE lands', async () => {
+    // The bug: the panel scheduled `() => removeMember.mutate(id)`, which
+    // returns void. The deferred commit resolved the instant it fired, so the
+    // toast reported the removal before the request had been answered.
+    let completeWrite!: () => void;
+    removeMutate.mockReturnValue(
+      new Promise<void>((resolve) => {
+        completeWrite = resolve;
+      }),
+    );
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await confirmRemoval(user);
+    // Keyed on the SCHEDULE, not on which entry point ran — the assertions
+    // below are what must tell `mutateAsync` apart from `mutate`.
+    await waitFor(() => expect(deferredCommits).toHaveLength(1));
+
+    let committed = false;
+    void lastDeferred().commit.then(() => {
+      committed = true;
+    });
+    await flushMicrotasks();
+    // The DELETE is still in flight, so the commit must still be open.
+    expect(committed).toBe(false);
+
+    completeWrite();
+    await act(async () => {
+      await lastDeferred().commit;
+    });
+    expect(committed).toBe(true);
+  });
+
+  it('lets a failed DELETE reject, so the rollback path can run', async () => {
+    // `mutate` never rejects, so `onCommitError` could not fire and the row
+    // stayed gone after a delete the server refused.
+    const failure = new Error('Forbidden');
+    removeMutate.mockImplementation(() => Promise.reject(failure));
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await confirmRemoval(user);
+    await waitFor(() => expect(deferredCommits).toHaveLength(1));
+
+    await expect(lastDeferred().commit).rejects.toBe(failure);
+  });
+
+  it('silences the mutation toast so one removal is confirmed once', () => {
+    // The undo toast owns the whole sequence; without this the user got the
+    // mutation's "Member removed" AND the deferred one, five seconds apart.
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    setCanManage(true);
+    render(<OrganizationMembersPanel />);
+
+    expect(removeMemberOptions.at(-1)).toEqual({ suppressSuccessToast: true });
   });
 
   it('renders a search box and forwards the debounced term to the hook', async () => {

@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import i18n from '@/lib/i18n/i18n.ts';
 import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
 import { cn } from '@/lib/utils.ts';
 import type { Member, OrgRole } from '@/shared/api/organization-contracts.ts';
+import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { InviteMemberDialog } from '@/shared/components/InviteMemberDialog/index.ts';
@@ -34,6 +37,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
 import {
   useMembers,
   useRemoveMember,
@@ -42,7 +46,7 @@ import {
 } from '@/shared/hooks/useMembers/index.ts';
 import { useRoles } from '@/shared/hooks/useRoles/index.ts';
 import { Loader2, MoreHorizontal, UserPlus, Users } from '@/shared/icons/index.ts';
-import { notifyDeferredCommit } from '@/shared/notify/notify-deferred.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
   DEFAULT_ORG_LIST_SORT,
@@ -231,7 +235,24 @@ export function OrganizationMembersPanel() {
    * gap that fills itself a moment later (SET-23).
    */
   const accessResolved = useAccessResolved();
-  const removeMember = useRemoveMember();
+  /**
+   * The undo toast owns the whole message sequence for a deferred removal
+   * ("Removing Jo…" → "Member removed"), so the mutation must stay quiet —
+   * otherwise one removal is confirmed twice, five seconds apart (SET-7).
+   */
+  const removeMember = useRemoveMember({ suppressSuccessToast: true });
+  const organizationId = useOrganizationStore((s) => s.organizationId);
+  /**
+   * Removal runs through the shared row-removal hook rather than the raw
+   * `notifyDeferredCommit`: the row has to leave the list at SCHEDULE time (the
+   * mutation's own optimistic patch is five seconds away, so the toast used to
+   * say "Removing Jo…" while Jo sat in the table), undo and a failed write both
+   * have to put that row back, and an unmount inside the undo window has to
+   * cancel the pending write instead of leaking a timer at a dead panel.
+   */
+  const scheduleRemoval = useDeferredRowRemoval<Member>(
+    orgQueryKeys.members(organizationId),
+  );
   const [toRemove, setToRemove] = useState<Member | null>(null);
 
   const panels = SETTINGS_KEYS.panels.members;
@@ -263,7 +284,7 @@ export function OrganizationMembersPanel() {
         {accessResolved ? null : (
           <Button size="sm" disabled data-testid="invite-member-pending">
             <UserPlus className="me-2 h-4 w-4" />
-            Invite member
+            {t(panels.invite)}
           </Button>
         )}
         {accessResolved && canInvite ? <InviteMemberDialog /> : null}
@@ -351,7 +372,9 @@ export function OrganizationMembersPanel() {
         onOpenChange={(open) => {
           if (!open) setToRemove(null);
         }}
-        title={t(panels.removeTitle, { name: toRemove?.name ?? 'member' })}
+        title={t(panels.removeTitle, {
+          name: toRemove?.name ?? t(panels.memberFallback),
+        })}
         description={t(panels.removeDescription)}
         confirmLabel={t(panels.removeConfirm)}
         destructive
@@ -359,10 +382,20 @@ export function OrganizationMembersPanel() {
           if (!toRemove) return;
           const member = toRemove;
           setToRemove(null);
-          notifyDeferredCommit({
+          scheduleRemoval({
+            id: member.id,
             pendingMessage: t(panels.removePending, { name: member.name }),
+            // The copy the mutation would have toasted, handed to the undo
+            // toast so the whole sequence lands on one toast id.
+            committedMessage: i18n.t(ERRORS_KEYS.frontend.hooks.members.removeSuccess, {
+              ns: ERRORS_NS,
+            }),
             toastId: `remove-member-${member.id}`,
-            onCommit: () => removeMember.mutate(member.id),
+            // `mutateAsync`, never `mutate`: the deferred commit has to AWAIT
+            // the DELETE. `mutate` returns void, so the toast reported success
+            // before the request landed and a rejection could never reach
+            // `onCommitError` — the row stayed gone after a failed delete.
+            commit: () => removeMember.mutateAsync(member.id),
           });
         }}
       />
