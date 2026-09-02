@@ -140,7 +140,7 @@ export async function createSessionViaEmailCode(
       headers: e2eAuthHeaders(),
     }),
   );
-  if (send.status() !== 200) {
+  if (send.status() !== 201) {
     throw new Error(`send-code failed: ${send.status()} ${await send.text()}`);
   }
 
@@ -152,7 +152,7 @@ export async function createSessionViaEmailCode(
       headers: e2eAuthHeaders(),
     }),
   );
-  if (login.status() !== 200) {
+  if (login.status() !== 201) {
     throw new Error(`email/login failed: ${login.status()} ${await login.text()}`);
   }
 

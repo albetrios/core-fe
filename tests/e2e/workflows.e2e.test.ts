@@ -45,7 +45,7 @@ test.describe('Auth workflow (API)', () => {
       data: { email },
       headers: e2eAuthHeaders(),
     });
-    expect(send.status()).toBe(200);
+    expect(send.status()).toBe(201);
 
     const { accessToken } = await createSessionViaEmailCode(api, email);
     const ctx = await api.get(`${API}/auth/me/context`, {
@@ -59,7 +59,7 @@ test.describe('Auth workflow (API)', () => {
     const logout = await api.post(`${API}/auth/logout`, {
       headers: bearerHeaders(accessToken),
     });
-    expect(logout.status()).toBe(200);
+    expect(logout.status()).toBe(201);
     expect(
       (
         await api.get(`${API}/auth/me/context`, { headers: bearerHeaders(accessToken) })

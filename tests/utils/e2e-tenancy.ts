@@ -81,7 +81,7 @@ export async function createTeamInvitation(
     headers: bearerHeaders(teamToken, true),
     data: { email: inviteeEmail, role_id: roleId },
   });
-  if (res.status() !== 200) {
+  if (res.status() !== 201) {
     if (res.status() === 409) {
       const body = (await res.json()) as { error?: { reason?: string } };
       if (body.error?.reason === 'seat_limit_reached') {

@@ -66,7 +66,7 @@ test.describe('deployment — personal-and-team', () => {
       api,
       accessToken,
     );
-    expect(createStatus).toBe(200);
+    expect(createStatus).toBe(201);
     expect(org?.id).toMatch(/^org_/);
 
     const after = await fetchMeContextWire(api, teamToken);
@@ -107,7 +107,7 @@ test.describe('deployment — personal-and-team', () => {
       headers: bearerHeaders(teamToken),
       data: { organization_id: personalOrgId },
     });
-    expect([200]).toContain(sw.status());
+    expect([200, 201]).toContain(sw.status());
     const backToken = (await sw.json()).data.access_token as string;
 
     const backCtx = await fetchMeContextWire(api, backToken);

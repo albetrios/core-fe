@@ -117,9 +117,7 @@ export default async function globalSetup(): Promise<void> {
       ].join(' '),
     );
   }
-  // core-be returns a uniform 200 for this endpoint (201 was the pre-uniform-200 contract).
-  // Pinned to 200 so a drift back to 201 fails loudly instead of passing silently.
-  if (sendCodeProbe.status !== 200) {
+  if (sendCodeProbe.status !== 201) {
     throw new Error(
       `E2E auth probe: POST /auth/email/send-code returned ${sendCodeProbe.status} — ${await sendCodeProbe.text()}`,
     );

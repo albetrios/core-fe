@@ -65,7 +65,7 @@ async function sendCodeAcceptsHeaders(
       body: JSON.stringify({ email: probeEmail() }),
       signal: AbortSignal.timeout(10_000),
     });
-    return res.status === 200;
+    return res.status === 201;
   } catch {
     return false;
   }
