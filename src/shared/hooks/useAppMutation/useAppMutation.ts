@@ -264,7 +264,14 @@ export function useAppMutation<
   const { mutateAsync } = mutation;
 
   const guardedMutateAsync = useCallback<typeof mutateAsync>(
-    (vars, mutateOptions) => {
+    /*
+     * Rest args, not `(vars, mutateOptions)`. TanStack 5.102 types `mutateAsync`
+     * as `(...args: MutateFunctionRest<…>)`, a tuple that is empty when the
+     * mutation takes no variables — so a two-parameter callback no longer
+     * matches the signature, and `vars` is `TVars | undefined` here.
+     */
+    (...mutateArgs) => {
+      const [vars, mutateOptions] = mutateArgs;
       // A duplicate submit joins the request already in flight rather than
       // starting a second one, so callers awaiting it still get a result.
       //
@@ -298,15 +305,26 @@ export function useAppMutation<
       // neither `meta` nor a `mutationKey`.
       const callContext = { client: queryClient, meta: undefined };
 
-      const promise = mutateAsync(vars, calls)
+      /*
+       * The same call, with only the options slot swapped for the wrappers.
+       * Rebuilding the tuple keeps `vars` exactly as the caller passed it —
+       * including "absent" for a no-variables mutation, which is why the cast
+       * is on the tuple rather than on `vars` itself.
+       */
+      const forwarded = [vars, calls] as unknown as typeof mutateArgs;
+      // `vars` is `TVars | undefined` only because the tuple allows omission;
+      // TanStack hands the callbacks whatever was actually passed.
+      const callVars = vars as TVars;
+
+      const promise = mutateAsync(...forwarded)
         .then((data) => {
-          calls.onSuccess(data, vars, undefined, callContext);
-          calls.onSettled(data, null, vars, undefined, callContext);
+          calls.onSuccess(data, callVars, undefined, callContext);
+          calls.onSettled(data, null, callVars, undefined, callContext);
           return data;
         })
         .catch((error: unknown) => {
-          calls.onError(error as Error, vars, undefined, callContext);
-          calls.onSettled(undefined, error as Error, vars, undefined, callContext);
+          calls.onError(error as Error, callVars, undefined, callContext);
+          calls.onSettled(undefined, error as Error, callVars, undefined, callContext);
           throw error;
         })
         .finally(() => {
@@ -320,9 +338,12 @@ export function useAppMutation<
   );
 
   const guardedMutate = useCallback<typeof mutation.mutate>(
-    (vars, mutateOptions) => {
+    // Rest args for the same reason as `guardedMutateAsync` above — the tuple
+    // is empty for a mutation that takes no variables, so it is forwarded whole
+    // rather than destructured and rebuilt.
+    (...mutateArgs) => {
       // `mutate` never throws — failures surface through onError / the toast.
-      void guardedMutateAsync(vars, mutateOptions).catch(() => undefined);
+      void guardedMutateAsync(...mutateArgs).catch(() => undefined);
     },
     [guardedMutateAsync],
   );
