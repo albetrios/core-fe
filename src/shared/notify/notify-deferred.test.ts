@@ -16,7 +16,13 @@ vi.mock('./notify.ts', () => ({
   },
 }));
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import i18n from '@/lib/i18n/i18n.ts';
+
 import { notifyDeferredCommit } from './notify-deferred.ts';
+
+const undoneCopy = () => i18n.t(ERRORS_KEYS.toast.undone, { ns: ERRORS_NS });
+const clickUndo = () => notifySuccess.mock.calls[0]?.[1]?.action?.onClick();
 
 describe('notifyDeferredCommit', () => {
   beforeEach(() => {
@@ -124,6 +130,53 @@ describe('notifyDeferredCommit', () => {
 
     expect(onCommit).toHaveBeenCalledTimes(1);
     expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it('claims "Undone" for an undo that lands inside the window', () => {
+    // The winning side of the race below: cancel() really cancelled, so the
+    // user is owed the confirmation.
+    const onCommit = vi.fn();
+    notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      onCommit,
+      delayMs: 100,
+      toastId: 'r',
+    });
+
+    clickUndo();
+
+    expect(notifyInfo).toHaveBeenCalledWith(undoneCopy(), { id: 'r' });
+    vi.advanceTimersByTime(200);
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('does not claim "Undone" for an undo that lands after the commit started', async () => {
+    // The pending toast outlives the commit window, so Undo is still clickable
+    // once flush() has fired — and cancel() is inert by then. Toasting anyway
+    // told the user the removal was rolled back while the DELETE was in flight.
+    const onCommit = vi.fn().mockResolvedValue(undefined);
+    const onCancel = vi.fn();
+    notifyDeferredCommit({
+      pendingMessage: 'Removing…',
+      committedMessage: 'Member removed',
+      onCommit,
+      onCancel,
+      delayMs: 10,
+      toastId: 'r',
+    });
+
+    vi.advanceTimersByTime(10);
+    expect(onCommit).toHaveBeenCalledTimes(1);
+
+    clickUndo();
+
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(notifyInfo).not.toHaveBeenCalled();
+    // Silence is only correct because the commit still reports the truth on the
+    // same toast id — the user is never left without an outcome.
+    await vi.waitFor(() =>
+      expect(notifySuccess).toHaveBeenCalledWith('Member removed', { id: 'r' }),
+    );
   });
 
   it('flush() commits immediately and is inert afterwards', () => {

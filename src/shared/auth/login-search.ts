@@ -10,6 +10,13 @@
  */
 export const LOGIN_ERROR_CODES = ['oauth_failed'] as const;
 
+/**
+ * The login failures this app is willing to name on screen.
+ *
+ * A closed union, so an unrecognised value from a redirect can never be echoed
+ * into the UI — `toLoginErrorCode` maps anything else to `undefined` and the
+ * screen falls back to its generic message.
+ */
 export type LoginErrorCode = (typeof LOGIN_ERROR_CODES)[number];
 
 /** Narrow an unknown search value to a known code, or drop it. */

@@ -216,6 +216,20 @@
       "title": "外観",
       "description": "この端末に保存されます。変更はすぐに反映されます。",
       "shuffle": "シャッフル"
+    },
+    "sessions": {
+      "title": "セッション",
+      "description": "現在アカウントにサインインしているデバイス。",
+      "loadFailed": "セッションを読み込めませんでした。もう一度お試しください。",
+      "emptyTitle": "アクティブなセッションはありません",
+      "emptyDescription": "デバイスでサインインすると、ここにセッションが表示されます。",
+      "currentBadge": "このデバイス",
+      "lastActive": "{{details}} · <1></1>にアクティブ",
+      "signOut": "サインアウト",
+      "revokeTitle": "このセッションからサインアウトしますか？",
+      "revokeDescription": "{{device}} はただちにサインアウトされます。",
+      "revokeConfirm": "サインアウト",
+      "deviceFallback": "このデバイス"
     }
   }
 }

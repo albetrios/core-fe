@@ -7,8 +7,15 @@ const DEFAULT_DELAY_MS = 5000;
 
 /** Handle for a scheduled commit — the caller owns its lifetime. */
 export interface DeferredCommit {
-  /** Abandon the pending commit and run `onCancel`. No-op once it has started. */
-  cancel: () => void;
+  /**
+   * Abandon the pending commit and run `onCancel`. No-op once it has started.
+   *
+   * @returns `true` only when this call actually cancelled; `false` when the
+   *   commit had already started (or was already cancelled). Anything that
+   *   tells the user "undone" MUST branch on this — the undo affordance
+   *   outlives the commit window, so a click can land on a write in flight.
+   */
+  cancel: () => boolean;
   /** Run the commit NOW instead of waiting out the window. No-op once settled. */
   flush: () => void;
 }
@@ -81,10 +88,11 @@ export function notifyDeferredCommit({
     // Sonner fires `onDismiss` when the pending toast is REPLACED at commit
     // time too, so this must be inert once the commit is under way — otherwise
     // every successful commit would immediately "undo" itself.
-    if (state !== 'pending') return;
+    if (state !== 'pending') return false;
     state = 'cancelled';
     clearTimeout(timer);
     onCancel?.();
+    return true;
   };
 
   const timer = setTimeout(flush, delayMs);
@@ -96,7 +104,17 @@ export function notifyDeferredCommit({
     action: {
       label: i18n.t(ERRORS_KEYS.toast.undo, { ns: ERRORS_NS }),
       onClick: () => {
-        cancel();
+        // This toast deliberately outlives the commit window (`duration` above,
+        // longer still while hovered), so Undo stays clickable after `flush`
+        // has fired. Toasting unconditionally told the user their deletion was
+        // rolled back while the DELETE was in flight — then the commit's own
+        // success toast contradicted it a moment later.
+        //
+        // Losing the race is silent on purpose: from `flush` onward the commit
+        // owns `toastId` and is already reporting the truth (processing →
+        // committed / dismissed). A second toast here could only overwrite that
+        // real outcome with a false one.
+        if (!cancel()) return;
         notify.info(i18n.t(ERRORS_KEYS.toast.undone, { ns: ERRORS_NS }), {
           id: toastId,
         });

@@ -132,21 +132,39 @@ export function OrganizationSwitcher({
     switchingRef.current = true;
     setSwitchingId(org.id);
 
-    applySelect(org).catch((error: unknown) => {
-      // The bare `.catch(() => undefined)` was the bug: a failed switch looked
-      // exactly like a slow one — no toast, no error, still on the old org, and
-      // nothing in Sentry either. Both halves are restored here.
-      reportError(error, {
-        scope: 'organization-switcher',
-        organizationId: org.id,
-        organizationType: org.type,
+    applySelect(org)
+      .catch((error: unknown) => {
+        // The bare `.catch(() => undefined)` was the bug: a failed switch looked
+        // exactly like a slow one — no toast, no error, still on the old org, and
+        // nothing in Sentry either. Both halves are restored here.
+        reportError(error, {
+          scope: 'organization-switcher',
+          organizationId: org.id,
+          organizationType: org.type,
+        });
+        notify.error(mapApiError(error), { id: ORG_SWITCH_TOAST_ID });
+      })
+      .finally(() => {
+        /*
+         * Released on BOTH outcomes, not just failure.
+         *
+         * Holding it after a success assumed the switcher was on its way out.
+         * It is not: team → team is a param change on the `$organizationSlug`
+         * shell, and this control lives in AppLayout INSIDE that shell, so
+         * TanStack Router keeps it mounted. There is no effect resetting the
+         * latch either — so the trigger stayed disabled with a spinner frozen
+         * on the destination row, and the user could not switch again without
+         * reloading the page. A `/suspended` redirect lands inside the same
+         * shell and behaved identically.
+         *
+         * The double-submit guard this latch exists for is unaffected: it is
+         * held for the whole round trip, and by the time it releases the token
+         * is re-minted and `activeId` has moved, so re-picking the row the user
+         * just switched to is already a no-op above.
+         */
+        switchingRef.current = false;
+        setSwitchingId(null);
       });
-      notify.error(mapApiError(error), { id: ORG_SWITCH_TOAST_ID });
-      // Only a failed switch re-arms the menu — a successful one is on its way
-      // out and must not offer a second, token-re-minting click on the way.
-      switchingRef.current = false;
-      setSwitchingId(null);
-    });
   }
 
   const renderOrg = (org: OrganizationSummary) => (

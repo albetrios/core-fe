@@ -216,6 +216,20 @@
       "title": "Apparence",
       "description": "Enregistré sur cet appareil — les changements sont immédiats.",
       "shuffle": "Aléatoire"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Appareils actuellement connectés à votre compte.",
+      "loadFailed": "Impossible de charger vos sessions. Veuillez réessayer.",
+      "emptyTitle": "Aucune session active",
+      "emptyDescription": "Les sessions apparaîtront ici dès que vous vous connecterez sur un appareil.",
+      "currentBadge": "Cet appareil",
+      "lastActive": "{{details}} · actif <1></1>",
+      "signOut": "Se déconnecter",
+      "revokeTitle": "Déconnecter cette session ?",
+      "revokeDescription": "{{device}} sera déconnecté immédiatement.",
+      "revokeConfirm": "Se déconnecter",
+      "deviceFallback": "Cet appareil"
     }
   }
 }

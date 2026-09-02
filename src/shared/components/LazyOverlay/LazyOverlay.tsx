@@ -1,14 +1,24 @@
-import { type ComponentType, type ReactNode, Suspense } from 'react';
+import { type ComponentType, type ReactNode, Suspense, useEffect } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 
 import { platformConfig } from '@/core/config/env.ts';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
+import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { useRetryableLazy } from '@/lib/lazy-module.ts';
+import { cn } from '@/lib/utils.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
-import { AlertTriangle } from '@/shared/icons/index.ts';
+import { reportError } from '@/shared/errors/errorHandler.ts';
+import { AlertTriangle, X } from '@/shared/icons/index.ts';
 
+/**
+ * Props for {@link LazyOverlay}.
+ *
+ * `onDismiss` is what makes a slow chunk escapable: it flips the OWNER's open
+ * state, so both the pending surface's Escape key and its close control leave
+ * the overlay for good rather than hiding a scrim that is still mounted.
+ */
 export interface LazyOverlayProps {
   /**
    * Module loader for the overlay's chunk. Wrap it in `onceAsync` so callers
@@ -23,7 +33,11 @@ export interface LazyOverlayProps {
   pending: ReactNode;
   /** Short label for the failure surface, e.g. "Settings". */
   title: string;
-  /** Close the overlay from the failure surface, when the caller can. */
+  /**
+   * Close the overlay from the failure surface AND from the pending one. The
+   * caller owns the open state, so this is the only way either surface can
+   * actually go away — see {@link LazyOverlayPending}.
+   */
   onDismiss?: () => void;
   testId?: string;
 }
@@ -103,6 +117,70 @@ function LazyOverlayError({
 }
 
 /**
+ * The pending surface — plus the way back out of it.
+ *
+ * **A stalled chunk fetch is not a failed one.** It never rejects, so the error
+ * boundary below never fires and its Retry/Close card never renders; the
+ * `fixed inset-0 z-50` scrim just sits there. Because every trigger hides
+ * itself while its overlay is open (Appearance has no always-registered ⌘K
+ * toggle the way the command palette does), that scrim WAS the entire UI until
+ * the import settled — one hung CDN request locked the app with no keyboard and
+ * no pointer route out. So the escape hatch has to live on the pending surface
+ * itself, not only on the failure one.
+ *
+ * Both routes out call the caller's `onDismiss`, which flips the open state the
+ * caller owns. Hiding the scrim locally instead would leave the store saying
+ * "open" and the trigger still hidden — a closed-looking overlay nothing can
+ * reopen. Without `onDismiss` there is no state to flip, so neither route is
+ * offered rather than pretending to close.
+ */
+function LazyOverlayPending({
+  children,
+  onDismiss,
+}: {
+  children: ReactNode;
+  onDismiss?: () => void;
+}) {
+  const { t } = useTranslation(LOCALE_NS);
+
+  useEffect(() => {
+    if (!onDismiss) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onDismiss();
+    };
+    // On `window`, like the app's other Escape handlers: a skeleton holds
+    // nothing focusable, so focus is still on the trigger (or on <body> after
+    // the trigger unmounted) and a node-scoped listener would never see the key.
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onDismiss]);
+
+  return (
+    <>
+      {children}
+      {onDismiss ? (
+        // Above the z-50 scrim, and pinned to the viewport rather than to the
+        // caller's `pending` node — that node is an arbitrary ReactNode this
+        // component cannot reach into to place a control.
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label={t(LOCALE_KEYS.closeAria)}
+          data-testid="lazy-overlay-pending-dismiss"
+          data-slot="button"
+          className={cn(
+            closeControlClassName,
+            'bg-background/90 fixed end-4 top-4 z-[60] border shadow-sm',
+          )}
+        >
+          <X className="size-4" aria-hidden="true" />
+        </button>
+      ) : null}
+    </>
+  );
+}
+
+/**
  * Builds the boundary's fallback renderer. A module-level factory, not an inline
  * arrow inside `LazyOverlay`: a JSX-returning function declared in a component's
  * body is a component definition in that scope (sonar typescript:S6478).
@@ -148,10 +226,25 @@ export function LazyOverlay({
         if (platformConfig.debugLogging) {
           console.error(`[LazyOverlay:${title}]`, error, info);
         }
+        // Containing the throw must not swallow it. Before this boundary
+        // existed the failure escalated to the route boundary and WAS reported;
+        // now the user gets a retry card, so without this call a chunk that
+        // 404s after a deploy is invisible to operators — the retry card is the
+        // only trace, and it is on the user's screen, not in Sentry. Same shape
+        // as SectionErrorBoundary so one Sentry query spans both boundaries.
+        reportError(error, {
+          scope: 'lazy-overlay',
+          widget: title,
+          componentStack: info.componentStack,
+        });
       }}
       fallbackRender={renderOverlayError({ title, testId, onDismiss })}
     >
-      <Suspense fallback={pending}>
+      <Suspense
+        fallback={
+          <LazyOverlayPending onDismiss={onDismiss}>{pending}</LazyOverlayPending>
+        }
+      >
         <Overlay />
       </Suspense>
     </ErrorBoundary>

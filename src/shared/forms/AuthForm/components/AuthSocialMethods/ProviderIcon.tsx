@@ -23,6 +23,10 @@ function GoogleMark() {
   );
 }
 
+/**
+ * The brand mark for one OAuth provider, or nothing when the provider is not
+ * one this app draws — an unknown id renders no icon rather than a broken one.
+ */
 export function ProviderIcon({ provider }: { provider: string }) {
   if (provider === 'google') return <GoogleMark />;
   if (provider === 'github') return <Github className="size-4" data-icon="" />;

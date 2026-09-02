@@ -216,6 +216,20 @@
       "title": "Apariencia",
       "description": "Se guarda en este dispositivo: los cambios se aplican al instante.",
       "shuffle": "Aleatorio"
+    },
+    "sessions": {
+      "title": "Sesiones",
+      "description": "Dispositivos con la sesión iniciada en tu cuenta.",
+      "loadFailed": "No se pudieron cargar tus sesiones. Inténtalo de nuevo.",
+      "emptyTitle": "No hay sesiones activas",
+      "emptyDescription": "Las sesiones aparecerán aquí cuando inicies sesión en un dispositivo.",
+      "currentBadge": "Este dispositivo",
+      "lastActive": "{{details}} · activa <1></1>",
+      "signOut": "Cerrar sesión",
+      "revokeTitle": "¿Cerrar esta sesión?",
+      "revokeDescription": "La sesión de {{device}} se cerrará de inmediato.",
+      "revokeConfirm": "Cerrar sesión",
+      "deviceFallback": "Este dispositivo"
     }
   }
 }

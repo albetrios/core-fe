@@ -216,6 +216,20 @@
       "title": "Appearance",
       "description": "Saved on this device — changes apply live.",
       "shuffle": "Shuffle"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Devices currently signed in to your account.",
+      "loadFailed": "Couldn't load your sessions. Please try again.",
+      "emptyTitle": "No active sessions",
+      "emptyDescription": "Sessions appear here once you sign in on a device.",
+      "currentBadge": "This device",
+      "lastActive": "{{details}} · active <1></1>",
+      "signOut": "Sign out",
+      "revokeTitle": "Sign out this session?",
+      "revokeDescription": "{{device}} will be signed out immediately.",
+      "revokeConfirm": "Sign out",
+      "deviceFallback": "This device"
     }
   }
 }

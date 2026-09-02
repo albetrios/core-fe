@@ -8,6 +8,7 @@ import { CommandPaletteLazy } from '@/shared/components/CommandPalette/index.ts'
 import { KeyboardShortcutsLazy } from '@/shared/components/KeyboardShortcutsDialog/KeyboardShortcutsLazy.tsx';
 import { SessionTimeoutDialog } from '@/shared/components/SessionTimeoutDialog/index.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { reportError } from '@/shared/errors/errorHandler.ts';
 import { useVisibleNav } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlagsState } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useOrgBrand } from '@/shared/hooks/useOrgBrand/index.ts';
@@ -42,6 +43,36 @@ const APP_SHELL_LOADERS = [loadSidebar, loadTopNav, loadRail, loadFocus] as cons
 /** Fetch one shell's chunk without mounting it. */
 function preloadAppShellVariant(variant: AppShellVariant): Promise<unknown> {
   return (APP_SHELL_LOADERS[variant] ?? loadFocus)();
+}
+
+/**
+ * What sits inside the shell boundary: the failure, the skeleton, or the shell.
+ *
+ * A separate component on purpose — a throw in the component that RENDERS a
+ * boundary escapes past it to the next one up, which here is the whole
+ * authenticated app. Rejected preloads never render on their own, so re-throwing
+ * from inside is what puts one in reach of the retry this boundary provides.
+ */
+function ShellSlot({
+  shellError,
+  mounted,
+  navItems,
+  organizationSlug,
+}: {
+  shellError: unknown;
+  mounted: AppShellVariant | null;
+  navItems: typeof NAV_ITEMS;
+  organizationSlug: string;
+}) {
+  if (shellError !== null) throw shellError;
+  if (mounted === null) return <LayoutVariantFallback />;
+  return (
+    <AppLayoutShell
+      variant={mounted}
+      navItems={navItems}
+      organizationSlug={organizationSlug}
+    />
+  );
 }
 
 function AppLayoutShell({
@@ -88,16 +119,38 @@ export function Component() {
    * routed island under it, and lost the user's scroll position (SHELL-1).
    */
   const [mounted, setMounted] = useState<AppShellVariant | null>(null);
+  /**
+   * A shell chunk that never arrives.
+   *
+   * The preload used to be `void …then(setMounted)` with no rejection handler,
+   * so a failed fetch — a network blip, or the classic stale-hash 404 in the
+   * minutes after a deploy — left `mounted` at null FOREVER. That renders
+   * `LayoutVariantFallback`, which has no `<Outlet/>`: no page content, no error,
+   * no retry, and nothing in Sentry beyond an unhandled rejection. The effect
+   * deps never change again, so it never re-tried either, and the boundary below
+   * could not help because nothing ever threw during render.
+   *
+   * Held in state and re-thrown in render so it reaches that boundary, which is
+   * where the retry already lives. `onceAsync` does not cache rejections, so the
+   * boundary's reset genuinely refetches rather than replaying the failure.
+   */
+  const [shellError, setShellError] = useState<unknown>(null);
 
   useEffect(() => {
     if (target === null || target === mounted) return;
     let cancelled = false;
-    void preloadAppShellVariant(target).then(() => {
-      if (cancelled) return;
-      // A transition, so React can keep the current shell interactive while it
-      // renders the replacement instead of tearing straight down to a fallback.
-      startTransition(() => setMounted(target));
-    });
+    void preloadAppShellVariant(target)
+      .then(() => {
+        if (cancelled) return;
+        // A transition, so React can keep the current shell interactive while it
+        // renders the replacement instead of tearing straight down to a fallback.
+        startTransition(() => setMounted(target));
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        reportError(error, { scope: 'app-shell-preload', variant: String(target) });
+        setShellError(error);
+      });
     return () => {
       cancelled = true;
     };
@@ -113,16 +166,21 @@ export function Component() {
       <SectionErrorBoundary
         title={t(ERRORS_KEYS.widget.navigation)}
         testId="app-shell-error"
+        onReset={() => setShellError(null)}
       >
-        {mounted === null ? (
-          <LayoutVariantFallback />
-        ) : (
-          <AppLayoutShell
-            variant={mounted}
-            navItems={navItems}
-            organizationSlug={organizationSlug}
-          />
-        )}
+        {/*
+          Thrown from INSIDE the boundary, not from AppLayout's own render — a
+          throw in the component that RENDERS a boundary escapes past it to the
+          next one up, which here is the whole authenticated app. Rejected
+          preloads never render on their own, so re-throwing in a child is what
+          puts one in reach of the retry this boundary already provides.
+        */}
+        <ShellSlot
+          shellError={shellError}
+          mounted={mounted}
+          navItems={navItems}
+          organizationSlug={organizationSlug}
+        />
       </SectionErrorBoundary>
       <CommandPaletteLazy />
       <KeyboardShortcutsLazy />

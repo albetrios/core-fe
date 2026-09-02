@@ -108,8 +108,12 @@
   "members": {
     "ariaLabel": "أعضاء الفريق",
     "heading": "أعضاء الفريق",
+    "description_zero": "{{count}} شخص في هذه المساحة",
     "description_one": "شخص {{count}} في هذه المساحة",
-    "description_other": "{{count}} أشخاص في هذه المساحة",
+    "description_two": "{{count}} شخصان في هذه المساحة",
+    "description_few": "{{count}} أشخاص في هذه المساحة",
+    "description_many": "{{count}} شخصًا في هذه المساحة",
+    "description_other": "{{count}} شخص في هذه المساحة",
     "columnMember": "العضو",
     "columnRole": "الدور",
     "columnStatus": "الحالة",

@@ -1,6 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import i18n from '@/lib/i18n/i18n.ts';
+import { ensureLocale } from '@/lib/i18n/load-namespace.ts';
 
 const { useSessionsMock, revokeMutateAsync } = vi.hoisted(() => ({
   useSessionsMock: vi.fn(),
@@ -11,7 +14,13 @@ vi.mock('@/shared/hooks/useSessions/index.ts', () => ({
   useRevokeSession: () => ({ mutateAsync: revokeMutateAsync }),
 }));
 
+import { SETTINGS_KEYS, SETTINGS_NS } from '../settings.constants.ts';
 import { AccountSessionsPanel } from './AccountSessionsPanel.tsx';
+
+const KEYS = SETTINGS_KEYS.panels.sessions;
+
+/** The panel's copy as the bundle renders it — never the English literal. */
+const copy = (key: string, lng = 'en') => i18n.t(key, { ns: SETTINGS_NS, lng });
 
 const CURRENT = {
   id: 'ses_current',
@@ -35,6 +44,15 @@ beforeEach(() => {
   revokeMutateAsync.mockResolvedValue(undefined);
 });
 
+afterEach(async () => {
+  // The locale is process-wide — a test that switches it must hand English
+  // back, or every suite after this one renders in the last language used.
+  if (i18n.language === 'en') return;
+  await act(async () => {
+    await i18n.changeLanguage('en');
+  });
+});
+
 describe('AccountSessionsPanel', () => {
   it('shows a loading state', () => {
     useSessionsMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
@@ -50,7 +68,8 @@ describe('AccountSessionsPanel', () => {
     });
     render(<AccountSessionsPanel />);
     expect(screen.getByText('MacBook Pro')).toBeInTheDocument();
-    expect(screen.getByText('This device')).toBeInTheDocument();
+    // `device` is data, the badge is copy — assert the badge through the bundle.
+    expect(screen.getByText(copy(KEYS.currentBadge))).toBeInTheDocument();
     // current session has no revoke control; the other one does
     expect(screen.queryByTestId('session-revoke-ses_current')).not.toBeInTheDocument();
     expect(screen.getByTestId('session-revoke-ses_other')).toBeInTheDocument();
@@ -147,5 +166,73 @@ describe('AccountSessionsPanel', () => {
     expect(
       container.querySelector('[data-testid="sessions-loading"] ul.divide-y'),
     ).not.toBeNull();
+  });
+
+  // ── X-9: copy comes from the locale bundle, not from the component ───────
+
+  describe('localization', () => {
+    it('renders the session row sentence around the relative time', () => {
+      // The meta line is a <Trans> slot: the browser/IP details and the
+      // FormattedDate element must both survive the substitution.
+      useSessionsMock.mockReturnValue({
+        data: [{ ...OTHER, ipAddress: '203.0.113.7' }],
+        isLoading: false,
+        isError: false,
+      });
+      const { container } = render(<AccountSessionsPanel />);
+
+      // The <time> is the FormattedDate slot — its presence proves the
+      // component survived the substitution rather than being flattened away.
+      const time = container.querySelector('[data-testid="sessions-list"] time');
+      expect(time).not.toBeNull();
+      const meta = time?.parentElement;
+      expect(meta?.textContent).toContain('Safari');
+      expect(meta?.textContent).toContain('203.0.113.7');
+      expect(meta?.textContent).toContain('active');
+    });
+
+    it('follows the active locale instead of shipping English literals', async () => {
+      // Regression (X-9): this panel hardcoded "Sessions", "No active
+      // sessions", "Sessions appear here once you sign in on a device.",
+      // "This device" and "Sign out" — every one of them stayed English in a
+      // multi-locale app.
+      useSessionsMock.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isError: false,
+        isFetching: false,
+        refetch: vi.fn(),
+      });
+      await ensureLocale('es');
+      await act(async () => {
+        await i18n.changeLanguage('es');
+      });
+      render(<AccountSessionsPanel />);
+
+      for (const key of [KEYS.title, KEYS.emptyTitle, KEYS.emptyDescription]) {
+        // A Spanish value that merely copies English would not be a translation.
+        expect(copy(key, 'es')).not.toBe(copy(key, 'en'));
+        expect(screen.getByText(copy(key, 'es'))).toBeInTheDocument();
+      }
+      expect(screen.queryByText(copy(KEYS.emptyTitle, 'en'))).not.toBeInTheDocument();
+    });
+
+    it('names the device in the revoke confirmation', async () => {
+      useSessionsMock.mockReturnValue({
+        data: [CURRENT, OTHER],
+        isLoading: false,
+        isError: false,
+      });
+      const user = userEvent.setup();
+      render(<AccountSessionsPanel />);
+      await user.click(screen.getByTestId('session-revoke-ses_other'));
+
+      expect(screen.getByText(copy(KEYS.revokeTitle))).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          i18n.t(KEYS.revokeDescription, { ns: SETTINGS_NS, device: OTHER.device }),
+        ),
+      ).toBeInTheDocument();
+    });
   });
 });

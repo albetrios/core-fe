@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type {
@@ -134,6 +134,21 @@ export function AccountNotificationsPanel() {
   const [desktopDenied, setDesktopDenied] = useState(false);
   // Synchronous twin of `update.isPending` — see applyToggle.
   const savingRef = useRef(false);
+  // The latest committed values, readable AFTER an await. Everything captured
+  // in the render closure is a snapshot of the moment the OS permission prompt
+  // opened, and this API is a FULL REPLACE: a matrix built from that snapshot
+  // rewrites every other preference back to how it looked before the prompt.
+  const overridesRef = useRef<Record<string, boolean>>({});
+  const serverPrefsRef = useRef<NotificationPreference[]>(serverPrefs);
+  useEffect(() => {
+    serverPrefsRef.current = serverPrefs;
+  }, [serverPrefs]);
+
+  /** The one write path for the override map — rendered state and ref in step. */
+  function commitOverrides(next: Record<string, boolean>): void {
+    overridesRef.current = next;
+    setOverrides(next);
+  }
 
   function isEnabled(
     category: NotificationCategory,
@@ -159,42 +174,66 @@ export function AccountNotificationsPanel() {
     // server was never told about. This ref flips synchronously and drops it.
     if (savingRef.current) return;
 
-    if (channel === 'desktop' && value) {
-      const permission = await requestDesktopPermission();
-      if (permission !== 'granted') {
-        setDesktopDenied(true);
-        return;
-      }
-      setDesktopDenied(false);
-    }
-    const key = prefKey(category, channel);
-    // What this key was showing before the flick — restored verbatim if the save
-    // fails, including "no override at all".
-    // eslint-disable-next-line security/detect-object-injection -- key is an internal `category:channel` string built from the fixed CATEGORIES/CHANNELS lists, never user input
-    const previous = overrides[key];
-    const nextOverrides = { ...overrides, [key]: value };
-    const committedKeys = Object.keys(nextOverrides);
-
+    // Claimed BEFORE the permission prompt, not after it. The prompt is an await
+    // the user can leave open indefinitely, and the grid stays live behind it —
+    // so a flick landing in that window used to pass this guard and send its own
+    // full-replace matrix. This call's continuation then resumed on a pre-prompt
+    // snapshot and either (a) rebuilt the matrix without the edit that had just
+    // landed, reverting it on the server and visibly flipping the switch back
+    // when the seeded cache came through, or (b) — with that save still in
+    // flight — raced it with a second full-replace the mutation layer may join
+    // and discard rather than send, stranding the optimistic override on a
+    // Desktop switch claiming a preference the server never stored.
     savingRef.current = true;
-    setOverrides(nextOverrides);
-    update.mutate(buildMatrix(serverPrefs, nextOverrides), {
-      onSuccess: () => {
-        savingRef.current = false;
-        // The hook seeded the query cache with the SAVED matrix, so these
-        // overrides have done their job. Left behind they shadow server truth
-        // for the rest of the session — every later refetch is painted over by
-        // a local copy of an edit that already landed.
-        setOverrides((current) => withoutCommitted(current, committedKeys));
-      },
-      onError: () => {
-        savingRef.current = false;
-        // The save failed, so the switch must go back to what it was showing.
-        // `useAppMutation`'s rollback restores the QUERY CACHE; it knows nothing
-        // about this local map, so without this the toggle stays where the user
-        // flicked it and silently claims a preference that was never stored.
-        setOverrides((current) => withRestoredOverride(current, key, previous));
-      },
-    });
+    try {
+      if (channel === 'desktop' && value) {
+        const permission = await requestDesktopPermission();
+        if (permission !== 'granted') {
+          setDesktopDenied(true);
+          savingRef.current = false;
+          return;
+        }
+        setDesktopDenied(false);
+      }
+
+      // Read back through the refs rather than the closure: by the time the
+      // prompt resolves, `overrides` and `serverPrefs` above are history.
+      const latestOverrides = overridesRef.current;
+      const key = prefKey(category, channel);
+      // What this key was showing before the flick — restored verbatim if the
+      // save fails, including "no override at all".
+      // eslint-disable-next-line security/detect-object-injection -- key is an internal `category:channel` string built from the fixed CATEGORIES/CHANNELS lists, never user input
+      const previous = latestOverrides[key];
+      const nextOverrides = { ...latestOverrides, [key]: value };
+      const committedKeys = Object.keys(nextOverrides);
+
+      commitOverrides(nextOverrides);
+      update.mutate(buildMatrix(serverPrefsRef.current, nextOverrides), {
+        onSuccess: () => {
+          savingRef.current = false;
+          // The hook seeded the query cache with the SAVED matrix, so these
+          // overrides have done their job. Left behind they shadow server truth
+          // for the rest of the session — every later refetch is painted over by
+          // a local copy of an edit that already landed.
+          commitOverrides(withoutCommitted(overridesRef.current, committedKeys));
+        },
+        onError: () => {
+          savingRef.current = false;
+          // The save failed, so the switch must go back to what it was showing.
+          // `useAppMutation`'s rollback restores the QUERY CACHE; it knows nothing
+          // about this local map, so without this the toggle stays where the user
+          // flicked it and silently claims a preference that was never stored.
+          commitOverrides(withRestoredOverride(overridesRef.current, key, previous));
+        },
+      });
+    } catch (error) {
+      // Every exit releases the latch — including a permission request that
+      // rejects. A latch released only on the paths that happen to be exercised
+      // leaves the whole grid dead: every later flick returns at the check above
+      // and the panel silently stops saving until it remounts.
+      savingRef.current = false;
+      throw error;
+    }
   }
 
   function handleToggle(

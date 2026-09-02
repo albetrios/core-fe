@@ -216,6 +216,20 @@
       "title": "Aspetto",
       "description": "Salvato su questo dispositivo: le modifiche sono immediate.",
       "shuffle": "Casuale"
+    },
+    "sessions": {
+      "title": "Sessioni",
+      "description": "Dispositivi attualmente connessi al tuo account.",
+      "loadFailed": "Impossibile caricare le tue sessioni. Riprova.",
+      "emptyTitle": "Nessuna sessione attiva",
+      "emptyDescription": "Le sessioni compaiono qui dopo che accedi da un dispositivo.",
+      "currentBadge": "Questo dispositivo",
+      "lastActive": "{{details}} · attivo <1></1>",
+      "signOut": "Esci",
+      "revokeTitle": "Disconnettere questa sessione?",
+      "revokeDescription": "{{device}} verrà disconnesso immediatamente.",
+      "revokeConfirm": "Esci",
+      "deviceFallback": "Questo dispositivo"
     }
   }
 }

@@ -220,6 +220,20 @@ export const SETTINGS_KEYS = {
       deleteConfirm: 'panels.account.deleteConfirm',
       deleteCancel: 'panels.account.deleteCancel',
     },
+    sessions: {
+      title: 'panels.sessions.title',
+      description: 'panels.sessions.description',
+      loadFailed: 'panels.sessions.loadFailed',
+      emptyTitle: 'panels.sessions.emptyTitle',
+      emptyDescription: 'panels.sessions.emptyDescription',
+      currentBadge: 'panels.sessions.currentBadge',
+      lastActive: 'panels.sessions.lastActive',
+      signOut: 'panels.sessions.signOut',
+      revokeTitle: 'panels.sessions.revokeTitle',
+      revokeDescription: 'panels.sessions.revokeDescription',
+      revokeConfirm: 'panels.sessions.revokeConfirm',
+      deviceFallback: 'panels.sessions.deviceFallback',
+    },
   },
 } as const;
 

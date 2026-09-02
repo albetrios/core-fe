@@ -5,6 +5,14 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query';
 
+/**
+ * Options for {@link useAppQuery} — TanStack's query options plus this app's
+ * failure policy.
+ *
+ * The additions exist so a rejected fetch is loud BY DEFAULT: `notifyOnError`
+ * opts a caller out only when it renders the failure itself, which is what
+ * keeps a dead query from sitting silently behind an empty state.
+ */
 export interface AppQueryOptions<TData, TError = Error> extends Omit<
   UseQueryOptions<TData, TError, TData, QueryKey>,
   'meta'

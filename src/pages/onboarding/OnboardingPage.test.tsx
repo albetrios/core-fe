@@ -742,6 +742,99 @@ describe('OnboardingPage', () => {
     expect(inviteMember).toHaveBeenCalledTimes(1);
   });
 
+  it('drops a Finish click made while the post-finish navigation is in flight', async () => {
+    /*
+     * The window `finishingRef` alone did not cover. Its `finally` releases the
+     * latch (and `submitting`) as soon as `navigateAfterOnboarding` has *started*
+     * the navigation — `void navigate`, not awaited — while the destination's
+     * guard chain is still doing async network work. The wizard is still on
+     * screen with a live button for all of it, and a second click re-ran the
+     * whole finish: `completeOnboarding`, the profile PATCH, the org switch and
+     * every invitation a second time, so the user got duplicate invitations or a
+     * bogus "couldn't be sent" warning right after being told it worked.
+     */
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    const { setAccessToken, clearAccessToken } = await import('@/shared/auth/token.ts');
+    setAccessToken(FAKE_JWT);
+    try {
+      seedDoneStep(['a@acme.com']);
+      // A name to PATCH: persistOnboardingResult skips the call outright when
+      // both name fields are blank, and the duplicate PATCH is half the bug.
+      useOnboardingStore.getState().patch({ firstName: 'Ada' });
+      renderWithProviders(<OnboardingPage />);
+      const finishButton = await screen.findByTestId('onboarding-finish');
+
+      await user.click(finishButton);
+      await waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+
+      // Navigation has only been *started*: nothing here unmounts the wizard, so
+      // this is exactly the frame the real router leaves live while its guards
+      // resolve — and the button is enabled again, not stuck.
+      expect(finishButton).toBeEnabled();
+
+      await user.click(finishButton);
+      // A duplicate run is nothing but immediately-resolved mocks, so two turns
+      // of the macrotask queue is far more than it needs to reach its own
+      // writes. Unguarded, every count below comes back as 2.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(inviteMember).toHaveBeenCalledTimes(1);
+      expect(authApi.completeOnboarding).toHaveBeenCalledTimes(1);
+      expect(authApi.updateProfile).toHaveBeenCalledTimes(1);
+      expect(switchToOrganization).toHaveBeenCalledTimes(1);
+      expect(createOrganization).toHaveBeenCalledTimes(1);
+      // Repeating the gesture still takes the user where they asked to go — the
+      // gate skips the writes, it does not leave a button that does nothing.
+      expect(navigate).toHaveBeenCalledTimes(2);
+      expect(navigate).toHaveBeenLastCalledWith(
+        expect.objectContaining({ params: { organizationSlug: 'acme' }, replace: true }),
+      );
+      expect(finishButton).toBeEnabled();
+    } finally {
+      clearAccessToken();
+    }
+  });
+
+  it('still finishes on a retry after a failed attempt (the gate is not a stuck button)', async () => {
+    /*
+     * The other half of the gate above: it must arm on SUCCESS only. Armed on
+     * every attempt — or held past the failure path — a first attempt that blew
+     * up would leave a brand-new user staring at an "Enter dashboard" button
+     * that had quietly stopped doing anything, with no way out of the wizard.
+     */
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    const { setAccessToken, clearAccessToken } = await import('@/shared/auth/token.ts');
+    setAccessToken(FAKE_JWT);
+    createOrganization.mockRejectedValueOnce(new Error('workspace create failed'));
+    try {
+      seedDoneStep(['a@acme.com']);
+      renderWithProviders(<OnboardingPage />);
+      const finishButton = await screen.findByTestId('onboarding-finish');
+
+      await user.click(finishButton);
+
+      // Failure surfaces in place, and the control is live again for the retry.
+      expect(await screen.findByTestId('onboarding-finish-error')).toBeInTheDocument();
+      expect(finishButton).toBeEnabled();
+      expect(navigate).not.toHaveBeenCalled();
+      expect(authApi.completeOnboarding).not.toHaveBeenCalled();
+
+      await user.click(finishButton);
+
+      await waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+      expect(createOrganization).toHaveBeenCalledTimes(2); // the failure, then the retry
+      expect(authApi.completeOnboarding).toHaveBeenCalledTimes(1);
+      expect(inviteMember).toHaveBeenCalledTimes(1);
+    } finally {
+      clearAccessToken();
+    }
+  });
+
   // ── Containment: one crashing step body is not the whole wizard ────────────
 
   it('contains a crashing step body instead of blanking the wizard', async () => {

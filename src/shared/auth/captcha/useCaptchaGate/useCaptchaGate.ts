@@ -4,6 +4,15 @@ import { CAPTCHA_REMINT_STALL_MS } from '@/shared/auth/captcha/captcha.constants
 import { requestTurnstileReset } from '@/shared/auth/captcha/turnstile-token-store.ts';
 import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
 
+/**
+ * What the auth screens need to know about the captcha they are gated on.
+ *
+ * `stalled` is deliberately separate from `!ready`: a widget that is merely slow
+ * and one that has stopped answering look identical to the user, and only the
+ * second deserves an alert with a retry. `retry()` re-arms that watch, so a
+ * retry that does not revive the widget stalls again rather than dead-ending on
+ * an indefinite "preparing…".
+ */
 export interface CaptchaGateState {
   /** Public auth actions may proceed (token minted, or the gate is off entirely). */
   ready: boolean;
@@ -30,7 +39,18 @@ export interface CaptchaGateState {
 export function useCaptchaGate(): CaptchaGateState {
   const ready = useTurnstileReady();
   const [stalled, setStalled] = useState(false);
+  /**
+   * Marks which blocking episode is being timed; {@link retry} bumps it.
+   *
+   * A retry does not change `ready` — the widget is exactly as absent after it as
+   * before — so `ready` alone cannot tell the effect that a new wait has started.
+   * Without a dep that moves, the timer never re-armed and a retry that failed to
+   * revive the widget left the user on an indefinite "preparing…" with no second
+   * alert and no second retry: the escape hatch was one-shot per episode (LOGIN-4).
+   */
+  const [retryEpoch, setRetryEpoch] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retryEpoch is a re-arm signal, not a value the body reads — a retry leaves `ready` unchanged, so dropping it would strand a failed retry on "preparing…" forever with the timer never restarted
   useEffect(() => {
     // While a token exists there is nothing to time, and no flag to hold.
     if (ready) return;
@@ -43,10 +63,15 @@ export function useCaptchaGate(): CaptchaGateState {
       clearTimeout(timer);
       setStalled(false);
     };
-  }, [ready]);
+    // `retryEpoch` is here so a retry tears this run down and starts a fresh one.
+  }, [ready, retryEpoch]);
 
   const retry = useCallback(() => {
+    // Clear the flag in the same batch as the click so the alert goes away at once,
+    // and start a new episode so this wait is timed too. Clearing alone was the bug:
+    // it silenced the alert forever instead of re-opening it when the retry failed.
     setStalled(false);
+    setRetryEpoch((epoch) => epoch + 1);
     return requestTurnstileReset();
   }, []);
 

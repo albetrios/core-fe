@@ -7,15 +7,44 @@ import { onceAsync } from '@/lib/lazy-module.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
+const { reportErrorMock } = vi.hoisted(() => ({ reportErrorMock: vi.fn() }));
+vi.mock('@/shared/errors/errorHandler.ts', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return { ...actual, reportError: reportErrorMock };
+});
+
 import { LazyOverlay } from './LazyOverlay.tsx';
 
 function Loaded() {
   return <div data-testid="loaded-overlay">loaded</div>;
 }
 
+/** Never settles: a STALLED chunk fetch, which never rejects and so never
+ *  reaches the error boundary's Close button. */
+const stalledLoad = () => new Promise<{ default: ComponentType }>(() => {});
+
+/**
+ * Mirrors the real callers: the OWNER holds the open state and unmounts the
+ * overlay. A dismiss that only hid its own scrim would leave the owner open —
+ * and every trigger hides itself while open, so nothing could reopen it.
+ */
+function OverlayHost() {
+  const [open, setOpen] = useState(true);
+  if (!open) return <div data-testid="host-closed" />;
+  return (
+    <LazyOverlay
+      load={stalledLoad}
+      pending={<div data-testid="pending" />}
+      title="Appearance"
+      onDismiss={() => setOpen(false)}
+    />
+  );
+}
+
 describe('LazyOverlay', () => {
   let consoleError: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
+    reportErrorMock.mockClear();
     consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterEach(() => {
@@ -144,5 +173,59 @@ describe('LazyOverlay', () => {
     expect(await screen.findByTestId('bare-boundary')).toBeInTheDocument();
     expect(screen.queryByTestId('loaded-overlay')).not.toBeInTheDocument();
     expect(factory).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets Escape out of a STALLED chunk fetch', async () => {
+    // A fetch that never settles never rejects, so the error boundary never
+    // fires and its Close button never renders. The pending scrim is
+    // `fixed inset-0` over the whole viewport, so without a handler here the
+    // user is locked out of the app for as long as the request hangs.
+    const onDismiss = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <LazyOverlay
+        load={stalledLoad}
+        pending={<div data-testid="pending" />}
+        title="Appearance"
+        onDismiss={onDismiss}
+      />,
+    );
+
+    await screen.findByTestId('pending');
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(onDismiss).toHaveBeenCalledTimes(1));
+  });
+
+  it('the pending dismiss control closes the OWNER state, not just the scrim', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<OverlayHost />);
+
+    await screen.findByTestId('pending');
+    await user.click(screen.getByTestId('lazy-overlay-pending-dismiss'));
+
+    // The host swapped to its closed branch: the open state actually flipped.
+    expect(await screen.findByTestId('host-closed')).toBeInTheDocument();
+    expect(screen.queryByTestId('pending')).not.toBeInTheDocument();
+  });
+
+  it('reports a failed chunk load — containing a throw must not silence it', async () => {
+    // Containing the failure is also what stopped it escalating to the route
+    // boundary, which is where it used to be reported from. Users get a retry
+    // card; without this, operators get nothing at all.
+    const load = () => Promise.reject(new Error('chunk 404'));
+    renderWithProviders(
+      <LazyOverlay
+        load={load}
+        pending={<div data-testid="pending" />}
+        title="Appearance"
+      />,
+    );
+
+    await screen.findByTestId('lazy-overlay-error');
+    expect(reportErrorMock).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ scope: 'lazy-overlay', widget: 'Appearance' }),
+    );
   });
 });

@@ -3,7 +3,10 @@ import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useDeferredRowRemoval } from './useDeferredRowRemoval.ts';
+import {
+  type DeferredRowRemovalInput,
+  useDeferredRowRemoval,
+} from './useDeferredRowRemoval.ts';
 
 const { notifyDeferredCommit } = vi.hoisted(() => ({ notifyDeferredCommit: vi.fn() }));
 vi.mock('@/shared/notify/notify-deferred.ts', () => ({ notifyDeferredCommit }));
@@ -27,6 +30,55 @@ type Captured = {
   onCommitError: (error: unknown) => void;
 };
 const captured = () => notifyDeferredCommit.mock.calls.at(-1)?.[0] as Captured;
+/** The captured callbacks of the Nth schedule, in call order. */
+const capturedAt = (index: number) =>
+  notifyDeferredCommit.mock.calls.at(index)?.[0] as Captured;
+
+interface StubHandle {
+  cancel: () => boolean;
+  flush: () => void;
+  /** Move to 'committing' the way a flush does, so `cancel()` goes inert. */
+  beginCommit: () => void;
+}
+
+/**
+ * Replace the inert default stub with one that models the real handle from
+ * `notify-deferred.ts`: `cancel()` undoes and reports `true`, but is a no-op
+ * reporting `false` once the commit has started. Returns the handles it hands
+ * the hook, in creation order.
+ */
+function stubHandles(): StubHandle[] {
+  const handles: StubHandle[] = [];
+  notifyDeferredCommit.mockImplementation((options: Captured) => {
+    let state: 'pending' | 'committing' | 'cancelled' = 'pending';
+    const handle: StubHandle = {
+      cancel: () => {
+        if (state !== 'pending') return false;
+        state = 'cancelled';
+        options.onCancel();
+        return true;
+      },
+      flush: vi.fn(),
+      beginCommit: () => {
+        state = 'committing';
+      },
+    };
+    handles.push(handle);
+    return handle;
+  });
+  return handles;
+}
+
+/** Schedule the removal of one row through the hook under test. */
+const remove = (schedule: (input: DeferredRowRemovalInput) => void, id: string) =>
+  act(() => {
+    schedule({
+      id,
+      pendingMessage: `Removing ${id}…`,
+      toastId: `remove-${id}`,
+      commit: () => Promise.resolve(),
+    });
+  });
 
 function makeClient() {
   const client = new QueryClient({
@@ -63,7 +115,10 @@ const rowIds = (client: QueryClient) =>
 describe('useDeferredRowRemoval', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    notifyDeferredCommit.mockReturnValue({ cancel: vi.fn(), flush: vi.fn() });
+    // `cancel()` reports whether it really cancelled; a still-pending handle
+    // answers `true`. A bare `vi.fn()` would answer `undefined` — i.e. "did not
+    // cancel" — and quietly mute the paths that branch on it.
+    notifyDeferredCommit.mockReturnValue({ cancel: vi.fn(() => true), flush: vi.fn() });
   });
 
   it('takes the row out of the list at SCHEDULE time, not at commit time', () => {
@@ -124,7 +179,7 @@ describe('useDeferredRowRemoval', () => {
     // Closing Settings inside the undo window used to leave a setTimeout
     // pointed at a torn-down panel, firing five seconds later with no toast and
     // no way to undo. The pending removal is abandoned instead — visibly.
-    const cancel = vi.fn();
+    const cancel = vi.fn(() => true);
     notifyDeferredCommit.mockReturnValue({ cancel, flush: vi.fn() });
     const { view } = setup();
     act(() => {
@@ -143,7 +198,7 @@ describe('useDeferredRowRemoval', () => {
   });
 
   it('does not cancel a removal that already settled', async () => {
-    const cancel = vi.fn();
+    const cancel = vi.fn(() => true);
     notifyDeferredCommit.mockReturnValue({ cancel, flush: vi.fn() });
     const { view } = setup();
     act(() => {
@@ -162,5 +217,74 @@ describe('useDeferredRowRemoval', () => {
 
     expect(cancel).not.toHaveBeenCalled();
     expect(notifyInfo).not.toHaveBeenCalled();
+  });
+
+  it('restores BOTH rows when overlapping removals are undone in schedule order', () => {
+    // The whole-cache snapshot could not do this. B's snapshot is taken while A
+    // is already out, so replaying it re-applied a list with A missing — and A
+    // then stayed missing until the list happened to refetch.
+    const { client, view } = setup();
+    remove(view.result.current, 'a');
+    remove(view.result.current, 'b');
+    expect(rowIds(client)).toEqual([]);
+
+    act(() => capturedAt(0).onCancel()); // undo Ada
+    act(() => capturedAt(1).onCancel()); // undo Bob
+
+    expect(rowIds(client)).toEqual(['a', 'b']);
+  });
+
+  it('restores BOTH rows when overlapping removals are undone in reverse order', () => {
+    // Per-row restores commute — the user undoes in whatever order they like,
+    // so neither order may be the only one that works.
+    const { client, view } = setup();
+    remove(view.result.current, 'a');
+    remove(view.result.current, 'b');
+
+    act(() => capturedAt(1).onCancel()); // undo Bob
+    act(() => capturedAt(0).onCancel()); // undo Ada
+
+    expect(rowIds(client)).toEqual(['a', 'b']);
+  });
+
+  it('restores EVERY pending row when the owner unmounts mid-window', () => {
+    // The cleanup cancels each pending handle in turn; with per-row restores
+    // that loop cannot undo one row by re-applying a list that omits another.
+    stubHandles();
+    const { client, view } = setup();
+    remove(view.result.current, 'a');
+    remove(view.result.current, 'b');
+    expect(rowIds(client)).toEqual([]);
+
+    view.unmount();
+
+    expect(rowIds(client)).toEqual(['a', 'b']);
+    expect(notifyInfo).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not claim "Undone" at unmount for a removal whose commit already started', () => {
+    // `cancel()` is inert once the commit is under way and reports that with
+    // `false`. The cleanup used to toast regardless — and since this toast
+    // carries its own id it would sit BESIDE that write's confirmation, telling
+    // the user a removal was undone while the very same removal was landing.
+    //
+    // An ordinary flush cannot reach this today: the hook's `settle()` runs
+    // first inside `onCommit`, so it drops the row from the pending map before
+    // unmount can see it (proven by the 'already settled' case above). This
+    // drives the handle contract instead, so the toast stays honest whichever
+    // way that ordering later moves.
+    const handles = stubHandles();
+    const { client, view } = setup();
+    remove(view.result.current, 'a');
+    remove(view.result.current, 'b');
+
+    handles[0]?.beginCommit(); // Ada's write is in flight; Bob's is still pending
+
+    view.unmount();
+
+    expect(notifyInfo).toHaveBeenCalledTimes(1);
+    expect(notifyInfo.mock.calls[0]?.[1]).toMatchObject({ id: 'deferred-cancelled-b' });
+    // Ada's removal was NOT undone, so Ada must stay out of the list.
+    expect(rowIds(client)).toEqual(['b']);
   });
 });

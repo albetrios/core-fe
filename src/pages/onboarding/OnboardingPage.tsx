@@ -598,6 +598,30 @@ export function OnboardingPage() {
   // Synchronous twin of `submitting` — see finish().
   const finishingRef = useRef(false);
   /*
+   * The context a SUCCESSFUL finish resolved — doubling as the "this wizard is
+   * already done" latch.
+   *
+   * `finishingRef` only covers the run itself: its `finally` fires the moment
+   * `navigateAfterOnboarding` *starts* the navigation, while the destination's
+   * guard chain is still awaiting the network. The wizard stays mounted and
+   * interactive for that whole stretch, so a second "Enter dashboard" click
+   * re-ran the ENTIRE finish. Org creation is idempotent (cached append +
+   * existence check), but the profile PATCH, `completeOnboarding`, the org
+   * switch, the analytics event and every invitation went out a SECOND time —
+   * duplicate invitations, or a spurious "N invites couldn't be sent" warning
+   * landing on top of the success toast the user had just read.
+   *
+   * A ref rather than the store's persisted `completed` flag: `completed`
+   * outlives the page in localStorage, so gating on it would permanently
+   * dead-end a user whose store says done while `requireOnboardingWorkspace`
+   * still routes them here (an account reset server-side, or a
+   * `completeOnboarding` that answered 200 without sticking) — the un-finishable
+   * wizard the rest of this file works to avoid. Scoped to the mount, the latch
+   * covers exactly the window the bug lives in and dies with a remount, where
+   * finishing again is the correct behaviour.
+   */
+  const finishedContextRef = useRef<MeContext | null>(null);
+  /*
    * `stepIndex` is persisted in localStorage and is NOT re-clamped when the step
    * list shrinks — which happens when the deployment mode changes, or a team org
    * appears between sessions. `stepAtIndex` clamped for the body, but the
@@ -679,6 +703,19 @@ export function OnboardingPage() {
     // synchronously, so the duplicate gesture is dropped before any request
     // goes out; `disabled={submitting}` remains the visible affordance.
     if (finishingRef.current) return;
+    /*
+     * Already finished on this mount: replay the navigation and run nothing
+     * else. Deliberately not a silent no-op — the user is clicking again
+     * *because* they are still looking at the wizard while the destination's
+     * guards resolve, and a button that does nothing at all is its own bug. The
+     * same `replace` navigation is idempotent; re-running the writes above is
+     * not. `submitting` is still cleared in the `finally` below, so the button
+     * is never left stuck disabled either.
+     */
+    if (finishedContextRef.current) {
+      navigateAfterOnboarding(navigate, finishedContextRef.current, redirectSearch);
+      return;
+    }
     // The button is disabled without a context, but the guard belongs here too:
     // finish stamps onboarding complete on the backend, which is not reversible
     // from the UI. Never run it against a step list we could not derive — and
@@ -784,11 +821,10 @@ export function OnboardingPage() {
             : i18n.t(ONBOARDING_KEYS.toast.finishSuccess, { ns: ONBOARDING_NS }),
         );
       }
-      navigateAfterOnboarding(
-        navigate,
-        activatedContext ?? refreshedContext,
-        redirectSearch,
-      );
+      // Armed BEFORE control passes to the router: every write above has
+      // landed, so from this point a repeat click must navigate, not re-submit.
+      finishedContextRef.current = activatedContext ?? refreshedContext;
+      navigateAfterOnboarding(navigate, finishedContextRef.current, redirectSearch);
     } catch (error) {
       /*
        * The error object used to be discarded entirely: a generic toast that

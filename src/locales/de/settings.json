@@ -216,6 +216,20 @@
       "title": "Darstellung",
       "description": "Auf diesem Gerät gespeichert – Änderungen greifen sofort.",
       "shuffle": "Zufall"
+    },
+    "sessions": {
+      "title": "Sitzungen",
+      "description": "Geräte, die derzeit in Ihrem Konto angemeldet sind.",
+      "loadFailed": "Sitzungen konnten nicht geladen werden. Bitte erneut versuchen.",
+      "emptyTitle": "Keine aktiven Sitzungen",
+      "emptyDescription": "Sitzungen erscheinen hier, sobald Sie sich auf einem Gerät anmelden.",
+      "currentBadge": "Dieses Gerät",
+      "lastActive": "{{details}} · aktiv <1></1>",
+      "signOut": "Abmelden",
+      "revokeTitle": "Diese Sitzung abmelden?",
+      "revokeDescription": "{{device}} wird sofort abgemeldet.",
+      "revokeConfirm": "Abmelden",
+      "deviceFallback": "Dieses Gerät"
     }
   }
 }

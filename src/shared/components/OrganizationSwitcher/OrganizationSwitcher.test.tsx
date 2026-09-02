@@ -1,3 +1,4 @@
+import type * as TanstackRouter from '@tanstack/react-router';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,12 +11,14 @@ import { ORG_SWITCH_TOAST_ID, OrganizationSwitcher } from './OrganizationSwitche
 const {
   useMeContextMock,
   switchToPersonalMock,
+  navigateMock,
   deploymentFlagsMock,
   notifyErrorMock,
   reportErrorMock,
 } = vi.hoisted(() => ({
   useMeContextMock: vi.fn(),
   switchToPersonalMock: vi.fn(),
+  navigateMock: vi.fn(async () => undefined),
   deploymentFlagsMock: {
     personalOrganizations: true,
     teamOrganizations: true,
@@ -23,6 +26,18 @@ const {
   notifyErrorMock: vi.fn(),
   reportErrorMock: vi.fn(),
 }));
+
+/*
+ * Only `useNavigate` is stubbed; the rest of the router is real because
+ * renderWithProviders mounts a RouterProvider. The harness route tree has no
+ * /dashboard, so a real navigation renders "Not Found" and unmounts the
+ * switcher — which would make the post-success latch test pass for the wrong
+ * reason, by removing the component whose mounted state is the point.
+ */
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<TanstackRouter>();
+  return { ...actual, useNavigate: () => navigateMock };
+});
 
 vi.mock('@/shared/notify/index.ts', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
@@ -226,6 +241,41 @@ describe('OrganizationSwitcher', () => {
       await waitFor(() =>
         expect(screen.getByTestId('organization-switcher-trigger')).not.toBeDisabled(),
       );
+      await user.click(screen.getByTestId('organization-switcher-option-personal'));
+      await waitFor(() => expect(switchToPersonalMock).toHaveBeenCalledTimes(2));
+    });
+
+    /*
+     * The half the failure test never covered. The latch used to be released
+     * only in `.catch`, on the assumption that a successful switch unmounts the
+     * switcher. It does not: this control lives in AppLayout, inside the
+     * `$organizationSlug` shell, and team → team is a param change on that same
+     * route — so it stays mounted with the latch still armed and the user
+     * cannot switch again without reloading.
+     */
+    it('re-arms the menu after a SUCCESSFUL switch (the component stays mounted)', async () => {
+      /*
+       * `useNavigate` is stubbed to a no-op ON PURPOSE. The harness router has
+       * no /dashboard route, so a real navigation renders "Not Found" and tears
+       * the switcher out — which would make this test pass for the wrong reason,
+       * by unmounting the component whose mounted state is the whole point.
+       * Production keeps it mounted: team → team is a param change on the
+       * `$organizationSlug` shell this control lives inside.
+       */
+      const user = userEvent.setup();
+      renderWithProviders(<OrganizationSwitcher />);
+      await user.click(await screen.findByTestId('organization-switcher-trigger'));
+      await user.click(
+        await screen.findByTestId('organization-switcher-option-personal'),
+      );
+      await waitFor(() => expect(switchToPersonalMock).toHaveBeenCalledTimes(1));
+
+      // No error path here — this switch succeeded.
+      expect(notifyErrorMock).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.getByTestId('organization-switcher-trigger')).not.toBeDisabled(),
+      );
+      // ...and a second, different switch still goes out.
       await user.click(screen.getByTestId('organization-switcher-option-personal'));
       await waitFor(() => expect(switchToPersonalMock).toHaveBeenCalledTimes(2));
     });

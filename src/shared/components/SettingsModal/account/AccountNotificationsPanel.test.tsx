@@ -34,6 +34,21 @@ vi.mock('@/shared/notifications/desktop.ts', () => ({
   requestDesktopPermission: requestPermissionMock,
 }));
 
+/**
+ * Leave the OS permission prompt open and hand back its answer button. The
+ * panel is parked on this await for as long as the test likes — which is the
+ * window the race lives in.
+ */
+function openPermissionPrompt(): (permission: string) => void {
+  let answer: (permission: string) => void = (_permission) => undefined;
+  requestPermissionMock.mockReturnValue(
+    new Promise<string>((resolve) => {
+      answer = resolve;
+    }),
+  );
+  return (permission) => answer(permission);
+}
+
 import { AccountNotificationsPanel } from './AccountNotificationsPanel.tsx';
 
 beforeEach(() => {
@@ -184,6 +199,139 @@ describe('AccountNotificationsPanel', () => {
     expect(updateMutate).toHaveBeenCalledTimes(1);
     // The dropped flick left no phantom override behind either.
     expect(second).toBeChecked();
+  });
+
+  // ── the OS permission prompt is an await the save latch has to cover ─────
+
+  it('refuses a flick fired while the desktop permission prompt is open', async () => {
+    // Regression: the latch was CHECKED at entry but only SET after
+    // `requestDesktopPermission()` resolved, so the grid stayed unguarded for as
+    // long as the OS prompt was open. A flick landing in that window passed the
+    // check and sent its own full-replace matrix, and the desktop continuation
+    // then resumed on a pre-prompt snapshot — rebuilding the matrix WITHOUT that
+    // edit and reverting it on the server, or (with the save still in flight)
+    // racing it with a second full-replace the mutation layer may join and
+    // discard rather than send, leaving its override painted on a switch the
+    // server never heard about.
+    const grantPermission = openPermissionPrompt();
+    const user = userEvent.setup();
+    render(<AccountNotificationsPanel />);
+    const desktop = screen.getByTestId('notify-system-desktop');
+    const email = screen.getByTestId('notify-system-email');
+
+    // The prompt is open and this toggle is parked on it.
+    await user.click(desktop);
+    expect(requestPermissionMock).toHaveBeenCalledTimes(1);
+
+    // The flick in between. No write may leave while the prompt is open …
+    await user.click(email);
+    expect(updateMutate).not.toHaveBeenCalled();
+    // … and nothing may be claimed locally for a write that never left.
+    expect(email).toBeChecked();
+
+    await act(async () => {
+      grantPermission('granted');
+    });
+
+    // Exactly one save — the desktop one — and it carries the edit the user
+    // actually made rather than being swallowed by the latch.
+    expect(updateMutate).toHaveBeenCalledTimes(1);
+    const saved = updateMutate.mock.calls[0][0] as Array<{
+      category: string;
+      channel: string;
+      enabled: boolean;
+    }>;
+    expect(saved).toContainEqual({
+      category: 'system',
+      channel: 'desktop',
+      enabled: true,
+    });
+    // The email preference is carried through as the server still holds it —
+    // not rewritten by a matrix assembled before the prompt opened.
+    expect(saved).toContainEqual({
+      category: 'system',
+      channel: 'email',
+      enabled: true,
+    });
+    expect(email).toBeChecked();
+  });
+
+  it('builds the resumed desktop save from server truth as it stands after the prompt', async () => {
+    // The prompt outlives a refetch: another device — or the next poll — can
+    // land a new matrix while the user is still deciding. The API is a FULL
+    // REPLACE, so a payload assembled from the pre-prompt snapshot pushes every
+    // one of those preferences back to how it looked before the prompt opened,
+    // and the email switch that was just turned off flips back on when the
+    // seeded cache comes through.
+    const grantPermission = openPermissionPrompt();
+    const emailOff = DEFAULT_NOTIFICATION_PREFERENCES.map((p) =>
+      p.category === 'system' && p.channel === 'email' ? { ...p, enabled: false } : p,
+    );
+    const user = userEvent.setup();
+    const { rerender } = render(<AccountNotificationsPanel />);
+
+    await user.click(screen.getByTestId('notify-system-desktop'));
+    expect(requestPermissionMock).toHaveBeenCalledTimes(1);
+
+    // Server truth moves while the prompt is still open.
+    usePrefsMock.mockReturnValue({ data: emailOff, isLoading: false, isError: false });
+    rerender(<AccountNotificationsPanel />);
+
+    await act(async () => {
+      grantPermission('granted');
+    });
+
+    expect(updateMutate).toHaveBeenCalledTimes(1);
+    const saved = updateMutate.mock.calls[0][0] as Array<{
+      category: string;
+      channel: string;
+      enabled: boolean;
+    }>;
+    expect(saved).toContainEqual({
+      category: 'system',
+      channel: 'desktop',
+      enabled: true,
+    });
+    // Carried through as the server now holds it — not reverted to the value it
+    // had when the prompt opened.
+    expect(saved).toContainEqual({
+      category: 'system',
+      channel: 'email',
+      enabled: false,
+    });
+  });
+
+  it('releases the save latch when the permission prompt is refused', async () => {
+    // The latch is now claimed BEFORE the prompt, so every way out of the prompt
+    // has to drop it. One that only unwinds on the paths that happen to be
+    // exercised leaves the whole grid dead — every later flick returns at the
+    // guard and the panel silently stops saving until it remounts.
+    requestPermissionMock.mockResolvedValue('denied');
+    const user = userEvent.setup();
+    render(<AccountNotificationsPanel />);
+
+    await user.click(screen.getByTestId('notify-system-desktop'));
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
+    expect(updateMutate).not.toHaveBeenCalled();
+
+    await user.click(screen.getByTestId('notify-system-email'));
+    expect(updateMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases the save latch when the permission request rejects', async () => {
+    // Same latch, the path that throws. `requestDesktopPermission` swallows its
+    // own failures today, so only an unwind that covers the throw keeps this
+    // panel alive if that ever stops being true.
+    requestPermissionMock.mockRejectedValue(new Error('permission prompt failed'));
+    const user = userEvent.setup();
+    render(<AccountNotificationsPanel />);
+
+    await user.click(screen.getByTestId('notify-system-desktop'));
+    await waitFor(() => expect(requestPermissionMock).toHaveBeenCalledTimes(1));
+    expect(updateMutate).not.toHaveBeenCalled();
+
+    await user.click(screen.getByTestId('notify-system-email'));
+    expect(updateMutate).toHaveBeenCalledTimes(1);
   });
 
   // ── SET-20: the same failure surface as every other panel ────────────────
