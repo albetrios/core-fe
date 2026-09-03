@@ -20,11 +20,12 @@ describe('CaptchaGateNotice', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  // LOGIN-4: the wait used to be drawn as a spinner on the method button, which
-  // claimed the user's click was being processed while nothing was in flight.
-  it('explains the wait in words while a token is minting', () => {
-    render(<CaptchaGateNotice gate={gate()} />);
-    expect(screen.getByTestId('auth-captcha-preparing')).toBeInTheDocument();
+  // The routine mint is silent: it used to narrate "Finishing the security
+  // check…" on every visit, putting the screen's plumbing in front of the user
+  // before they had done anything. Only a FAILED mint gets to speak.
+  it('stays silent while a token is minting', () => {
+    const { container } = render(<CaptchaGateNotice gate={gate()} />);
+    expect(container).toBeEmptyDOMElement();
     expect(screen.queryByTestId('auth-captcha-stalled')).not.toBeInTheDocument();
   });
 
@@ -35,17 +36,13 @@ describe('CaptchaGateNotice', () => {
 
     const alert = screen.getByTestId('auth-captcha-stalled');
     expect(alert).toHaveAttribute('role', 'alert');
-    expect(screen.queryByTestId('auth-captcha-preparing')).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId('auth-captcha-retry'));
     expect(retry).toHaveBeenCalledOnce();
   });
 
-  it('has no accessibility violations in either state', async () => {
-    const a = render(<CaptchaGateNotice gate={gate()} />);
-    expect(await axe(a.container)).toHaveNoViolations();
-    a.unmount();
-    const b = render(<CaptchaGateNotice gate={gate({ stalled: true })} />);
-    expect(await axe(b.container)).toHaveNoViolations();
+  it('has no accessibility violations when it speaks', async () => {
+    const { container } = render(<CaptchaGateNotice gate={gate({ stalled: true })} />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

@@ -22,19 +22,19 @@ vi.mock('@/shared/auth/captcha/useTurnstileReady/index.ts', () => ({
 }));
 
 vi.mock('@/core/config/auth-methods.ts', () => ({
-  enabledOAuthProviders: vi.fn(() => ['google', 'github']),
+  enabledOAuthProviders: vi.fn(() => ['google', 'github', 'apple']),
 }));
 
 const authMethodsRef = vi.hoisted(() => ({
   defaults: {
     email: true,
-    oauth: { google: true, github: true, apple: false },
+    oauth: { google: true, github: true, apple: true },
     passkey: true,
     oauthAutoGoogle: false,
   },
   value: {
     email: true,
-    oauth: { google: true, github: true, apple: false },
+    oauth: { google: true, github: true, apple: true },
     passkey: true,
     oauthAutoGoogle: false,
   },
@@ -114,8 +114,17 @@ describe('AuthForm', () => {
   it('renders OAuth and passkey continue buttons', async () => {
     renderForm();
     expect(await screen.findByTestId('auth-continue-google')).toBeInTheDocument();
-    expect(await screen.findByTestId('auth-continue-github')).toBeInTheDocument();
+    expect(await screen.findByTestId('auth-continue-apple')).toBeInTheDocument();
     expect(await screen.findByTestId('auth-continue-passkey')).toBeInTheDocument();
+  });
+
+  // GitHub is deliberately withheld until the deployment has credentials for it:
+  // enabled upstream (the mock returns it), filtered out in AuthForm. Everything
+  // else about GitHub stays wired, so this is the only thing keeping it off screen.
+  it('hides the GitHub button even when the provider is enabled upstream', async () => {
+    renderForm();
+    await screen.findByTestId('auth-continue-google');
+    expect(screen.queryByTestId('auth-continue-github')).not.toBeInTheDocument();
   });
 
   it('hides method picker after the user submits their email', async () => {
@@ -208,7 +217,7 @@ describe('AuthForm', () => {
       expect(google).not.toHaveTextContent(/continuing/i);
       expect(google).toHaveAttribute('aria-busy', 'true');
       // Only the clicked method processes; everything else is disabled.
-      expect(screen.getByTestId('auth-continue-github')).toBeDisabled();
+      expect(screen.getByTestId('auth-continue-apple')).toBeDisabled();
       expect(screen.getByTestId('auth-continue-passkey')).toBeDisabled();
       expect(screen.getByTestId('auth-email')).toBeDisabled();
     });
@@ -235,7 +244,7 @@ describe('AuthForm', () => {
     });
 
     // Every other method is disabled but MUST NOT show a spinner.
-    for (const id of ['auth-continue-google', 'auth-continue-github']) {
+    for (const id of ['auth-continue-google', 'auth-continue-apple']) {
       const btn = screen.getByTestId(id);
       expect(btn).toBeDisabled();
       expect(btn).toHaveAttribute('aria-busy', 'false');
