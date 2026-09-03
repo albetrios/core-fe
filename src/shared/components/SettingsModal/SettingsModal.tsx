@@ -13,6 +13,7 @@ import { ORGANIZATION } from '@/core/config/constants.ts';
 import { cn } from '@/lib/utils.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
+import { useEnterAnimationProps } from '@/shared/components/LazyOverlay/index.ts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -96,6 +97,9 @@ const SETTINGS_DIALOG_CLASS =
 
 function SettingsModalBody() {
   const { t } = useTranslation(SETTINGS_NS);
+  // The pending placeholder already painted this exact 960x640 shell, so the
+  // dialog must not replay `zoom-in-95`/`fade-in-0` on top of it.
+  const enterProps = useEnterAnimationProps();
   const dirtyCtx = useSettingsDirty();
   const hash = useRouterState({ select: (s) => s.location.hash });
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -202,6 +206,7 @@ function SettingsModalBody() {
           className={SETTINGS_DIALOG_CLASS}
           data-testid="settings-modal"
           aria-busy
+          {...enterProps}
         >
           <DialogTitle className="sr-only">{t(SETTINGS_KEYS.dialog.title)}</DialogTitle>
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
@@ -249,6 +254,7 @@ function SettingsModalBody() {
         <DialogContent
           className={SETTINGS_DIALOG_CLASS}
           data-testid="settings-modal"
+          {...enterProps}
           onInteractOutside={(e) => {
             // Toasts render outside the dialog (sonner) — clicking one (e.g. its
             // close button) must dismiss the toast, not close Settings.

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { cn } from '@/lib/utils.ts';
+import { useEnterAnimationProps } from '@/shared/components/LazyOverlay/index.ts';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
@@ -60,6 +61,8 @@ export function AppearanceDialog() {
     };
   }, [open, setOpen]);
 
+  const enterProps = useEnterAnimationProps();
+
   const handleShuffle = () => {
     shuffleTheme();
     notify.info('Theme shuffled', { description: 'A fresh look across every axis.' });
@@ -69,6 +72,9 @@ export function AppearanceDialog() {
 
   return (
     <aside
+      // Suppressed when a placeholder already painted this panel — replaying the
+      // slide-in there makes it blink out and slide back in from the edge.
+      {...enterProps}
       ref={panelRef}
       role="dialog"
       aria-modal="false"
