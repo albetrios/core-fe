@@ -43,19 +43,18 @@ let releaseTimer: number | undefined;
  */
 function currentSplash(): HTMLElement | null {
   const splash = document.getElementById(SPLASH_ID);
-  if (splash === tracked) return splash;
-
-  tracked = splash;
-  holdCount = 0;
-  dismissRequested = false;
-  exitFinish = undefined;
-  if (exitTimer !== undefined) window.clearTimeout(exitTimer);
-  exitTimer = undefined;
-  if (holdDeadline !== undefined) window.clearTimeout(holdDeadline);
-  holdDeadline = undefined;
-  if (releaseTimer !== undefined) window.clearTimeout(releaseTimer);
-  releaseTimer = undefined;
-
+  if (splash !== tracked) {
+    tracked = splash;
+    holdCount = 0;
+    dismissRequested = false;
+    exitFinish = undefined;
+    if (exitTimer !== undefined) window.clearTimeout(exitTimer);
+    exitTimer = undefined;
+    if (holdDeadline !== undefined) window.clearTimeout(holdDeadline);
+    holdDeadline = undefined;
+    if (releaseTimer !== undefined) window.clearTimeout(releaseTimer);
+    releaseTimer = undefined;
+  }
   return splash;
 }
 
