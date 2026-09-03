@@ -8,6 +8,7 @@ import {
   applyIconWeight,
   applyMenuStyle,
   applyThemePreset,
+  BOOT_THEME_VARS_KEY,
   GENERATED_FONTS,
   GENERATED_PRESET,
   GENERATED_RADII,
@@ -187,6 +188,32 @@ describe('generated themes (shuffle)', () => {
     expect(hexToHue('#0000ff')).toBeGreaterThanOrEqual(250); // blue
     expect(hexToHue('#0000ff')).toBeLessThanOrEqual(290);
     expect(hexToHue('not-a-hex')).toBe(0); // safe fallback
+  });
+
+  // The pre-React boot script cannot run accentForeground(), so it used to guess
+  // white for --color-primary-foreground. For most accents the real answer is the
+  // dark one, and the splash logo flipped colour the moment React caught up —
+  // one loading screen in two colours on every cold load. It now replays this.
+  it('applyGeneratedTheme snapshots the resolved splash palette for the boot script', () => {
+    applyGeneratedTheme({ ...sample, hue: 145, intensityId: 'max' });
+
+    const raw = localStorage.getItem(BOOT_THEME_VARS_KEY);
+    expect(raw).not.toBeNull();
+
+    const snapshot = JSON.parse(raw ?? '{}');
+    expect(snapshot.preset).toBe(GENERATED_PRESET);
+    expect(snapshot.mode).toBe(
+      document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+    );
+
+    // The value the boot script replays must be the one the real math produced,
+    // not the white it used to assume.
+    expect(snapshot.vars['--color-primary-foreground']).toBe(
+      accentForeground(0.58, 0.28, 145),
+    );
+    expect(snapshot.vars['--color-primary']).toBe(
+      document.documentElement.style.getPropertyValue('--color-primary'),
+    );
   });
 
   it('applyGeneratedTheme derives the chart palette from the harmony rule', () => {
