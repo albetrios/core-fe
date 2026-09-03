@@ -13,6 +13,7 @@ import { InvisibleTurnstile } from '@/shared/auth/captcha/InvisibleTurnstile.tsx
 import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card, CardContent } from '@/shared/components/ui/card.tsx';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 
 function GlobalErrorFallback({
   error,
@@ -49,6 +50,8 @@ function GlobalErrorFallback({
 }
 
 export default function App() {
+  const { t } = useTranslation(ERRORS_NS);
+
   return (
     <AppProviders>
       <ErrorBoundary
@@ -59,8 +62,17 @@ export default function App() {
         // exact stale shell/chunks that just crashed.
         onReset={reloadOntoLatestBuild}
       >
-        {/* Solves Cloudflare Turnstile invisibly and keeps a fresh token for auth POSTs. */}
-        <InvisibleTurnstile />
+        {/* Solves Cloudflare Turnstile invisibly and keeps a fresh token for auth
+            POSTs. Third-party script, mounted at the app root: without its own
+            boundary a throw inside it reaches the GLOBAL fallback and replaces
+            the entire application. Contained, the captcha degrades and the auth
+            forms fall back to their existing captcha-gate notice. */}
+        <SectionErrorBoundary
+          title={t(ERRORS_KEYS.widget.securityCheck)}
+          testId="captcha-widget-error"
+        >
+          <InvisibleTurnstile />
+        </SectionErrorBoundary>
         <Suspense fallback={<FullPageSpinner />}>
           <RouterProvider router={router} />
         </Suspense>

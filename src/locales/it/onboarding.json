@@ -76,7 +76,8 @@
     "slugLabel": "URL dello spazio (facoltativo)",
     "slugPlaceholder": "acme",
     "urlPreview": "Il tuo spazio sarà disponibile su <1>core.app/{{slug}}</1>",
-    "slugFallback": "il-tuo-spazio"
+    "slugFallback": "il-tuo-spazio",
+    "slugInvalid": "Usa solo lettere minuscole, numeri e trattini."
   },
   "invite": {
     "emailLabel": "E-mail del collega",
@@ -92,6 +93,7 @@
     "invitesLabel": "Inviti",
     "emptyValue": "—",
     "invitesPending_one": "{{count}} in sospeso",
+    "invitesPending_many": "{{count}} in sospeso",
     "invitesPending_other": "{{count}} in sospeso"
   },
   "actions": {
@@ -107,9 +109,17 @@
   },
   "toast": {
     "finishSuccess": "Benvenuto! Il tuo spazio di lavoro è pronto.",
+    "finishSuccessWithInvites_one": "Benvenuto! Il tuo spazio è pronto — {{count}} invito inviato.",
+    "finishSuccessWithInvites_many": "Benvenuto! Il tuo spazio è pronto — {{count}} di inviti inviati.",
+    "finishSuccessWithInvites_other": "Benvenuto! Il tuo spazio è pronto — {{count}} inviti inviati.",
     "finishError": "Qualcosa è andato storto nel completare la configurazione. Riprova.",
+    "profileSaveFailed": "Non è stato possibile salvare il tuo nome. Il tuo spazio di lavoro è pronto: aggiungilo nelle Impostazioni.",
     "invitePartialFailure_one": "Spazio pronto — {{count}} invito non è stato inviato. Puoi reinviarlo da Membri.",
+    "invitePartialFailure_many": "Spazio pronto — {{count}} di inviti non sono stati inviati. Puoi reinviarli da Membri.",
     "invitePartialFailure_other": "Spazio pronto — {{count}} inviti non sono stati inviati. Puoi reinviarli da Membri."
+  },
+  "session": {
+    "loadError": "Non siamo riusciti a caricare la configurazione del tuo account. Controlla la connessione e riprova."
   },
   "guard": {
     "title": "Uscire dall'onboarding?",

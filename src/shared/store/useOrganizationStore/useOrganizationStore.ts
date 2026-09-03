@@ -23,6 +23,13 @@ interface OrganizationStore {
   organizationType: OrganizationType | null;
   /** Org-scoped permission codes the user holds in the active organization. */
   permissions: OrganizationPermission[];
+  /**
+   * Whether {@link permissions} is an ANSWER or just the empty default. The
+   * guard chain populates it a beat after the route renders, and an empty list
+   * that means "we do not know yet" is indistinguishable from "you may do
+   * nothing" — which is why gated controls appeared a moment late (SET-23).
+   */
+  permissionsResolved: boolean;
   /** Deployment-wide personal/team toggles (from me/context). */
   deploymentFlags: DeploymentFlags;
   personalOrganizationId: string | null;
@@ -39,6 +46,8 @@ interface OrganizationStore {
   ) => void;
   /** Replace the active org's permission set (from the membership response). */
   setPermissions: (permissions: OrganizationPermission[]) => void;
+  /** Drop the current set and mark it unresolved (an org switch is starting). */
+  clearPermissions: () => void;
   clearOrganization: () => void;
 }
 
@@ -56,6 +65,7 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
   organizationStatus: null,
   organizationType: null,
   permissions: [],
+  permissionsResolved: false,
   deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS,
   personalOrganizationId: null,
 
@@ -66,6 +76,7 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
       organizationStatus: toStoreStatus(org),
       organizationType: org?.type ?? null,
       permissions,
+      permissionsResolved: true,
     }),
 
   setDeploymentContext: (deploymentFlags, personalOrganizationId) =>
@@ -77,7 +88,8 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
       organizationSlug,
       organizationStatus: organizationStatus ?? null,
     }),
-  setPermissions: (permissions) => set({ permissions }),
+  setPermissions: (permissions) => set({ permissions, permissionsResolved: true }),
+  clearPermissions: () => set({ permissions: [], permissionsResolved: false }),
   clearOrganization: () =>
     set({
       organizationId: null,
@@ -85,6 +97,7 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
       organizationStatus: null,
       organizationType: null,
       permissions: [],
+      permissionsResolved: false,
       deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS,
       personalOrganizationId: null,
     }),

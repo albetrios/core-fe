@@ -109,6 +109,7 @@
     "ariaLabel": "Membros da equipe",
     "heading": "Membros da equipe",
     "description_one": "{{count}} pessoa neste espaço",
+    "description_many": "{{count}} de pessoas neste espaço",
     "description_other": "{{count}} pessoas neste espaço",
     "columnMember": "Membro",
     "columnRole": "Função",
@@ -119,7 +120,9 @@
       "invited": "Convidado",
       "suspended": "Suspenso"
     },
-    "error": "Não foi possível carregar os membros."
+    "error": "Não foi possível carregar os membros.",
+    "empty": "Ainda ninguém entrou neste espaço de trabalho.",
+    "noWorkspace": "Nenhum espaço de trabalho selecionado."
   },
   "trends": {
     "heading": "Tendências de uso",

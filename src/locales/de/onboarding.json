@@ -76,7 +76,8 @@
     "slugLabel": "Arbeitsbereichs-URL (optional)",
     "slugPlaceholder": "acme",
     "urlPreview": "Ihr Arbeitsbereich ist erreichbar unter <1>core.app/{{slug}}</1>",
-    "slugFallback": "ihr-arbeitsbereich"
+    "slugFallback": "ihr-arbeitsbereich",
+    "slugInvalid": "Nur Kleinbuchstaben, Zahlen und Bindestriche verwenden."
   },
   "invite": {
     "emailLabel": "E-Mail des Teammitglieds",
@@ -107,9 +108,15 @@
   },
   "toast": {
     "finishSuccess": "Willkommen! Ihr Arbeitsbereich ist bereit.",
+    "finishSuccessWithInvites_one": "Willkommen! Dein Workspace ist bereit — {{count}} Einladung gesendet.",
+    "finishSuccessWithInvites_other": "Willkommen! Dein Workspace ist bereit — {{count}} Einladungen gesendet.",
     "finishError": "Beim Abschließen der Einrichtung ist etwas schiefgelaufen. Bitte erneut versuchen.",
+    "profileSaveFailed": "Ihr Name konnte nicht gespeichert werden. Ihr Workspace ist bereit – ergänzen Sie ihn in den Einstellungen.",
     "invitePartialFailure_one": "Arbeitsbereich bereit — {{count}} Einladung konnte nicht gesendet werden. Sie können sie unter Mitglieder erneut senden.",
     "invitePartialFailure_other": "Arbeitsbereich bereit — {{count}} Einladungen konnten nicht gesendet werden. Sie können sie unter Mitglieder erneut senden."
+  },
+  "session": {
+    "loadError": "Deine Kontoeinrichtung konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut."
   },
   "guard": {
     "title": "Onboarding verlassen?",

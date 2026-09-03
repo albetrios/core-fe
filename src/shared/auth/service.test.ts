@@ -291,6 +291,23 @@ describe('auth/service', () => {
       expect(window.location.href).toBe('/login');
     });
 
+    it('revokes once for a double-clicked Sign out', async () => {
+      // The menu item is a bare async onClick — two clicks in one frame both
+      // get through. The second POST would go out AFTER the first cleared the
+      // token, i.e. unauthenticated, against a backend that treats refresh
+      // reuse as an attack.
+      (fetchMock as Mock).mockResolvedValue(mockFetchResponse({}));
+      setAccessToken(VALID_TOKEN);
+      const logoutCalls = () =>
+        (fetchMock as Mock).mock.calls.filter(([url]) =>
+          String(url).includes('/auth/logout'),
+        ).length;
+
+      await Promise.all([logout(), logout()]);
+
+      expect(logoutCalls()).toBe(1);
+    });
+
     it('sends the current access token as the Authorization bearer', async () => {
       // Regression: core-be revokes the session BY the bearer token and 401s
       // without one. logout() used to omit the header, so the server session

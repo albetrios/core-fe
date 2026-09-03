@@ -140,11 +140,23 @@
       "cancel": "إلغاء",
       "confirmRemove": "إزالة",
       "rolePlaceholder": "الدور",
-      "searchPlaceholder": "ابحث عن الأعضاء…"
+      "searchPlaceholder": "ابحث عن الأعضاء…",
+      "removing": "جارٍ الإزالة…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "إنشاء مؤسسة",
+      "nameLabel": "اسم المؤسسة",
+      "slugLabel": "رابط مساحة العمل (اختياري)",
+      "submit": "إنشاء مؤسسة",
+      "submitting": "جارٍ الإنشاء…"
+    },
+    "theme": {
+      "light": "فاتح",
+      "dark": "داكن",
+      "system": "النظام",
+      "shuffle": "تبديل عشوائي للسمة"
     }
   },
   "public": {

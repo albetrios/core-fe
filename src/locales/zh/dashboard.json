@@ -118,7 +118,9 @@
       "invited": "已邀请",
       "suspended": "已暂停"
     },
-    "error": "无法加载成员。"
+    "error": "无法加载成员。",
+    "empty": "还没有人加入此工作区。",
+    "noWorkspace": "未选择工作区。"
   },
   "trends": {
     "heading": "使用趋势",

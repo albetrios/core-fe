@@ -11,16 +11,35 @@
     "pageMessage": "इस पृष्ठ को रेंडर करते समय कुछ गलत हो गया।",
     "tryAgain": "फिर कोशिश करें",
     "goHome": "होम पर जाएँ",
-    "refresh": "पृष्ठ रीफ़्रेश करें"
+    "refresh": "पृष्ठ रीफ़्रेश करें",
+    "forbidden": "आपके पास इस पेज तक पहुँचने की अनुमति नहीं है।",
+    "signOut": "साइन आउट",
+    "signingOut": "साइन आउट हो रहा है…"
   },
   "widget": {
     "unavailable": "{{title}} अनुपलब्ध",
     "message": "यह अनुभाग लोड करते समय कुछ गलत हो गया। फिर कोशिश करें।",
     "retry": "फिर कोशिश करें",
+    "unavailableShort": "अनुपलब्ध",
+    "controlRetry": "{{title}} अनुपलब्ध। पुनः प्रयास के लिए चुनें।",
     "pageContent": "पृष्ठ सामग्री",
+    "navigation": "नेविगेशन",
     "emailBanner": "ईमेल सत्यापन",
     "notifications": "सूचनाएँ",
-    "organizationSwitcher": "संगठन स्विचर"
+    "organizationSwitcher": "संगठन स्विचर",
+    "commandPalette": "कमांड पैलेट",
+    "settings": "सेटिंग्स",
+    "appearance": "दिखावट",
+    "analytics": "एनालिटिक्स",
+    "members": "सदस्य",
+    "schedule": "शेड्यूल",
+    "highlights": "मुख्य बातें",
+    "themeShowcase": "थीम शोकेस",
+    "sessionTimeout": "सत्र टाइमर",
+    "securityCheck": "सुरक्षा जाँच",
+    "appearanceControls": "दिखावट नियंत्रण",
+    "payment": "भुगतान",
+    "cancellation": "रद्दीकरण"
   },
   "toast": {
     "dismiss": "सूचना खारिज करें",
@@ -65,7 +84,8 @@
       "logoReadFailed": "वह फ़ाइल पढ़ी नहीं जा सकी।",
       "formCheck": "फ़ॉर्म जाँचें",
       "updateSuccess": "संगठन अपडेट किया गया",
-      "createSuccess": "{{name}} बनाया गया"
+      "createSuccess": "{{name}} बनाया गया",
+      "createdSwitchFailed": "{{name}} बन गया, लेकिन हम उसे खोल नहीं सके. उसे संगठन स्विचर से चुनें."
     },
     "account": {
       "copyFailed": "क्लिपबोर्ड पर कॉपी नहीं हो सका",
@@ -132,7 +152,10 @@
       },
       "subscription": {
         "changePlanFailed": "प्लान नहीं बदला जा सका",
-        "changePlanSuccess": "{{plan}} प्लान पर स्विच किया गया"
+        "changePlanSuccess": "{{plan}} प्लान पर स्विच किया गया",
+        "paymentSetupFailed": "योजना बदल गई, लेकिन भुगतान चरण शुरू नहीं हो सका। इसे पूरा करने के लिए बिलिंग फिर से खोलें।",
+        "cancelSuccess": "सदस्यता अवधि समाप्त होने पर बंद हो जाएगी",
+        "resumeSuccess": "सदस्यता फिर से शुरू की गई"
       },
       "invitations": {
         "sendFailed": "निमंत्रण नहीं भेजा जा सका",
@@ -140,5 +163,10 @@
       }
     },
     "profileUpdated": "प्रोफ़ाइल अपडेट की गई"
+  },
+  "suspended": {
+    "title": "संगठन निलंबित",
+    "message": "यह संगठन फ़िलहाल निलंबित है। बिलिंग की समीक्षा के लिए संगठन प्रशासक से संपर्क करें, या किसी अन्य संगठन पर जाएँ।",
+    "switchOrganization": "संगठन बदलें"
   }
 }

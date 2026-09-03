@@ -37,7 +37,19 @@ function show(type: ToastType, message: string, opts?: NotifyOptions) {
   // Never pass `id: undefined` — sonner #679 overwrites the generated id and breaks dismiss.
   const toastOpts = {
     ...(opts?.id !== undefined ? { id: opts.id } : {}),
-    ...(opts?.duration !== undefined ? { duration: opts.duration } : {}),
+    // `duration` is ALWAYS sent, `undefined` included — never made conditional.
+    // A write to an id that is already on screen is a MERGE, not a replacement
+    // (sonner `ToastState.create`: `{ ...toast, ...data }`), so a key this call
+    // omits silently inherits the previous toast's value. Sending the key
+    // resets it, because object spread copies keys whose value is `undefined`.
+    // Without this, `notifyDeferredCommit` wrote its processing toast with
+    // `notify.loading` (`duration: Infinity`) and then its success toast to the
+    // same id with no duration — the success toast inherited `Infinity`, and
+    // sonner's auto-close effect returns early on `duration === Infinity`, so
+    // the confirmation sat on screen forever. `undefined` here is not a
+    // hard-coded lifetime: sonner falls back to the `<Toaster>` duration and
+    // then its own default, exactly as a first write to a fresh id does.
+    duration: opts?.duration,
     unstyled: true as const,
     className: 'w-full',
     ...(opts?.onDismiss ? { onDismiss: () => opts.onDismiss?.() } : {}),

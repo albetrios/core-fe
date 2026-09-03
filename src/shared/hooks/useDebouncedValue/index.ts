@@ -1,1 +1,1 @@
-export { useDebouncedValue } from './useDebouncedValue.ts';
+export { useDebouncedSearch, useDebouncedValue } from './useDebouncedValue.ts';

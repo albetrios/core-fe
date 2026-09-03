@@ -76,7 +76,8 @@
     "slugLabel": "워크스페이스 URL(선택)",
     "slugPlaceholder": "acme",
     "urlPreview": "워크스페이스 주소: <1>core.app/{{slug}}</1>",
-    "slugFallback": "your-workspace"
+    "slugFallback": "your-workspace",
+    "slugInvalid": "소문자, 숫자, 하이픈만 사용할 수 있습니다."
   },
   "invite": {
     "emailLabel": "동료 이메일",
@@ -91,7 +92,6 @@
     "organizationLabel": "조직",
     "invitesLabel": "초대",
     "emptyValue": "—",
-    "invitesPending_one": "{{count}}건 대기",
     "invitesPending_other": "{{count}}건 대기"
   },
   "actions": {
@@ -107,9 +107,13 @@
   },
   "toast": {
     "finishSuccess": "환영합니다! 워크스페이스가 준비되었습니다.",
+    "finishSuccessWithInvites_other": "환영합니다! 워크스페이스가 준비되었습니다 — 초대 {{count}}건을 보냈습니다.",
     "finishError": "설정을 완료하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
-    "invitePartialFailure_one": "워크스페이스 준비 완료 — 초대 {{count}}건을 보내지 못했습니다. 멤버에서 다시 보낼 수 있습니다.",
+    "profileSaveFailed": "이름을 저장하지 못했습니다. 워크스페이스는 준비되었습니다. 설정에서 추가하세요.",
     "invitePartialFailure_other": "워크스페이스 준비 완료 — 초대 {{count}}건을 보내지 못했습니다. 멤버에서 다시 보낼 수 있습니다."
+  },
+  "session": {
+    "loadError": "계정 설정을 불러오지 못했습니다. 연결 상태를 확인한 후 다시 시도해 주세요."
   },
   "guard": {
     "title": "온보딩을 나가시겠습니까?",

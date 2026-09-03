@@ -32,6 +32,12 @@ export const LAYOUT_KEYS = {
     },
   },
   app: {
+    theme: {
+      light: 'app.theme.light',
+      dark: 'app.theme.dark',
+      system: 'app.theme.system',
+      shuffle: 'app.theme.shuffle',
+    },
     search: 'app.search',
     searchPlaceholder: 'app.searchPlaceholder',
     searchShortcutMac: 'app.searchShortcutMac',
@@ -60,6 +66,11 @@ export const LAYOUT_KEYS = {
     orgCreate: {
       namePlaceholder: 'app.orgCreate.namePlaceholder',
       slugPlaceholder: 'app.orgCreate.slugPlaceholder',
+      title: 'app.orgCreate.title',
+      nameLabel: 'app.orgCreate.nameLabel',
+      slugLabel: 'app.orgCreate.slugLabel',
+      submit: 'app.orgCreate.submit',
+      submitting: 'app.orgCreate.submitting',
     },
     orgSwitcher: {
       selectPlaceholder: 'app.orgSwitcher.selectPlaceholder',

@@ -164,3 +164,25 @@ export function mapApiError(error: unknown): string {
 export function notifyError(error: unknown, opts?: { id?: string | number }): void {
   notify.error(mapApiError(error), opts);
 }
+
+/**
+ * The failure surface for a read that must not move the layout it lives in.
+ *
+ * App chrome — the org switcher, the verification banner, the nav — cannot be
+ * swapped for an error card without reflowing the header around a control the
+ * user is mid-reach for. One toast says the same thing beside it and moves
+ * nothing, and its action re-runs the query that failed, so the message is
+ * something the user can act on rather than just read (X-1).
+ */
+export function notifyQueryError(
+  error: unknown,
+  opts: { id: string; onRetry: () => void },
+): void {
+  notify.error(mapApiError(error), {
+    id: opts.id,
+    action: {
+      label: i18n.t(ERRORS_KEYS.frontend.query.retry, { ns: ERRORS_NS }),
+      onClick: opts.onRetry,
+    },
+  });
+}

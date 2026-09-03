@@ -132,7 +132,8 @@
       "cancel": "Cancelar",
       "confirmRemove": "Eliminar",
       "rolePlaceholder": "Rol",
-      "searchPlaceholder": "Buscar miembros…"
+      "searchPlaceholder": "Buscar miembros…",
+      "removing": "Eliminando…"
     },
     "shortcuts": {
       "title": "Atajos de teclado",
@@ -144,7 +145,18 @@
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "Crear organización",
+      "nameLabel": "Nombre de la organización",
+      "slugLabel": "URL del espacio (opcional)",
+      "submit": "Crear organización",
+      "submitting": "Creando…"
+    },
+    "theme": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema",
+      "shuffle": "Tema aleatorio"
     }
   },
   "public": {

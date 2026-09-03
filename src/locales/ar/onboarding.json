@@ -76,7 +76,8 @@
     "slugLabel": "رابط مساحة العمل (اختياري)",
     "slugPlaceholder": "acme",
     "urlPreview": "ستكون مساحة عملك على <1>core.app/{{slug}}</1>",
-    "slugFallback": "your-workspace"
+    "slugFallback": "your-workspace",
+    "slugInvalid": "استخدم الأحرف الصغيرة والأرقام والشرطات فقط."
   },
   "invite": {
     "emailLabel": "بريد الزميل",
@@ -91,7 +92,11 @@
     "organizationLabel": "المؤسسة",
     "invitesLabel": "الدعوات",
     "emptyValue": "—",
+    "invitesPending_zero": "{{count}} معلّقة",
     "invitesPending_one": "{{count}} معلّقة",
+    "invitesPending_two": "{{count}} معلّقتان",
+    "invitesPending_few": "{{count}} معلّقة",
+    "invitesPending_many": "{{count}} معلّقة",
     "invitesPending_other": "{{count}} معلّقة"
   },
   "actions": {
@@ -107,9 +112,23 @@
   },
   "toast": {
     "finishSuccess": "مرحبًا! مساحة عملك جاهزة.",
+    "finishSuccessWithInvites_zero": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوة.",
+    "finishSuccessWithInvites_one": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوة.",
+    "finishSuccessWithInvites_two": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوتين.",
+    "finishSuccessWithInvites_few": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوات.",
+    "finishSuccessWithInvites_many": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوةً.",
+    "finishSuccessWithInvites_other": "أهلاً بك! مساحة عملك جاهزة — تم إرسال {{count}} دعوة.",
     "finishError": "حدث خطأ أثناء إنهاء الإعداد. يُرجى المحاولة مرة أخرى.",
+    "profileSaveFailed": "تعذّر حفظ اسمك. مساحة العمل جاهزة — أضِف اسمك من الإعدادات.",
+    "invitePartialFailure_zero": "المساحة جاهزة — تعذّر إرسال {{count}} دعوة. يمكنك إعادة الإرسال من الأعضاء.",
     "invitePartialFailure_one": "المساحة جاهزة — تعذّر إرسال {{count}} دعوة. يمكنك إعادة الإرسال من الأعضاء.",
-    "invitePartialFailure_other": "المساحة جاهزة — تعذّر إرسال {{count}} دعوات. يمكنك إعادة الإرسال من الأعضاء."
+    "invitePartialFailure_two": "المساحة جاهزة — تعذّر إرسال {{count}} دعوتين. يمكنك إعادة الإرسال من الأعضاء.",
+    "invitePartialFailure_few": "المساحة جاهزة — تعذّر إرسال {{count}} دعوات. يمكنك إعادة الإرسال من الأعضاء.",
+    "invitePartialFailure_many": "المساحة جاهزة — تعذّر إرسال {{count}} دعوةً. يمكنك إعادة الإرسال من الأعضاء.",
+    "invitePartialFailure_other": "المساحة جاهزة — تعذّر إرسال {{count}} دعوة. يمكنك إعادة الإرسال من الأعضاء."
+  },
+  "session": {
+    "loadError": "تعذّر تحميل إعدادات حسابك. تحقق من اتصالك وحاول مرة أخرى."
   },
   "guard": {
     "title": "مغادرة الإعداد الأولي؟",

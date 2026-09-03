@@ -140,11 +140,23 @@
       "cancel": "Annuler",
       "confirmRemove": "Retirer",
       "rolePlaceholder": "Rôle",
-      "searchPlaceholder": "Rechercher des membres…"
+      "searchPlaceholder": "Rechercher des membres…",
+      "removing": "Suppression…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "Créer une organisation",
+      "nameLabel": "Nom de l’organisation",
+      "slugLabel": "URL de l’espace (facultatif)",
+      "submit": "Créer une organisation",
+      "submitting": "Création…"
+    },
+    "theme": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système",
+      "shuffle": "Thème aléatoire"
     }
   },
   "public": {

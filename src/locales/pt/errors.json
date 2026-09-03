@@ -11,16 +11,35 @@
     "pageMessage": "Algo deu errado ao renderizar esta página.",
     "tryAgain": "Tentar novamente",
     "goHome": "Ir para o início",
-    "refresh": "Atualizar página"
+    "refresh": "Atualizar página",
+    "forbidden": "Você não tem permissão para acessar esta página.",
+    "signOut": "Sair",
+    "signingOut": "Saindo…"
   },
   "widget": {
     "unavailable": "{{title}} indisponível",
     "message": "Algo deu errado ao carregar esta seção. Tente novamente.",
     "retry": "Tentar novamente",
+    "unavailableShort": "Indisponível",
+    "controlRetry": "{{title}} indisponível. Selecione para tentar novamente.",
     "pageContent": "Conteúdo da página",
+    "navigation": "Navegação",
     "emailBanner": "Verificação de e-mail",
     "notifications": "Notificações",
-    "organizationSwitcher": "Seletor de organização"
+    "organizationSwitcher": "Seletor de organização",
+    "commandPalette": "Paleta de comandos",
+    "settings": "Configurações",
+    "appearance": "Aparência",
+    "analytics": "Análises",
+    "members": "Membros",
+    "schedule": "Agenda",
+    "highlights": "Destaques",
+    "themeShowcase": "Vitrine de temas",
+    "sessionTimeout": "Temporizador de sessão",
+    "securityCheck": "Verificação de segurança",
+    "appearanceControls": "Controles de aparência",
+    "payment": "Pagamento",
+    "cancellation": "Cancelamento"
   },
   "toast": {
     "dismiss": "Dispensar notificação",
@@ -65,7 +84,8 @@
       "logoReadFailed": "Não foi possível ler esse arquivo.",
       "formCheck": "Verifique o formulário",
       "updateSuccess": "Organização atualizada",
-      "createSuccess": "{{name}} criado"
+      "createSuccess": "{{name}} criado",
+      "createdSwitchFailed": "{{name}} foi criada, mas não foi possível abri-la. Selecione-a no seletor de organizações."
     },
     "account": {
       "copyFailed": "Não foi possível copiar para a área de transferência",
@@ -132,7 +152,10 @@
       },
       "subscription": {
         "changePlanFailed": "Não foi possível alterar o plano",
-        "changePlanSuccess": "Mudou para o plano {{plan}}"
+        "changePlanSuccess": "Mudou para o plano {{plan}}",
+        "paymentSetupFailed": "Plano alterado, mas não foi possível iniciar o passo de pagamento. Reabra a facturação para concluir.",
+        "cancelSuccess": "A subscrição terminará no fim do período",
+        "resumeSuccess": "Subscrição retomada"
       },
       "invitations": {
         "sendFailed": "Não foi possível enviar o convite",
@@ -140,5 +163,10 @@
       }
     },
     "profileUpdated": "Perfil atualizado"
+  },
+  "suspended": {
+    "title": "Organização suspensa",
+    "message": "Esta organização está suspensa. Fale com uma pessoa administradora para revisar a cobrança ou mude para outra organização.",
+    "switchOrganization": "Trocar de organização"
   }
 }

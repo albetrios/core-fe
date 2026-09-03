@@ -82,6 +82,13 @@ function DashboardContent({ ctx }: { ctx: MeContext }) {
   const Variant = DASHBOARD_VARIANTS[dashboardVariant] ?? DashboardClassic;
 
   return (
+    /*
+      Per-widget isolation is NOT here any more — it lives one level down, in
+      `DeferredSection` (Dashboard.deferred.tsx), which gives the chart, the
+      roster and the calendar a boundary each. That is what keeps a throw in one
+      of them from taking the other two and the section heading with it (DASH-2),
+      and it holds for every arrangement variant rather than just this one.
+    */
     <Variant
       ctx={ctx}
       isTeam={isTeam}

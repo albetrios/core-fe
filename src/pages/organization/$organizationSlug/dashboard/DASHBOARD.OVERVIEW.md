@@ -37,6 +37,26 @@ data-driven.
 - `dashboard-global-map` + `dashboard-map-{sample,region-*,marker-*}` (dotted-world activity map — Bento)
 - `dashboard-usage-bars`, `dashboard-heatmap` (+`-week-*`), `dashboard-funnel` (+`-stage-*`), `dashboard-radar` (+`-axis-*`), `dashboard-leaderboard` (+`-row-*`), `dashboard-mini-gantt` (+`dashboard-gantt-bar-*`), `dashboard-focus-{timer,clock,toggle,reset}`, `dashboard-plan-meters` (+`dashboard-meter-*`), `dashboard-billing-{summary,amount}`, `dashboard-ai-{card,prompt,chip-*}` (premium set; each sample-badged widget also has a `-sample` id)
 
+## Deferred widgets and per-widget containment
+
+The heavy widgets are not on the first-paint path. Each one loads its own chunk through
+`DeferredSection` (`shared/components/Dashboard/Dashboard.deferred.tsx`) — the analytics
+chart, the member roster, the schedule calendar, the highlights carousel, the theme
+showcase, the usage bars and the source donut. Every one of them gets three things from
+that wrapper, and this is why containment lives there rather than around the section:
+
+- A `SkeletonShimmer` fallback sized to the widget while its chunk is in flight.
+- Its **own** `SectionErrorBoundary`, so a throw in one widget cannot take its neighbours
+  and the section heading down with it (DASH-2).
+- A Retry that actually retries. `React.lazy` caches a rejection permanently — its
+  factory is never called again — so resetting the boundary alone would re-render
+  straight back into the same error. `useRetryableLazy` builds a **new** lazy component
+  per attempt, and the chunk factories go through `onceAsync`, which shares one in-flight
+  promise per chunk but deliberately does **not** cache a rejection (SHELL-3).
+
+Because the containment sits one level below the page, it holds for every arrangement
+variant rather than only the default one.
+
 ## Arrangement variants (TEMP preview)
 
 The surface renders through one of four arrangement variants

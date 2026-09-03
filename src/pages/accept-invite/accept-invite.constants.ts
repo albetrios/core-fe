@@ -12,6 +12,8 @@ export const ACCEPT_INVITE_TEST_IDS = {
   success: 'accept-invite-success',
   error: 'accept-invite-error',
   login: 'accept-invite-login',
+  retry: 'accept-invite-retry',
+  cardError: 'accept-invite-card-error',
 } as const;
 
 export const ACCEPT_INVITE_MANIFEST = {

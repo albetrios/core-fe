@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
+import { cn } from '@/lib/utils.ts';
 import type { ApiKey } from '@/shared/api/organization-contracts.ts';
 import {
   createWebhookSchema,
@@ -12,6 +14,7 @@ import {
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
+import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
@@ -30,9 +33,11 @@ import {
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
+import { mapApiError } from '@/shared/errors/errorHandler.ts';
+import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useApiKeys, useRevokeApiKey } from '@/shared/hooks/useApiKeys/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
-import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import {
   useCreateWebhook,
   useDeleteWebhook,
@@ -54,9 +59,11 @@ function useCanManageIntegrations(): boolean {
 /** API keys — windowed list (masked) + search + cap-gated revoke. */
 function ApiKeysSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const integrations = SETTINGS_KEYS.panels.integrations;
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<OrgListSortPreset>(DEFAULT_ORG_LIST_SORT);
-  const debouncedSearch = useDebouncedValue(search.trim());
+  const { debounced: debouncedSearch, isPending: isSearchPending } =
+    useDebouncedSearch(search);
   const sortParams = orgListSortToParams(sort);
   const keys = useApiKeys({
     q: debouncedSearch || undefined,
@@ -66,16 +73,17 @@ function ApiKeysSection() {
   const revokeKey = useRevokeApiKey();
   const [toRevoke, setToRevoke] = useState<ApiKey | null>(null);
   const isSearching = debouncedSearch.length > 0;
+  const isStale = isListStale(keys.isRefreshing, isSearchPending);
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium">API keys</h3>
+      <h3 className="text-sm font-medium">{tSettings(integrations.apiKeysTitle)}</h3>
       <OrgListControls
         search={search}
         onSearchChange={setSearch}
         sort={sort}
         onSortChange={setSort}
-        searchPlaceholder={tSettings(SETTINGS_KEYS.panels.integrations.searchPlaceholder)}
+        searchPlaceholder={tSettings(integrations.searchPlaceholder)}
         searchTestId="apikeys-search"
         sortTestId="apikeys-sort"
       />
@@ -87,23 +95,34 @@ function ApiKeysSection() {
         </div>
       ) : null}
       {keys.isError ? (
-        <p className="text-destructive text-sm" role="alert">
-          Couldn&apos;t load API keys. Please try again.
-        </p>
+        // The webhooks list beside this one always offered a retry; the API-key
+        // list answered the same failure with a dead sentence (SET-20).
+        <div data-testid="apikeys-error">
+          <RetryError
+            message={tSettings(integrations.apiKeysLoadFailed)}
+            onRetry={keys.refetch}
+            isRetrying={keys.isFetching}
+          />
+        </div>
       ) : null}
       {!(keys.isPending || keys.isError) && keys.rows.length === 0 ? (
         <EmptyState
           icon={<Boxes />}
-          title={isSearching ? 'No matching API keys' : 'No API keys'}
-          description={
+          title={tSettings(
+            isSearching ? integrations.apiKeysNoResults : integrations.apiKeysEmptyTitle,
+          )}
+          description={tSettings(
             isSearching
-              ? 'No API keys match your search.'
-              : 'API keys let external services talk to your organization.'
-          }
+              ? integrations.apiKeysNoResultsDescription
+              : integrations.apiKeysEmptyDescription,
+          )}
         />
       ) : null}
       {!keys.isError && keys.rows.length > 0 ? (
-        <Card className="gap-0 overflow-hidden py-0">
+        <Card
+          className={cn('gap-0 overflow-hidden py-0', listRefreshClass(isStale))}
+          aria-busy={isStale}
+        >
           <ul className="divide-border divide-y" data-testid="apikeys-list">
             {keys.rows.map((key) => (
               <li key={key.id} className="flex items-center gap-3 p-3">
@@ -117,7 +136,7 @@ function ApiKeysSection() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`Revoke ${key.name}`}
+                    aria-label={tSettings(integrations.revokeAria, { name: key.name })}
                     onClick={() => setToRevoke(key)}
                     data-testid={`apikey-revoke-${key.id}`}
                   >
@@ -138,7 +157,7 @@ function ApiKeysSection() {
             disabled={keys.isFetchingNextPage}
             data-testid="apikeys-load-more"
           >
-            Load more
+            {tSettings(integrations.loadMore)}
           </Button>
         </div>
       ) : null}
@@ -147,9 +166,11 @@ function ApiKeysSection() {
         onOpenChange={(open) => {
           if (!open) setToRevoke(null);
         }}
-        title={`Revoke ${toRevoke?.name ?? 'API key'}?`}
-        description="Any service using this key will immediately lose access. This can't be undone."
-        confirmLabel="Revoke"
+        title={tSettings(integrations.revokeTitle, {
+          name: toRevoke?.name ?? tSettings(integrations.apiKeyFallback),
+        })}
+        description={tSettings(integrations.revokeDescription)}
+        confirmLabel={tSettings(integrations.revokeConfirm)}
         destructive
         onConfirm={async () => {
           if (toRevoke) await revokeKey.mutateAsync(toRevoke.id);
@@ -162,7 +183,8 @@ function ApiKeysSection() {
 /** Webhooks — list + cap-gated create (url + events) + delete. */
 function WebhooksSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
-  const { data: hooks, isLoading } = useWebhooks();
+  const integrations = SETTINGS_KEYS.panels.integrations;
+  const { data: hooks, isLoading, isError, isFetching, refetch } = useWebhooks();
   const canManage = useCanManageIntegrations();
   const create = useCreateWebhook();
   const remove = useDeleteWebhook();
@@ -194,13 +216,17 @@ function WebhooksSection() {
         setUrl('');
         setEvents([]);
       },
+      // The dialog stays open on failure, so the reason belongs IN it — beside
+      // the URL the server rejected, not only in a toast the user has to catch
+      // before it fades (SET-26).
+      onError: (cause) => setError(mapApiError(cause)),
     });
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Webhooks</h3>
+        <h3 className="text-sm font-medium">{tSettings(integrations.webhooksTitle)}</h3>
         {canManage ? (
           <Button
             size="sm"
@@ -209,7 +235,7 @@ function WebhooksSection() {
             data-testid="webhook-add"
           >
             <Plus className="me-1.5 size-4" />
-            Add webhook
+            {tSettings(integrations.addWebhook)}
           </Button>
         ) : null}
       </div>
@@ -218,15 +244,27 @@ function WebhooksSection() {
         <Skeleton className="h-14 w-full" data-testid="webhooks-loading" />
       ) : null}
 
-      {hooks && hooks.length === 0 ? (
+      {isError ? (
+        <div data-testid="webhooks-error">
+          <RetryError
+            message={tSettings(integrations.webhooksLoadFailed)}
+            onRetry={() => {
+              void refetch();
+            }}
+            isRetrying={isFetching}
+          />
+        </div>
+      ) : null}
+
+      {!isError && hooks && hooks.length === 0 ? (
         <EmptyState
           icon={<Boxes />}
-          title="No webhooks"
-          description="Send organization events to an external URL."
+          title={tSettings(integrations.webhooksEmptyTitle)}
+          description={tSettings(integrations.webhooksEmptyDescription)}
         />
       ) : null}
 
-      {hooks && hooks.length > 0 ? (
+      {!isError && hooks && hooks.length > 0 ? (
         <Card className="gap-0 overflow-hidden py-0">
           <ul className="divide-border divide-y" data-testid="webhooks-list">
             {hooks.map((hook) => (
@@ -241,7 +279,9 @@ function WebhooksSection() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`Delete webhook ${hook.url}`}
+                    aria-label={tSettings(integrations.deleteWebhookAria, {
+                      url: hook.url,
+                    })}
                     onClick={() => setToDelete(hook)}
                     data-testid={`webhook-delete-${hook.id}`}
                   >
@@ -254,29 +294,36 @@ function WebhooksSection() {
         </Card>
       ) : null}
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog
+        open={addOpen}
+        onOpenChange={(open) => {
+          // Esc and the overlay are dismissals too — none of them may abandon a
+          // create that is already running.
+          if (!create.isPending) setAddOpen(open);
+        }}
+      >
         <DialogContent data-testid="webhook-add-dialog">
           <DialogHeader>
-            <DialogTitle>Add a webhook</DialogTitle>
+            <DialogTitle>{tSettings(integrations.addWebhookTitle)}</DialogTitle>
             <DialogDescription>
-              We&apos;ll POST the selected events to this URL.
+              {tSettings(integrations.addWebhookDescription)}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="webhook-url">Payload URL</Label>
+              <Label htmlFor="webhook-url">
+                {tSettings(integrations.payloadUrlLabel)}
+              </Label>
               <Input
                 id="webhook-url"
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder={tSettings(
-                  SETTINGS_KEYS.panels.integrations.webhookUrlPlaceholder,
-                )}
+                placeholder={tSettings(integrations.webhookUrlPlaceholder)}
                 data-testid="webhook-url"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Events</Label>
+              <Label>{tSettings(integrations.eventsLabel)}</Label>
               <div className="flex flex-wrap gap-2">
                 {WEBHOOK_EVENTS.map((event) => (
                   <Button
@@ -292,22 +339,32 @@ function WebhooksSection() {
                 ))}
               </div>
             </div>
-            {error ? (
-              <p className="text-destructive text-xs" role="alert">
-                {error}
-              </p>
-            ) : null}
+            {/*
+              The same error card the sign-in form and the step-up dialog use.
+              A bare red line under the events read as a caption; this reads as
+              the thing that went wrong (SET-26).
+            */}
+            <FormError message={error} data-testid="webhook-error" />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setAddOpen(false)}>
-              Cancel
+            <Button
+              variant="ghost"
+              onClick={() => setAddOpen(false)}
+              // Cancel used to stay live through the request: pressing it left
+              // the create in flight with nothing on screen to report it.
+              disabled={create.isPending}
+              data-testid="webhook-cancel"
+            >
+              {tSettings(integrations.cancel)}
             </Button>
             <Button
               onClick={submit}
-              disabled={create.isPending}
+              isLoading={create.isPending}
               data-testid="webhook-create"
             >
-              Create webhook
+              {create.isPending
+                ? tSettings(integrations.creating)
+                : tSettings(integrations.createWebhook)}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -318,9 +375,9 @@ function WebhooksSection() {
         onOpenChange={(open) => {
           if (!open) setToDelete(null);
         }}
-        title="Delete this webhook?"
-        description="Events will stop being delivered to this URL. This can't be undone."
-        confirmLabel="Delete"
+        title={tSettings(integrations.deleteWebhookTitle)}
+        description={tSettings(integrations.deleteWebhookDescription)}
+        confirmLabel={tSettings(integrations.deleteConfirm)}
         destructive
         onConfirm={async () => {
           if (toDelete) await remove.mutateAsync(toDelete.id);
@@ -336,6 +393,7 @@ function WebhooksSection() {
  * with one-time-secret reveal remains a follow-up.
  */
 export function OrganizationIntegrationsPanel() {
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
   // Webhooks are only shown when the caller can actually read them; API keys are
   // the always-available part of this section (see settings-permissions.ts).
   const canReadWebhooks = useCan({
@@ -344,7 +402,10 @@ export function OrganizationIntegrationsPanel() {
   });
   return (
     <section className="space-y-8" data-testid="settings-organization-integrations">
-      <SectionHeader title="Integrations" description="API keys and webhooks." />
+      <SectionHeader
+        title={tSettings(SETTINGS_KEYS.panels.integrations.title)}
+        description={tSettings(SETTINGS_KEYS.panels.integrations.description)}
+      />
       <ApiKeysSection />
       {canReadWebhooks ? <WebhooksSection /> : null}
     </section>

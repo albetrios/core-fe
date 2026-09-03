@@ -7,10 +7,12 @@ import { notificationQueryKeys } from '@/shared/api/notification-query-keys.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
+  NOTIFICATION_PREFERENCES_TOAST_ID,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
   useUnreadCount,
+  useUpdateNotificationPreferences,
 } from './useNotifications.ts';
 
 const { listMock, countMock, markReadMock, markAllMock } = vi.hoisted(() => ({
@@ -24,9 +26,14 @@ vi.mock('@/shared/api/notifications-api.ts', () => ({
   getUnreadCount: countMock,
   markNotificationRead: markReadMock,
   markAllNotificationsRead: markAllMock,
+  updateNotificationPreferences: updatePrefsMock,
+}));
+const { updatePrefsMock, successMock } = vi.hoisted(() => ({
+  updatePrefsMock: vi.fn(),
+  successMock: vi.fn(),
 }));
 vi.mock('@/shared/notify/index.ts', () => ({
-  notify: { error: vi.fn(), success: vi.fn() },
+  notify: { error: vi.fn(), success: successMock },
 }));
 
 const ITEM = {
@@ -46,9 +53,15 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
+/** A resolved org scope — what every real caller of these hooks has. */
+const ORG_ID = 'org_acme0000000000000000';
+
 beforeEach(() => {
   vi.clearAllMocks();
   useOrganizationStore.getState().clearOrganization();
+  // The polls are gated on a resolved org scope (SHELL-10), so a test that
+  // wants them to run has to say which org it is running against.
+  useOrganizationStore.setState({ organizationId: ORG_ID });
   listMock.mockResolvedValue([ITEM]);
   countMock.mockResolvedValue(3);
   markReadMock.mockResolvedValue(undefined);
@@ -103,5 +116,65 @@ describe('useNotifications', () => {
     expect(client.getQueryData(notificationQueryKeys.list('org_a'))).toEqual([
       { ...ITEM, id: 'ntf_org_a' },
     ]);
+  });
+
+  // SET-2: the grid saves on every flick, so four flicks fired four toasts and
+  // stacked them. A stable id makes sonner replace the previous one instead.
+  it('saves preferences under one stable toast id', async () => {
+    updatePrefsMock.mockResolvedValue([]);
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const { result } = renderHook(() => useUpdateNotificationPreferences(), { wrapper });
+
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+
+    expect(successMock).toHaveBeenCalledTimes(4);
+    for (const call of successMock.mock.calls) {
+      expect(call[1]).toEqual({ id: NOTIFICATION_PREFERENCES_TOAST_ID });
+    }
+  });
+});
+
+describe('SHELL-10 — the polls wait for an org scope', () => {
+  /**
+   * Both hooks poll every 30 s. Before the session context resolves, and while
+   * an org switch is in flight, `organizationId` is null — and a request in
+   * that window can only come back `Forbidden`, once per interval, forever.
+   * `useMembers` already carried this gate; these two did not.
+   */
+  beforeEach(() => {
+    useOrganizationStore.setState({ organizationId: null });
+  });
+
+  it('does not fetch the inbox without a resolved org', async () => {
+    const { result } = renderHook(() => useNotifications(), { wrapper });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(listMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
+  });
+
+  it('does not fetch the unread count without a resolved org', async () => {
+    const { result } = renderHook(() => useUnreadCount(), { wrapper });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(countMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
+  });
+
+  it('starts fetching as soon as the org scope resolves', async () => {
+    const { result, rerender } = renderHook(() => useNotifications(), { wrapper });
+    expect(listMock).not.toHaveBeenCalled();
+
+    useOrganizationStore.setState({ organizationId: ORG_ID });
+    rerender();
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(listMock).toHaveBeenCalled();
   });
 });

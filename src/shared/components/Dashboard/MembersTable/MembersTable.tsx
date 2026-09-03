@@ -29,6 +29,7 @@ import {
 import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
 import { useMembers } from '@/shared/hooks/useMembers/index.ts';
 import { Users } from '@/shared/icons/index.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 function initials(name: string): string {
   return name
@@ -61,6 +62,20 @@ export function MembersTable() {
   const { t } = useTranslation(DASHBOARD_NS);
   const { formatDate } = useLocaleFormat();
   const { rows, isPending, isError } = useMembers();
+  /*
+   * `useMembers` passes `enabled: Boolean(orgId)`, and in TanStack Query v5 a
+   * DISABLED query reports `status: 'pending'` forever — it is idle, not
+   * loading. Gating the skeleton on `isPending` alone therefore left three
+   * shimmering rows on screen indefinitely whenever there was no active org
+   * (mid org-switch, or a store-sync gap): no data, no empty state, no error
+   * (DASH-1). Reading the same store field the hook gates on tells the two
+   * apart without touching the shared hook.
+   */
+  const hasActiveOrg = Boolean(useOrganizationStore((state) => state.organizationId));
+  const isLoading = isPending && hasActiveOrg;
+  const isIdle = !hasActiveOrg;
+  const isEmpty = !(isLoading || isIdle || isError) && rows.length === 0;
+  const showTable = !(isLoading || isIdle || isError || isEmpty);
 
   return (
     <Card data-testid={DASHBOARD_TEST_IDS.membersTable}>
@@ -77,7 +92,7 @@ export function MembersTable() {
             <CardTitle className="text-base">
               {t(DASHBOARD_KEYS.members.heading)}
             </CardTitle>
-            {!(isPending || isError) ? (
+            {showTable ? (
               <CardDescription>
                 {t(DASHBOARD_KEYS.members.description, { count: rows.length })}
               </CardDescription>
@@ -86,13 +101,29 @@ export function MembersTable() {
         </div>
       </CardHeader>
       <CardContent>
-        {isPending ? <MembersSkeleton /> : null}
+        {isLoading ? <MembersSkeleton /> : null}
+        {isIdle ? (
+          <p
+            className="text-muted-foreground py-6 text-center text-sm"
+            data-testid="dashboard-members-no-workspace"
+          >
+            {t(DASHBOARD_KEYS.members.noWorkspace)}
+          </p>
+        ) : null}
+        {isEmpty ? (
+          <p
+            className="text-muted-foreground py-6 text-center text-sm"
+            data-testid="dashboard-members-empty"
+          >
+            {t(DASHBOARD_KEYS.members.empty)}
+          </p>
+        ) : null}
         {isError ? (
           <p className="text-muted-foreground text-sm" role="alert">
             {t(DASHBOARD_KEYS.members.error)}
           </p>
         ) : null}
-        {!(isPending || isError) ? (
+        {showTable ? (
           <Table>
             <TableHeader>
               <TableRow>

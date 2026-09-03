@@ -48,10 +48,23 @@ describe('AuthMethodButton', () => {
     expect(btn.querySelector('.animate-spin')).toBeNull();
   });
 
-  it('spins captcha-gated buttons while the first token mints (nothing pending)', () => {
+  // LOGIN-4: waiting on a captcha token is not this method loading. It used to
+  // spin here, which read as "your click is being processed" while nothing was in
+  // flight — after send-code consumed the single-use token, "Verify and continue"
+  // sat spinning and greyed out and typing the code did not clear it. The button
+  // still disables (it genuinely cannot post without a token); CaptchaGateNotice
+  // explains why in words.
+  it('disables a captcha-gated button WITHOUT spinning while a token mints', () => {
     renderButton({ captchaGated: true, turnstileReady: false });
     const btn = screen.getByTestId('btn-google');
     expect(btn).toBeDisabled();
+    expect(btn).toHaveAttribute('aria-busy', 'false');
+    expect(btn.querySelector('.animate-spin')).toBeNull();
+  });
+
+  it('still spins for its own in-flight request', () => {
+    renderButton({ pending: { method: 'oauth', provider: 'google' } });
+    const btn = screen.getByTestId('btn-google');
     expect(btn).toHaveAttribute('aria-busy', 'true');
   });
 

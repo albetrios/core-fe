@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils.ts';
 import { Input } from '@/shared/components/ui/input.tsx';
+import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { Search } from '@/shared/icons/index.ts';
 
 import { SETTINGS_KEYS, SETTINGS_NS } from './settings.constants.ts';
@@ -14,6 +15,47 @@ interface SettingsNavProps {
   groups: readonly SettingsNavGroup[];
   active: SettingsSectionRef;
   onSelect: (next: SettingsSectionRef) => void;
+}
+
+/** Group shapes for the loading rail — same rhythm as the real nav. */
+const SKELETON_GROUPS = [
+  { key: 'account', items: ['a', 'b', 'c', 'd', 'e', 'f'] },
+  { key: 'organization', items: ['a', 'b'] },
+] as const;
+
+/**
+ * The rail before the session context has answered.
+ *
+ * WHICH sections exist depends on the active organization's TYPE, so until
+ * `me/context` lands there is no honest answer — and guessing "all of them"
+ * paints a full Organization group that is then deleted in front of the user
+ * (SET-15). Hold the space instead; it is the same width and the same rhythm,
+ * so nothing moves when the real rail replaces it.
+ */
+export function SettingsNavSkeleton() {
+  return (
+    <aside
+      aria-busy
+      data-testid="settings-nav-loading"
+      className="bg-muted/30 hidden h-full flex-col border-e sm:flex"
+    >
+      <div className="p-3">
+        <Skeleton className="h-9 w-full" />
+      </div>
+      <div className="flex-1 space-y-4 px-3 pb-3">
+        {SKELETON_GROUPS.map((group) => (
+          <div key={group.key}>
+            <Skeleton className="ms-2 mb-1.5 h-3 w-20" />
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <Skeleton key={item} className="h-9 w-full" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
 }
 
 /**

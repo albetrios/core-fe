@@ -18,3 +18,22 @@ export function useDebouncedValue<T>(value: T, delayMs = 300): T {
 
   return debounced;
 }
+
+/**
+ * A debounced list search plus the half-second the debounce is still catching
+ * up in.
+ *
+ * `keepPreviousData` already stops the rows from being swapped for a skeleton
+ * once the new query starts (X-2) — but between the keystroke and the debounce
+ * firing, the list is showing an answer to a question the user has already
+ * changed, and says nothing about it. `isPending` covers exactly that window, so
+ * a panel can dim from the first keypress instead of a beat later.
+ */
+export function useDebouncedSearch(
+  value: string,
+  delayMs = 300,
+): { debounced: string; isPending: boolean } {
+  const trimmed = value.trim();
+  const debounced = useDebouncedValue(trimmed, delayMs);
+  return { debounced, isPending: trimmed !== debounced };
+}

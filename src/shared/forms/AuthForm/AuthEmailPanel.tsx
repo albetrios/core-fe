@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -17,7 +17,7 @@ import {
   AUTH_NS,
 } from '@/shared/auth/auth-shell.constants.ts';
 import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
-import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
+import { useCaptchaGate } from '@/shared/auth/captcha/useCaptchaGate/index.ts';
 import { stashMfaHandoff } from '@/shared/auth/mfa-handoff.ts';
 import { isSafeRedirectPath } from '@/shared/auth/redirect-safety.ts';
 import { establishSession } from '@/shared/auth/service.ts';
@@ -42,6 +42,7 @@ import {
   authMethodIsLoading,
 } from './auth-form-pending.ts';
 import { AuthMethodButton } from './components/AuthMethodButton/index.ts';
+import { CaptchaGateNotice } from './components/CaptchaGateNotice/index.ts';
 
 function formatResendCooldown(remainingMs: number): string {
   const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
@@ -49,6 +50,9 @@ function formatResendCooldown(remainingMs: number): string {
   const seconds = totalSeconds % 60;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
+
+/** Duration of the wrong-code shake; matches the `animate-otp-shake` keyframes. */
+const CODE_SHAKE_MS = 450;
 
 const inlineLinkClassName =
   'text-foreground h-auto p-0 text-sm font-normal underline underline-offset-4 hover:text-foreground/80 disabled:pointer-events-none disabled:opacity-50';
@@ -99,30 +103,27 @@ function getRedirectPath(location: {
 function navigateAfterEmailLogin(
   navigate: ReturnType<typeof useNavigate>,
   location: ReturnType<typeof useLocation>,
-): void {
+): Promise<void> {
   const ctx = queryClient.getQueryData<MeContext>(meContextQueryKey);
   const rootTarget = ctx ? resolveRootTarget(ctx) : ({ to: '/' } as const);
   if (rootTarget.to === '/onboarding') {
     // Forward the saved deep link through the wizard instead of dropping it —
     // finishing onboarding returns the user to the page they signed in for.
     const savedRedirect = getRedirectPath(location);
-    void navigate({
+    return navigate({
       to: '/onboarding',
       search: savedRedirect ? { redirect: savedRedirect } : undefined,
       replace: true,
     });
-    return;
   }
   const redirectPath = getRedirectPath(location);
   if (redirectPath) {
-    void navigate({ to: redirectPath, replace: true });
-    return;
+    return navigate({ to: redirectPath, replace: true });
   }
   if (rootTarget.to === '/organization/$organizationSlug/dashboard') {
-    void navigate({ to: rootTarget.to, params: rootTarget.params, replace: true });
-    return;
+    return navigate({ to: rootTarget.to, params: rootTarget.params, replace: true });
   }
-  void navigate({ to: rootTarget.to, replace: true });
+  return navigate({ to: rootTarget.to, replace: true });
 }
 
 type AuthEmailPanelProps = {
@@ -143,22 +144,20 @@ export function AuthEmailPanel({
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [codeShake, setCodeShake] = useState(false);
+  const codeShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Inline error surface — the reliable one. Toasts fired from this submit's
   // async catch can be dropped by sonner (created into history but never made
   // active), so a failed send/verify would otherwise give the user NO feedback.
   const [formError, setFormError] = useState<string | null>(null);
   const [resendCooldownUntil, setResendCooldownUntil] = useState<number | null>(null);
   const resendCooldownNow = useCooldownClock(resendCooldownUntil);
-  const turnstileReady = useTurnstileReady();
+  const captchaGate = useCaptchaGate();
+  const turnstileReady = captchaGate.ready;
   const emailBlocked = authEmailPanelIsBlocked(pending);
   const emailSendLoading = authMethodIsLoading(pending, { method: 'email-send' });
   const emailVerifyLoading = authMethodIsLoading(pending, { method: 'email-verify' });
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    onStepChange?.(step, step === 'verify' ? submittedEmail || undefined : undefined);
-  }, [step, submittedEmail, onStepChange]);
 
   const {
     register,
@@ -169,12 +168,49 @@ export function AuthEmailPanel({
     defaultValues: { email: '' },
   });
 
+  // `pending` is React state: two clicks in the same frame both read the stale
+  // value and both get through. These flip synchronously inside the handler, so a
+  // double click cannot start a second request (agent-os/rules/resilient-interactions).
+  const sendingRef = useRef(false);
+  const verifyingRef = useRef(false);
+
   // Surface a failure on BOTH the reliable inline banner and the toast.
   const surfaceError = (err: unknown) => {
     const message = mapFrontendError(err);
     setFormError(message);
     notify.error(message);
   };
+
+  /**
+   * Replay-safe shake. The timer id is held so a rapid second failure can
+   * restart the animation instead of being swallowed by the first timer, and so
+   * it can be released on unmount — previously a bare `window.setTimeout` fired
+   * `setCodeShake` on an unmounted component when the user left inside the
+   * 450ms window (LOGIN-8).
+   */
+  const startCodeShake = () => {
+    if (codeShakeTimerRef.current) clearTimeout(codeShakeTimerRef.current);
+    setCodeShake(false);
+    // Next frame, so the class is genuinely removed and re-added — otherwise a
+    // second failure re-sets an already-true flag and the animation never replays.
+    requestAnimationFrame(() => {
+      setCodeShake(true);
+      codeShakeTimerRef.current = setTimeout(() => {
+        codeShakeTimerRef.current = null;
+        setCodeShake(false);
+      }, CODE_SHAKE_MS);
+    });
+  };
+
+  useEffect(
+    () => () => {
+      if (codeShakeTimerRef.current) {
+        clearTimeout(codeShakeTimerRef.current);
+        codeShakeTimerRef.current = null;
+      }
+    },
+    [],
+  );
 
   const sendCode = async (email: string) => {
     const value = email.trim();
@@ -186,7 +222,8 @@ export function AuthEmailPanel({
     ) {
       return;
     }
-    if (pending) return;
+    if (pending || sendingRef.current) return;
+    sendingRef.current = true;
     setFormError(null);
     onPendingChange?.({ method: 'email-send' });
     try {
@@ -198,7 +235,13 @@ export function AuthEmailPanel({
       // the verify step when it's there, otherwise start empty for normal manual entry.
       setVerificationCode(debug_verification_code ?? '');
       setStep('verify');
-      // eslint-disable-next-line react-hooks/purity -- runs in an event handler, not during render
+      // Told to the parent HERE, not from an effect. Reporting it after commit
+      // meant this panel rendered the verify step while the parent still showed
+      // the welcome header, the OAuth buttons and the divider — one frame of the
+      // code boxes sitting under the method picker, then a visible collapse
+      // (LOGIN-6). Both states now land in the same commit.
+      onStepChange?.('verify', value);
+
       const cooldownUntil = Date.now() + AUTH_EMAIL_VERIFICATION_CODE_RESEND_COOLDOWN_MS;
       setResendCooldownUntil(cooldownUntil);
       notify.success(
@@ -207,6 +250,7 @@ export function AuthEmailPanel({
     } catch (err) {
       surfaceError(err);
     } finally {
+      sendingRef.current = false;
       onPendingChange?.(null);
     }
   };
@@ -220,39 +264,61 @@ export function AuthEmailPanel({
     const value = (verificationCodeOverride ?? verificationCode).trim();
     if (
       value.length !== AUTH_EMAIL_VERIFICATION_CODE_LENGTH ||
+      verifyingRef.current ||
       emailVerifyLoading ||
       pending
     )
       return;
+    verifyingRef.current = true;
     setFormError(null);
     onPendingChange?.({ method: 'email-verify' });
+
+    // Releases the screen back to the user. Reached ONLY when this attempt failed
+    // and there is something they can still do here.
+    const handBack = () => {
+      verifyingRef.current = false;
+      onPendingChange?.(null);
+    };
+
     try {
-      const { accessToken } = await authApi.emailLogin({
-        email,
-        code: value,
-      });
+      const { accessToken } = await authApi.emailLogin({ email, code: value });
       await establishSession(accessToken);
       captureAnalyticsEvent(ANALYTICS_EVENTS.authEmailCodeVerified);
       captureAnalyticsEvent(ANALYTICS_EVENTS.sessionStarted, { method: 'email_code' });
-      navigateAfterEmailLogin(navigate, location);
     } catch (err) {
       if (err instanceof MfaRequiredError) {
         const destination = getRedirectPath(location) ?? '/';
         stashMfaHandoff(err.mfaSessionToken, destination);
-        void navigate({ to: '/mfa', replace: true });
+        // Terminal too — this screen is being replaced by /mfa.
+        await navigate({ to: '/mfa', replace: true }).catch((navErr: unknown) => {
+          handBack();
+          surfaceError(navErr);
+        });
         return;
       }
       setVerificationCode('');
-      setCodeShake(true);
-      window.setTimeout(() => setCodeShake(false), 450);
+      startCodeShake();
       surfaceError(err);
-    } finally {
-      onPendingChange?.(null);
+      handBack();
+      return;
     }
+
+    // The code was accepted, so this screen is on its way out: `pending` stays set
+    // and the button stays disabled until the navigation actually resolves. Clearing
+    // it in a `finally` returned a live button and a filled-in code on a screen that
+    // was about to disappear — a second click re-sent the already-consumed code and
+    // painted a red error over the handoff (LOGIN-5). The destination guards are
+    // still awaiting at this point; navigateAfterEmailLogin was fire-and-forget.
+    await navigateAfterEmailLogin(navigate, location).catch((navErr: unknown) => {
+      // Never strand the user spinning on a dead screen if routing fails.
+      handBack();
+      surfaceError(navErr);
+    });
   };
 
   const changeEmail = () => {
     setStep('email');
+    onStepChange?.('email');
     setVerificationCode('');
     setResendCooldownUntil(null);
     setFormError(null);
@@ -271,7 +337,14 @@ export function AuthEmailPanel({
           message={formError}
           data-testid={AUTH_FORM_TEST_IDS.emailErrorBanner}
         />
-        <form onSubmit={handleSubmit(onEmailSubmit)}>
+        <form
+          onSubmit={(event) => {
+            // Built at event time, not during render: onEmailSubmit reads the
+            // synchronous send guard, and handing a ref-reading callback to a
+            // render-time call is what react-hooks/refs-during-render forbids.
+            void handleSubmit(onEmailSubmit)(event);
+          }}
+        >
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="auth-email">{t(AUTH_KEYS.common.email)}</Label>
@@ -382,8 +455,15 @@ export function AuthEmailPanel({
         />
       </div>
 
-      {/* Same conventional position on the verify step: challenge above the gated button. */}
+      {/* Same conventional position on the verify step: challenge above the gated
+          button — an escalated Turnstile renders here when one is demanded. */}
       <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+
+      {/* And, below it, WHY the button is disabled when no challenge is showing:
+          the captcha token was consumed by send-code and the widget is minting
+          another; if that stalls, this turns into a retry rather than an
+          unexplained dead end (LOGIN-4). */}
+      <CaptchaGateNotice gate={captchaGate} />
 
       <AuthMethodButton
         variant="default"

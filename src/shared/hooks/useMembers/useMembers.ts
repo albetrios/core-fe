@@ -31,6 +31,8 @@ export function useMembers(params: MembersListParams = {}): CursorListResult<Mem
   return useCursorList<Member>({
     queryKey: orgQueryKeys.membersList(orgId, params),
     queryFn: (after) => orgApi.listMembers({ ...params, after }),
+    // The members panel renders a RetryError for exactly this failure.
+    notifyOnError: false,
     // No active org (mid org-switch, or before context resolves) → skip the
     // request instead of firing a `Forbidden` against an empty org scope.
     enabled: Boolean(orgId),
@@ -57,7 +59,7 @@ export function useUpdateMemberRole() {
 }
 
 /** Remove a member — optimistically drops the row from the list. */
-export function useRemoveMember() {
+export function useRemoveMember(options?: { suppressSuccessToast?: boolean }) {
   const orgId = useOrganizationStore((s) => s.organizationId);
   return useAppMutation({
     mutationFn: (membershipId: string) => orgApi.removeMember(membershipId),
@@ -67,9 +69,12 @@ export function useRemoveMember() {
       update: (rows: Member[], membershipId) =>
         rows.filter((member) => member.id !== membershipId),
     },
-    successMessage: i18n.t(ERRORS_KEYS.frontend.hooks.members.removeSuccess, {
-      ns: ERRORS_NS,
-    }),
+    // Callers that run this behind the undo toast own the whole message
+    // sequence; a second success toast five seconds after the first one is the
+    // same removal reported twice (SET-7).
+    successMessage: options?.suppressSuccessToast
+      ? undefined
+      : i18n.t(ERRORS_KEYS.frontend.hooks.members.removeSuccess, { ns: ERRORS_NS }),
   });
 }
 

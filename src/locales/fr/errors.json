@@ -11,16 +11,35 @@
     "pageMessage": "Une erreur s'est produite lors du rendu de cette page.",
     "tryAgain": "Réessayer",
     "goHome": "Retour à l'accueil",
-    "refresh": "Actualiser la page"
+    "refresh": "Actualiser la page",
+    "forbidden": "Vous n'avez pas l'autorisation d'accéder à cette page.",
+    "signOut": "Se déconnecter",
+    "signingOut": "Déconnexion…"
   },
   "widget": {
     "unavailable": "{{title}} indisponible",
     "message": "Une erreur s'est produite lors du chargement de cette section. Réessayez.",
     "retry": "Réessayer",
+    "unavailableShort": "Indisponible",
+    "controlRetry": "{{title}} indisponible. Sélectionnez pour réessayer.",
     "pageContent": "Contenu de la page",
+    "navigation": "Navigation",
     "emailBanner": "Vérification de l'e-mail",
     "notifications": "Notifications",
-    "organizationSwitcher": "Sélecteur d'organisation"
+    "organizationSwitcher": "Sélecteur d'organisation",
+    "commandPalette": "Palette de commandes",
+    "settings": "Paramètres",
+    "appearance": "Apparence",
+    "analytics": "Analytique",
+    "members": "Membres",
+    "schedule": "Calendrier",
+    "highlights": "Points forts",
+    "themeShowcase": "Aperçu du thème",
+    "sessionTimeout": "Minuteur de session",
+    "securityCheck": "Vérification de sécurité",
+    "appearanceControls": "Commandes d'apparence",
+    "payment": "Paiement",
+    "cancellation": "Annulation"
   },
   "toast": {
     "dismiss": "Fermer la notification",
@@ -65,7 +84,8 @@
       "logoReadFailed": "Impossible de lire ce fichier.",
       "formCheck": "Vérifiez le formulaire",
       "updateSuccess": "Organisation mise à jour",
-      "createSuccess": "{{name}} créé"
+      "createSuccess": "{{name}} créé",
+      "createdSwitchFailed": "{{name}} a été créée, mais nous n'avons pas pu l'ouvrir. Sélectionnez-la dans le sélecteur d'organisations."
     },
     "account": {
       "copyFailed": "Impossible de copier dans le presse-papiers",
@@ -132,7 +152,10 @@
       },
       "subscription": {
         "changePlanFailed": "Impossible de changer de forfait",
-        "changePlanSuccess": "Passage au forfait {{plan}}"
+        "changePlanSuccess": "Passage au forfait {{plan}}",
+        "paymentSetupFailed": "Forfait modifié, mais l'étape de paiement n'a pas pu démarrer. Rouvre la facturation pour la terminer.",
+        "cancelSuccess": "L'abonnement prendra fin à la fin de la période",
+        "resumeSuccess": "Abonnement repris"
       },
       "invitations": {
         "sendFailed": "Impossible d'envoyer l'invitation",
@@ -140,5 +163,10 @@
       }
     },
     "profileUpdated": "Profil mis à jour"
+  },
+  "suspended": {
+    "title": "Organisation suspendue",
+    "message": "Cette organisation est actuellement suspendue. Contactez un administrateur pour vérifier la facturation, ou basculez vers une autre organisation.",
+    "switchOrganization": "Changer d'organisation"
   }
 }

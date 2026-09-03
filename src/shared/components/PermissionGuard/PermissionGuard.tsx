@@ -11,6 +11,12 @@ interface PermissionGuardProps {
   children: ReactNode;
   /** Optional fallback when permission is denied (defaults to nothing). */
   fallback?: ReactNode;
+  /**
+   * What to render while the permission set has not been answered yet — a
+   * disabled placeholder of the same size, so the control does not pop in a
+   * moment later (SET-23). Defaults to `fallback`.
+   */
+  pending?: ReactNode;
 }
 
 /**
@@ -27,9 +33,19 @@ export function PermissionGuard({
   permission,
   children,
   fallback = null,
+  pending,
 }: PermissionGuardProps) {
   const user = useAuthStore((s) => s.user);
   const permissions = useOrganizationStore((s) => s.permissions);
+  const resolved = useOrganizationStore((s) => s.permissionsResolved);
+
+  if (!resolved) {
+    return (
+      <span data-testid="permission-guard" data-state="pending" className="contents">
+        {pending ?? fallback}
+      </span>
+    );
+  }
 
   if (!(user && hasPermission({ role: user.role, permissions }, permission))) {
     return (

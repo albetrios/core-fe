@@ -76,7 +76,8 @@
     "slugLabel": "URL del espacio (opcional)",
     "slugPlaceholder": "acme",
     "urlPreview": "Tu espacio estará en <1>core.app/{{slug}}</1>",
-    "slugFallback": "tu-espacio"
+    "slugFallback": "tu-espacio",
+    "slugInvalid": "Usa solo letras minúsculas, números y guiones."
   },
   "invite": {
     "emailLabel": "Correo del compañero",
@@ -92,6 +93,7 @@
     "invitesLabel": "Invitaciones",
     "emptyValue": "—",
     "invitesPending_one": "{{count}} pendiente",
+    "invitesPending_many": "{{count}} pendientes",
     "invitesPending_other": "{{count}} pendientes"
   },
   "actions": {
@@ -107,9 +109,17 @@
   },
   "toast": {
     "finishSuccess": "¡Bienvenido! Tu espacio está listo.",
+    "finishSuccessWithInvites_one": "¡Bienvenido! Tu espacio está listo: {{count}} invitación enviada.",
+    "finishSuccessWithInvites_many": "¡Bienvenido! Tu espacio está listo: {{count}} de invitaciones enviadas.",
+    "finishSuccessWithInvites_other": "¡Bienvenido! Tu espacio está listo: {{count}} invitaciones enviadas.",
     "finishError": "Algo salió mal al finalizar la configuración. Inténtalo de nuevo.",
+    "profileSaveFailed": "No pudimos guardar tu nombre. Tu espacio de trabajo está listo: añádelo en Configuración.",
     "invitePartialFailure_one": "Espacio listo — no se pudo enviar {{count}} invitación. Puedes reenviarla desde Miembros.",
+    "invitePartialFailure_many": "Espacio listo — no se pudieron enviar {{count}} de invitaciones. Puedes reenviarlas desde Miembros.",
     "invitePartialFailure_other": "Espacio listo — no se pudieron enviar {{count}} invitaciones. Puedes reenviarlas desde Miembros."
+  },
+  "session": {
+    "loadError": "No pudimos cargar la configuración de tu cuenta. Comprueba tu conexión e inténtalo de nuevo."
   },
   "guard": {
     "title": "¿Salir de la incorporación?",

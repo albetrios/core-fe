@@ -118,6 +118,23 @@ describe('useCancelSubscription', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(cancelSubscription).toHaveBeenCalledWith('sub_test');
   });
+
+  it('confirms the cancellation — the one write here that costs money', async () => {
+    // Regression: cancel and resume were the only mutations in the app with no
+    // successMessage, so the dialog closed and nothing said it had worked.
+    cancelSubscription.mockResolvedValue({ ...SUB, cancelAtPeriodEnd: true });
+    const { result } = renderHook(() => useCancelSubscription(), { wrapper });
+
+    result.current.mutate('sub_test');
+
+    await waitFor(() => expect(notifySuccess).toHaveBeenCalledTimes(1));
+    // One id for both directions of the switch: cancel → resume → cancel
+    // replaces its confirmation instead of stacking contradicting ones.
+    expect(notifySuccess).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ id: 'subscription-lifecycle' }),
+    );
+  });
 });
 
 describe('useResumeSubscription', () => {
@@ -129,5 +146,18 @@ describe('useResumeSubscription', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(resumeSubscription).toHaveBeenCalledWith('sub_test');
+  });
+
+  it('confirms the resume, under the same toast id', async () => {
+    resumeSubscription.mockResolvedValue({ ...SUB, cancelAtPeriodEnd: false });
+    const { result } = renderHook(() => useResumeSubscription(), { wrapper });
+
+    result.current.mutate('sub_test');
+
+    await waitFor(() => expect(notifySuccess).toHaveBeenCalledTimes(1));
+    expect(notifySuccess).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ id: 'subscription-lifecycle' }),
+    );
   });
 });

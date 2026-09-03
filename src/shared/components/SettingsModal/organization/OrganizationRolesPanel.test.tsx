@@ -1,17 +1,41 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
-const { useRolesMock, deleteMutate } = vi.hoisted(() => ({
-  useRolesMock: vi.fn(),
-  deleteMutate: vi.fn(),
-}));
+/**
+ * The panel schedules its deferred removal through the query cache now, so it
+ * needs a client. Kept local (rather than renderWithProviders) so these stay
+ * router-free component tests.
+ */
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return rtlRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
+
+const { useRolesMock, deleteMutate, deleteMutateSync, deleteRoleOptions } = vi.hoisted(
+  () => ({
+    useRolesMock: vi.fn(),
+    /** `mutateAsync` — the only deletion entry point the panel may use. */
+    deleteMutate: vi.fn(),
+    /** `mutate` — kept separate so a regression to the void-returning call shows. */
+    deleteMutateSync: vi.fn(),
+    /** Every options object `useDeleteRole` was constructed with. */
+    deleteRoleOptions: [] as (Record<string, unknown> | undefined)[],
+  }),
+);
 vi.mock('@/shared/hooks/useRoles/index.ts', () => ({
   useRoles: useRolesMock,
-  useDeleteRole: () => ({ mutate: deleteMutate }),
+  useDeleteRole: (options?: Record<string, unknown>) => {
+    deleteRoleOptions.push(options);
+    return { mutate: deleteMutateSync, mutateAsync: deleteMutate };
+  },
 }));
 // CreateRoleDialog has its own suite; here we only assert the panel renders it
 // (create trigger + controlled edit instance), so stub it to reflect its mode.
@@ -25,11 +49,36 @@ vi.mock('@/shared/components/CreateRoleDialog/index.ts', () => ({
     </button>
   ),
 }));
+/**
+ * Each scheduled commit, with the promise `onCommit()` handed back. The real
+ * helper is what turns that promise into "committed" or `onCommitError`, so
+ * whether the panel's write is actually inside it is the thing to assert.
+ */
+const deferredCommits = vi.hoisted(
+  () => [] as { onCommit: () => void | Promise<void>; commit: Promise<unknown> }[],
+);
 vi.mock('@/shared/notify/notify-deferred.ts', () => ({
-  notifyDeferredCommit: ({ onCommit }: { onCommit: () => void }) => onCommit(),
+  // Commit immediately and hand back the real handle shape the caller stores.
+  notifyDeferredCommit: (options: { onCommit: () => void | Promise<void> }) => {
+    const commit = Promise.resolve(options.onCommit());
+    // The real helper routes a rejection to `onCommitError`; keep it handled
+    // here so tests can assert on `commit` without an unhandled rejection.
+    commit.catch(() => undefined);
+    deferredCommits.push({ onCommit: options.onCommit, commit });
+    return { cancel: vi.fn(), flush: vi.fn() };
+  },
 }));
 
 import { OrganizationRolesPanel } from './OrganizationRolesPanel.tsx';
+
+/** The most recently scheduled deferred commit. */
+const lastDeferred = () => {
+  const call = deferredCommits.at(-1);
+  if (!call) throw new Error('no deferred commit was scheduled');
+  return call;
+};
+/** Let queued microtasks run without advancing any timer. */
+const flushMicrotasks = () => act(async () => undefined);
 
 const CUSTOM_ROLE = {
   id: 'rol_1',
@@ -75,13 +124,29 @@ function setCanManage(value: boolean) {
   useOrganizationStore.setState({
     organizationType: value ? 'TEAM' : 'PERSONAL',
     permissions: value ? ['role:manage'] : [],
+    // These tests stand in for a session whose guard chain has ANSWERED; the
+    // unresolved case has its own test below (SET-23).
+    permissionsResolved: true,
   });
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // `clearAllMocks` keeps implementations, so a per-test `mockReturnValue` for
+  // the write would leak into the next case.
+  deleteMutate.mockReset();
+  deleteMutateSync.mockReset();
+  deleteRoleOptions.length = 0;
+  deferredCommits.length = 0;
   useOrganizationStore.getState().clearOrganization();
 });
+
+/** Open the row menu, pick Delete, and accept the confirm dialog. */
+async function confirmDeletion(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByTestId('role-actions-rol_1'));
+  await user.click(await screen.findByTestId('role-delete-rol_1'));
+  await user.click(await screen.findByTestId('confirm-accept'));
+}
 
 describe('OrganizationRolesPanel', () => {
   it('shows an empty state when there are no roles', () => {
@@ -153,11 +218,74 @@ describe('OrganizationRolesPanel', () => {
     const user = userEvent.setup();
     render(<OrganizationRolesPanel />);
 
-    await user.click(screen.getByTestId('role-actions-rol_1'));
-    await user.click(await screen.findByTestId('role-delete-rol_1'));
-    await user.click(await screen.findByTestId('confirm-accept'));
+    await confirmDeletion(user);
 
     await waitFor(() => expect(deleteMutate).toHaveBeenCalledWith('rol_1'));
+    // Through `mutateAsync` only — `mutate` returns void and cannot be awaited.
+    expect(deleteMutateSync).not.toHaveBeenCalled();
+  });
+
+  // ── SET-7: the deferred deletion is tied to the write it defers ──────────
+
+  it('does not resolve the deferred commit until the DELETE lands', async () => {
+    // The bug: the panel scheduled `() => deleteRole.mutate(id)`, which returns
+    // void. The deferred commit resolved the instant it fired, so the toast
+    // reported the deletion before the request had been answered.
+    let completeWrite!: () => void;
+    deleteMutate.mockReturnValue(
+      new Promise<void>((resolve) => {
+        completeWrite = resolve;
+      }),
+    );
+    useRolesMock.mockReturnValue(rolesQueryResult({ rows: [CUSTOM_ROLE] }));
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationRolesPanel />);
+
+    await confirmDeletion(user);
+    // Keyed on the SCHEDULE, not on which entry point ran — the assertions
+    // below are what must tell `mutateAsync` apart from `mutate`.
+    await waitFor(() => expect(deferredCommits).toHaveLength(1));
+
+    let committed = false;
+    void lastDeferred().commit.then(() => {
+      committed = true;
+    });
+    await flushMicrotasks();
+    // The DELETE is still in flight, so the commit must still be open.
+    expect(committed).toBe(false);
+
+    completeWrite();
+    await act(async () => {
+      await lastDeferred().commit;
+    });
+    expect(committed).toBe(true);
+  });
+
+  it('lets a failed DELETE reject, so the rollback path can run', async () => {
+    // `mutate` never rejects, so `onCommitError` could not fire and the row
+    // stayed gone after a delete the server refused.
+    const failure = new Error('Role is in use');
+    deleteMutate.mockImplementation(() => Promise.reject(failure));
+    useRolesMock.mockReturnValue(rolesQueryResult({ rows: [CUSTOM_ROLE] }));
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationRolesPanel />);
+
+    await confirmDeletion(user);
+    await waitFor(() => expect(deferredCommits).toHaveLength(1));
+
+    await expect(lastDeferred().commit).rejects.toBe(failure);
+  });
+
+  it('silences the mutation toast so one deletion is confirmed once', () => {
+    // The undo toast owns the whole sequence; without this the user got the
+    // mutation's "Role deleted" AND the deferred one, five seconds apart.
+    useRolesMock.mockReturnValue(rolesQueryResult({ rows: [CUSTOM_ROLE] }));
+    setCanManage(true);
+    render(<OrganizationRolesPanel />);
+
+    expect(deleteRoleOptions.at(-1)).toEqual({ suppressSuccessToast: true });
   });
 
   it('forwards the debounced search term to the hook', async () => {
@@ -198,5 +326,16 @@ describe('OrganizationRolesPanel', () => {
 
     await user.click(screen.getByTestId('roles-load-more'));
     expect(fetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  // ── SET-23: the New role slot keeps its place ────────────────────────────
+
+  it('holds the New role slot with a disabled placeholder before permissions land', () => {
+    setCanManage(true);
+    useOrganizationStore.setState({ permissionsResolved: false });
+    render(<OrganizationRolesPanel />);
+
+    expect(screen.getByTestId('role-create-pending')).toBeDisabled();
+    expect(screen.queryByTestId('role-create-open')).not.toBeInTheDocument();
   });
 });
