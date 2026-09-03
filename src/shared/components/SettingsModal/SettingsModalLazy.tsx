@@ -32,8 +32,8 @@ const PENDING_NAV_GROUPS = [
  *
  * Geometry is the real dialog's, not a generic card. `SettingsModal` renders a
  * `DialogContent` carrying `SETTINGS_DIALOG_CLASS` — 960x640 on desktop, square
- * corners, no padding, with a `[240px_1fr]` grid inside and a close control at
- * `top-4 right-4`. This used to borrow `LazyOverlaySkeleton`, a centred
+ * corners, no padding, with a `[240px_1fr]` grid inside and a close control
+ * pinned to the top-right corner. This used to borrow `LazyOverlaySkeleton`, a centred
  * `max-w-3xl` card with `min-h-[26rem]`: 768x416 against 960x640, so the modal
  * jumped nearly 200px in both axes on load. The markup below mirrors the real
  * loading state (`settings-content-loading` + `SettingsNavSkeleton`) so the swap
@@ -85,7 +85,11 @@ function SettingsPending({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={onClose}
           data-slot="button"
-          className={`${closeControlClassName} absolute top-4 right-4`}
+          // Logical, not the vendored dialog's literal physical offset — that
+          // primitive (src/shared/components/ui/dialog.tsx) is exempt from the
+          // RTL contract this file is not; end-4 is what this repo's own
+          // convention asks for here.
+          className={`${closeControlClassName} absolute end-4 top-4`}
         >
           <X className="size-4" aria-hidden="true" />
         </button>
@@ -141,8 +145,8 @@ export function SettingsModalLazy() {
       pending={<SettingsPending onClose={closeSettings} />}
       title={t(ERRORS_KEYS.widget.settings)}
       onDismiss={closeSettings}
-      // The skeleton draws the dialog's own close at top-4 right-4, so the
-      // viewport-corner one would be a second ✕ in a place the modal never has.
+      // The skeleton draws the dialog's own close in that same top corner, so
+      // the viewport-pinned one would be a second X in a place the modal never has.
       pendingDismissControl={false}
       testId="settings-modal-error"
     />
