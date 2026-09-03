@@ -1,5 +1,16 @@
 import { type ComponentType, lazy, useCallback, useMemo, useState } from 'react';
 
+/** A loader with a synchronous peek at its settled result — see {@link onceAsync}. */
+export interface ModuleLoader<T> {
+  (): Promise<T>;
+  /**
+   * The already-resolved module, or `undefined` while pending or after a
+   * failure. Lets a caller skip Suspense entirely for a module that is already
+   * in memory — see {@link useRetryableLazy}.
+   */
+  peek: () => T | undefined;
+}
+
 /**
  * Memoize a dynamic-import factory so every caller shares one module promise.
  *
@@ -17,16 +28,6 @@ import { type ComponentType, lazy, useCallback, useMemo, useState } from 'react'
  * @param factory - Import thunk, called again only after a failed attempt.
  * @returns A loader returning the shared in-flight or resolved module promise.
  */
-export interface ModuleLoader<T> {
-  (): Promise<T>;
-  /**
-   * The already-resolved module, or `undefined` while pending or after a
-   * failure. Lets a caller skip Suspense entirely for a module that is already
-   * in memory — see {@link useRetryableLazy}.
-   */
-  peek: () => T | undefined;
-}
-
 export function onceAsync<T>(factory: () => Promise<T>): ModuleLoader<T> {
   let promise: Promise<T> | undefined;
   let settled: T | undefined;
