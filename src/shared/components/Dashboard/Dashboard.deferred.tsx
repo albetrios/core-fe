@@ -13,6 +13,13 @@ import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/in
 // Every factory goes through `onceAsync`: one shared in-flight promise per
 // chunk, and — the point — a rejection is NOT cached, so a retry refetches
 // rather than replaying the failure for the rest of the session (SHELL-3).
+// Fallback heights are the widgets' MEASURED natural heights, not round numbers.
+// A placeholder that is the wrong height is a layout jump the moment the chunk
+// lands: `h-44` under the highlights carousel pushed everything below it down
+// 100px on arrival, `h-80` under the schedule calendar 238px, and `h-56` under
+// the theme showcase yanked it UP 126px. Measured at the default density on the
+// dashboard variant that renders them; a widget whose content varies by variant
+// cannot be pixel-exact everywhere, but these remove the visible shift.
 const loadAnalyticsChart = onceAsync(() =>
   import('./AnalyticsChart/index.ts').then((m) => ({ default: m.AnalyticsChart })),
 );
@@ -100,7 +107,7 @@ export function DeferredScheduleCalendar() {
   return (
     <DeferredSection
       load={loadScheduleCalendar}
-      fallback={<SkeletonShimmer className="h-80 w-full rounded-xl" />}
+      fallback={<SkeletonShimmer className="h-140 w-full rounded-xl" />}
       title={t(ERRORS_KEYS.widget.schedule)}
       testId="dashboard-schedule-error"
     />
@@ -112,7 +119,7 @@ export function DeferredHighlightsCarousel() {
   return (
     <DeferredSection
       load={loadHighlightsCarousel}
-      fallback={<SkeletonShimmer className="h-44 w-full rounded-xl" />}
+      fallback={<SkeletonShimmer className="h-69 w-full rounded-xl" />}
       title={t(ERRORS_KEYS.widget.highlights)}
       testId="dashboard-highlights-error"
     />
@@ -124,7 +131,7 @@ export function DeferredThemeShowcase() {
   return (
     <DeferredSection
       load={loadThemeShowcase}
-      fallback={<SkeletonShimmer className="h-56 w-full rounded-xl" />}
+      fallback={<SkeletonShimmer className="h-24 w-full rounded-xl" />}
       title={t(ERRORS_KEYS.widget.themeShowcase)}
       testId="dashboard-theme-error"
     />
