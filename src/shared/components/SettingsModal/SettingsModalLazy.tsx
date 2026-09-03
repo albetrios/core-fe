@@ -46,7 +46,7 @@ const PENDING_NAV_GROUPS = [
 function SettingsPending({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50" aria-busy="true">
-      <div className="fixed inset-0 bg-black/50" aria-hidden="true" onClick={onClose} />
+      <div className="bg-overlay/50 fixed inset-0" aria-hidden="true" onClick={onClose} />
       <output
         data-testid="settings-modal-pending"
         data-slot="surface"
