@@ -10,7 +10,7 @@ export type DashboardHighlightSlide = {
   titleKey: string;
   descriptionKey: string;
   actionKey: string;
-  href: string;
+  href?: string;
 };
 
 /** Static highlight carousel slides until a CMS or API backs them. */
@@ -21,7 +21,6 @@ export const DASHBOARD_HIGHLIGHT_SLIDES: readonly DashboardHighlightSlide[] = [
     titleKey: DASHBOARD_KEYS.highlights.slides.appearance.title,
     descriptionKey: DASHBOARD_KEYS.highlights.slides.appearance.description,
     actionKey: DASHBOARD_KEYS.highlights.slides.appearance.action,
-    href: '#settings/account/appearance',
   },
   {
     id: 'invite',

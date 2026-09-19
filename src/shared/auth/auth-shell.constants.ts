@@ -48,7 +48,6 @@ export const AUTH_KEYS = {
     },
     autoGoogleSigningIn: 'auth.autoGoogleSigningIn',
     captcha: {
-      preparing: 'auth.captcha.preparing',
       failed: 'auth.captcha.failed',
       retry: 'auth.captcha.retry',
     },

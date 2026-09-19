@@ -1,69 +1,62 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
 import { KeyboardShortcutsLazy } from './KeyboardShortcutsLazy.tsx';
 
-// Stub the lazy target: these tests cover the shell's own behavior (global
-// shortcut listeners + editable-target guard + open gate), not the dialog UI.
-vi.mock('./KeyboardShortcutsDialog.tsx', () => ({
-  KeyboardShortcutsDialog: () => <div data-testid="shortcuts-stub" />,
-}));
-
 describe('KeyboardShortcutsLazy', () => {
-  beforeEach(() => {
-    useUIStore.setState({ shortcutsOpen: false });
-  });
+  beforeEach(() => useUIStore.setState({ shortcutsOpen: false }));
+  afterEach(() => act(() => useUIStore.setState({ shortcutsOpen: false })));
 
-  it('renders nothing while the dialog is closed', () => {
+  it('renders nothing while closed', () => {
     const { container } = render(<KeyboardShortcutsLazy />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('opens on a plain "?" and renders the lazy dialog', async () => {
+  it('renders the complete reference synchronously on the first keypress and closes on Escape', () => {
     render(<KeyboardShortcutsLazy />);
-
     fireEvent.keyDown(document, { key: '?' });
-    expect(useUIStore.getState().shortcutsOpen).toBe(true);
-    expect(await screen.findByTestId('shortcuts-stub')).toBeInTheDocument();
+    expect(screen.getByTestId('keyboard-shortcuts-dialog')).toBeInTheDocument();
+    expect(screen.getByText('Open command palette')).toBeInTheDocument();
+    expect(screen.getByText('Show keyboard shortcuts')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(useUIStore.getState().shortcutsOpen).toBe(false);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('opens on Cmd//Ctrl+/', () => {
+  it('opens immediately on Cmd+/ and Ctrl+/', () => {
     render(<KeyboardShortcutsLazy />);
-
     fireEvent.keyDown(document, { key: '/', metaKey: true });
-    expect(useUIStore.getState().shortcutsOpen).toBe(true);
-
-    useUIStore.setState({ shortcutsOpen: false });
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    act(() => useUIStore.setState({ shortcutsOpen: false }));
     fireEvent.keyDown(document, { key: '/', ctrlKey: true });
-    expect(useUIStore.getState().shortcutsOpen).toBe(true);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('ignores "?" typed into an editable target', () => {
+  it('ignores shortcuts typed into editable controls', () => {
     render(
-      <div>
+      <>
         <KeyboardShortcutsLazy />
-        <input data-testid="field" />
-      </div>,
+        <input aria-label="Search" />
+      </>,
     );
-
-    fireEvent.keyDown(screen.getByTestId('field'), { key: '?' });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: '?' });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: '/', ctrlKey: true });
     expect(useUIStore.getState().shortcutsOpen).toBe(false);
   });
 
-  it('ignores "?" when a modifier is held', () => {
+  it('ignores modified question marks', () => {
     render(<KeyboardShortcutsLazy />);
-
     fireEvent.keyDown(document, { key: '?', metaKey: true });
     fireEvent.keyDown(document, { key: '?', altKey: true });
     expect(useUIStore.getState().shortcutsOpen).toBe(false);
   });
 
-  it('removes the keyboard listener on unmount', () => {
+  it('removes listeners when unmounted', () => {
     const { unmount } = render(<KeyboardShortcutsLazy />);
     unmount();
-
     fireEvent.keyDown(document, { key: '?' });
     expect(useUIStore.getState().shortcutsOpen).toBe(false);
   });

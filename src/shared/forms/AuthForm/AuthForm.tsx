@@ -87,7 +87,15 @@ export function AuthForm() {
   const location = useLocation();
   const captchaGate = useCaptchaGate();
   const turnstileReady = captchaGate.ready;
-  const visibleProviders = sortOAuthProviders(enabledOAuthProviders(authMethods.oauth));
+  // GitHub OAuth is not provisioned for this deployment yet, so its button is
+  // hidden here instead of deleted: the icon, test id, provider order and the
+  // shared /callback route all stay wired up. Delete the `.filter(...)` line to
+  // bring the button back. The permanent switch is the env flag that feeds
+  // `enabledOAuthProviders` — flip that instead once credentials exist, and drop
+  // this filter.
+  const visibleProviders = sortOAuthProviders(
+    enabledOAuthProviders(authMethods.oauth),
+  ).filter((provider) => provider !== 'github');
   const [emailFlowStep, setEmailFlowStep] = useState<'email' | 'verify'>('email');
   const [verifyEmail, setVerifyEmail] = useState('');
   const [pending, setPending] = useState<AuthContinuePending | null>(null);

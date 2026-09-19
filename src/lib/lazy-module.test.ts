@@ -44,4 +44,25 @@ describe('onceAsync', () => {
 
     expect(factory).toHaveBeenCalledTimes(1);
   });
+
+  // The Appearance panel unmounts when closed, so every reopen built a fresh
+  // `lazy()` and suspended for a tick — flashing the skeleton on an already
+  // loaded chunk. `peek()` is what lets the caller skip that hop.
+  it('peek() reports the module only once it has resolved', async () => {
+    const load = onceAsync(async () => ({ default: 'MODULE' }));
+    expect(load.peek()).toBeUndefined();
+
+    const promise = load();
+    expect(load.peek()).toBeUndefined();
+
+    await promise;
+    expect(load.peek()).toEqual({ default: 'MODULE' });
+  });
+
+  it('peek() stays undefined after a failure, so a rejection is never cached', async () => {
+    const load = onceAsync(() => Promise.reject(new Error('chunk 404')));
+
+    await expect(load()).rejects.toThrow('chunk 404');
+    expect(load.peek()).toBeUndefined();
+  });
 });

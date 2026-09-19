@@ -41,7 +41,7 @@ export function OptionPills<T extends string>({
               data-testid={`${testPrefix}-${id}`}
               className={cn(
                 appearanceChoiceClassName,
-                'min-w-0 flex-1 text-center text-xs sm:flex-none',
+                'max-w-full min-w-0 flex-none text-center text-xs wrap-anywhere whitespace-normal',
                 active
                   ? 'border-primary bg-primary/10 text-foreground'
                   : 'border-border text-muted-foreground hover:border-primary/50',

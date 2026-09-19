@@ -74,6 +74,10 @@ describe('AccountNotificationsPanel', () => {
     usePrefsMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<AccountNotificationsPanel />);
     expect(screen.getByTestId('notifications-prefs-loading')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('notifications-prefs-loading').querySelector('p'),
+    ).toHaveTextContent(/\S/);
+    expect(screen.queryByTestId('notify-system-email')).not.toBeInTheDocument();
   });
 
   it('saves on toggle (full-replace) with the changed preference', async () => {
