@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~610 src files · ~344 tests in src/ · 47 E2E specs · 24 shadcn UI primitives
+Stats: ~613 src files · ~347 tests in src/ · 47 E2E specs · 24 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -685,24 +685,27 @@ core-fe/
 │   │   ├── components/
 │   │   │   ├── AppearanceDialog/
 │   │   │   │   ├── appearance-look.ts
+│   │   │   │   ├── appearance-panel-loader.ts
 │   │   │   │   ├── appearance.constants.ts
 │   │   │   │   ├── AppearanceDialog.tsx
 │   │   │   │   ├── AppearanceDialogLazy.tsx
 │   │   │   │   ├── AppearancePanel.tsx
 │   │   │   │   ├── index.ts
-│   │   │   │   └── [4 test files]
+│   │   │   │   └── [5 test files]
 │   │   │   ├── BrandLoader/
 │   │   │   │   ├── BrandLoader.tsx
 │   │   │   │   ├── index.ts
 │   │   │   │   └── [1 test file]
 │   │   │   ├── CommandPalette/
+│   │   │   │   ├── command-palette-context.ts
 │   │   │   │   ├── CommandPalette.tsx
 │   │   │   │   ├── CommandPaletteItem.tsx
 │   │   │   │   ├── CommandPaletteLazy.tsx
 │   │   │   │   ├── CommandPaletteOrgGroup.tsx
+│   │   │   │   ├── CommandPaletteShell.tsx
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── preload-command-palette.ts
-│   │   │   │   └── [3 test files]
+│   │   │   │   └── [5 test files]
 │   │   │   ├── ConfirmDialog/
 │   │   │   │   ├── ConfirmDialog.tsx
 │   │   │   │   ├── index.ts

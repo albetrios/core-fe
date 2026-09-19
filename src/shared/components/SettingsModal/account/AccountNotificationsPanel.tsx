@@ -270,11 +270,14 @@ export function AccountNotificationsPanel() {
                 <div key={cat.id} className="py-4 first:pt-0 last:pb-0">
                   {/* 20px label + 16px description + the switch row: the exact
                       line boxes the rendered category uses. */}
-                  <Skeleton className="h-5 w-32" />
-                  <Skeleton className="h-4 w-64" />
+                  <p className="text-sm font-medium">{t(cat.labelKey)}</p>
+                  <p className="text-muted-foreground text-xs">{t(cat.descriptionKey)}</p>
                   <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
                     {CHANNELS.map((ch) => (
-                      <Skeleton key={ch.id} className="h-5 w-24" />
+                      <div key={ch.id} className="flex items-center gap-2 text-sm">
+                        <Skeleton className="h-5 w-8 rounded-full" aria-hidden="true" />
+                        <span className="text-muted-foreground">{t(ch.labelKey)}</span>
+                      </div>
                     ))}
                   </div>
                 </div>

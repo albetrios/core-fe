@@ -59,6 +59,31 @@ describe('app-splash', () => {
   });
 
   describe('holds', () => {
+    it.each([70, 300])(
+      'still times out when a hold arrives %ims after dismissal',
+      (delay) => {
+        vi.useFakeTimers();
+        dismissAppSplash();
+        vi.advanceTimersByTime(delay);
+        holdAppSplash();
+
+        vi.advanceTimersByTime(8000 + 480 - delay);
+
+        expect(document.getElementById('app-splash')).toBeNull();
+      },
+    );
+
+    it('cannot cancel the forced exit with another hold after the deadline', () => {
+      vi.useFakeTimers();
+      holdAppSplash();
+      dismissAppSplash();
+      vi.advanceTimersByTime(8000);
+      holdAppSplash();
+      vi.advanceTimersByTime(480);
+
+      expect(document.getElementById('app-splash')).toBeNull();
+    });
+
     // The boot splash and FullPageSpinner are the same visual. Before holds, the
     // splash eased out at React's first paint and the React loader popped back in
     // a frame later — one bootstrap that read as the screen blinking twice.

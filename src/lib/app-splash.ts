@@ -31,6 +31,7 @@ const MAX_HOLD_MS = 8000;
 let tracked: HTMLElement | null = null;
 let holdCount = 0;
 let dismissRequested = false;
+let holdDeadlineReached = false;
 let exitFinish: (() => void) | undefined;
 let exitTimer: number | undefined;
 let holdDeadline: number | undefined;
@@ -47,6 +48,7 @@ function currentSplash(): HTMLElement | null {
     tracked = splash;
     holdCount = 0;
     dismissRequested = false;
+    holdDeadlineReached = false;
     exitFinish = undefined;
     if (exitTimer !== undefined) window.clearTimeout(exitTimer);
     exitTimer = undefined;
@@ -78,12 +80,11 @@ function runExit(): void {
   const splash = currentSplash();
   if (!splash || exitFinish) return;
 
-  if (holdDeadline !== undefined) window.clearTimeout(holdDeadline);
-  holdDeadline = undefined;
-
   splash.classList.add(EXIT_CLASS);
 
   const finish = () => {
+    if (holdDeadline !== undefined) window.clearTimeout(holdDeadline);
+    holdDeadline = undefined;
     if (exitTimer !== undefined) window.clearTimeout(exitTimer);
     exitTimer = undefined;
     exitFinish = undefined;
@@ -138,7 +139,7 @@ function scheduleExitCheck(): void {
  * normal Suspense fallback and must never resurrect the boot overlay.
  */
 export function holdAppSplash(): () => void {
-  if (!isAppSplashActive()) return () => undefined;
+  if (!isAppSplashActive() || holdDeadlineReached) return () => undefined;
 
   holdCount += 1;
   if (releaseTimer !== undefined) {
@@ -169,14 +170,15 @@ export function dismissAppSplash(): void {
 
   dismissRequested = true;
 
-  if (holdCount > 0) {
-    holdDeadline ??= window.setTimeout(() => {
-      holdDeadline = undefined;
-      holdCount = 0;
-      runExit();
-    }, MAX_HOLD_MS);
-    return;
-  }
+  // Late route loaders may cancel a fade, but never extend the boot deadline.
+  holdDeadline ??= window.setTimeout(() => {
+    holdDeadline = undefined;
+    holdDeadlineReached = true;
+    holdCount = 0;
+    runExit();
+  }, MAX_HOLD_MS);
+
+  if (holdCount > 0) return;
 
   // Never exit straight off first paint. React commits its shell a beat before
   // the route's loader mounts, so a splash that leaves on this tick fades part
