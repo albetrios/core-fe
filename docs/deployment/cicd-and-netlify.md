@@ -264,6 +264,19 @@ Both run `pnpm build` then `netlify deploy` (with or without `--prod`).
 
 **CI never boots core-be.** Playwright E2E is local-only (`pnpm test:e2e` against a live core-be on `:3000`); CI and CD need only the deployed backend URL (`VITE_API_BASE_URL` secret per environment) — never a full backend.
 
+### Change detection and the aggregate gate
+
+The PR CI `changes` job grants only `contents: read` and `pull-requests: read`.
+The latter is required for `dorny/paths-filter` to list changed PR files, including
+Dependabot PRs; do not work around a permission failure by skipping detection or
+switching to a privileged `pull_request_target` execution of PR code.
+
+`Quality gate` evaluates every dependency, including `changes`. Change detection
+must finish with `success`: failure, cancellation, or a skipped detector blocks
+the gate even when all downstream jobs are skipped. Downstream path-filter skips
+are accepted only after successful detection. Regression tests execute the gate's
+actual shell script in `tests/ci/quality-gate.policy.test.ts`.
+
 ### Trunk and environments
 
 Single trunk (`main`) drives both GitHub Environments by **purpose**, not by branch:

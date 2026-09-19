@@ -27,6 +27,9 @@ jobs:
     name: Detect changes
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       src-code: ${{ steps.filter.outputs.src-code }}
       e2e: ${{ steps.filter.outputs.e2e }}
@@ -512,6 +515,7 @@ jobs:
       - name: Evaluate lane results
         env:
           RESULTS: |
+            changes=${{ needs.changes.result }}
             agent-os-gate=${{ needs.agent-os-gate.result }}
             biome=${{ needs.biome.result }}
             lint=${{ needs.lint.result }}
@@ -538,8 +542,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           while IFS='=' read -r lane result; do
             [ -n "$lane" ] || continue
-            case "$result" in
-              success|skipped) icon="✅" ;;
+            case "$lane:$result" in
+              changes:success) icon="✅" ;;
+              changes:*) icon="❌"; FAILED=1 ;;
+              *:success|*:skipped) icon="✅" ;;
               *) icon="❌"; FAILED=1 ;;
             esac
             echo "| $lane | $icon $result |" >> "$GITHUB_STEP_SUMMARY"

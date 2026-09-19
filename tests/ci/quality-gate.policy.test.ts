@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -46,8 +47,9 @@ function qualityGateNeeds(): string[] {
   return needs;
 }
 
-// Every lane whose failure must block merge (the plumbing `changes` job aside).
+// Change detection must succeed before downstream skips can be trusted.
 const MERGE_GATING_LANES = [
+  'changes',
   'agent-os-gate',
   'biome',
   'lint',
@@ -66,6 +68,19 @@ const MERGE_GATING_LANES = [
   'actionlint',
 ];
 
+function qualityGateScalar(key: 'RESULTS' | 'run'): string {
+  const lines = prCi.slice(prCi.indexOf('  quality-gate:')).split('\n');
+  const start = lines.findIndex((line) => line.trim() === `${key}: |`);
+  const header = lines[start] ?? '';
+  const indentation = header.length - header.trimStart().length + 2;
+  const content: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.trim() && !line.startsWith(' '.repeat(indentation))) break;
+    content.push(line.slice(indentation));
+  }
+  return content.join('\n');
+}
+
 describe('quality-gate aggregate policy', () => {
   it('branch protection requires exactly { Quality gate, Checks } — no per-lane contexts', () => {
     expect(requiredContexts()).toEqual(['Checks', 'Quality gate']);
@@ -80,4 +95,59 @@ describe('quality-gate aggregate policy', () => {
     const missing = MERGE_GATING_LANES.filter((lane) => !needs.has(lane));
     expect(missing).toEqual([]);
   });
+
+  it('change detection has only the read permissions needed for checkout and PR files', () => {
+    const job = prCi.split('  changes:')[1]?.split('    outputs:')[0] ?? '';
+    expect(job).toContain(
+      '    permissions:\n      contents: read\n      pull-requests: read',
+    );
+    expect(job).not.toContain(': write');
+  });
+
+  it('the aggregate evaluates every dependency result, including change detection', () => {
+    const results = qualityGateScalar('RESULTS');
+    const lanes = results.split('\n').filter(Boolean);
+    expect(lanes.map((line) => line.split('=')[0]).sort()).toEqual(
+      qualityGateNeeds().sort(),
+    );
+    for (const lane of qualityGateNeeds()) {
+      expect(lanes).toContain(`${lane}=\${{ needs.${lane}.result }}`);
+    }
+    expect(qualityGateScalar('run')).toContain('while IFS=');
+  });
+
+  it.each([
+    ['success', 'success', 0],
+    ['success', 'skipped', 0],
+    ['failure', 'skipped', 1],
+    ['cancelled', 'skipped', 1],
+    ['skipped', 'skipped', 1],
+    ['', 'skipped', 1],
+    ['unknown', 'skipped', 1],
+    ['success', 'failure', 1],
+    ['success', 'cancelled', 1],
+    ['success', '', 1],
+    ['success', 'unknown', 1],
+  ])(
+    'evaluates changes=%s and downstream=%s with exit %i',
+    (changes, downstream, expected) => {
+      const results = qualityGateScalar('RESULTS').replaceAll(
+        /\$\{\{ needs\.([\w-]+)\.result \}\}/g,
+        (_expression, lane: string) => (lane === 'changes' ? changes : downstream),
+      );
+      const result = spawnSync(
+        '/bin/bash',
+        ['-e', '-o', 'pipefail', '-c', qualityGateScalar('run')],
+        {
+          encoding: 'utf8',
+          env: {
+            RESULTS: results,
+            GITHUB_STEP_SUMMARY: '/dev/null',
+          },
+        },
+      );
+      expect(result.error).toBeUndefined();
+      expect(result.status, result.stdout + result.stderr).toBe(expected);
+    },
+  );
 });
