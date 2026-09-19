@@ -20,9 +20,15 @@ export const LAYOUT_LABELS = {
   notifications: /notification/i,
 } as const;
 
-/** Primary locator for E2E actions — stable across design changes. */
+/**
+ * Primary locator for E2E actions — stable across design changes.
+ *
+ * Filtered to visible elements: shell testids (org switcher, user menu) exist
+ * twice at desktop width — the desktop instance plus a hidden mobile-shell
+ * twin — which breaks strict mode and can hand `.first()` the invisible one.
+ */
 export function byTestId(page: Page, testId: string) {
-  return page.getByTestId(testId);
+  return page.getByTestId(testId).locator('visible=true').first();
 }
 
 /** Fill/click via test id (preferred for interactions). */
@@ -31,11 +37,11 @@ export async function fillTestId(
   testId: string,
   value: string,
 ): Promise<void> {
-  await page.getByTestId(testId).fill(value);
+  await byTestId(page, testId).fill(value);
 }
 
 export async function clickTestId(page: Page, testId: string): Promise<void> {
-  await page.getByTestId(testId).click();
+  await byTestId(page, testId).click();
 }
 
 /**
@@ -147,8 +153,10 @@ export async function openSettingsHash(
 
 /** Unified auth screen — email panel open by default on `/login`. */
 export async function expectAuthScreenReady(page: Page): Promise<void> {
-  await expect(page.getByTestId('login-page')).toBeVisible();
-  await expect(page.getByTestId('auth-form')).toBeVisible();
+  // 15s across the board: after a logout hard-navigation the login island is a
+  // cold lazy chunk, and the 5s default flaked under full-suite load.
+  await expect(page.getByTestId('login-page')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId('auth-form')).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId('auth-email-panel')).toBeVisible({ timeout: 15000 });
   await expect(page.getByLabel(AUTH_LABELS.email)).toBeVisible();
 }

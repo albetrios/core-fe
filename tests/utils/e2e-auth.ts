@@ -184,8 +184,8 @@ export async function createTeamOrgViaSwitcher(
 ): Promise<{ slug: string }> {
   const { name, slug } = e2eTeamOrgProfile({ label: 'team-e2e', ...opts });
 
-  await page.getByTestId('organization-switcher-trigger').click();
-  await page.getByTestId('organization-switcher-create').click();
+  await clickTestId(page, 'organization-switcher-trigger');
+  await clickTestId(page, 'organization-switcher-create');
   await expect(page.getByTestId('create-organization-dialog-form')).toBeVisible({
     timeout: 10000,
   });
@@ -204,8 +204,8 @@ export async function selectOrganizationInSwitcher(
   page: Page,
   slug: string,
 ): Promise<void> {
-  await page.getByTestId('organization-switcher-trigger').click();
-  await page.getByTestId(`organization-switcher-option-${slug}`).click();
+  await clickTestId(page, 'organization-switcher-trigger');
+  await clickTestId(page, `organization-switcher-option-${slug}`);
 }
 
 export { createSessionViaEmailCode, expectLoginFormReady, uniqueE2eEmail };

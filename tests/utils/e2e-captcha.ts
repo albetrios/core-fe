@@ -65,7 +65,9 @@ async function sendCodeAcceptsHeaders(
       body: JSON.stringify({ email: probeEmail() }),
       signal: AbortSignal.timeout(10_000),
     });
-    return res.status === 201;
+    // core-be answers send-code with a uniform 200 (201 was the pre-uniform-200
+    // contract), so 200 is the signal that this header set passed the captcha gate.
+    return res.status === 200;
   } catch {
     return false;
   }

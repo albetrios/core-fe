@@ -1,34 +1,88 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { contextMock, statusMock } = vi.hoisted(() => ({
-  contextMock: vi.fn(),
-  statusMock: vi.fn(),
-}));
+import {
+  requireOrgStatus,
+  requirePersonalDashboardWorkspace,
+  requirePersonalDeployment,
+  requireProvisionedWorkspace,
+  requireTeamDeployment,
+  resolveActiveOrg,
+} from './org-gates.ts';
+import {
+  requireActiveOrganization,
+  requireOrganizationContext,
+  requirePersonalOrganizationsDeployment,
+  requireProvisionedPersonalDashboard,
+  requireProvisionedTeamWorkspace,
+  requireTeamOrganizationsDeployment,
+} from './route-guards.ts';
+
 vi.mock('./route-guards.ts', () => ({
-  requireOrganizationContext: contextMock,
-  requireActiveOrganization: statusMock,
+  requireActiveOrganization: vi.fn(),
+  requireOrganizationContext: vi.fn(),
+  requirePersonalOrganizationsDeployment: vi.fn(),
+  requireProvisionedPersonalDashboard: vi.fn(),
+  requireProvisionedTeamWorkspace: vi.fn(),
+  requireTeamOrganizationsDeployment: vi.fn(),
 }));
 
-import { requireOrgStatus, resolveActiveOrg } from './org-gates.ts';
-
-const ctx = {
-  location: { pathname: '/x', search: '', hash: '', href: '/x' },
-  params: { organizationSlug: 'acme' },
-};
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  contextMock.mockResolvedValue({});
-});
-
-describe('org gates', () => {
-  it('resolveActiveOrg delegates to requireOrganizationContext with the param', async () => {
-    await resolveActiveOrg(ctx);
-    expect(contextMock).toHaveBeenCalledWith('acme');
+describe('org gates — thin wrappers stay faithful to the underlying guards', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('requireOrgStatus delegates to requireActiveOrganization with the param', () => {
-    requireOrgStatus(ctx);
-    expect(statusMock).toHaveBeenCalledWith('acme');
+  it('resolveActiveOrg forwards the slug param (empty string when absent)', async () => {
+    await resolveActiveOrg({ params: { organizationSlug: 'acme' } });
+    expect(requireOrganizationContext).toHaveBeenCalledWith('acme');
+
+    await resolveActiveOrg({ params: {} });
+    expect(requireOrganizationContext).toHaveBeenLastCalledWith('');
+  });
+
+  it('requireOrgStatus forwards the slug param (empty string when absent)', async () => {
+    await requireOrgStatus({ params: { organizationSlug: 'acme' } });
+    expect(requireActiveOrganization).toHaveBeenCalledWith('acme');
+
+    await requireOrgStatus({ params: {} });
+    expect(requireActiveOrganization).toHaveBeenLastCalledWith('');
+  });
+
+  it('deployment gates call their mode guards with no context', async () => {
+    await requireTeamDeployment({ params: {} });
+    expect(requireTeamOrganizationsDeployment).toHaveBeenCalledTimes(1);
+
+    await requirePersonalDeployment(undefined);
+    expect(requirePersonalOrganizationsDeployment).toHaveBeenCalledTimes(1);
+  });
+
+  it('personal dashboard gate carries the deep link for the onboarding redirect', async () => {
+    await requirePersonalDashboardWorkspace({ redirectFrom: '/dashboard?tab=usage' });
+    expect(requireProvisionedPersonalDashboard).toHaveBeenCalledWith({
+      redirectFrom: '/dashboard?tab=usage',
+    });
+  });
+
+  it('team workspace gate flags the picker when no slug is in the URL', async () => {
+    await requireProvisionedWorkspace({ params: {}, redirectFrom: '/organization' });
+    expect(requireProvisionedTeamWorkspace).toHaveBeenCalledWith({
+      organizationPicker: true,
+      redirectFrom: '/organization',
+    });
+
+    await requireProvisionedWorkspace({
+      params: { organizationSlug: 'acme' },
+      redirectFrom: '/organization/acme/dashboard',
+    });
+    expect(requireProvisionedTeamWorkspace).toHaveBeenLastCalledWith({
+      organizationPicker: false,
+      redirectFrom: '/organization/acme/dashboard',
+    });
+  });
+
+  it('guard failures propagate — gates add no swallowing layer', async () => {
+    vi.mocked(requireOrganizationContext).mockRejectedValueOnce(new Error('redirect'));
+    await expect(
+      resolveActiveOrg({ params: { organizationSlug: 'acme' } }),
+    ).rejects.toThrow('redirect');
   });
 });

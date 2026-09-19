@@ -50,7 +50,7 @@ test.describe('core-be — health & session lifecycle', () => {
     expect((await api.get(`${API}/auth/me/context`, { headers: auth })).status()).toBe(
       200,
     );
-    expect((await api.post(`${API}/auth/logout`, { headers: auth })).status()).toBe(201);
+    expect((await api.post(`${API}/auth/logout`, { headers: auth })).status()).toBe(200);
     expect((await api.get(`${API}/auth/me/context`, { headers: auth })).status()).toBe(
       401,
     );

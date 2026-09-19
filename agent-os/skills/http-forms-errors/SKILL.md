@@ -8,8 +8,8 @@ description: Form mutations, API error mapping, and read-path error UX in core-f
 Use this skill when connecting **react-hook-form + Zod** mutations to **`apiClient`**, or
 when choosing how **read vs write** paths surface failures.
 
-**Data fetching patterns:** `react-best-practices` + `agent-os/rules/api-data-patterns.mdc`  
-**Resilience rules:** `agent-os/rules/resilient-interactions.mdc` — single-flight writes (§1), `useAppMutation` for every write (§20), all three query states (§8), four states with the shared components (§19), dialog exits held during a write (§26)  
+**Data fetching patterns:** `react-best-practices` + `agent-os/rules/api-data-patterns.mdc`
+**Resilience rules:** `agent-os/rules/resilient-interactions.mdc` — single-flight writes (§1), `useAppMutation` for every write (§20), all three query states (§8), four states with the shared components (§19), dialog exits held during a write (§26)
 **Platform overview:** `docs/reference/frontend-platform.md` (HTTP errors, QueryBoundary, offline stance)
 
 ---

@@ -47,7 +47,7 @@ test.describe('core-be — organization lifecycle', () => {
       headers: bearerHeaders(token, true),
       data: { name, slug },
     });
-    expect(res.status()).toBe(201);
+    expect(res.status()).toBe(200);
     const { data } = await res.json();
     expect(data.type).toBe('TEAM');
     expect(data.slug).toBe(slug);
@@ -69,7 +69,7 @@ test.describe('core-be — organization lifecycle', () => {
       headers: bearerHeaders(token, true),
       data: { name: e2eOrganizationName(), slug },
     });
-    expect(first.status()).toBe(201);
+    expect(first.status()).toBe(200);
     const second = await api.post(`${API}/tenancy/organizations`, {
       headers: bearerHeaders(token, true),
       data: { name: e2eOrganizationName(), slug },
@@ -128,7 +128,7 @@ test.describe('core-be — organization lifecycle', () => {
       headers,
       data: body,
     });
-    expect(first.status()).toBe(201);
+    expect(first.status()).toBe(200);
     const id1 = ((await first.json()) as { data: { id: string } }).data.id;
     const id2 = ((await second.json()) as { data: { id: string } }).data.id;
     expect(id2).toBe(id1); // a replay returns the original resource, not a duplicate
@@ -198,7 +198,7 @@ test.describe('core-be — roles, members & permission catalog', () => {
       headers: bearerHeaders(teamToken, true),
       data: { name: e2eRoleName(), description: 'created by e2e' },
     });
-    expect(res.status()).toBe(201);
+    expect(res.status()).toBe(200);
     expect((await res.json()).data.is_system).toBe(false);
   });
 
