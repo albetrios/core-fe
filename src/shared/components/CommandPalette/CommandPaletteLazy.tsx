@@ -62,9 +62,7 @@ function CommandPalettePending() {
         />
       </div>
       <div data-testid="command-palette-pending" className="flex flex-col gap-1.5 p-2">
-        <span role="status" className="sr-only">
-          {tLocale(LOCALE_KEYS.loading)}
-        </span>
+        <output className="sr-only">{tLocale(LOCALE_KEYS.loading)}</output>
         <Skeleton aria-hidden="true" className="ms-2 h-3.5 w-20" />
         <Skeleton aria-hidden="true" className="h-9 w-full" />
         <Skeleton aria-hidden="true" className="h-9 w-full" />

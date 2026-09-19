@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
@@ -9,7 +9,7 @@ import { CommandPaletteContext, type SearchFocus } from './command-palette-conte
 /** The dialog and its focus lifecycle survive content loading and retries. */
 export function CommandPaletteShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation(LAYOUT_NS);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState('');
   const searchFocus = useRef<SearchFocus>({ focused: true, start: null, end: null });
   const [previousFocus] = useState(() => document.activeElement as HTMLElement | null);
@@ -67,13 +67,16 @@ export function CommandPaletteShell({ children }: { children: ReactNode }) {
     };
   }, [previousFocus, setOpen]);
 
+  const contextValue = useMemo(
+    () => ({ query, setQuery, searchFocus, rememberFocus, rememberSelection }),
+    [query, rememberFocus, rememberSelection],
+  );
+
   return (
-    <CommandPaletteContext.Provider
-      value={{ query, setQuery, searchFocus, rememberFocus, rememberSelection }}
-    >
-      <div
-        className="fixed inset-0 z-50"
-        role="dialog"
+    <CommandPaletteContext.Provider value={contextValue}>
+      <dialog
+        open
+        className="text-foreground fixed inset-0 z-50 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0"
         aria-modal="true"
         aria-label={t(LAYOUT_KEYS.app.commandPalette.ariaLabel)}
         ref={dialogRef}
@@ -91,7 +94,7 @@ export function CommandPaletteShell({ children }: { children: ReactNode }) {
             {children}
           </div>
         </div>
-      </div>
+      </dialog>
     </CommandPaletteContext.Provider>
   );
 }

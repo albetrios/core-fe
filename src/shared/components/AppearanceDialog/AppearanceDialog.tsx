@@ -60,9 +60,7 @@ function AppearanceContent() {
       <Suspense
         fallback={
           <div data-testid="appearance-dialog-pending" className="flex flex-col gap-4">
-            <span role="status" className="sr-only">
-              {tLocale(LOCALE_KEYS.loading)}
-            </span>
+            <output className="sr-only">{tLocale(LOCALE_KEYS.loading)}</output>
             {sections.map((section) => (
               <div key={section} className="flex flex-col gap-3">
                 <h3 className="text-base font-semibold">{tLocale(section)}</h3>
