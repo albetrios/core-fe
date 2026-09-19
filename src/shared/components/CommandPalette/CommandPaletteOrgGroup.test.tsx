@@ -7,6 +7,7 @@ import type { MeContext } from '@/shared/tenancy/me-context.ts';
 import { CommandPaletteOrgGroup } from './CommandPaletteOrgGroup.tsx';
 
 const navigateMock = vi.fn();
+const closePaletteMock = vi.fn();
 
 function meContext(
   organizations: Array<{
@@ -29,8 +30,9 @@ function renderGroup(ctx: MeContext) {
           heading="Organizations"
           currentOrganizationLabel={(name) => `Current: ${name}`}
           switchOrganizationLabel={(name) => `Switch to ${name}`}
-          runCommand={(command) => command()}
+          closePalette={closePaletteMock}
           navigate={navigateMock as never}
+          personalOrganizationsEnabled={true}
         />
       </Command.List>
     </Command>,
@@ -45,6 +47,7 @@ describe('CommandPaletteOrgGroup', () => {
 
   beforeEach(() => {
     navigateMock.mockClear();
+    closePaletteMock.mockClear();
   });
 
   it('renders nothing with a single organization', () => {
@@ -107,5 +110,6 @@ describe('CommandPaletteOrgGroup', () => {
     fireEvent.click(screen.getByText('Current: Acme'));
 
     expect(navigateMock).not.toHaveBeenCalled();
+    expect(closePaletteMock).toHaveBeenCalledTimes(1);
   });
 });

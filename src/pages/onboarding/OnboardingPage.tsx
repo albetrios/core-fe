@@ -84,7 +84,7 @@ const ORGANIZATIONS_STALE_MS = 10_000;
  * `listMyOrganizations()` was called bare from two places on the finish path —
  * the stale-created-org effect and `resolveOrganizationForFinish` — so a resumed
  * session fetched the identical list twice, back to back, and neither response
- * reached the cache the picker and Settings read from (ONB-10). `fetchQuery()`
+ * reached the cache the picker and Settings read from (ONB-10). `query()`
  * under the SAME `['organizations']` key collapses those two into one request
  * and leaves the result where the next screen can use it.
  *
@@ -93,7 +93,7 @@ const ORGANIZATIONS_STALE_MS = 10_000;
  * old cache entry would drop a real organization and create a duplicate.
  */
 function readMyOrganizations(): Promise<Organization[]> {
-  return queryClient.fetchQuery({
+  return queryClient.query({
     queryKey: ['organizations'],
     queryFn: listMyOrganizations,
     staleTime: ORGANIZATIONS_STALE_MS,
