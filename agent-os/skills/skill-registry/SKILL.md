@@ -111,7 +111,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 ### 0a. auto-implement (Master Orchestrator)
 
-**Path:** `agent-os/skills/auto-implement/SKILL.md`  
+**Path:** `agent-os/skills/auto-implement/SKILL.md`
 **Purpose:** The master skill that runs the full pipeline from requirement to production-ready code. The user provides only a requirement (standard format, short sentence, or vague request); the agent handles everything else in the background: parse → implement → route → RBAC → test → lint → docs → verify.
 
 **Trigger keywords:** Any requirement, any feature request, "here's my requirement", "implement this", "build this", "add this feature"
@@ -130,8 +130,8 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 ### 0b. theme-axis-audit (Appearance / Shuffle compliance)
 
-**Path:** `agent-os/skills/theme-axis-audit/SKILL.md`  
-**Playbook:** `docs/reference/theme-axis-audit-playbook.md`  
+**Path:** `agent-os/skills/theme-axis-audit/SKILL.md`
+**Playbook:** `docs/reference/theme-axis-audit-playbook.md`
 **Rule:** `agent-os/rules/theme-axis-audit.mdc`
 
 **Purpose:** One axis per cycle — inventory violations, extend `index.css` `[data-*]` / `[data-slot]` hooks, fix components, verify, update tracker, deliver detailed report.
@@ -147,7 +147,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 ### 0c. Preset product-design rules (doc + Cursor rule)
 
-**Doc:** `docs/reference/preset-product-design-rules.md`  
+**Doc:** `docs/reference/preset-product-design-rules.md`
 **Rule:** `agent-os/rules/preset-product-design.mdc`
 
 **Purpose:** Industry-backed floors for every Appearance/Shuffle axis (typography, density, contrast, touch, motion) — not a skill, but mandatory reading when editing `src/shared/theme/presets.ts`, Appearance, or dense product UI.
@@ -822,8 +822,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10a. env-schema-add
 
-**Path:** `agent-os/skills/env-schema-add/SKILL.md`  
-**Rule:** `agent-os/rules/env-schema-add-sync.mdc`  
+**Path:** `agent-os/skills/env-schema-add/SKILL.md`
+**Rule:** `agent-os/rules/env-schema-add-sync.mdc`
 **Runbook:** `docs/deployment/runbooks/environment-variables.md`
 
 **Purpose:** Add, rename, or remove env vars safely — schema, `.env.example` halves, GitHub Secret vs Variable, platform-config wiring, and deploy sync.
@@ -843,8 +843,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10b. routing-tenancy
 
-**Path:** `agent-os/skills/routing-tenancy/SKILL.md`  
-**Rule:** `agent-os/rules/routing-tenancy-sync.mdc`  
+**Path:** `agent-os/skills/routing-tenancy/SKILL.md`
+**Rule:** `agent-os/rules/routing-tenancy-sync.mdc`
 **Spec:** `docs/reference/routing-and-tenancy.md`
 
 **Purpose:** Org-scoped routing, guard chains, `gatewayFromManifest`, session hydrate/invalidate, settings hash modal, `/` resolver.
@@ -864,7 +864,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10c. resource-crud
 
-**Path:** `agent-os/skills/resource-crud/SKILL.md`  
+**Path:** `agent-os/skills/resource-crud/SKILL.md`
 **Reference:** `src/core/resources/members.resource.ts`
 
 **Purpose:** Backend resource pages — list, URL-driven create/edit dialogs, `$param` folders, L7 registry bootstrap.
@@ -884,7 +884,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10d. http-forms-errors
 
-**Path:** `agent-os/skills/http-forms-errors/SKILL.md`  
+**Path:** `agent-os/skills/http-forms-errors/SKILL.md`
 **Platform doc:** `docs/reference/frontend-platform.md` (HTTP errors, QueryBoundary)
 
 **Purpose:** Form mutations + API error UX — `mapValidationErrors`, 429 `RateLimitNotice`, `notifyError`, `QueryBoundary` on reads.
@@ -901,7 +901,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10e. resilient-interactions
 
-**Path:** `agent-os/skills/resilient-interactions/SKILL.md`  
+**Path:** `agent-os/skills/resilient-interactions/SKILL.md`
 **Rule:** `agent-os/rules/resilient-interactions.mdc` (the 28 one-liners, `alwaysApply`)
 
 **Purpose:** The worked reasoning behind the 28 always-on resilience rules — the failure each came from, the fix that looked right and was not, and the code that holds. The rule states them; this explains them.
@@ -920,8 +920,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10e. platform-hygiene
 
-**Path:** `agent-os/skills/platform-hygiene/SKILL.md`  
-**Rule:** `agent-os/rules/platform-hygiene-sync.mdc`  
+**Path:** `agent-os/skills/platform-hygiene/SKILL.md`
+**Rule:** `agent-os/rules/platform-hygiene-sync.mdc`
 **Overview:** `docs/reference/frontend-platform.md`
 
 **Purpose:** `platformConfig` vs raw Vite env, `build-env.ts` allowlist, knip, `validate:vite-env`, `validate:client-env`.
@@ -976,8 +976,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10h. pwa-manifest
 
-**Path:** `agent-os/skills/pwa-manifest/SKILL.md`  
-**Rule:** `agent-os/rules/pwa-manifest-sync.mdc`  
+**Path:** `agent-os/skills/pwa-manifest/SKILL.md`
+**Rule:** `agent-os/rules/pwa-manifest-sync.mdc`
 **Reference:** `docs/reference/pwa-manifest-and-app-icon.md`
 
 **Purpose:** PWA install surface — `app-manifest.ts` → `manifest.webmanifest`, Boxes icon, preset-aligned colors, favicon, VitePWA `includeAssets`.
@@ -996,7 +996,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10i. i18n-constants
 
-**Path:** `agent-os/skills/i18n-constants/SKILL.md`  
+**Path:** `agent-os/skills/i18n-constants/SKILL.md`
 **Purpose:** Extract static values into scoped constants files with react-i18next — one route island or module at a time. User-facing strings go in locale JSON; constants files hold keys, test IDs, analytics events, and non-copy defaults.
 
 **Trigger keywords:** "extract magic strings", "constants file", "i18n", "locale namespace", "user-facing copy", "move test ids", "analytics events", "defaults"

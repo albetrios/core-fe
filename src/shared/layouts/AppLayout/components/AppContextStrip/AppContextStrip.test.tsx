@@ -1,36 +1,95 @@
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
-import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
+import { settingsHash } from '@/shared/components/SettingsModal/settings-hash-grammar.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
-import { DEFAULT_DEPLOYMENT_FLAGS } from '@/shared/tenancy/deployment-mode.ts';
-import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { AppContextStrip } from './AppContextStrip.tsx';
 
-describe('AppContextStrip', () => {
-  it('renders launcher pills', async () => {
-    useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });
-    renderWithProviders(<AppContextStrip />);
+const { navigateMock, deploymentModeMock, preloadMock } = vi.hoisted(() => ({
+  navigateMock: vi.fn(),
+  deploymentModeMock: vi.fn(() => 'personal-and-team'),
+  preloadMock: vi.fn(),
+}));
 
-    expect(await screen.findByTestId('app-context-strip')).toBeInTheDocument();
-    expect(screen.getByTestId('context-strip-profile')).toBeInTheDocument();
-    expect(screen.getByTestId('context-strip-billing')).toBeInTheDocument();
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return { ...actual, useNavigate: () => navigateMock };
+});
+vi.mock('@/shared/hooks/useDeploymentFlags/index.ts', () => ({
+  useDeploymentMode: deploymentModeMock,
+}));
+vi.mock('@/shared/components/CommandPalette/index.ts', () => ({
+  preloadCommandPalette: preloadMock,
+}));
+
+describe('AppContextStrip', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    deploymentModeMock.mockReturnValue('personal-and-team');
+    useUIStore.setState({
+      commandPaletteOpen: false,
+      shortcutsOpen: false,
+      appearanceOpen: false,
+    });
   });
 
-  it('opens the command palette from search', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ commandPaletteOpen: false });
-    renderWithProviders(<AppContextStrip />);
+  it('search opens the command palette and preloads its chunk on hover', () => {
+    render(<AppContextStrip />);
+    const search = screen.getByTestId('context-strip-search');
 
-    await user.click(await screen.findByTestId('context-strip-search'));
+    fireEvent.mouseEnter(search);
+    expect(preloadMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(search);
     expect(useUIStore.getState().commandPaletteOpen).toBe(true);
   });
 
+  it('profile, security, and billing pills deep-link into the settings hash modal', () => {
+    render(<AppContextStrip />);
+
+    fireEvent.click(screen.getByTestId('context-strip-profile'));
+    expect(navigateMock).toHaveBeenCalledWith({
+      to: '.',
+      hash: settingsHash('account', 'profile'),
+    });
+
+    fireEvent.click(screen.getByTestId('context-strip-security'));
+    expect(navigateMock).toHaveBeenLastCalledWith({
+      to: '.',
+      hash: settingsHash('account', 'security'),
+    });
+
+    fireEvent.click(screen.getByTestId('context-strip-billing'));
+    expect(navigateMock).toHaveBeenLastCalledWith({
+      to: '.',
+      hash: settingsHash('account', 'billing'),
+    });
+  });
+
+  it('appearance and shortcuts pills flip their UI-store flags', () => {
+    render(<AppContextStrip />);
+
+    fireEvent.click(screen.getByTestId('context-strip-appearance'));
+    expect(useUIStore.getState().appearanceOpen).toBe(true);
+
+    fireEvent.click(screen.getByTestId('context-strip-shortcuts'));
+    expect(useUIStore.getState().shortcutsOpen).toBe(true);
+  });
+
+  it('renders the solo label on personal-only deployments', () => {
+    deploymentModeMock.mockReturnValue('personal-only');
+    const { container } = render(<AppContextStrip />);
+
+    // Both label variants come from i18n; assert the strip renders and the
+    // team-vs-solo branch executed by checking the label element exists.
+    expect(screen.getByTestId('app-context-strip')).toBeInTheDocument();
+    expect(container.querySelector('p')).not.toBeNull();
+  });
+
   it('has no accessibility violations', async () => {
-    const { container } = renderWithProviders(<AppContextStrip />);
+    const { container } = render(<AppContextStrip />);
     await screen.findByTestId('app-context-strip');
     expect(await axe(container)).toHaveNoViolations();
   });

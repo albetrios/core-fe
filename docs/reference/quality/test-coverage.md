@@ -78,3 +78,30 @@ Component tests include `vitest-axe` assertions (`toHaveNoViolations()`); E2E us
 - Local quality gate (SonarQube): [sonarqube-local.md](sonarqube-local.md)
 - Full health gate: `pnpm health` (`tooling/validate/health-check.sh`)
 - TSDoc budget ratchet: `tooling/tsdoc-coverage/budget.json` (`pnpm tsdoc:check`)
+
+## Troubleshooting Stuck Unit Coverage
+
+If PR CI appears stuck in **Run unit tests with coverage** (`pnpm test:ci`), do
+not bypass the hook or push with `--no-verify`. Reproduce locally with the exact
+coverage command first, then isolate with Vitest sharding:
+
+```bash
+pnpm exec vitest run --project unit --shard 1/4 --reporter dot
+pnpm exec vitest run --project unit --shard 2/4 --reporter dot
+pnpm exec vitest run --project unit --shard 3/4 --reporter dot
+pnpm exec vitest run --project unit --shard 4/4 --reporter dot
+```
+
+When a shard passes assertions but the process never exits, split that shard's
+file list until one test file is left. A common failure shape is a shell test
+exercising another component's already-covered lazy/Suspense boundary and
+leaving async work alive. Keep shell tests scoped to their own behavior by
+mocking the nested boundary, and verify the nested boundary in its own test
+file.
+
+For store mutations that trigger React renders, wrap direct Zustand `setState()`
+calls in `act()` and reset global store flags in `afterEach()`.
+
+For TanStack Query v5, avoid deprecated `queryClient.fetchQuery(...)` in touched
+code; local Sonar pre-push flags it. Use `queryClient.query({ ...options })`
+for imperative reads that should fetch through the query cache.
