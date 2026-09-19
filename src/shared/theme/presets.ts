@@ -837,8 +837,18 @@ export function nextToastPosition(current: string): ToastPosition {
 export const SHUFFLE_TEMP = {
   /** Cycle the AuthLayout (login screen) preview design on shuffle. */
   authLayout: true,
-  /** Cycle the AppLayout (app shell) preview design on shuffle. */
-  appLayout: true,
+  /**
+   * Cycle the AppLayout (app shell) preview design on shuffle.
+   *
+   * OFF. Every other axis here is cosmetic — colour, type, radius, toast style —
+   * and repaints in place. This one is structural: each shell is a different
+   * component owning its own `<main>`, so rolling it unmounts the routed island
+   * and takes a chart range, a calendar selection and a carousel position with
+   * it. A theme shuffle is not a reason to throw away the user's page state
+   * (SHELL-5). The shell variants still exist and are still selectable — they
+   * are simply no longer part of a cosmetic dice roll.
+   */
+  appLayout: false,
   /** Cycle the PublicLayout preview design on shuffle. */
   publicLayout: true,
   /** Cycle the Dashboard arrangement preview on shuffle. */

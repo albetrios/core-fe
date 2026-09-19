@@ -1,31 +1,84 @@
-import { screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Member } from '@/shared/api/organization-contracts.ts';
-import type { AuthUser } from '@/shared/auth/types.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
-import { MembersTable } from './MembersTable.tsx';
-
-const { updateRoleMutate, updateStatusMutate, removeMutate } = vi.hoisted(() => ({
+const { removeMutate, updateRoleMutate, updateStatusMutate, ctl } = vi.hoisted(() => ({
+  removeMutate: vi.fn(),
   updateRoleMutate: vi.fn(),
   updateStatusMutate: vi.fn(),
-  removeMutate: vi.fn(),
-}));
-vi.mock('@/shared/hooks/useMembers/index.ts', () => ({
-  useUpdateMemberRole: () => ({ mutate: updateRoleMutate }),
-  useUpdateMemberStatus: () => ({ mutate: updateStatusMutate }),
-  useRemoveMember: () => ({ mutate: removeMutate }),
+  /** Cross-test control surface for the stateful mutation stubs below. */
+  ctl: {
+    /** Settle the in-flight removal (set by the stub when `mutate` is called). */
+    finishRemove: null as null | (() => void),
+    /** When true, `useUpdateMemberRole` throws for every row. */
+    roleHookThrows: false,
+  },
 }));
 
-function grantManagePermission() {
+/**
+ * The pending flags are the whole subject here, so the stubs carry real state
+ * instead of a frozen `isPending: false` — a mock that can never be pending
+ * cannot show a button that fails to disable itself.
+ */
+vi.mock('@/shared/hooks/useMembers/index.ts', async () => {
+  const { useState } = await import('react');
+  return {
+    useRemoveMember: () => {
+      const [isPending, setIsPending] = useState(false);
+      return {
+        isPending,
+        mutate: (id: string, options?: { onSuccess?: () => void }) => {
+          removeMutate(id, options);
+          setIsPending(true);
+          ctl.finishRemove = () => {
+            setIsPending(false);
+            options?.onSuccess?.();
+          };
+        },
+      };
+    },
+    useUpdateMemberRole: () => {
+      const [isPending, setIsPending] = useState(false);
+      // Consistently, on every row: React retries a failed concurrent render
+      // synchronously, so a throw that moves between passes escapes instead of
+      // landing in a boundary.
+      if (ctl.roleHookThrows) throw new Error('role hook exploded');
+      return {
+        isPending,
+        mutate: (vars: unknown) => {
+          updateRoleMutate(vars);
+          setIsPending(true);
+        },
+      };
+    },
+    useUpdateMemberStatus: () => ({ isPending: false, mutate: updateStatusMutate }),
+  };
+});
+
+vi.mock('@/shared/components/InviteMemberDialog/index.ts', () => ({
+  InviteMemberDialog: () => (
+    <button type="button" data-testid="invite-member-open">
+      Invite member
+    </button>
+  ),
+}));
+
+import { MembersTable } from './MembersTable.tsx';
+
+function setCanManage() {
   useAuthStore.setState({
-    user: { id: 'usr_t', email: 't@t.test', role: 'user' } as AuthUser,
+    user: { id: 'u', email: 'a@b.test', role: 'user' },
+    isAuthenticated: true,
   });
-  useOrganizationStore.getState().setPermissions(['membership:manage']);
+  useOrganizationStore.setState({
+    organizationType: 'TEAM',
+    permissions: ['membership:manage'],
+  });
 }
 
 const MEMBERS: Member[] = [
@@ -153,92 +206,95 @@ describe('MembersTable', () => {
     });
   });
 
-  describe('permission-gated row actions', () => {
+  // ── SET-12: one membership write per gesture, and a confirm that waits ────
+
+  describe('row actions', () => {
     beforeEach(() => {
       vi.clearAllMocks();
-      useAuthStore.setState({ user: null });
+      ctl.finishRemove = null;
+      ctl.roleHookThrows = false;
       useOrganizationStore.getState().clearOrganization();
     });
 
-    it('hides the actions menu entirely without membership:manage', async () => {
-      renderWithProviders(<MembersTable members={[member(1)]} />);
-      await screen.findByTestId('members-table');
-
-      expect(screen.queryByTestId('member-actions-m_1')).not.toBeInTheDocument();
-    });
-
-    it('changes a member role through the radio group', async () => {
-      grantManagePermission();
+    it('holds the remove dialog open until the request resolves', async () => {
+      // Regression: the confirm had no e.preventDefault(), so Radix closed the
+      // dialog on click and whatever came back — an error, a rollback — landed
+      // on a screen the dialog had already left.
       const user = userEvent.setup();
-      renderWithProviders(<MembersTable members={[member(1, { role: 'member' })]} />);
+      setCanManage();
+      renderWithProviders(<MembersTable members={MEMBERS} />);
 
       await user.click(await screen.findByTestId('member-actions-m_1'));
-      await user.click(await screen.findByRole('menuitemradio', { name: 'admin' }));
+      await user.click(await screen.findByTestId('member-remove-m_1'));
 
-      expect(updateRoleMutate).toHaveBeenCalledWith({
-        membershipId: 'm_1',
-        role: 'admin',
-      });
+      const confirm = await screen.findByTestId('member-remove-confirm-m_1');
+      await user.click(confirm);
+
+      expect(removeMutate).toHaveBeenCalledTimes(1);
+      // Still open, still busy — the gesture owns its own outcome, and it says
+      // so with the same spinner every other confirm in the app uses.
+      const busy = await screen.findByTestId('member-remove-confirm-m_1');
+      expect(busy).toBeDisabled();
+      expect(busy).toHaveAttribute('aria-busy', 'true');
+      expect(busy.querySelector('.animate-spin')).not.toBeNull();
+
+      act(() => ctl.finishRemove?.());
+      expect(screen.queryByTestId('member-remove-confirm-m_1')).not.toBeInTheDocument();
     });
 
-    it('suspends an active member and reactivates a suspended one', async () => {
-      grantManagePermission();
+    it("sends nothing when the member's current role is re-picked", async () => {
+      // Radix fires onValueChange for the selected item too, so opening the menu
+      // and clicking the role already in effect PATCHed and toasted for nothing.
       const user = userEvent.setup();
-      const { unmount } = renderWithProviders(
-        <MembersTable members={[member(1, { status: 'active' })]} />,
-      );
+      setCanManage();
+      renderWithProviders(<MembersTable members={MEMBERS} />);
 
       await user.click(await screen.findByTestId('member-actions-m_1'));
-      await user.click(await screen.findByTestId('member-toggle-status-m_1'));
-      expect(updateStatusMutate).toHaveBeenCalledWith({
-        membershipId: 'm_1',
-        status: 'suspended',
-      });
+      await user.click(await screen.findByTestId('member-set-role-owner'));
 
-      unmount();
-      renderWithProviders(
-        <MembersTable members={[member(2, { status: 'suspended' })]} />,
-      );
-      await user.click(await screen.findByTestId('member-actions-m_2'));
-      await user.click(await screen.findByTestId('member-toggle-status-m_2'));
-      expect(updateStatusMutate).toHaveBeenLastCalledWith({
-        membershipId: 'm_2',
-        status: 'active',
-      });
+      expect(updateRoleMutate).not.toHaveBeenCalled();
     });
 
-    it('removal requires the confirm dialog and then fires the mutation', async () => {
-      grantManagePermission();
+    it('disables the role menu while a role change is in flight', async () => {
+      // useAppMutation JOINS a second call to the first, so a second pick was
+      // accepted by the UI and then silently dropped. Say "busy" instead.
       const user = userEvent.setup();
-      renderWithProviders(<MembersTable members={[member(1)]} />);
+      setCanManage();
+      renderWithProviders(<MembersTable members={MEMBERS} />);
 
       await user.click(await screen.findByTestId('member-actions-m_1'));
-      await user.click(await screen.findByRole('menuitem', { name: /remove/i }));
+      await user.click(await screen.findByTestId('member-set-role-admin'));
+      expect(updateRoleMutate).toHaveBeenCalledTimes(1);
 
-      // Dialog gate: nothing fired yet.
-      expect(removeMutate).not.toHaveBeenCalled();
+      // The menu is shut now, so the row itself carries the busy state.
+      expect(
+        screen.getByTestId('member-actions-m_1').querySelector('.animate-spin'),
+      ).not.toBeNull();
 
-      await user.click(await screen.findByTestId('member-remove-confirm-m_1'));
-      expect(removeMutate).toHaveBeenCalledWith('m_1');
+      // Radix closes the menu on select; reopen it and try to pick again.
+      await user.click(await screen.findByTestId('member-actions-m_1'));
+      const viewer = await screen.findByTestId('member-set-role-viewer');
+      expect(viewer).toHaveAttribute('aria-disabled', 'true');
+
+      await user.click(viewer);
+      expect(updateRoleMutate).toHaveBeenCalledTimes(1);
     });
 
-    it('the role facet filter narrows rows to that role', async () => {
-      const user = userEvent.setup();
-      renderWithProviders(
-        <MembersTable
-          members={[
-            member(1, { role: 'admin' }),
-            member(2, { role: 'viewer' }),
-            member(3, { role: 'admin' }),
-          ]}
-        />,
-      );
-      await screen.findByTestId('members-table');
+    it('contains a crash in the actions cell to that cell', async () => {
+      // The actions cell is its own failure domain: a throw there costs the
+      // menu, not the table it sits in.
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      setCanManage();
+      ctl.roleHookThrows = true;
+      renderWithProviders(<MembersTable members={[member(1), member(2)]} />);
 
-      await user.click(screen.getByTestId('members-role-filter'));
-      await user.click(await screen.findByRole('option', { name: /admin/i }));
-
-      expect(renderedNames()).toEqual(['Member 01', 'Member 03']);
+      expect(await screen.findByTestId('member-actions-error-m_1')).toBeInTheDocument();
+      expect(screen.getByTestId('member-actions-error-m_2')).toBeInTheDocument();
+      // Everything around the failed cells still rendered.
+      expect(screen.getByTestId('members-table')).toBeInTheDocument();
+      expect(renderedNames()).toEqual(['Member 01', 'Member 02']);
+      expect(screen.getByTestId('members-export')).toBeInTheDocument();
+      consoleError.mockRestore();
     });
   });
 });

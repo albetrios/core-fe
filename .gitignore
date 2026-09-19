@@ -91,3 +91,11 @@ sbom.cyclonedx.json
 
 # Generated API reference (pnpm docs:api)
 docs/api/
+
+# Throwaway proof/repro harnesses (hardcoded ports, machine paths, API fixtures).
+# Nothing imports them and no gate sees them — four reached the repo this way.
+*.tmp.mjs
+
+# Python bytecode from the agent-os skill scripts — generated on every run.
+__pycache__/
+*.pyc

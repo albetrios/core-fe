@@ -13,9 +13,16 @@
  *     deliberately falls back to English, so only `common` is compared.
  *   - No locale may hold a key that English no longer has (stale translation).
  *
- * Plural variants (`key_one` / `key_other`) satisfy a bare `key` and vice
- * versa, matching i18next resolution. The locale sets are read from
- * `src/lib/i18n/locales.ts` so this gate can never drift from the app config.
+ * Plural coverage is judged against `Intl.PluralRules` for the TARGET language,
+ * never against English's two-form shape. English has `one`/`other`; French,
+ * Spanish, Italian and Portuguese also have `many` (exact millions), and Arabic
+ * has six. A locale that ships only `_one`/`_other` therefore leaves its own
+ * categories unresolved, i18next walks on to `fallbackLng`, and the user reads
+ * ENGLISH inside a translated UI — silently, with no crash and no raw key.
+ * Accepting "any of bare / `_one` / `_other`" is exactly what let that through.
+ *
+ * The locale sets are read from `src/lib/i18n/locales.ts` so this gate can never
+ * drift from the app config.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -64,13 +71,66 @@ const loadNs = (locale, ns) => {
   }
 };
 
-const pluralBase = (k) => k.replace(/_(one|other|zero|two|few|many)$/, '');
-const covers = (set, key) => {
-  const base = pluralBase(key);
-  return (
-    set.has(key) || set.has(base) || set.has(`${base}_one`) || set.has(`${base}_other`)
-  );
-};
+const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
+const pluralBase = (k) => k.replace(PLURAL_SUFFIX, '');
+const pluralSuffix = (k) => PLURAL_SUFFIX.exec(k)?.[1] ?? null;
+
+/**
+ * The cardinal categories the LANGUAGE actually selects, straight from ICU.
+ * This is the gate's whole point: what a locale owes is decided by
+ * `Intl.PluralRules`, not by the shape English happens to have.
+ */
+const categoryCache = new Map();
+function requiredCategories(locale) {
+  let categories = categoryCache.get(locale);
+  if (!categories) {
+    try {
+      categories = new Set(
+        new Intl.PluralRules(locale).resolvedOptions().pluralCategories,
+      );
+    } catch {
+      throw new Error(`'${locale}' is not a locale Intl.PluralRules accepts`);
+    }
+    categoryCache.set(locale, categories);
+  }
+  return categories;
+}
+
+/**
+ * `_zero` is an i18next extension, not a CLDR category: i18next honours an
+ * exact-0 lookup in EVERY language, so `_zero` is never unreachable even where
+ * CLDR omits it. Everything else must be a category the language can select.
+ */
+const ALWAYS_SELECTABLE = new Set(['zero']);
+
+/** Group flat keys by plural base → `{ bare, suffixes }`. */
+function groupByBase(keys) {
+  const bases = new Map();
+  for (const key of keys) {
+    const base = pluralBase(key);
+    let entry = bases.get(base);
+    if (!entry) {
+      entry = { bare: false, suffixes: new Set() };
+      bases.set(base, entry);
+    }
+    const suffix = pluralSuffix(key);
+    if (suffix) entry.suffixes.add(suffix);
+    else entry.bare = true;
+  }
+  return bases;
+}
+
+/**
+ * Categories English parks on its BARE key. i18next's last-resort lookup is the
+ * unsuffixed key, so English writes `passkeysOn` + `passkeysOn_other` and lets
+ * the bare one serve `one`. A target locale may lean on its own bare key for
+ * exactly those categories — and no others, or a missing `_many` would hide
+ * behind the singular wording instead of being reported.
+ */
+function bareKeyStandsFor(enEntry) {
+  if (!enEntry.bare) return [];
+  return [...requiredCategories(DEFAULT_LOCALE)].filter((c) => !enEntry.suffixes.has(c));
+}
 
 const enNamespaces = readdirSync(join(LOCALES_DIR, DEFAULT_LOCALE))
   .filter((f) => f.endsWith('.json'))
@@ -82,6 +142,7 @@ const failures = [];
 for (const locale of ALL_LOCALES) {
   if (locale === DEFAULT_LOCALE) continue;
   const namespaces = PARTIAL.has(locale) ? ['common'] : enNamespaces;
+  const locCategories = requiredCategories(locale);
   for (const ns of namespaces) {
     const enFlat = en[ns];
     if (!enFlat) continue;
@@ -92,15 +153,52 @@ for (const locale of ALL_LOCALES) {
       );
       continue;
     }
-    const locKeys = new Set(Object.keys(locFlat));
-    const missing = Object.keys(enFlat).filter((k) => !covers(locKeys, k));
+    const enBases = groupByBase(Object.keys(enFlat));
+    const locBases = groupByBase(Object.keys(locFlat));
+
+    const missing = [];
+    for (const [base, enEntry] of enBases) {
+      const locEntry = locBases.get(base);
+      if (!locEntry) {
+        missing.push(base);
+        continue;
+      }
+      if (enEntry.suffixes.size === 0) {
+        // Not count-keyed in English — a plain key must exist as a plain key.
+        if (!locEntry.bare) missing.push(base);
+        continue;
+      }
+      const bareServes = bareKeyStandsFor(enEntry);
+      for (const category of locCategories) {
+        const resolvable =
+          locEntry.suffixes.has(category) ||
+          (locEntry.bare && bareServes.includes(category));
+        if (!resolvable) missing.push(`${base}_${category}`);
+      }
+    }
     if (missing.length) {
       failures.push(
         `${locale}/${ns}.json missing ${missing.length} key(s): ${missing.slice(0, 8).join(', ')}${missing.length > 8 ? ', …' : ''}`,
       );
     }
-    const enKeys = new Set(Object.keys(enFlat));
-    const stale = Object.keys(locFlat).filter((k) => !covers(enKeys, k));
+
+    // Plural forms this language can never select. Unreachable copy rots in
+    // silence: a translator edits it and nothing changes on screen.
+    const dead = [];
+    for (const [base, locEntry] of locBases) {
+      for (const suffix of locEntry.suffixes) {
+        const selectable = locCategories.has(suffix) || ALWAYS_SELECTABLE.has(suffix);
+        if (!selectable) dead.push(`${base}_${suffix}`);
+      }
+    }
+    if (dead.length) {
+      failures.push(
+        `${locale}/${ns}.json has ${dead.length} unreachable plural key(s) — '${locale}' selects only ` +
+          `${[...locCategories].join('/')}: ${dead.slice(0, 8).join(', ')}${dead.length > 8 ? ', …' : ''}`,
+      );
+    }
+
+    const stale = [...locBases.keys()].filter((b) => !enBases.has(b));
     if (stale.length) {
       failures.push(
         `${locale}/${ns}.json has ${stale.length} stale key(s) absent from ${DEFAULT_LOCALE}: ${stale.slice(0, 8).join(', ')}${stale.length > 8 ? ', …' : ''}`,
@@ -114,7 +212,9 @@ if (failures.length > 0) {
   for (const line of failures) console.error(`  - ${line}`);
   console.error(
     `\nSource of truth: src/locales/${DEFAULT_LOCALE}. Add the missing keys (translate for full` +
-      '\nlocales; partial locales in PARTIAL_UI_LOCALES translate only common.json).',
+      '\nlocales; partial locales in PARTIAL_UI_LOCALES translate only common.json).' +
+      '\nPlural coverage is per LANGUAGE, from Intl.PluralRules — a count-keyed base owes' +
+      "\nnew Intl.PluralRules('<locale>').resolvedOptions().pluralCategories, not en's one/other.",
   );
   process.exit(1);
 }

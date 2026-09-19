@@ -100,4 +100,67 @@ describe('InviteMemberDialog', () => {
     expect(screen.queryByTestId('invite-member-form')).not.toBeInTheDocument();
     expect(screen.queryByTestId('invite-member-no-roles')).not.toBeInTheDocument();
   });
+
+  // ── SET-11: a failed roles fetch is not "you have no roles" ───────────────
+
+  it('offers a retry when the roles fetch fails, not "go create a role"', async () => {
+    // Regression: the else branch caught isError too, so a network failure told
+    // the user to create a role that already exists.
+    const refetch = vi.fn();
+    const user = userEvent.setup();
+    useRolesMock.mockReturnValue({
+      ...rolesResult([]),
+      isError: true,
+      refetch,
+    });
+    render(<InviteMemberDialog />);
+    await user.click(screen.getByTestId('invite-member-open'));
+
+    expect(await screen.findByTestId('invite-member-roles-error')).toBeInTheDocument();
+    expect(screen.queryByTestId('invite-member-no-roles')).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('retry-button'));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('still guides the user when the fetch SUCCEEDS with no assignable role', async () => {
+    const user = userEvent.setup();
+    useRolesMock.mockReturnValue(rolesResult([role('rol_owner', 'Owner')]));
+    render(<InviteMemberDialog />);
+    await user.click(screen.getByTestId('invite-member-open'));
+
+    expect(await screen.findByTestId('invite-member-no-roles')).toBeInTheDocument();
+    expect(screen.queryByTestId('invite-member-roles-error')).not.toBeInTheDocument();
+  });
+
+  it('never overwrites a role the user already picked', async () => {
+    // The default effect re-runs whenever the first role id changes; a refetch
+    // that reorders the list used to reset the field under the user.
+    const user = userEvent.setup();
+    useRolesMock.mockReturnValue(
+      rolesResult([role('rol_a', 'Support'), role('rol_b', 'Editor')]),
+    );
+    const { rerender } = render(<InviteMemberDialog />);
+    await user.click(screen.getByTestId('invite-member-open'));
+    await screen.findByTestId('invite-member-role');
+
+    await user.click(screen.getByTestId('invite-member-role'));
+    await user.click(await screen.findByRole('option', { name: 'Editor' }));
+    expect(screen.getByTestId('invite-member-role')).toHaveTextContent('Editor');
+
+    // A refetch brings a NEW first role — on the unfixed build the effect fires
+    // again and replaces the user's choice with it.
+    useRolesMock.mockReturnValue(
+      rolesResult([
+        role('rol_c', 'Ops'),
+        role('rol_a', 'Support'),
+        role('rol_b', 'Editor'),
+      ]),
+    );
+    rerender(<InviteMemberDialog />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId('invite-member-role')).toHaveTextContent('Editor'),
+    );
+  });
 });

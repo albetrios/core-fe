@@ -12,6 +12,8 @@ export const AUTH_FORM_TEST_IDS = {
   methodDivider: 'auth-method-divider',
   socialMethods: 'auth-social-methods',
   methodErrorBanner: 'auth-method-error-banner',
+  /** Fallback when the email panel itself throws (its own section boundary). */
+  emailPanelError: 'auth-email-panel-error',
   emailPanel: 'auth-email-panel',
   email: 'auth-email',
   emailError: 'auth-email-error',
@@ -26,6 +28,11 @@ export const AUTH_FORM_TEST_IDS = {
   emailResend: 'auth-email-resend',
   emailChange: 'auth-email-change',
   autoGooglePending: 'auth-auto-google-pending',
+  // The gate notice (this branch) and the inline Turnstile slot (main) are
+  // different surfaces on the same screen, so both sets of hooks are kept.
+  captchaPreparing: 'auth-captcha-preparing',
+  captchaStalled: 'auth-captcha-stalled',
+  captchaRetry: 'auth-captcha-retry',
   captchaSlot: 'auth-captcha-slot',
   skipAutoGoogle: 'auth-skip-auto-google',
   /** Fallback selector for providers without a dedicated `continue*` id. */

@@ -21,6 +21,7 @@
     "integrations": "Integrazioni"
   },
   "security": {
+    "loadFailed": "Non siamo riusciti a caricare le impostazioni di sicurezza. Riprova.",
     "heading": "Sicurezza",
     "description": "Autenticazione a due fattori e passkey.",
     "mfa": {
@@ -71,6 +72,7 @@
       "mfaOn": "L'autenticazione a due fattori è attiva",
       "mfaOff": "L'autenticazione a due fattori è disattivata",
       "passkeysOn": "{{count}} passkey registrata",
+      "passkeysOn_many": "{{count}} di passkey registrate",
       "passkeysOn_other": "{{count}} passkey registrate",
       "passkeysOff": "Nessuna passkey registrata",
       "idleProtection": "Disconnessione automatica per inattività attiva"
@@ -98,7 +100,8 @@
       "verify": "Verifica",
       "verifying": "Verifica…",
       "invalid": "Non corrisponde. Riprova.",
-      "passwordRequired": "Questa azione richiede la password o un codice autenticatore."
+      "passwordRequired": "Questa azione richiede la password o un codice autenticatore.",
+      "sendFailed": "Non è stato possibile inviare il codice. Riprova."
     }
   },
   "discard": {
@@ -106,6 +109,9 @@
     "description": "Hai modifiche non salvate. Lasciare questa sezione le scarterà.",
     "stay": "Continua a modificare",
     "leave": "Scarta modifiche"
+  },
+  "dialog": {
+    "title": "Impostazioni"
   },
   "panels": {
     "members": {
@@ -128,7 +134,9 @@
       "removeConfirm": "Rimuovi",
       "removePending": "Rimozione di {{name}}…",
       "emailPlaceholder": "collega@azienda.com",
-      "rolePlaceholder": "Seleziona un ruolo"
+      "rolePlaceholder": "Seleziona un ruolo",
+      "invite": "Invita membro",
+      "memberFallback": "questo membro"
     },
     "roles": {
       "title": "Ruoli",
@@ -141,6 +149,7 @@
       "loadMore": "Carica altri",
       "systemBadge": "Sistema",
       "memberCount": "{{count}} membro",
+      "memberCount_many": "{{count}} di membri",
       "memberCount_other": "{{count}} membri",
       "actionsAria": "Azioni per {{name}}",
       "editAction": "Modifica ruolo",
@@ -151,7 +160,9 @@
       "deleteConfirm": "Elimina",
       "deletePending": "Eliminazione di {{name}}…",
       "namePlaceholder": "es. Membro",
-      "descriptionPlaceholder": "Cosa può fare questo ruolo?"
+      "descriptionPlaceholder": "Cosa può fare questo ruolo?",
+      "create": "Nuovo ruolo",
+      "roleFallback": "questo ruolo"
     },
     "listSort": {
       "label": "Ordina per",
@@ -177,14 +188,179 @@
       "deleteTitle": "Eliminare il tuo account?",
       "deleteDescription": "Questa azione è permanente e non può essere annullata. Tutti i tuoi dati verranno rimossi.",
       "deleteConfirm": "Elimina account",
-      "deleteCancel": "Annulla"
+      "deleteCancel": "Annulla",
+      "title": "Account",
+      "description": "Dati dell'account e azioni irreversibili.",
+      "infoTitle": "Informazioni account",
+      "infoDescription": "Dettagli sul tuo account.",
+      "accountIdLabel": "ID account",
+      "emailLabel": "Email",
+      "roleLabel": "Ruolo",
+      "emailVerifiedLabel": "Email verificata",
+      "verified": "Verificata",
+      "dangerZone": "Zona pericolosa",
+      "dangerZoneDescription": "Azioni irreversibili per il tuo account.",
+      "deleteHeading": "Elimina account",
+      "deleteBody": "Elimina definitivamente il tuo account e tutti i dati associati.",
+      "deleteAction": "Elimina account"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organizzazione · Generale",
+      "description": "L'identità della tua organizzazione sulla piattaforma.",
+      "loadFailed": "Impossibile caricare i dettagli dell'organizzazione.",
+      "basicsTitle": "Dati principali",
+      "basicsDescription": "Compaiono nel selettore di organizzazione, negli inviti e nelle ricevute via email.",
+      "nameLabel": "Nome dell'organizzazione",
+      "slugLabel": "Slug",
+      "slugHint": "Usato negli URL e nei percorsi API. Contatta l'assistenza per modificarlo.",
+      "save": "Salva modifiche",
+      "logoTitle": "Logo",
+      "logoDescription": "Mostrato nel selettore di organizzazione e negli inviti. Le immagini quadrate rendono meglio.",
+      "logoAlt": "Logo di {{name}}",
+      "logoAltFallback": "Logo dell'organizzazione",
+      "uploadLogo": "Carica logo",
+      "uploading": "Caricamento…",
+      "removeLogo": "Rimuovi",
+      "logoReadOnly": "Solo gli amministratori dell'organizzazione possono cambiare il logo."
     },
     "integrations": {
       "searchPlaceholder": "Cerca chiavi API…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "Integrazioni",
+      "description": "Chiavi API e webhook.",
+      "apiKeysTitle": "Chiavi API",
+      "apiKeysLoadFailed": "Impossibile caricare le chiavi API. Riprova.",
+      "apiKeysEmptyTitle": "Nessuna chiave API",
+      "apiKeysEmptyDescription": "Le chiavi API permettono a servizi esterni di comunicare con la tua organizzazione.",
+      "apiKeysNoResults": "Nessuna chiave API corrispondente",
+      "apiKeysNoResultsDescription": "Nessuna chiave API corrisponde alla ricerca.",
+      "apiKeyFallback": "questa chiave API",
+      "revokeAria": "Revoca {{name}}",
+      "revokeTitle": "Revocare {{name}}?",
+      "revokeDescription": "Qualsiasi servizio che usa questa chiave perderà subito l'accesso. L'operazione non è reversibile.",
+      "revokeConfirm": "Revoca",
+      "loadMore": "Carica altri",
+      "webhooksTitle": "Webhook",
+      "webhooksLoadFailed": "Impossibile caricare i webhook. Riprova.",
+      "webhooksEmptyTitle": "Nessun webhook",
+      "webhooksEmptyDescription": "Invia gli eventi dell'organizzazione a un URL esterno.",
+      "addWebhook": "Aggiungi webhook",
+      "addWebhookTitle": "Aggiungi un webhook",
+      "addWebhookDescription": "Invieremo gli eventi selezionati a questo URL tramite POST.",
+      "payloadUrlLabel": "URL di destinazione",
+      "eventsLabel": "Eventi",
+      "cancel": "Annulla",
+      "createWebhook": "Crea webhook",
+      "creating": "Creazione…",
+      "deleteWebhookAria": "Elimina il webhook {{url}}",
+      "deleteWebhookTitle": "Eliminare questo webhook?",
+      "deleteWebhookDescription": "Gli eventi non verranno più consegnati a questo URL. L'operazione non è reversibile.",
+      "deleteConfirm": "Elimina"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "description": "Scegli di cosa vuoi essere avvisato, e come.",
+      "deliveryTitle": "Recapito",
+      "deliveryDescription": "Scegli un canale per ogni tipo di aggiornamento.",
+      "categories": {
+        "system": "Prodotto e sistema",
+        "systemDescription": "Aggiornamenti, annunci e consigli.",
+        "member": "Attività del team",
+        "memberDescription": "Nuovi membri, cambi di ruolo e inviti.",
+        "billing": "Fatturazione",
+        "billingDescription": "Fatture, cambi di piano e rinnovi.",
+        "security": "Sicurezza",
+        "securityDescription": "Accessi, cambi password ed eventi di sicurezza."
+      },
+      "channels": {
+        "email": "Email",
+        "inApp": "Nell'app",
+        "desktop": "Desktop"
+      }
+    },
+    "appearance": {
+      "title": "Aspetto",
+      "description": "Salvato su questo dispositivo: le modifiche sono immediate.",
+      "shuffle": "Casuale"
+    },
+    "sessions": {
+      "title": "Sessioni",
+      "description": "Dispositivi attualmente connessi al tuo account.",
+      "loadFailed": "Impossibile caricare le tue sessioni. Riprova.",
+      "emptyTitle": "Nessuna sessione attiva",
+      "emptyDescription": "Le sessioni compaiono qui dopo che accedi da un dispositivo.",
+      "currentBadge": "Questo dispositivo",
+      "lastActive": "{{details}} · attivo <1></1>",
+      "signOut": "Esci",
+      "revokeTitle": "Disconnettere questa sessione?",
+      "revokeDescription": "{{device}} verrà disconnesso immediatamente.",
+      "revokeConfirm": "Esci",
+      "deviceFallback": "Questo dispositivo"
+    },
+    "billing": {
+      "title": "Fatturazione",
+      "description": "Il tuo piano, i metodi di pagamento e le fatture.",
+      "loadFailed": "Impossibile caricare la fatturazione. Riprova.",
+      "plansLoadFailed": "Impossibile caricare i piani. Riprova.",
+      "planHeading": "Piano {{name}}",
+      "noPlan": "Nessun piano",
+      "noSubscription": "Nessun abbonamento attivo. Scegli un piano qui sotto.",
+      "summary": "{{used}} di {{total}} postazioni usate · si rinnova il {{date}}",
+      "billedMonthly": "Fatturazione mensile",
+      "billedYearly": "Fatturazione annuale",
+      "pricePerMonth": "{{price}} / mese",
+      "pricePerYear": "{{price}} / anno",
+      "planFallbackDescription": "Piano di fatturazione dello spazio di lavoro.",
+      "currentPlan": "Piano attuale",
+      "switchTo": "Passa a {{name}}",
+      "choose": "Scegli {{name}}",
+      "switching": "Passaggio…",
+      "completePaymentTitle": "Completa il pagamento",
+      "completePaymentDescription": "Conferma il metodo di pagamento per attivare l'abbonamento. Resti nell'app — Stripe apre un passaggio sicuro solo se la tua banca richiede una verifica.",
+      "changePlanTitle": "Cambia piano",
+      "changePlanDescription": "Confronta i piani e cambia quando il tuo team è pronto.",
+      "cycleLegend": "Ciclo di fatturazione",
+      "monthly": "Mensile",
+      "yearly": "Annuale",
+      "paymentMethods": {
+        "title": "Metodi di pagamento",
+        "description": "Carte usate per i rinnovi dell'abbonamento. Gestite in sicurezza nell'app tramite Stripe.",
+        "loadFailed": "Impossibile caricare i metodi di pagamento. Riprova.",
+        "empty": "Nessun metodo di pagamento registrato.",
+        "add": "Aggiungi metodo di pagamento",
+        "adding": "Caricamento…",
+        "cardFallback": "Carta",
+        "expires": "Scade il {{month}}/{{year}}",
+        "defaultBadge": "Predefinito"
+      },
+      "invoices": {
+        "title": "Fatture",
+        "description": "Data, scadenza, importo e stato dal tuo provider di fatturazione.",
+        "loadFailed": "Impossibile caricare le fatture. Riprova.",
+        "empty": "Nessuna fattura.",
+        "view": "Vedi fattura",
+        "columns": {
+          "date": "Data",
+          "due": "Scadenza",
+          "total": "Totale",
+          "status": "Stato",
+          "actions": "Azioni"
+        }
+      },
+      "cancellation": {
+        "title": "Disdetta",
+        "endsOn": "Il tuo abbonamento termina il {{date}}. Mantieni l'accesso fino ad allora.",
+        "cancelAnytime": "Disdici quando vuoi — l'accesso continua fino al {{date}}.",
+        "resume": "Riprendi abbonamento",
+        "resuming": "Ripresa…",
+        "cancelAction": "Disdici a fine periodo",
+        "confirmTitle": "Disdire l'abbonamento?",
+        "confirmDescription": "Il tuo spazio di lavoro mantiene l'accesso completo fino al {{date}}. Dopo, l'abbonamento termina e le funzioni a pagamento potrebbero essere limitate.",
+        "keep": "Mantieni abbonamento",
+        "confirm": "Conferma disdetta",
+        "cancelling": "Disdetta in corso…"
+      }
     }
   }
 }

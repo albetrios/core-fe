@@ -108,7 +108,6 @@
   "members": {
     "ariaLabel": "チームメンバー",
     "heading": "チームメンバー",
-    "description_one": "このワークスペースに {{count}} 人",
     "description_other": "このワークスペースに {{count}} 人",
     "columnMember": "メンバー",
     "columnRole": "ロール",
@@ -119,7 +118,9 @@
       "invited": "招待済み",
       "suspended": "停止中"
     },
-    "error": "メンバーを読み込めませんでした。"
+    "error": "メンバーを読み込めませんでした。",
+    "empty": "このワークスペースにはまだ誰も参加していません。",
+    "noWorkspace": "ワークスペースが選択されていません。"
   },
   "trends": {
     "heading": "利用トレンド",

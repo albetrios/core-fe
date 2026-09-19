@@ -3,7 +3,11 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { HTTP } from '@/core/config/constants.ts';
 import { platformConfig } from '@/core/config/env.ts';
 import { isUnauthorized } from '@/core/http/fetch-client.ts';
-import { notifyError, reportError } from '@/shared/errors/errorHandler.ts';
+import {
+  notifyError,
+  notifyQueryError,
+  reportError,
+} from '@/shared/errors/errorHandler.ts';
 
 /**
  * TanStack Query client.
@@ -35,10 +39,18 @@ export const queryClient = new QueryClient({
           console.error(`[Query Error] ${query.queryKey.toString()}:`, error.message);
         }
         reportError(error, { queryKey: query.queryKey.toString() });
-        // Opt-in: queries that set meta.notifyOnError surface a toast once
-        // (de-duped by query hash). Most queries stay silent (handled inline).
+        // Queries that set meta.notifyOnError surface ONE toast (de-duped by
+        // query hash) carrying a Retry that refetches this exact query. This is
+        // the failure surface for anything that must not move the layout it
+        // lives in — app chrome above all: the header keeps its switcher, the
+        // banner keeps its shape, and the news arrives beside them (X-1).
         if (query.meta?.notifyOnError === true) {
-          notifyError(error, { id: `q:${query.queryHash}` });
+          notifyQueryError(error, {
+            id: `q:${query.queryHash}`,
+            onRetry: () => {
+              void queryClient.refetchQueries({ queryKey: query.queryKey });
+            },
+          });
         }
       }
     },

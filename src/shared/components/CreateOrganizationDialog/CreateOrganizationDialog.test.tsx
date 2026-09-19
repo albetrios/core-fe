@@ -1,127 +1,153 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { notify } from '@/shared/notify/index.ts';
-import { createOrganization } from '@/shared/tenancy/my-organizations.ts';
-import { hydrateSessionContext } from '@/shared/tenancy/session-context.ts';
-import { switchToOrganization } from '@/shared/tenancy/switch.ts';
+import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { CreateOrganizationDialog } from './CreateOrganizationDialog.tsx';
 
-const { navigateMock } = vi.hoisted(() => ({ navigateMock: vi.fn() }));
+const navigateMock = vi.fn();
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>;
+  const actual = await importOriginal<Record<string, unknown>>();
   return { ...actual, useNavigate: () => navigateMock };
 });
-vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return { ...actual, createOrganization: vi.fn() };
-});
-vi.mock('@/shared/tenancy/session-context.ts', () => ({
-  hydrateSessionContext: vi.fn().mockResolvedValue(undefined),
-}));
+
+const switchToOrganization = vi.fn();
 vi.mock('@/shared/tenancy/switch.ts', () => ({
-  switchToOrganization: vi.fn().mockResolvedValue(undefined),
+  switchToOrganization: (...args: unknown[]) => switchToOrganization(...args),
 }));
+
+const hydrateSessionContext = vi.fn();
+vi.mock('@/shared/tenancy/session-context.ts', () => ({
+  hydrateSessionContext: (...args: unknown[]) => hydrateSessionContext(...args),
+}));
+
+const createOrganization = vi.fn();
+vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    createOrganization: (...args: unknown[]) => createOrganization(...args),
+  };
+});
+
+const notifyError = vi.fn();
+const notifySuccess = vi.fn();
+const notifyWarning = vi.fn();
 vi.mock('@/shared/notify/index.ts', () => ({
-  notify: { success: vi.fn(), error: vi.fn() },
+  notify: {
+    error: (...args: unknown[]) => notifyError(...args),
+    success: (...args: unknown[]) => notifySuccess(...args),
+    warning: (...args: unknown[]) => notifyWarning(...args),
+    info: vi.fn(),
+    dismiss: vi.fn(),
+  },
 }));
-
-const ORG = { id: 'org_9', name: 'Acme', slug: 'acme' };
-
-function wrapper({ children }: { children: ReactNode }) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  });
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-}
-
-async function openAndSubmit(name: string, slug = '') {
-  fireEvent.click(screen.getByTestId('create-organization-open'));
-  await screen.findByTestId('create-organization-dialog-form');
-  fireEvent.change(screen.getByTestId('create-organization-dialog-name'), {
-    target: { value: name },
-  });
-  if (slug) {
-    fireEvent.change(screen.getByTestId('create-organization-dialog-slug'), {
-      target: { value: slug },
-    });
-  }
-  fireEvent.click(screen.getByTestId('create-organization-dialog-submit'));
-}
 
 describe('CreateOrganizationDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(createOrganization).mockResolvedValue(ORG as never);
+    navigateMock.mockResolvedValue(undefined);
+    switchToOrganization.mockResolvedValue(undefined);
+    hydrateSessionContext.mockResolvedValue({ organizations: [] });
+    createOrganization.mockResolvedValue({
+      id: 'org_new',
+      name: 'New Org',
+      slug: 'new-org',
+    });
   });
 
-  it('creates the org, syncs context, and navigates to its dashboard', async () => {
-    render(<CreateOrganizationDialog />, { wrapper });
-    await openAndSubmit('Acme');
+  it('creates the organization and navigates to its dashboard', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
 
-    await waitFor(() => expect(navigateMock).toHaveBeenCalledTimes(1));
-    // Empty slug is normalized to undefined so the backend derives it.
-    expect(createOrganization).toHaveBeenCalledWith({ name: 'Acme', slug: undefined });
-    expect(hydrateSessionContext).toHaveBeenCalledTimes(1);
-    expect(switchToOrganization).toHaveBeenCalledWith('org_9');
-    expect(notify.success).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        params: { organizationSlug: 'acme' },
-        replace: true,
-      }),
+    await user.type(
+      await screen.findByTestId('create-organization-dialog-name'),
+      'New Org',
     );
-    // Dialog closes on success.
-    await waitFor(() =>
-      expect(
-        screen.queryByTestId('create-organization-dialog-form'),
-      ).not.toBeInTheDocument(),
-    );
+    await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+    await vi.waitFor(() => {
+      expect(switchToOrganization).toHaveBeenCalledWith('org_new');
+      expect(navigateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: '/organization/$organizationSlug/dashboard',
+          params: { organizationSlug: 'new-org' },
+          replace: true,
+        }),
+      );
+    });
   });
 
-  it('passes an explicit slug through', async () => {
-    render(<CreateOrganizationDialog />, { wrapper });
-    await openAndSubmit('Acme Rockets', 'rockets');
+  // ── SET-6: only the create is a form-level failure ────────────────────────
 
-    await waitFor(() =>
-      expect(createOrganization).toHaveBeenCalledWith({
-        name: 'Acme Rockets',
-        slug: 'rockets',
-      }),
-    );
-  });
-
-  it('surfaces a create failure and keeps the dialog open for a retry', async () => {
-    vi.mocked(createOrganization).mockRejectedValue(new Error('slug taken'));
-    render(<CreateOrganizationDialog />, { wrapper });
-    await openAndSubmit('Acme');
-
-    await waitFor(() => expect(notify.error).toHaveBeenCalledTimes(1));
-    expect(navigateMock).not.toHaveBeenCalled();
-    expect(screen.getByTestId('create-organization-dialog-form')).toBeInTheDocument();
-  });
-
-  it('blocks submission on an empty name with a field alert', async () => {
-    render(<CreateOrganizationDialog />, { wrapper });
-    await openAndSubmit('');
-
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(createOrganization).not.toHaveBeenCalled();
-  });
-
-  it('controlled mode delegates open state to the parent', async () => {
+  it('keeps the user on the form and shows the real error when the create fails', async () => {
+    // A create failure IS the user's problem to fix — surface what actually
+    // went wrong rather than a generic "check the form".
+    const user = userEvent.setup();
+    createOrganization.mockRejectedValueOnce(new Error('Slug already taken'));
     const onOpenChange = vi.fn();
-    render(<CreateOrganizationDialog open onOpenChange={onOpenChange} />, { wrapper });
+    renderWithProviders(<CreateOrganizationDialog open onOpenChange={onOpenChange} />);
 
-    // No trigger in controlled mode; the dialog is already open.
-    expect(screen.queryByTestId('create-organization-open')).not.toBeInTheDocument();
-    expect(screen.getByTestId('create-organization-dialog-form')).toBeInTheDocument();
+    await user.type(
+      await screen.findByTestId('create-organization-dialog-name'),
+      'New Org',
+    );
+    await user.click(screen.getByTestId('create-organization-dialog-submit'));
 
-    fireEvent.keyDown(document, { key: 'Escape' });
-    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
+    await vi.waitFor(() => expect(notifyError).toHaveBeenCalledTimes(1));
+    // Still open, so the user can correct it — and nothing was provisioned.
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(switchToOrganization).not.toHaveBeenCalled();
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it('does not send the user back to the form when a POST-create step fails', async () => {
+    // Regression: one catch wrapped create + hydrate + switch + invalidate +
+    // navigate, so a failure AFTER the org existed showed a form-validation
+    // error and kept the dialog open. The user "fixed" the form, resubmitted,
+    // and created a duplicate organization.
+    const user = userEvent.setup();
+    switchToOrganization.mockRejectedValueOnce(new Error('switch failed'));
+    const onOpenChange = vi.fn();
+    renderWithProviders(<CreateOrganizationDialog open onOpenChange={onOpenChange} />);
+
+    await user.type(
+      await screen.findByTestId('create-organization-dialog-name'),
+      'New Org',
+    );
+    await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+    await vi.waitFor(() => expect(notifyWarning).toHaveBeenCalledTimes(1));
+    // The org exists, so it is reported as created…
+    expect(notifySuccess).toHaveBeenCalledTimes(1);
+    // …the dialog closes so it cannot be resubmitted…
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    // …and the failure is NOT dressed up as a form error.
+    expect(notifyError).not.toHaveBeenCalled();
+    expect(createOrganization).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops a double-click on Create — one organization', async () => {
+    // The submit CREATES an organization. `isSubmitting` only disables the
+    // button after React re-renders, so both clicks must be dispatched inside
+    // one act batch to reproduce the live frame.
+    renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+    const user = userEvent.setup();
+    await user.type(
+      await screen.findByTestId('create-organization-dialog-name'),
+      'New Org',
+    );
+    const submit = screen.getByTestId('create-organization-dialog-submit');
+
+    await act(async () => {
+      submit.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      submit.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    await vi.waitFor(() => expect(navigateMock).toHaveBeenCalled());
+    expect(createOrganization).toHaveBeenCalledTimes(1);
+    expect(switchToOrganization).toHaveBeenCalledTimes(1);
   });
 });

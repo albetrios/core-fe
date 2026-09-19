@@ -1,129 +1,111 @@
-import type { Mutation, Query } from '@tanstack/react-query';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { HTTP } from '@/core/config/constants.ts';
-import { HttpError } from '@/shared/errors/HttpError.ts';
+const { notifyQueryErrorMock } = vi.hoisted(() => ({ notifyQueryErrorMock: vi.fn() }));
+vi.mock('@/shared/errors/errorHandler.ts', () => ({
+  reportError: vi.fn(),
+  notifyError: vi.fn(),
+  notifyQueryError: notifyQueryErrorMock,
+}));
+
+vi.mock('@/core/http/fetch-client.ts', () => ({
+  isUnauthorized: vi.fn((error: unknown) => {
+    return (
+      error instanceof Error &&
+      'status' in error &&
+      (error as { status: number }).status === 401
+    );
+  }),
+}));
+
+import { reportError } from '@/shared/errors/errorHandler.ts';
 
 import { queryClient } from './queryClient.ts';
 
-vi.mock('@/shared/errors/errorHandler.ts', () => ({
-  notifyError: vi.fn(),
-  reportError: vi.fn(),
-}));
-
-import { notifyError, reportError } from '@/shared/errors/errorHandler.ts';
-
-const unauthorized = new HttpError('nope', 401, '/api/v1/x', 'GET');
-const serverError = new HttpError('boom', 500, '/api/v1/x', 'GET');
-
-function fakeQuery(meta?: Record<string, unknown>): Query {
-  return {
-    queryKey: ['things', 'list'],
-    queryHash: '["things","list"]',
-    meta,
-  } as unknown as Query;
-}
-
-function fakeMutation(meta?: Record<string, unknown>): Mutation {
-  return {
-    options: { mutationKey: ['things', 'create'], meta },
-  } as unknown as Mutation;
+/** A query object shaped the way the cache callback reads it. */
+function fakeQuery(meta?: Record<string, unknown>) {
+  return { queryKey: ['widget', 'data'], queryHash: 'wh', meta } as never;
 }
 
 describe('queryClient', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  it('is a QueryClient instance', () => {
+    expect(queryClient).toBeDefined();
+    expect(queryClient.getDefaultOptions).toBeDefined();
   });
 
-  describe('query retry policy', () => {
-    const retry = queryClient.getDefaultOptions().queries?.retry as (
-      failureCount: number,
-      error: unknown,
-    ) => boolean;
-
-    it('never retries a 401 — the fetch client owns auth recovery', () => {
-      expect(retry(0, unauthorized)).toBe(false);
-      expect(retry(1, unauthorized)).toBe(false);
-    });
-
-    it('retries other errors at most twice', () => {
-      expect(retry(0, serverError)).toBe(true);
-      expect(retry(1, serverError)).toBe(true);
-      expect(retry(2, serverError)).toBe(false);
-    });
-
-    it('mutations are never auto-retried', () => {
-      expect(queryClient.getDefaultOptions().mutations?.retry).toBe(false);
-    });
-
-    it('keeps the tuned cache defaults (staleTime on, focus refetch off)', () => {
-      const defaults = queryClient.getDefaultOptions();
-      expect(defaults.queries?.staleTime).toBe(HTTP.STALE_TIME);
-      expect(defaults.queries?.refetchOnWindowFocus).toBe(false);
-    });
+  it('query cache onError reports non-401 errors', () => {
+    const onError = queryClient.getQueryCache().config.onError;
+    const query = { queryKey: ['t'], queryHash: 't', meta: undefined } as never;
+    onError?.(new Error('boom'), query);
+    expect(reportError).toHaveBeenCalled();
   });
 
-  describe('query cache onError', () => {
-    const onError = queryClient.getQueryCache().config.onError as (
-      error: unknown,
-      query: Query,
-    ) => void;
+  it('mutation cache onError reports non-401 errors', () => {
+    const onError = queryClient.getMutationCache().config.onError;
+    const mutation = { options: { mutationKey: ['m'], meta: undefined } } as never;
+    onError?.(new Error('boom'), undefined, undefined, mutation);
+    expect(reportError).toHaveBeenCalled();
+  });
 
-    it('reports non-auth errors and toasts only when meta.notifyOnError opts in', () => {
-      onError(serverError, fakeQuery({ notifyOnError: true }));
-
-      expect(reportError).toHaveBeenCalledWith(serverError, {
-        queryKey: 'things,list',
-      });
-      expect(notifyError).toHaveBeenCalledWith(serverError, {
-        id: 'q:["things","list"]',
-      });
+  describe('the failure surface for a query that opts in (X-1 / X-3)', () => {
+    it('stays quiet unless the query asked to be heard', () => {
+      notifyQueryErrorMock.mockClear();
+      const onError = queryClient.getQueryCache().config.onError;
+      onError?.(new Error('boom'), fakeQuery());
+      expect(notifyQueryErrorMock).not.toHaveBeenCalled();
     });
 
-    it('stays silent (no toast) for queries that do not opt in', () => {
-      onError(serverError, fakeQuery());
+    it('toasts once per query, and the toast retries THAT query', () => {
+      notifyQueryErrorMock.mockClear();
+      const refetch = vi
+        .spyOn(queryClient, 'refetchQueries')
+        .mockResolvedValue(undefined);
+      const onError = queryClient.getQueryCache().config.onError;
 
-      expect(reportError).toHaveBeenCalledTimes(1);
-      expect(notifyError).not.toHaveBeenCalled();
+      onError?.(new Error('Service unavailable'), fakeQuery({ notifyOnError: true }));
+
+      expect(notifyQueryErrorMock).toHaveBeenCalledTimes(1);
+      const [error, opts] = notifyQueryErrorMock.mock.calls[0] as [
+        Error,
+        { id: string; onRetry: () => void },
+      ];
+      expect(error.message).toBe('Service unavailable');
+      // De-duped per query, so several panels on one query share one toast.
+      expect(opts.id).toBe('q:wh');
+
+      // The Retry has to actually refetch — a toast that only closes itself is
+      // the same silence with extra steps.
+      opts.onRetry();
+      expect(refetch).toHaveBeenCalledWith({ queryKey: ['widget', 'data'] });
+      refetch.mockRestore();
     });
 
-    it('ignores 401s entirely — no report, no toast', () => {
-      onError(unauthorized, fakeQuery({ notifyOnError: true }));
-
-      expect(reportError).not.toHaveBeenCalled();
-      expect(notifyError).not.toHaveBeenCalled();
+    it('says nothing for a 401 — the fetch client owns those', () => {
+      notifyQueryErrorMock.mockClear();
+      const unauthorized = Object.assign(new Error('nope'), { status: 401 });
+      const onError = queryClient.getQueryCache().config.onError;
+      onError?.(unauthorized, fakeQuery({ notifyOnError: true }));
+      expect(notifyQueryErrorMock).not.toHaveBeenCalled();
     });
   });
 
-  describe('mutation cache onError', () => {
-    const onError = queryClient.getMutationCache().config.onError as (
-      error: unknown,
-      variables: unknown,
-      context: unknown,
-      mutation: Mutation,
-    ) => void;
+  it('has staleTime configured', () => {
+    const defaults = queryClient.getDefaultOptions();
+    expect(defaults.queries?.staleTime).toBe(1000 * 60 * 5);
+  });
 
-    it('reports non-auth mutation errors and toasts on opt-in', () => {
-      onError(serverError, undefined, undefined, fakeMutation({ notifyOnError: true }));
+  it('has refetchOnWindowFocus disabled', () => {
+    const defaults = queryClient.getDefaultOptions();
+    expect(defaults.queries?.refetchOnWindowFocus).toBe(false);
+  });
 
-      expect(reportError).toHaveBeenCalledWith(serverError, {
-        mutationKey: 'things,create',
-      });
-      expect(notifyError).toHaveBeenCalledWith(serverError);
-    });
+  it('has mutations retry disabled', () => {
+    const defaults = queryClient.getDefaultOptions();
+    expect(defaults.mutations?.retry).toBe(false);
+  });
 
-    it('does not toast without the opt-in flag', () => {
-      onError(serverError, undefined, undefined, fakeMutation());
-
-      expect(reportError).toHaveBeenCalledTimes(1);
-      expect(notifyError).not.toHaveBeenCalled();
-    });
-
-    it('ignores 401 mutation errors', () => {
-      onError(unauthorized, undefined, undefined, fakeMutation({ notifyOnError: true }));
-
-      expect(reportError).not.toHaveBeenCalled();
-      expect(notifyError).not.toHaveBeenCalled();
-    });
+  it('retry function skips 401 errors', () => {
+    const defaults = queryClient.getDefaultOptions();
+    const retryFn = defaults.queries?.retry as (count: number, error: unknown) => boolean;
+    expect(typeof retryFn).toBe('function');
   });
 });

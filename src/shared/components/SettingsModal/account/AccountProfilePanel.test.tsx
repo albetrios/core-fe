@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
@@ -37,5 +38,57 @@ describe('AccountProfilePanel', () => {
 
     expect(screen.getByDisplayValue('Ada Lovelace')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Principal Engineer')).toBeInTheDocument();
+  });
+
+  // ── SET-18: a profile that arrives after the panel did ───────────────────
+
+  const LATE_USER = {
+    id: 'usr_late00000000000000x',
+    email: 'ada@acme.test',
+    role: 'user' as const,
+    name: 'Ada Lovelace',
+    jobTitle: 'Head of Engineering',
+  };
+
+  it('fills in when the profile lands after mount', async () => {
+    // Regression: the panel snapshotted the user into useState and RHF read
+    // defaultValues once, so a session write that arrived a beat later (a
+    // proactive refresh re-reads me/context) left an empty form at 0% forever.
+    useAuthStore.getState().setUser({
+      id: LATE_USER.id,
+      email: LATE_USER.email,
+      role: 'user',
+    });
+    renderQ(<AccountProfilePanel />);
+
+    expect(screen.getByTestId('profile-name')).toHaveValue('');
+    expect(screen.getByText(/0% complete/i)).toBeInTheDocument();
+
+    act(() => useAuthStore.getState().setUser(LATE_USER));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-name')).toHaveValue('Ada Lovelace'),
+    );
+    expect(screen.getByTestId('profile-job-title')).toHaveValue('Head of Engineering');
+    expect(screen.getByText(/100% complete/i)).toBeInTheDocument();
+  });
+
+  it('never overwrites what the user has already typed', async () => {
+    // The other half of the same rule: a late store write fills an UNTOUCHED
+    // form and leaves a touched one alone.
+    const user = userEvent.setup();
+    useAuthStore.getState().setUser({
+      id: LATE_USER.id,
+      email: LATE_USER.email,
+      role: 'user',
+    });
+    renderQ(<AccountProfilePanel />);
+
+    await user.type(screen.getByTestId('profile-name'), 'Grace Hopper');
+    act(() => useAuthStore.getState().setUser(LATE_USER));
+
+    // A beat later the store says "Ada Lovelace"; the field still says Grace.
+    await waitFor(() => expect(screen.getByTestId('profile-job-title')).toHaveValue(''));
+    expect(screen.getByTestId('profile-name')).toHaveValue('Grace Hopper');
   });
 });

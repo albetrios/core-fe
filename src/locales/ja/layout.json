@@ -140,11 +140,23 @@
       "cancel": "キャンセル",
       "confirmRemove": "削除",
       "rolePlaceholder": "ロール",
-      "searchPlaceholder": "メンバーを検索…"
+      "searchPlaceholder": "メンバーを検索…",
+      "removing": "削除しています…"
     },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
-      "slugPlaceholder": "acme"
+      "slugPlaceholder": "acme",
+      "title": "組織を作成",
+      "nameLabel": "組織名",
+      "slugLabel": "ワークスペース URL（任意）",
+      "submit": "組織を作成",
+      "submitting": "作成中…"
+    },
+    "theme": {
+      "light": "ライト",
+      "dark": "ダーク",
+      "system": "システム",
+      "shuffle": "テーマをシャッフル"
     }
   },
   "public": {

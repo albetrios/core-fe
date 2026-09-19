@@ -12,6 +12,8 @@ export const MFA_TEST_IDS = {
   form: 'mfa-form',
   formError: 'form-error',
   code: 'mfa-code',
+  /** Fallback shown when the MFA form itself throws (section boundary). */
+  boundaryError: 'mfa-form-boundary-error',
   submit: 'mfa-submit',
   toggleRecovery: 'mfa-toggle-recovery',
 } as const;

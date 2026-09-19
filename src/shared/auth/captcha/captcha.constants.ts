@@ -4,6 +4,15 @@ export const CAPTCHA_TOKEN_HEADER = 'X-Captcha-Token';
 /** Placeholder token from the dev captcha checkbox widget when Turnstile is disabled. */
 export const DEV_CAPTCHA_TOKEN = 'dev-captcha-token';
 
+/**
+ * How long a captcha-gated action may sit blocked before the UI calls it stalled.
+ *
+ * A mint normally lands in a few hundred ms, so this is long enough never to flash
+ * during the routine re-mint after a token is consumed, and short enough that a
+ * widget which never calls back does not strand the user silently.
+ */
+export const CAPTCHA_REMINT_STALL_MS = 6_000;
+
 /** Cloudflare Turnstile always-pass test site key (local dev + E2E). */
 export const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA';
 

@@ -62,6 +62,7 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 | **PWA manifest / app icon / favicon / theme_color** — install surface, Boxes icon, manifest sync | pwa-manifest | `agent-os/skills/pwa-manifest/SKILL.md` |
 | **Local production perf** — bundle size, Lighthouse on built app (not dev server) | local-production-perf (doc) · project-health-check | `docs/reference/local-production-perf.md` |
 | **Naming a git branch** — creating a branch, renaming a `claude/*` session branch before pushing | git-branch-naming (rule) · code-quality-security | `agent-os/rules/git-branch-naming.mdc` · `docs/process/trunk-based-workflow.md` |
+| **Resilient interactions** — single-flight writes, contained component crashes, honest loading/empty/error states, timers and listeners | resilient-interactions (rule + skill) · http-forms-errors | `agent-os/rules/resilient-interactions.mdc` · `agent-os/skills/resilient-interactions/SKILL.md` · `agent-os/skills/http-forms-errors/SKILL.md` |
 
 ## Auto-Invocation Rules
 
@@ -94,6 +95,8 @@ When a task matches a pattern below, read the corresponding SKILL.md **before** 
 3i. **Agent-os changes**: When creating or editing anything under `agent-os/skills/` or `agent-os/rules/`, invoke **`agent-os-authoring`** — eight registration surfaces, and the tree regenerates last.
 
 3j. **Review response**: When handed a review report or PR review threads, invoke **`review-response`** — verify every claim against the code, including the ones the review marked resolved.
+
+3k. **Resilient interactions**: When adding or changing any mutating control, composed surface, success toast, optimistic edit, multi-step flow that ends in a redirect, or screen whose shape comes from a query, follow **`agent-os/rules/resilient-interactions.mdc`** — 28 standing rules, `alwaysApply`, one line each. The failure each came from and the code that holds are in **`agent-os/skills/resilient-interactions/SKILL.md`**; read it before applying an unfamiliar rule or arguing with one. Writes are single-flight through **`useAppMutation`** (§1, §20), a component crash stays inside its own boundary (§2), and every query renders all three of its states (§8, §19). Pair with **`http-forms-errors`** for the mutation/error wiring itself.
 
 4. **Page Scaffolding**: When creating a new page, invoke `page-scaffolding` (after `route-island`) to ensure all standard files are created and `data-testid` attributes are placed (via `e2e-testids` skill).
 

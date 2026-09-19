@@ -68,9 +68,11 @@ interface OnboardingStore {
   /**
    * Bind the persisted progress to `userId`, WIPING it first when it belongs
    * to a different (or unknown) user. Call before trusting any persisted
-   * wizard state — OnboardingPage does this as soon as the session user is
-   * known, so one browser profile can never leak one user's onboarding data
-   * into another user's account.
+   * wizard state — the `/onboarding` route guard (`requireOnboardingWorkspace`
+   * in `app/guards/route-guards.ts`) does this in `beforeLoad`, as soon as the
+   * session context resolves and before the page renders, so one browser
+   * profile can never leak one user's onboarding data into another user's
+   * account — nor paint it for a frame on the way (ONB-4).
    */
   claimForUser: (userId: string) => void;
 }

@@ -21,6 +21,7 @@
     "integrations": "एकीकरण"
   },
   "security": {
+    "loadFailed": "हम आपकी सुरक्षा सेटिंग्स लोड नहीं कर सके. कृपया फिर से कोशिश करें.",
     "heading": "सुरक्षा",
     "description": "दो-कारक प्रमाणीकरण और पासकी।",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "सत्यापित करें",
       "verifying": "सत्यापित हो रहा है…",
       "invalid": "मेल नहीं खाया। कृपया फिर कोशिश करें।",
-      "passwordRequired": "इस क्रिया के लिए आपका पासवर्ड या ऑथेंटिकेटर कोड चाहिए।"
+      "passwordRequired": "इस क्रिया के लिए आपका पासवर्ड या ऑथेंटिकेटर कोड चाहिए।",
+      "sendFailed": "हम कोड नहीं भेज सके। कृपया फिर से प्रयास करें।"
     }
   },
   "discard": {
@@ -106,6 +108,9 @@
     "description": "आपके पास असहेजे परिवर्तन हैं। इस अनुभाग को छोड़ने से वे हट जाएँगे।",
     "stay": "संपादन जारी रखें",
     "leave": "परिवर्तन छोड़ें"
+  },
+  "dialog": {
+    "title": "सेटिंग्स"
   },
   "panels": {
     "members": {
@@ -128,7 +133,9 @@
       "removeConfirm": "हटाएँ",
       "removePending": "{{name}} हटाया जा रहा है…",
       "emailPlaceholder": "member@example.com",
-      "rolePlaceholder": "एक भूमिका चुनें"
+      "rolePlaceholder": "एक भूमिका चुनें",
+      "invite": "सदस्य आमंत्रित करें",
+      "memberFallback": "इस सदस्य"
     },
     "roles": {
       "title": "भूमिकाएँ",
@@ -151,7 +158,9 @@
       "deleteConfirm": "हटाएँ",
       "deletePending": "{{name}} हटाया जा रहा है…",
       "namePlaceholder": "उदा. सदस्य",
-      "descriptionPlaceholder": "यह भूमिका क्या कर सकती है?"
+      "descriptionPlaceholder": "यह भूमिका क्या कर सकती है?",
+      "create": "नई भूमिका",
+      "roleFallback": "यह भूमिका"
     },
     "listSort": {
       "label": "क्रमबद्ध करें",
@@ -177,14 +186,179 @@
       "deleteTitle": "अपना खाता हटाएँ?",
       "deleteDescription": "यह क्रिया स्थायी है और पूर्ववत नहीं की जा सकती। आपका सारा डेटा हट जाएगा।",
       "deleteConfirm": "खाता हटाएँ",
-      "deleteCancel": "रद्द करें"
+      "deleteCancel": "रद्द करें",
+      "title": "खाता",
+      "description": "खाते का विवरण और अपरिवर्तनीय क्रियाएँ।",
+      "infoTitle": "खाता जानकारी",
+      "infoDescription": "आपके खाते का विवरण।",
+      "accountIdLabel": "खाता आईडी",
+      "emailLabel": "ईमेल",
+      "roleLabel": "भूमिका",
+      "emailVerifiedLabel": "ईमेल सत्यापित",
+      "verified": "सत्यापित",
+      "dangerZone": "जोखिम क्षेत्र",
+      "dangerZoneDescription": "आपके खाते के लिए अपरिवर्तनीय क्रियाएँ।",
+      "deleteHeading": "खाता हटाएँ",
+      "deleteBody": "अपना खाता और उससे जुड़ा सारा डेटा स्थायी रूप से हटाएँ।",
+      "deleteAction": "खाता हटाएँ"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "संगठन · सामान्य",
+      "description": "प्लेटफ़ॉर्म पर आपके संगठन की पहचान।",
+      "loadFailed": "संगठन का विवरण लोड नहीं हो सका।",
+      "basicsTitle": "मूल जानकारी",
+      "basicsDescription": "ये संगठन स्विचर, आमंत्रणों और ईमेल रसीदों में दिखती हैं।",
+      "nameLabel": "संगठन का नाम",
+      "slugLabel": "स्लग",
+      "slugHint": "URL और API पथों में उपयोग होता है। बदलने के लिए सहायता से संपर्क करें।",
+      "save": "परिवर्तन सहेजें",
+      "logoTitle": "लोगो",
+      "logoDescription": "संगठन स्विचर और आमंत्रणों में दिखता है। चौकोर छवियाँ सबसे अच्छी लगती हैं।",
+      "logoAlt": "{{name}} का लोगो",
+      "logoAltFallback": "संगठन का लोगो",
+      "uploadLogo": "लोगो अपलोड करें",
+      "uploading": "अपलोड हो रहा है…",
+      "removeLogo": "हटाएँ",
+      "logoReadOnly": "केवल संगठन के व्यवस्थापक ही लोगो बदल सकते हैं।"
     },
     "integrations": {
       "searchPlaceholder": "API कुंजियाँ खोजें…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "एकीकरण",
+      "description": "API कुंजियाँ और वेबहुक।",
+      "apiKeysTitle": "API कुंजियाँ",
+      "apiKeysLoadFailed": "API कुंजियाँ लोड नहीं हो सकीं। कृपया फिर कोशिश करें।",
+      "apiKeysEmptyTitle": "कोई API कुंजी नहीं",
+      "apiKeysEmptyDescription": "API कुंजियाँ बाहरी सेवाओं को आपके संगठन से संवाद करने देती हैं।",
+      "apiKeysNoResults": "कोई मेल खाती API कुंजी नहीं",
+      "apiKeysNoResultsDescription": "आपकी खोज से कोई API कुंजी मेल नहीं खाती।",
+      "apiKeyFallback": "यह API कुंजी",
+      "revokeAria": "{{name}} निरस्त करें",
+      "revokeTitle": "{{name}} निरस्त करें?",
+      "revokeDescription": "इस कुंजी का उपयोग करने वाली कोई भी सेवा तुरंत पहुँच खो देगी। इसे पूर्ववत नहीं किया जा सकता।",
+      "revokeConfirm": "निरस्त करें",
+      "loadMore": "और लोड करें",
+      "webhooksTitle": "वेबहुक",
+      "webhooksLoadFailed": "वेबहुक लोड नहीं हो सके। कृपया फिर कोशिश करें।",
+      "webhooksEmptyTitle": "कोई वेबहुक नहीं",
+      "webhooksEmptyDescription": "संगठन की घटनाएँ किसी बाहरी URL पर भेजें।",
+      "addWebhook": "वेबहुक जोड़ें",
+      "addWebhookTitle": "वेबहुक जोड़ें",
+      "addWebhookDescription": "हम चुनी गई घटनाएँ इस URL पर POST करेंगे।",
+      "payloadUrlLabel": "पेलोड URL",
+      "eventsLabel": "घटनाएँ",
+      "cancel": "रद्द करें",
+      "createWebhook": "वेबहुक बनाएँ",
+      "creating": "बन रहा है…",
+      "deleteWebhookAria": "वेबहुक {{url}} हटाएँ",
+      "deleteWebhookTitle": "यह वेबहुक हटाएँ?",
+      "deleteWebhookDescription": "इस URL पर घटनाएँ भेजना बंद हो जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
+      "deleteConfirm": "हटाएँ"
+    },
+    "notifications": {
+      "title": "सूचनाएँ",
+      "description": "चुनें कि आपको किस बारे में और कैसे सूचित किया जाए।",
+      "deliveryTitle": "डिलीवरी",
+      "deliveryDescription": "हर तरह के अपडेट के लिए एक चैनल चुनें।",
+      "categories": {
+        "system": "उत्पाद और सिस्टम",
+        "systemDescription": "अपडेट, घोषणाएँ और सुझाव।",
+        "member": "टीम गतिविधि",
+        "memberDescription": "सदस्य जुड़ना, भूमिका बदलाव और आमंत्रण।",
+        "billing": "बिलिंग",
+        "billingDescription": "चालान, प्लान बदलाव और नवीनीकरण।",
+        "security": "सुरक्षा",
+        "securityDescription": "साइन-इन, पासवर्ड बदलाव और सुरक्षा घटनाएँ।"
+      },
+      "channels": {
+        "email": "ईमेल",
+        "inApp": "ऐप में",
+        "desktop": "डेस्कटॉप"
+      }
+    },
+    "appearance": {
+      "title": "दिखावट",
+      "description": "इस डिवाइस पर सहेजा गया — बदलाव तुरंत लागू होते हैं।",
+      "shuffle": "शफ़ल"
+    },
+    "sessions": {
+      "title": "सत्र",
+      "description": "आपके खाते में अभी साइन इन डिवाइस।",
+      "loadFailed": "आपके सत्र लोड नहीं हो सके। कृपया फिर कोशिश करें।",
+      "emptyTitle": "कोई सक्रिय सत्र नहीं",
+      "emptyDescription": "किसी डिवाइस पर साइन इन करने के बाद सत्र यहाँ दिखेंगे।",
+      "currentBadge": "यह डिवाइस",
+      "lastActive": "{{details}} · सक्रिय <1></1>",
+      "signOut": "साइन आउट",
+      "revokeTitle": "इस सत्र से साइन आउट करें?",
+      "revokeDescription": "{{device}} तुरंत साइन आउट हो जाएगा।",
+      "revokeConfirm": "साइन आउट",
+      "deviceFallback": "यह डिवाइस"
+    },
+    "billing": {
+      "title": "बिलिंग",
+      "description": "आपकी योजना, भुगतान विधियाँ और चालान।",
+      "loadFailed": "बिलिंग लोड नहीं हो सकी। कृपया फिर कोशिश करें।",
+      "plansLoadFailed": "योजनाएँ लोड नहीं हो सकीं। कृपया फिर कोशिश करें।",
+      "planHeading": "{{name}} योजना",
+      "noPlan": "कोई योजना नहीं",
+      "noSubscription": "अभी कोई सक्रिय सदस्यता नहीं है। नीचे से एक योजना चुनें।",
+      "summary": "{{total}} में से {{used}} सीटें उपयोग में · {{date}} को नवीनीकरण",
+      "billedMonthly": "मासिक बिलिंग",
+      "billedYearly": "वार्षिक बिलिंग",
+      "pricePerMonth": "{{price}} / माह",
+      "pricePerYear": "{{price}} / वर्ष",
+      "planFallbackDescription": "कार्यक्षेत्र की बिलिंग योजना।",
+      "currentPlan": "वर्तमान योजना",
+      "switchTo": "{{name}} पर स्विच करें",
+      "choose": "{{name}} चुनें",
+      "switching": "स्विच हो रहा है…",
+      "completePaymentTitle": "भुगतान पूरा करें",
+      "completePaymentDescription": "सदस्यता सक्रिय करने के लिए अपनी भुगतान विधि की पुष्टि करें। आप ऐप में ही रहते हैं — Stripe सुरक्षित चरण तभी खोलता है जब आपका बैंक सत्यापन माँगे।",
+      "changePlanTitle": "योजना बदलें",
+      "changePlanDescription": "योजनाओं की तुलना करें और जब आपकी टीम तैयार हो तब बदलें।",
+      "cycleLegend": "बिलिंग चक्र",
+      "monthly": "मासिक",
+      "yearly": "वार्षिक",
+      "paymentMethods": {
+        "title": "भुगतान विधियाँ",
+        "description": "सदस्यता नवीनीकरण के लिए उपयोग किए जाने वाले कार्ड। Stripe के ज़रिए ऐप में सुरक्षित रूप से प्रबंधित।",
+        "loadFailed": "भुगतान विधियाँ लोड नहीं हो सकीं। कृपया फिर कोशिश करें।",
+        "empty": "अभी कोई भुगतान विधि सहेजी नहीं गई है।",
+        "add": "भुगतान विधि जोड़ें",
+        "adding": "लोड हो रहा है…",
+        "cardFallback": "कार्ड",
+        "expires": "समाप्ति {{month}}/{{year}}",
+        "defaultBadge": "डिफ़ॉल्ट"
+      },
+      "invoices": {
+        "title": "चालान",
+        "description": "आपके बिलिंग प्रदाता से तिथि, नियत तिथि, राशि और स्थिति।",
+        "loadFailed": "चालान लोड नहीं हो सके। कृपया फिर कोशिश करें।",
+        "empty": "अभी कोई चालान नहीं।",
+        "view": "चालान देखें",
+        "columns": {
+          "date": "तिथि",
+          "due": "नियत तिथि",
+          "total": "कुल",
+          "status": "स्थिति",
+          "actions": "क्रियाएँ"
+        }
+      },
+      "cancellation": {
+        "title": "रद्दीकरण",
+        "endsOn": "आपकी सदस्यता {{date}} को समाप्त होती है। तब तक पहुँच बनी रहती है।",
+        "cancelAnytime": "कभी भी रद्द करें — पहुँच {{date}} तक जारी रहती है।",
+        "resume": "सदस्यता फिर शुरू करें",
+        "resuming": "फिर शुरू हो रही है…",
+        "cancelAction": "अवधि के अंत में रद्द करें",
+        "confirmTitle": "सदस्यता रद्द करें?",
+        "confirmDescription": "आपके कार्यक्षेत्र की पूरी पहुँच {{date}} तक बनी रहती है। उसके बाद सदस्यता समाप्त हो जाती है और सशुल्क सुविधाएँ सीमित हो सकती हैं।",
+        "keep": "सदस्यता रखें",
+        "confirm": "रद्दीकरण की पुष्टि करें",
+        "cancelling": "रद्द हो रहा है…"
+      }
     }
   }
 }

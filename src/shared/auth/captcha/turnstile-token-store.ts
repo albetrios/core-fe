@@ -47,6 +47,22 @@ export function setTurnstileResetHandler(handler: (() => void) | undefined): voi
 }
 
 /**
+ * Asks the widget for a fresh token, outside the consume path.
+ *
+ * The re-mint after {@link consumeTurnstileToken} is fire-and-forget: if the widget
+ * never calls back, every captcha-gated action stays blocked with nothing in flight.
+ * The auth UI offers a retry for that dead end and needs this to drive it.
+ *
+ * @returns `false` when no widget is mounted, so the caller can say so rather than
+ * pretending it retried.
+ */
+export function requestTurnstileReset(): boolean {
+  if (!requestReset) return false;
+  requestReset();
+  return true;
+}
+
+/**
  * Returns the current token and immediately invalidates it: the stored value is cleared
  * (Turnstile tokens are single-use) and the widget is asked to solve again so the next
  * auth request carries a fresh token. Returns `undefined` when no token is available.

@@ -11,16 +11,35 @@
     "pageMessage": "渲染此页面时出错。",
     "tryAgain": "重试",
     "goHome": "返回首页",
-    "refresh": "刷新页面"
+    "refresh": "刷新页面",
+    "forbidden": "你没有访问此页面的权限。",
+    "signOut": "退出登录",
+    "signingOut": "正在退出…"
   },
   "widget": {
     "unavailable": "{{title}} 不可用",
     "message": "加载此区域时出错。请重试。",
     "retry": "重试",
+    "unavailableShort": "不可用",
+    "controlRetry": "{{title}}不可用。选择以重试。",
     "pageContent": "页面内容",
+    "navigation": "导航",
     "emailBanner": "邮箱验证",
     "notifications": "通知",
-    "organizationSwitcher": "组织切换"
+    "organizationSwitcher": "组织切换",
+    "commandPalette": "命令面板",
+    "settings": "设置",
+    "appearance": "外观",
+    "analytics": "分析",
+    "members": "成员",
+    "schedule": "日程",
+    "highlights": "精选",
+    "themeShowcase": "主题展示",
+    "sessionTimeout": "会话计时器",
+    "securityCheck": "安全检查",
+    "appearanceControls": "外观控件",
+    "payment": "付款",
+    "cancellation": "取消订阅"
   },
   "toast": {
     "dismiss": "关闭通知",
@@ -65,7 +84,8 @@
       "logoReadFailed": "无法读取该文件。",
       "formCheck": "请检查表单",
       "updateSuccess": "组织已更新",
-      "createSuccess": "已创建 {{name}}"
+      "createSuccess": "已创建 {{name}}",
+      "createdSwitchFailed": "已创建 {{name}}，但无法打开。请在组织切换器中选择它。"
     },
     "account": {
       "copyFailed": "无法复制到剪贴板",
@@ -132,7 +152,10 @@
       },
       "subscription": {
         "changePlanFailed": "无法更改套餐",
-        "changePlanSuccess": "已切换到 {{plan}} 套餐"
+        "changePlanSuccess": "已切换到 {{plan}} 套餐",
+        "paymentSetupFailed": "套餐已更改，但无法开始付款步骤。请重新打开账单页面完成。",
+        "cancelSuccess": "订阅将在本计费周期结束时终止",
+        "resumeSuccess": "订阅已恢复"
       },
       "invitations": {
         "sendFailed": "无法发送邀请",
@@ -140,5 +163,10 @@
       }
     },
     "profileUpdated": "个人资料已更新"
+  },
+  "suspended": {
+    "title": "组织已暂停",
+    "message": "该组织当前已暂停。请联系组织管理员核对账单，或切换到其他组织。",
+    "switchOrganization": "切换组织"
   }
 }

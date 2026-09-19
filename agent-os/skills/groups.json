@@ -17,7 +17,8 @@
       "route-island",
       "routing-tenancy",
       "resource-crud",
-      "http-forms-errors"
+      "http-forms-errors",
+      "resilient-interactions"
     ],
     "testing": [
       "test-generation",

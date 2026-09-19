@@ -11,7 +11,17 @@ vi.mock('@/shared/auth/token.ts', () => ({
 import { silentRefresh } from '@/shared/auth/service.ts';
 import { getTokenExpiry } from '@/shared/auth/token.ts';
 
-import { cancelTokenRefresh, scheduleTokenRefresh } from './refresh-timer.ts';
+import {
+  cancelTokenRefresh,
+  hasDeferredVisibilityListener,
+  scheduleTokenRefresh,
+} from './refresh-timer.ts';
+
+/** Drive the tab hidden/visible the way the browser does. */
+function setHidden(hidden: boolean) {
+  Object.defineProperty(document, 'hidden', { value: hidden, configurable: true });
+  document.dispatchEvent(new Event('visibilitychange'));
+}
 
 /** Overrides `document.hidden` (read-only in jsdom) for the defer-path tests. */
 function setDocumentHidden(hidden: boolean): void {
@@ -72,6 +82,55 @@ describe('refresh-timer', () => {
     const count2 = vi.getTimerCount();
 
     expect(count2).toBe(count1);
+  });
+
+  describe('the deferred visibility listener (X-7)', () => {
+    // Firing against a hidden tab defers the refresh until the tab comes back.
+    // That listener used to outlive the session: cancelTokenRefresh cleared the
+    // timer id and nothing else, so after logout the next focus ran a refresh
+    // for a dead session — against a backend that treats refresh reuse as an
+    // attack — and a listener accumulated per login/logout cycle.
+    function deferUntilVisible() {
+      const futureExp = Math.floor(Date.now() / 1000) + 300;
+      vi.mocked(getTokenExpiry).mockReturnValue(futureExp);
+      Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+      scheduleTokenRefresh();
+      vi.runOnlyPendingTimers();
+    }
+
+    it('cancelTokenRefresh removes it, so a later focus refreshes nothing', () => {
+      vi.mocked(silentRefresh).mockClear();
+      deferUntilVisible();
+      expect(hasDeferredVisibilityListener()).toBe(true);
+
+      cancelTokenRefresh(); // this is what logout calls
+      expect(hasDeferredVisibilityListener()).toBe(false);
+
+      setHidden(false);
+      expect(silentRefresh).not.toHaveBeenCalled();
+    });
+
+    it('still refreshes when the tab comes back and the session is alive', () => {
+      vi.mocked(silentRefresh).mockClear();
+      deferUntilVisible();
+
+      setHidden(false);
+      expect(silentRefresh).toHaveBeenCalledTimes(1);
+      // And it cleans itself up rather than waiting for a cancel.
+      expect(hasDeferredVisibilityListener()).toBe(false);
+    });
+
+    it('does not stack a listener per login/logout cycle', () => {
+      for (let i = 0; i < 3; i += 1) {
+        deferUntilVisible();
+        cancelTokenRefresh();
+      }
+      vi.mocked(silentRefresh).mockClear();
+
+      setHidden(false);
+      expect(silentRefresh).not.toHaveBeenCalled();
+      expect(hasDeferredVisibilityListener()).toBe(false);
+    });
   });
 
   it('enforces minimum delay of 5 seconds', () => {

@@ -42,16 +42,38 @@ Both workspace guards delegate to `resolveRootTarget` in `shared/tenancy/organiz
 | 1   | `requireAuth`                | `core/rbac/guards.ts` | redirect `/login`                                                                                                    |
 | 2   | `requireOnboardingWorkspace` | `route-guards.ts`     | already onboarded (`onboarding_completed`) → `/dashboard` or team slug dashboard (same as `/` resolver; no re-entry) |
 
+`requireOnboardingWorkspace` is the one guard in these chains that **writes**. Before it
+resolves a target it calls `useOnboardingStore.getState().claimForUser(ctx.user.id)`,
+binding the localStorage-persisted wizard to the signed-in user and **wiping it first**
+when it belongs to a different (or unknown) one. It runs here rather than in a page
+effect precisely so a previous user's name and workspace can never reach the DOM for a
+frame (ONB-4); it is a no-op once the store already belongs to this user.
+
 `requireOrganizationContext` also **syncs the derived `useOrganizationStore` from the URL**
 (the param is canonical — routing-and-tenancy.md §4) and refetches per-organization
 permissions when the organization changes (`shared/tenancy/organization-membership.ts`).
 
+## Guard chain for `/accept-invite/$invitationId`
+
+| #   | Guard                        | Lives in              | Failure                                                                                    |
+| --- | ---------------------------- | --------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | `parseInvitationIdParam`     | `routeTree.tsx`       | malformed invitation id → **404**                                                          |
+| 2   | `requireAuth(location.href)` | `core/rbac/guards.ts` | no session → `/login`, carrying this page (invite `?token=` included) as `redirect` search |
+
+Reached from an emailed link, so the visitor usually is **not** signed in yet — that is
+the common path here, not the edge case. The session check lives in `beforeLoad` rather
+than a page effect so the "Joining…" card does not paint and then vanish (INV-4), and
+`requireAuth` awaits the auth bootstrap first, so a cold load of the link does not bounce
+an already-signed-in user.
+
 ## Sanctioned exceptions
 
 - **Bespoke-guard routes (no `gatewayFromManifest`):** `/onboarding` (`requireAuth` +
-  `requireOnboardingWorkspace`) and the `/organization` picker (`requireAuth` +
-  `requireProvisionedWorkspace`). Both manifests declare `permission: null` — their access
-  rule is session + workspace state, not a permission, so the gateway would be a no-op.
+  `requireOnboardingWorkspace`), the `/organization` picker (`requireAuth` +
+  `requireProvisionedWorkspace`), and `/accept-invite/$invitationId` (param parse +
+  `requireAuth`). All three manifests declare `permission: null` — their access rule is
+  session + workspace state, or for accept-invite the single-use invitation token plus the
+  session's email, not a permission, so the gateway would be a no-op.
 - **Suspended leaf:** `…/suspended` runs `gatewayFromManifest(manifest)` but intentionally
   **skips `requireOrgStatus`** — the blocked state must render for a suspended organization
   without redirect-looping into itself.

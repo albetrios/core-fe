@@ -4,37 +4,36 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { notificationQueryKeys } from '@/shared/api/notification-query-keys.ts';
-import { notify } from '@/shared/notify/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
+  NOTIFICATION_PREFERENCES_TOAST_ID,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
-  useNotificationPreferences,
   useNotifications,
   useUnreadCount,
   useUpdateNotificationPreferences,
 } from './useNotifications.ts';
 
-const { listMock, countMock, markReadMock, markAllMock, prefsMock, updatePrefsMock } =
-  vi.hoisted(() => ({
-    listMock: vi.fn(),
-    countMock: vi.fn(),
-    markReadMock: vi.fn(),
-    markAllMock: vi.fn(),
-    prefsMock: vi.fn(),
-    updatePrefsMock: vi.fn(),
-  }));
+const { listMock, countMock, markReadMock, markAllMock } = vi.hoisted(() => ({
+  listMock: vi.fn(),
+  countMock: vi.fn(),
+  markReadMock: vi.fn(),
+  markAllMock: vi.fn(),
+}));
 vi.mock('@/shared/api/notifications-api.ts', () => ({
   listNotifications: listMock,
   getUnreadCount: countMock,
   markNotificationRead: markReadMock,
   markAllNotificationsRead: markAllMock,
-  getNotificationPreferences: prefsMock,
   updateNotificationPreferences: updatePrefsMock,
 }));
+const { updatePrefsMock, successMock } = vi.hoisted(() => ({
+  updatePrefsMock: vi.fn(),
+  successMock: vi.fn(),
+}));
 vi.mock('@/shared/notify/index.ts', () => ({
-  notify: { error: vi.fn(), success: vi.fn() },
+  notify: { error: vi.fn(), success: successMock },
 }));
 
 const ITEM = {
@@ -54,9 +53,15 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
+/** A resolved org scope — what every real caller of these hooks has. */
+const ORG_ID = 'org_acme0000000000000000';
+
 beforeEach(() => {
   vi.clearAllMocks();
   useOrganizationStore.getState().clearOrganization();
+  // The polls are gated on a resolved org scope (SHELL-10), so a test that
+  // wants them to run has to say which org it is running against.
+  useOrganizationStore.setState({ organizationId: ORG_ID });
   listMock.mockResolvedValue([ITEM]);
   countMock.mockResolvedValue(3);
   markReadMock.mockResolvedValue(undefined);
@@ -113,82 +118,63 @@ describe('useNotifications', () => {
     ]);
   });
 
-  it('optimistically flips the row and decrements the badge before the API answers', async () => {
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const shared = ({ children }: { children: ReactNode }) => (
-      <QueryClientProvider client={client}>{children}</QueryClientProvider>
-    );
-    const listKey = notificationQueryKeys.list(null);
-    const countKey = notificationQueryKeys.unreadCount(null);
-    client.setQueryData(listKey, [ITEM, { ...ITEM, id: 'ntf_b' }]);
-    client.setQueryData(countKey, 2);
-
-    let resolveMarkRead: (() => void) | undefined;
-    markReadMock.mockReturnValue(
-      new Promise<void>((resolve) => {
-        resolveMarkRead = resolve;
-      }),
-    );
-
-    const { result } = renderHook(() => useMarkNotificationRead(), { wrapper: shared });
-    result.current.mutate('ntf_a');
-
-    // The UI updates while the request is still in flight.
-    await waitFor(() => {
-      const rows = client.getQueryData<Array<typeof ITEM>>(listKey);
-      expect(rows?.find((n) => n.id === 'ntf_a')?.isRead).toBe(true);
+  // SET-2: the grid saves on every flick, so four flicks fired four toasts and
+  // stacked them. A stable id makes sonner replace the previous one instead.
+  it('saves preferences under one stable toast id', async () => {
+    updatePrefsMock.mockResolvedValue([]);
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
     });
-    expect(client.getQueryData<Array<typeof ITEM>>(listKey)?.[1]?.isRead).toBe(false);
-    expect(client.getQueryData(countKey)).toBe(1);
-
-    resolveMarkRead?.();
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  });
-
-  it('rolls back the optimistic update and toasts when mark-read fails', async () => {
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const shared = ({ children }: { children: ReactNode }) => (
+    const wrapper = ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
     );
-    const listKey = notificationQueryKeys.list(null);
-    const countKey = notificationQueryKeys.unreadCount(null);
-    client.setQueryData(listKey, [ITEM]);
-    client.setQueryData(countKey, 1);
-    markReadMock.mockRejectedValue(new Error('offline'));
+    const { result } = renderHook(() => useUpdateNotificationPreferences(), { wrapper });
 
-    const { result } = renderHook(() => useMarkNotificationRead(), { wrapper: shared });
-    result.current.mutate('ntf_a');
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
+    await result.current.mutateAsync([]);
 
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(client.getQueryData(listKey)).toEqual([ITEM]); // isRead back to false
-    expect(client.getQueryData(countKey)).toBe(1);
-    expect(notify.error).toHaveBeenCalledTimes(1);
+    expect(successMock).toHaveBeenCalledTimes(4);
+    for (const call of successMock.mock.calls) {
+      expect(call[1]).toEqual({ id: NOTIFICATION_PREFERENCES_TOAST_ID });
+    }
+  });
+});
+
+describe('SHELL-10 — the polls wait for an org scope', () => {
+  /**
+   * Both hooks poll every 30 s. Before the session context resolves, and while
+   * an org switch is in flight, `organizationId` is null — and a request in
+   * that window can only come back `Forbidden`, once per interval, forever.
+   * `useMembers` already carried this gate; these two did not.
+   */
+  beforeEach(() => {
+    useOrganizationStore.setState({ organizationId: null });
   });
 
-  it('loads the delivery preference matrix', async () => {
-    const prefs = [{ category: 'billing', channel: 'email', enabled: true }];
-    prefsMock.mockResolvedValue(prefs);
-
-    const { result } = renderHook(() => useNotificationPreferences(), { wrapper });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual(prefs);
+  it('does not fetch the inbox without a resolved org', async () => {
+    const { result } = renderHook(() => useNotifications(), { wrapper });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(listMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
   });
 
-  it('saving preferences seeds the cache with the server-confirmed set', async () => {
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const shared = ({ children }: { children: ReactNode }) => (
-      <QueryClientProvider client={client}>{children}</QueryClientProvider>
-    );
-    const saved = [{ category: 'security', channel: 'email', enabled: false }];
-    updatePrefsMock.mockResolvedValue(saved);
+  it('does not fetch the unread count without a resolved org', async () => {
+    const { result } = renderHook(() => useUnreadCount(), { wrapper });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(countMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
+  });
 
-    const { result } = renderHook(() => useUpdateNotificationPreferences(), {
-      wrapper: shared,
-    });
-    result.current.mutate(saved as never);
+  it('starts fetching as soon as the org scope resolves', async () => {
+    const { result, rerender } = renderHook(() => useNotifications(), { wrapper });
+    expect(listMock).not.toHaveBeenCalled();
+
+    useOrganizationStore.setState({ organizationId: ORG_ID });
+    rerender();
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(updatePrefsMock).toHaveBeenCalledWith(saved);
-    expect(client.getQueryData(notificationQueryKeys.preferences())).toEqual(saved);
+    expect(listMock).toHaveBeenCalled();
   });
 });

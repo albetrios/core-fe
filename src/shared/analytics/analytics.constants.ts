@@ -11,6 +11,9 @@ export const ANALYTICS_EVENTS = {
   authEmailCodeVerified: 'auth_email_code_verified',
   authOauthStarted: 'auth_oauth_started',
   authOauthCompleted: 'auth_oauth_completed',
+  /** OAuth returned to /callback but the exchange failed — the drop-off the
+   *  success events alone could never show. */
+  authOauthFailed: 'auth_oauth_failed',
   sessionStarted: 'session_started',
   sessionEnded: 'session_ended',
 

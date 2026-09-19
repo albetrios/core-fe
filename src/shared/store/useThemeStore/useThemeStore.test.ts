@@ -153,6 +153,18 @@ describe('useThemeStore', () => {
     expect(useThemeStore.getState().iconLibrary).toBe('tabler');
   });
 
+  it('shuffleTheme leaves the app shell alone — it is cosmetic, not structural (SHELL-5)', () => {
+    // Every other shuffled axis repaints in place. `appVariant` selects a
+    // DIFFERENT shell component, each owning its own <main>, so rolling it
+    // unmounts the routed island and takes the user's chart range, calendar
+    // selection and carousel position with it.
+    useThemeStore.setState({ appVariant: 0 });
+    for (let i = 0; i < 25; i += 1) useThemeStore.getState().shuffleTheme();
+    expect(useThemeStore.getState().appVariant).toBe(0);
+    // ...while the cosmetic axes did roll, so this is not a dead shuffle.
+    expect(useThemeStore.getState().customTheme).not.toBeNull();
+  });
+
   it('setPreset clears a generated custom look (keeps base/menu)', () => {
     useThemeStore.getState().shuffleTheme();
     useThemeStore.getState().setBaseColor('slate');
@@ -169,6 +181,75 @@ describe('useThemeStore', () => {
     expect(useThemeStore.getState().layoutWidth).toBe('reading');
     useThemeStore.getState().setLayoutWidth('bogus' as 'contained');
     expect(useThemeStore.getState().layoutWidth).toBe('contained');
+  });
+
+  describe('SHELL-9 — what survives a reload is a decision, not an accident', () => {
+    /**
+     * The persisted key set, spelled out.
+     *
+     * SHELL-9 reports a chosen dashboard arrangement reverting on reload because
+     * `partialize` omitted its axis. No `dashboardVariant` exists on this branch
+     * (see the assertion below), so there is nothing to add — but the shape of
+     * that bug is "a user-chosen axis was left out of `partialize` and nobody
+     * noticed". Pinning the set means the next axis has to be an explicit choice:
+     * add it here and it persists, leave it out and this test says so out loud.
+     */
+    const PERSISTED_KEYS = [
+      'baseId',
+      'customTheme',
+      'iconColor',
+      'iconLibrary',
+      'iconWeight',
+      'layoutWidth',
+      'menu',
+      'preset',
+      'seed',
+      'theme',
+      'toastPosition',
+      'toastVariant',
+    ];
+
+    /** Deliberately ephemeral: shuffle-only previews, stripped in `migrate` too. */
+    const EPHEMERAL_KEYS = [
+      'appVariant',
+      'authVariant',
+      'publicVariant',
+      'dashboardVariant',
+    ];
+
+    function persistedKeys(): string[] {
+      const raw = window.localStorage.getItem('theme-preference');
+      expect(raw).not.toBeNull();
+      return Object.keys(JSON.parse(raw ?? '{}').state ?? {}).sort();
+    }
+
+    it('persists exactly the axes a user chose, and nothing else', () => {
+      useThemeStore.getState().setTheme('dark');
+      useThemeStore.getState().setLayoutWidth('reading');
+      expect(persistedKeys()).toEqual(PERSISTED_KEYS);
+    });
+
+    it('never persists a shuffle-only preview axis', () => {
+      useThemeStore.setState({ appVariant: 2, authVariant: 1, publicVariant: 1 });
+      useThemeStore.getState().setTheme('light');
+      const keys = persistedKeys();
+      for (const key of EPHEMERAL_KEYS) expect(keys).not.toContain(key);
+    });
+
+    it('treats the dashboard arrangement axis as a preview, not a preference', () => {
+      // This assertion used to read "no dashboard axis exists on this branch",
+      // as a tripwire: whoever added one had to decide whether it persists.
+      // The dashboard shuffle variants added one, so here is that decision.
+      // `dashboardVariant` is shuffle-driven exactly like the other preview
+      // axes and is absent from `partialize`, so it must not survive a reload.
+      expect(Object.keys(useThemeStore.getState())).toContain('dashboardVariant');
+
+      useThemeStore.setState({ dashboardVariant: 2 });
+      useThemeStore.getState().setTheme('dark');
+
+      expect(persistedKeys()).not.toContain('dashboardVariant');
+      expect(persistedKeys()).toEqual(PERSISTED_KEYS);
+    });
   });
 });
 

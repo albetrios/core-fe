@@ -25,10 +25,9 @@ type AuthMethodButtonProps = {
   variant?: ButtonVariant;
   className?: string;
   /**
-   * Whether this method needs a Turnstile captcha token. When `true`, the button
-   * is disabled until the token mints and shows the captcha-init spinner — but
-   * only while nothing else is pending, so consuming the single-use token on one
-   * method never spins the others.
+   * Whether this method needs a Turnstile captcha token. When `true`, the button is
+   * disabled until a token mints — without a spinner, because no request of its own
+   * is in flight. Pair it with `CaptchaGateNotice` so the wait is explained.
    */
   captchaGated?: boolean;
   /** Live captcha readiness — only consulted when `captchaGated`. */
@@ -45,8 +44,9 @@ type AuthMethodButtonProps = {
  * - **Stable label** — the text never changes; the spinner is the only progress cue.
  * - **One spinner at a time** — only the clicked method spins; the rest are
  *   disabled without a spinner.
- * - **Captcha-init affordance** — captcha-gated methods spin while the first
- *   token mints, but only when nothing else is pending.
+ * - **A spinner means a request** — waiting on a captcha token is not this
+ *   method loading, so it disables without spinning. `CaptchaGateNotice` explains
+ *   the wait in words and offers a retry when the mint stalls.
  *
  * See `docs/reference/unified-auth-flows.md` → "Method button states".
  */
@@ -65,11 +65,14 @@ export function AuthMethodButton({
   extraDisabled = false,
 }: AuthMethodButtonProps) {
   const loading = authMethodIsLoading(pending, target);
-  const nothingElsePending = pending === null;
   const captchaBlocking = captchaGated && !turnstileReady;
-  // Spin for THIS method, or the captcha-init state — but never for an idle
-  // method once another is pending (single-use token would otherwise flip all).
-  const spinning = loading || (captchaBlocking && nothingElsePending);
+  // Spin ONLY for this method's own request. A captcha mint used to spin here too,
+  // which read as "your click is being processed" when nothing was in flight: after
+  // send-code consumed the single-use token, "Verify and continue" sat spinning and
+  // greyed out, and typing the code did not clear it (LOGIN-4). The gate still
+  // disables the button — it genuinely cannot post without a token — but the reason
+  // is now surfaced as text by CaptchaGateNotice instead of a fake progress spinner.
+  const spinning = loading;
   const disabled =
     extraDisabled || captchaBlocking || authMethodIsDisabled(pending, target);
 

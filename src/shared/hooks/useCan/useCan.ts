@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { hasPermission, type OrganizationPermission } from '@/core/rbac/policies.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -46,6 +48,17 @@ export function useCan(check: AccessCheck): boolean {
 }
 
 /**
+ * Whether the permission set is an answer yet. `useCan` is synchronous and the
+ * guard chain fills the store a beat after the route renders, so a `false` from
+ * `useCan` can mean "not allowed" OR "not known yet" — and a control that is
+ * hidden for the second reason pops in a moment later (SET-23). Gate the
+ * placeholder on this, not on `useCan`.
+ */
+export function useAccessResolved(): boolean {
+  return useOrganizationStore((s) => s.permissionsResolved);
+}
+
+/**
  * Filter a list (nav items, settings sections, …) to those the current user may
  * see. Reads the stores once and checks inline — safe for any array length.
  */
@@ -54,7 +67,17 @@ export function useVisibleNav<T extends AccessCheck>(items: readonly T[]): T[] {
   const permissions = useOrganizationStore((s) => s.permissions);
   const organizationType = useOrganizationStore((s) => s.organizationType);
   const deploymentFlags = useOrganizationStore((s) => s.deploymentFlags);
-  return items.filter((item) =>
-    passes(item, user, permissions, organizationType, deploymentFlags),
+  // Memoised on the slices it actually reads. `.filter()` builds a new array on
+  // every render, and this one is handed to every shell variant as a prop — so
+  // an unmemoised result silently defeats any `React.memo` placed on the shell
+  // subtree later, and re-renders the whole nav on unrelated state changes
+  // (SHELL-11). The only production caller passes a module-level constant, so
+  // `items` is referentially stable and the memo actually holds.
+  return useMemo(
+    () =>
+      items.filter((item) =>
+        passes(item, user, permissions, organizationType, deploymentFlags),
+      ),
+    [items, user, permissions, organizationType, deploymentFlags],
   );
 }

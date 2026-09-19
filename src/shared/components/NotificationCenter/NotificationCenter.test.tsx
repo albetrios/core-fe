@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -75,7 +75,25 @@ describe('NotificationCenter', () => {
     render(<NotificationCenter />);
     await user.click(screen.getByTestId('notification-bell'));
     await user.click(await screen.findByTestId('notification-ntf_x'));
-    expect(markReadMutate).toHaveBeenCalledWith('ntf_x');
+    expect(markReadMutate).toHaveBeenCalledWith('ntf_x', expect.anything());
+  });
+
+  it('never sends two PATCHes when a row is double-clicked', async () => {
+    // `markRead.isPending` is shared React state — it lands a render too late to
+    // stop the second click, so the per-id ref is what holds.
+    const user = userEvent.setup();
+    render(<NotificationCenter />);
+    await user.click(screen.getByTestId('notification-bell'));
+    const row = await screen.findByTestId('notification-ntf_x');
+
+    act(() => {
+      row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    await waitFor(() => expect(markReadMutate).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(markReadMutate).toHaveBeenCalledTimes(1);
   });
 
   it('marks all read', async () => {

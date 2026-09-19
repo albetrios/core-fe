@@ -21,6 +21,7 @@
     "integrations": "集成"
   },
   "security": {
+    "loadFailed": "无法加载你的安全设置。请重试。",
     "heading": "安全",
     "description": "双因素认证与通行密钥。",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "验证",
       "verifying": "验证中…",
       "invalid": "验证失败，请重试。",
-      "passwordRequired": "此操作需要您的密码或验证器代码。"
+      "passwordRequired": "此操作需要您的密码或验证器代码。",
+      "sendFailed": "无法发送验证码，请重试。"
     }
   },
   "discard": {
@@ -106,6 +108,9 @@
     "description": "您有未保存的更改。离开将丢弃它们。",
     "stay": "继续编辑",
     "leave": "放弃更改"
+  },
+  "dialog": {
+    "title": "设置"
   },
   "panels": {
     "members": {
@@ -128,7 +133,9 @@
       "removeConfirm": "移除",
       "removePending": "正在移除 {{name}}…",
       "emailPlaceholder": "tongshi@gongsi.com",
-      "rolePlaceholder": "选择角色"
+      "rolePlaceholder": "选择角色",
+      "invite": "邀请成员",
+      "memberFallback": "该成员"
     },
     "roles": {
       "title": "角色",
@@ -151,7 +158,9 @@
       "deleteConfirm": "删除",
       "deletePending": "正在删除 {{name}}…",
       "namePlaceholder": "例如：成员",
-      "descriptionPlaceholder": "该角色可以做什么？"
+      "descriptionPlaceholder": "该角色可以做什么？",
+      "create": "新建角色",
+      "roleFallback": "该角色"
     },
     "listSort": {
       "label": "排序方式",
@@ -177,14 +186,179 @@
       "deleteTitle": "删除您的账户？",
       "deleteDescription": "此操作不可逆，无法撤销。您的所有数据都将被删除。",
       "deleteConfirm": "删除账户",
-      "deleteCancel": "取消"
+      "deleteCancel": "取消",
+      "title": "账户",
+      "description": "账户信息与不可撤销的操作。",
+      "infoTitle": "账户信息",
+      "infoDescription": "关于您账户的详细信息。",
+      "accountIdLabel": "账户 ID",
+      "emailLabel": "邮箱",
+      "roleLabel": "角色",
+      "emailVerifiedLabel": "邮箱已验证",
+      "verified": "已验证",
+      "dangerZone": "危险区域",
+      "dangerZoneDescription": "针对您账户的不可撤销操作。",
+      "deleteHeading": "删除账户",
+      "deleteBody": "永久删除您的账户及所有关联数据。",
+      "deleteAction": "删除账户"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "组织 · 常规",
+      "description": "贵组织在平台上的标识信息。",
+      "loadFailed": "无法加载组织信息。",
+      "basicsTitle": "基本信息",
+      "basicsDescription": "会显示在组织切换器、邀请和邮件收据中。",
+      "nameLabel": "组织名称",
+      "slugLabel": "标识串",
+      "slugHint": "用于 URL 和 API 路径。如需更改请联系支持团队。",
+      "save": "保存更改",
+      "logoTitle": "标志",
+      "logoDescription": "显示在组织切换器和邀请中。方形图片效果最好。",
+      "logoAlt": "{{name}} 的标志",
+      "logoAltFallback": "组织标志",
+      "uploadLogo": "上传标志",
+      "uploading": "上传中…",
+      "removeLogo": "移除",
+      "logoReadOnly": "只有组织管理员可以更改标志。"
     },
     "integrations": {
       "searchPlaceholder": "搜索 API 密钥…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "集成",
+      "description": "API 密钥与 Webhook。",
+      "apiKeysTitle": "API 密钥",
+      "apiKeysLoadFailed": "无法加载 API 密钥。请重试。",
+      "apiKeysEmptyTitle": "暂无 API 密钥",
+      "apiKeysEmptyDescription": "API 密钥可让外部服务与您的组织通信。",
+      "apiKeysNoResults": "没有匹配的 API 密钥",
+      "apiKeysNoResultsDescription": "没有与搜索匹配的 API 密钥。",
+      "apiKeyFallback": "该 API 密钥",
+      "revokeAria": "吊销 {{name}}",
+      "revokeTitle": "吊销 {{name}}？",
+      "revokeDescription": "使用该密钥的所有服务将立即失去访问权限。此操作无法撤销。",
+      "revokeConfirm": "吊销",
+      "loadMore": "加载更多",
+      "webhooksTitle": "Webhook",
+      "webhooksLoadFailed": "无法加载 Webhook。请重试。",
+      "webhooksEmptyTitle": "暂无 Webhook",
+      "webhooksEmptyDescription": "将组织事件发送到外部 URL。",
+      "addWebhook": "添加 Webhook",
+      "addWebhookTitle": "添加 Webhook",
+      "addWebhookDescription": "我们会将所选事件以 POST 方式发送到此 URL。",
+      "payloadUrlLabel": "负载 URL",
+      "eventsLabel": "事件",
+      "cancel": "取消",
+      "createWebhook": "创建 Webhook",
+      "creating": "创建中…",
+      "deleteWebhookAria": "删除 Webhook {{url}}",
+      "deleteWebhookTitle": "删除此 Webhook？",
+      "deleteWebhookDescription": "事件将不再发送到此 URL。此操作无法撤销。",
+      "deleteConfirm": "删除"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "选择你要接收哪些通知，以及通过什么方式。",
+      "deliveryTitle": "送达方式",
+      "deliveryDescription": "为每类更新选择一个渠道。",
+      "categories": {
+        "system": "产品与系统",
+        "systemDescription": "更新、公告和使用技巧。",
+        "member": "团队动态",
+        "memberDescription": "成员加入、角色变更和邀请。",
+        "billing": "账单",
+        "billingDescription": "发票、套餐变更和续订。",
+        "security": "安全",
+        "securityDescription": "登录、密码修改和安全事件。"
+      },
+      "channels": {
+        "email": "邮件",
+        "inApp": "应用内",
+        "desktop": "桌面"
+      }
+    },
+    "appearance": {
+      "title": "外观",
+      "description": "保存在此设备上，更改即时生效。",
+      "shuffle": "随机"
+    },
+    "sessions": {
+      "title": "会话",
+      "description": "当前已登录您账户的设备。",
+      "loadFailed": "无法加载您的会话。请重试。",
+      "emptyTitle": "暂无活跃会话",
+      "emptyDescription": "在设备上登录后，会话将显示在这里。",
+      "currentBadge": "此设备",
+      "lastActive": "{{details}} · <1></1>活跃",
+      "signOut": "退出登录",
+      "revokeTitle": "退出此会话？",
+      "revokeDescription": "{{device}} 将立即退出登录。",
+      "revokeConfirm": "退出登录",
+      "deviceFallback": "此设备"
+    },
+    "billing": {
+      "title": "账单",
+      "description": "您的套餐、支付方式和发票。",
+      "loadFailed": "无法加载账单。请重试。",
+      "plansLoadFailed": "无法加载套餐。请重试。",
+      "planHeading": "{{name}} 套餐",
+      "noPlan": "无套餐",
+      "noSubscription": "尚无有效订阅。请在下方选择套餐。",
+      "summary": "已使用 {{total}} 个席位中的 {{used}} 个 · {{date}} 续订",
+      "billedMonthly": "按月计费",
+      "billedYearly": "按年计费",
+      "pricePerMonth": "{{price}} / 月",
+      "pricePerYear": "{{price}} / 年",
+      "planFallbackDescription": "工作区账单套餐。",
+      "currentPlan": "当前套餐",
+      "switchTo": "切换到 {{name}}",
+      "choose": "选择 {{name}}",
+      "switching": "切换中…",
+      "completePaymentTitle": "完成付款",
+      "completePaymentDescription": "确认支付方式以激活订阅。您无需离开应用——仅当您的银行要求验证时，Stripe 才会打开安全步骤。",
+      "changePlanTitle": "更改套餐",
+      "changePlanDescription": "比较套餐，在团队准备好时切换。",
+      "cycleLegend": "计费周期",
+      "monthly": "按月",
+      "yearly": "按年",
+      "paymentMethods": {
+        "title": "支付方式",
+        "description": "用于订阅续费的银行卡。通过 Stripe 在应用内安全管理。",
+        "loadFailed": "无法加载支付方式。请重试。",
+        "empty": "尚未保存任何支付方式。",
+        "add": "添加支付方式",
+        "adding": "加载中…",
+        "cardFallback": "银行卡",
+        "expires": "有效期至 {{month}}/{{year}}",
+        "defaultBadge": "默认"
+      },
+      "invoices": {
+        "title": "发票",
+        "description": "来自账单服务商的日期、到期日、金额和状态。",
+        "loadFailed": "无法加载发票。请重试。",
+        "empty": "暂无发票。",
+        "view": "查看发票",
+        "columns": {
+          "date": "日期",
+          "due": "到期日",
+          "total": "合计",
+          "status": "状态",
+          "actions": "操作"
+        }
+      },
+      "cancellation": {
+        "title": "取消订阅",
+        "endsOn": "您的订阅将于 {{date}} 结束。在此之前您仍可使用。",
+        "cancelAnytime": "随时可取消——访问权限将持续到 {{date}}。",
+        "resume": "恢复订阅",
+        "resuming": "恢复中…",
+        "cancelAction": "在周期结束时取消",
+        "confirmTitle": "取消订阅？",
+        "confirmDescription": "您的工作区在 {{date}} 之前保持完整访问权限。之后订阅结束，付费功能可能受限。",
+        "keep": "保留订阅",
+        "confirm": "确认取消",
+        "cancelling": "取消中…"
+      }
     }
   }
 }

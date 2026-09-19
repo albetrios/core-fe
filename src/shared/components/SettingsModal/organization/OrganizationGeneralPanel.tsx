@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { type ChangeEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +20,7 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
 import { useUpdateOrganization } from '@/shared/hooks/useUpdateOrganization/index.ts';
 import { notify } from '@/shared/notify/index.ts';
@@ -48,8 +48,18 @@ function OrgLogoCard({
   canManage: boolean;
   update: UpdateMutation;
 }) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const general = SETTINGS_KEYS.panels.general;
   const fileRef = useRef<HTMLInputElement>(null);
   const initial = (name || '?').charAt(0).toUpperCase();
+  /**
+   * Reading the file is part of the upload as far as the user is concerned. A
+   * multi-megabyte logo spends that whole window in `FileReader`, before the
+   * mutation exists — so `update.isPending` covered none of it and the click
+   * looked like it had done nothing (SET-27).
+   */
+  const [isReading, setIsReading] = useState(false);
+  const busy = isReading || update.isPending;
 
   function onLogoFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -68,23 +78,25 @@ function OrgLogoCard({
       return;
     }
     const reader = new FileReader();
+    setIsReading(true);
     reader.onload = () => {
+      setIsReading(false);
       if (typeof reader.result === 'string') update.mutate({ logoUrl: reader.result });
     };
-    reader.onerror = () =>
+    reader.onerror = () => {
+      setIsReading(false);
       notify.error(
         i18n.t(ERRORS_KEYS.frontend.organization.logoReadFailed, { ns: ERRORS_NS }),
       );
+    };
     reader.readAsDataURL(file);
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Logo</CardTitle>
-        <CardDescription>
-          Shown in the org switcher and on invites. Square images look best.
-        </CardDescription>
+        <CardTitle className="text-base">{t(general.logoTitle)}</CardTitle>
+        <CardDescription>{t(general.logoDescription)}</CardDescription>
       </CardHeader>
       <CardContent className="flex items-center gap-4">
         <div
@@ -95,7 +107,7 @@ function OrgLogoCard({
           {logoUrl ? (
             <img
               src={logoUrl}
-              alt={`${name || 'Organization'} logo`}
+              alt={name ? t(general.logoAlt, { name }) : t(general.logoAltFallback)}
               className="size-full object-cover"
             />
           ) : (
@@ -116,27 +128,25 @@ function OrgLogoCard({
               size="sm"
               variant="outline"
               onClick={() => fileRef.current?.click()}
-              disabled={update.isPending}
+              isLoading={busy}
               data-testid="org-logo-upload"
             >
-              Upload logo
+              {busy ? t(general.uploading) : t(general.uploadLogo)}
             </Button>
             {logoUrl ? (
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => update.mutate({ logoUrl: null })}
-                disabled={update.isPending}
+                disabled={busy}
                 data-testid="org-logo-remove"
               >
-                Remove
+                {t(general.removeLogo)}
               </Button>
             ) : null}
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">
-            Only organization admins can change the logo.
-          </p>
+          <p className="text-muted-foreground text-sm">{t(general.logoReadOnly)}</p>
         )}
       </CardContent>
     </Card>
@@ -151,6 +161,7 @@ function OrgLogoCard({
  * prop→state effect); saving updates via {@link useUpdateOrganization}.
  */
 export function OrganizationGeneralPanel() {
+  const { t } = useTranslation(SETTINGS_NS);
   const organizationId = useOrganizationStore((s) => s.organizationId);
   const organizationSlug = useOrganizationStore((s) => s.organizationSlug);
   const canManage = useCan({
@@ -159,18 +170,23 @@ export function OrganizationGeneralPanel() {
   });
   const update = useUpdateOrganization();
 
-  const orgsQuery = useQuery({
+  const orgsQuery = useAppQuery({
     queryKey: ['organizations'],
     queryFn: listMyOrganizations,
+    // The panel wraps this in a QueryBoundary.
+    notifyOnError: false,
   });
 
   return (
     <div className="space-y-6" data-testid="settings-section-org-general">
       <SectionHeader
-        title="Organization · General"
-        description="Identity for your organization across the platform."
+        title={t(SETTINGS_KEYS.panels.general.title)}
+        description={t(SETTINGS_KEYS.panels.general.description)}
       />
-      <QueryBoundary query={orgsQuery} errorMessage="Couldn't load organization details.">
+      <QueryBoundary
+        query={orgsQuery}
+        errorMessage={t(SETTINGS_KEYS.panels.general.loadFailed)}
+      >
         {(orgs) => (
           <OrganizationGeneralForm
             orgs={orgs}
@@ -199,6 +215,7 @@ function OrganizationGeneralForm({
   update: UpdateMutation;
 }) {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const general = SETTINGS_KEYS.panels.general;
   const activeOrg = orgs.find((o) => o.id === organizationId);
 
   const serverName = activeOrg?.name ?? '';
@@ -217,25 +234,23 @@ function OrganizationGeneralForm({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Basics</CardTitle>
-          <CardDescription>
-            These appear in the org switcher, invites, and email receipts.
-          </CardDescription>
+          <CardTitle className="text-base">{tSettings(general.basicsTitle)}</CardTitle>
+          <CardDescription>{tSettings(general.basicsDescription)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="org-name">Organization name</Label>
+            <Label htmlFor="org-name">{tSettings(general.nameLabel)}</Label>
             <Input
               id="org-name"
               value={name}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder={tSettings(SETTINGS_KEYS.panels.general.namePlaceholder)}
+              placeholder={tSettings(general.namePlaceholder)}
               disabled={!canManage}
               data-testid="org-name"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="org-slug">Slug</Label>
+            <Label htmlFor="org-slug">{tSettings(general.slugLabel)}</Label>
             <Input
               id="org-slug"
               value={activeOrg?.slug ?? organizationSlug ?? ''}
@@ -243,9 +258,7 @@ function OrganizationGeneralForm({
               disabled
               data-testid="org-slug"
             />
-            <p className="text-muted-foreground text-xs">
-              Used in URLs and API paths. Contact support to change it.
-            </p>
+            <p className="text-muted-foreground text-xs">{tSettings(general.slugHint)}</p>
           </div>
           {canManage ? (
             <div className="flex justify-end">
@@ -255,7 +268,7 @@ function OrganizationGeneralForm({
                 disabled={!dirty || update.isPending}
                 data-testid="org-general-save"
               >
-                Save changes
+                {tSettings(general.save)}
               </Button>
             </div>
           ) : null}

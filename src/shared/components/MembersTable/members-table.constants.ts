@@ -14,4 +14,5 @@ export const MEMBERS_TABLE_KEYS = {
   removeDescription: 'app.membersTable.removeDescription',
   cancel: 'app.membersTable.cancel',
   confirmRemove: 'app.membersTable.confirmRemove',
+  removing: 'app.membersTable.removing',
 } as const;

@@ -24,6 +24,7 @@ export const AUTH_KEYS = {
     signUp: 'common.signUp',
     backToSignIn: 'common.backToSignIn',
     goToSignIn: 'common.goToSignIn',
+    tryAgain: 'common.tryAgain',
     goToDashboard: 'common.goToDashboard',
     sending: 'common.sending',
     sendingEllipsis: 'common.sendingEllipsis',
@@ -41,8 +42,16 @@ export const AUTH_KEYS = {
     tryAgainIn: 'auth.tryAgainIn',
     tryAgainPrefix: 'auth.tryAgainPrefix',
     back: 'auth.back',
-    errors: { passkeyBackend: 'auth.errors.passkeyBackend' },
+    errors: {
+      passkeyBackend: 'auth.errors.passkeyBackend',
+      oauthFailed: 'auth.errors.oauthFailed',
+    },
     autoGoogleSigningIn: 'auth.autoGoogleSigningIn',
+    captcha: {
+      preparing: 'auth.captcha.preparing',
+      failed: 'auth.captcha.failed',
+      retry: 'auth.captcha.retry',
+    },
     useEmailInstead: 'auth.useEmailInstead',
     verify: {
       heading: 'auth.verify.heading',
@@ -92,10 +101,20 @@ export const AUTH_KEYS = {
     problemTitle: 'acceptInvite.problemTitle',
     accepting: 'acceptInvite.accepting',
     success: 'acceptInvite.success',
+    switchFailed: 'acceptInvite.switchFailed',
+    switchFailedToast: 'acceptInvite.switchFailedToast',
     errors: {
       generic: 'acceptInvite.errors.generic',
       invalidOrExpired: 'acceptInvite.errors.invalidOrExpired',
     },
+  },
+  organizationPicker: {
+    heading: 'organizationPicker.heading',
+    subheading: 'organizationPicker.subheading',
+    listTitle: 'organizationPicker.listTitle',
+    loadError: 'organizationPicker.loadError',
+    empty: 'organizationPicker.empty',
+    create: 'organizationPicker.create',
   },
   validation: {
     emailRequired: 'validation.emailRequired',

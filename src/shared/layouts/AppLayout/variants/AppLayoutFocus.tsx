@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { ERRORS_KEYS } from '@/lib/i18n/errors.constants.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { NotificationCenter } from '@/shared/components/NotificationCenter/index.ts';
 import { OrganizationSwitcher } from '@/shared/components/OrganizationSwitcher/index.ts';
 import { ThemeModeToggle } from '@/shared/components/ThemeModeToggle/index.ts';
@@ -45,8 +45,9 @@ export function FocusShell({
 
           {!personalOnly ? (
             <SectionErrorBoundary
-              title={t(ERRORS_KEYS.widget.organizationSwitcher)}
+              title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
               testId="org-switcher-error"
+              variant="control"
             >
               <OrganizationSwitcher
                 className="hidden min-w-0 md:flex md:max-w-[12rem]"
@@ -72,8 +73,9 @@ export function FocusShell({
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <SectionErrorBoundary
-              title={t(ERRORS_KEYS.widget.notifications)}
-              testId="notifications-error"
+              title={t(ERRORS_KEYS.widget.notifications, { ns: ERRORS_NS })}
+              testId="notifications-widget-error"
+              variant="inline"
             >
               <NotificationCenter />
             </SectionErrorBoundary>

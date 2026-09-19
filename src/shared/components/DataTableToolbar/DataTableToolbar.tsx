@@ -1,5 +1,4 @@
 import type { ReactTable, RowData } from '@tanstack/react-table';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
@@ -34,17 +33,16 @@ export function DataTableToolbar<TData extends RowData>({
   children,
 }: DataTableToolbarProps<TData>) {
   const { t } = useTranslation(LOCALE_NS);
-  const isFiltered = useMemo(() => table.state.columnFilters.length > 0, [table]);
-
-  const searchColumn = useMemo(
-    () => (searchColumnId ? table.getColumn(searchColumnId) : undefined),
-    [table, searchColumnId],
-  );
-
-  const searchValue = useMemo(
-    () => (searchColumn?.getFilterValue() as string) ?? '',
-    [searchColumn],
-  );
+  // Read the table's LIVE state every render — never memoise on `[table]`.
+  // The table instance is built once and keeps its identity for the life of the
+  // component, so a `useMemo` keyed on it is computed at mount and never again:
+  // `searchValue` stayed frozen at '' (so the controlled input wiped every
+  // keystroke while the rows filtered underneath) and `isFiltered` stayed frozen
+  // at false (so the Reset button never appeared). These reads are two property
+  // lookups; there is nothing here worth memoising.
+  const isFiltered = table.state.columnFilters.length > 0;
+  const searchColumn = searchColumnId ? table.getColumn(searchColumnId) : undefined;
+  const searchValue = (searchColumn?.getFilterValue() as string) ?? '';
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

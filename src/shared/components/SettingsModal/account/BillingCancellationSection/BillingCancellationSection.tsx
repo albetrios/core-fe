@@ -1,4 +1,11 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import type { BillingSubscription } from '@/shared/api/billing-contracts.ts';
+import {
+  SETTINGS_KEYS,
+  SETTINGS_NS,
+} from '@/shared/components/SettingsModal/settings.constants.ts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,9 +41,13 @@ export function BillingCancellationSection({
   subscription,
   canManage,
 }: BillingCancellationSectionProps) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const keys = SETTINGS_KEYS.panels.billing.cancellation;
   const { formatDate } = useLocaleFormat();
   const cancelSubscription = useCancelSubscription();
   const resumeSubscription = useResumeSubscription();
+  // Controlled, because the confirm has to outlive the click that fired it.
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (!canManage) return null;
 
@@ -45,11 +56,11 @@ export function BillingCancellationSection({
   return (
     <Card data-testid="billing-cancellation-card">
       <CardHeader>
-        <CardTitle className="text-base">Cancellation</CardTitle>
+        <CardTitle className="text-base">{t(keys.title)}</CardTitle>
         <CardDescription>
-          {subscription.cancelAtPeriodEnd
-            ? `Your subscription ends on ${periodEnd}. You keep access until then.`
-            : `Cancel anytime — access continues through ${periodEnd}.`}
+          {t(subscription.cancelAtPeriodEnd ? keys.endsOn : keys.cancelAnytime, {
+            date: periodEnd,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -57,14 +68,21 @@ export function BillingCancellationSection({
           <Button
             size="sm"
             variant="outline"
-            disabled={resumeSubscription.isPending}
+            isLoading={resumeSubscription.isPending}
             onClick={() => resumeSubscription.mutate(subscription.id)}
             data-testid="billing-resume"
           >
-            Resume subscription
+            {resumeSubscription.isPending ? t(keys.resuming) : t(keys.resume)}
           </Button>
         ) : (
-          <AlertDialog>
+          <AlertDialog
+            open={confirmOpen}
+            // Esc or an overlay click must not abandon a cancellation that is
+            // already running.
+            onOpenChange={(open) => {
+              if (!cancelSubscription.isPending) setConfirmOpen(open);
+            }}
+          >
             <AlertDialogTrigger asChild>
               <Button
                 size="sm"
@@ -74,23 +92,35 @@ export function BillingCancellationSection({
                 }
                 data-testid="billing-cancel"
               >
-                Cancel at period end
+                {t(keys.cancelAction)}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent data-testid="billing-cancel-dialog">
               <AlertDialogHeader>
-                <AlertDialogTitle>Cancel subscription?</AlertDialogTitle>
+                <AlertDialogTitle>{t(keys.confirmTitle)}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Your workspace keeps full access until {periodEnd}. After that, the
-                  subscription ends and paid features may be limited.
+                  {t(keys.confirmDescription, { date: periodEnd })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Keep subscription</AlertDialogCancel>
+                <AlertDialogCancel disabled={cancelSubscription.isPending}>
+                  {t(keys.keep)}
+                </AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => cancelSubscription.mutate(subscription.id)}
+                  onClick={(event) => {
+                    // Radix closes on click. Hold the dialog open until the
+                    // request resolves, so a failure lands on the confirm that
+                    // caused it instead of an empty screen — and so the button
+                    // cannot be pressed twice on the way out (SET-14).
+                    event.preventDefault();
+                    cancelSubscription.mutate(subscription.id, {
+                      onSuccess: () => setConfirmOpen(false),
+                    });
+                  }}
+                  isLoading={cancelSubscription.isPending}
+                  data-testid="billing-cancel-confirm"
                 >
-                  Confirm cancellation
+                  {cancelSubscription.isPending ? t(keys.cancelling) : t(keys.confirm)}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

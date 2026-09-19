@@ -32,6 +32,7 @@ Complete inventory of project skills. Use this to find the right skill for any t
 - ...org-scoped route, guards, gateway, session context, settings hash -> **routing-tenancy**
 - ...backend resource CRUD (list, URL dialogs, resource manifest) -> **resource-crud**
 - ...form mutation errors, 422 mapping, rate limit, QueryBoundary -> **http-forms-errors**
+- ...double-submit, a crash escaping its boundary, a toast that outruns the work, a screen guessing its shape -> **resilient-interactions**
 - ...platform config, knip, vite-env / client-env validators -> **platform-hygiene**
 - ...add a validate gate / lint restriction / static-sync CI step -> **guard-authoring** (prove it fires)
 - ...RTL mirroring / logical properties / physical ml-mr-left-right -> **rtl-logical-css**
@@ -65,7 +66,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 | **New page / route / sub-route**                          | route-island → page-scaffolding → code-structure → shadcn (UI) → test-generation → e2e-testids → lint-guard → documentation-maintenance                                                                                     |
 | **Org-scoped route / guards / gateway**                   | route-island → **routing-tenancy** → test-generation → lint-guard → documentation-maintenance                                                                                                                               |
 | **Backend resource CRUD island**                          | route-island → **resource-crud** → **routing-tenancy** (if org-scoped) → **http-forms-errors** (forms) → test-generation → e2e-testids → lint-guard                                                                         |
-| **Form + API mutation**                                   | composition-patterns → **http-forms-errors** → test-generation → lint-guard                                                                                                                                                 |
+| **Form + API mutation**                                   | composition-patterns → **http-forms-errors** → **resilient-interactions** → test-generation → lint-guard                                                                                                                                                 |
 | **Platform / env hygiene**                                | **platform-hygiene** → env-schema-add (if key changed) → documentation-maintenance → lint-guard                                                                                                                             |
 | **New machine-enforced invariant (gate / lint rule)**     | **guard-authoring** (probe both directions) → code-quality-security (CI wiring) → documentation-maintenance                                                                                                                 |
 | **Any user-visible date / number / money value**          | **locale-formatting** → i18n-constants (labels) → test-generation                                                                                                                                                           |
@@ -106,11 +107,11 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 > If a task has **no** matching row here or in `skill-router.mdc`, use **find-skills** to look for one before building from scratch; if none exists, proceed with general capabilities.
 
-## Skill Inventory (49 skills)
+## Skill Inventory (50 skills)
 
 ### 0a. auto-implement (Master Orchestrator)
 
-**Path:** `agent-os/skills/auto-implement/SKILL.md`  
+**Path:** `agent-os/skills/auto-implement/SKILL.md`
 **Purpose:** The master skill that runs the full pipeline from requirement to production-ready code. The user provides only a requirement (standard format, short sentence, or vague request); the agent handles everything else in the background: parse → implement → route → RBAC → test → lint → docs → verify.
 
 **Trigger keywords:** Any requirement, any feature request, "here's my requirement", "implement this", "build this", "add this feature"
@@ -129,8 +130,8 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 ### 0b. theme-axis-audit (Appearance / Shuffle compliance)
 
-**Path:** `agent-os/skills/theme-axis-audit/SKILL.md`  
-**Playbook:** `docs/reference/theme-axis-audit-playbook.md`  
+**Path:** `agent-os/skills/theme-axis-audit/SKILL.md`
+**Playbook:** `docs/reference/theme-axis-audit-playbook.md`
 **Rule:** `agent-os/rules/theme-axis-audit.mdc`
 
 **Purpose:** One axis per cycle — inventory violations, extend `index.css` `[data-*]` / `[data-slot]` hooks, fix components, verify, update tracker, deliver detailed report.
@@ -146,7 +147,7 @@ For each common task, the skills below are required/auto-invoked. `auto-implemen
 
 ### 0c. Preset product-design rules (doc + Cursor rule)
 
-**Doc:** `docs/reference/preset-product-design-rules.md`  
+**Doc:** `docs/reference/preset-product-design-rules.md`
 **Rule:** `agent-os/rules/preset-product-design.mdc`
 
 **Purpose:** Industry-backed floors for every Appearance/Shuffle axis (typography, density, contrast, touch, motion) — not a skill, but mandatory reading when editing `src/shared/theme/presets.ts`, Appearance, or dense product UI.
@@ -821,8 +822,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10a. env-schema-add
 
-**Path:** `agent-os/skills/env-schema-add/SKILL.md`  
-**Rule:** `agent-os/rules/env-schema-add-sync.mdc`  
+**Path:** `agent-os/skills/env-schema-add/SKILL.md`
+**Rule:** `agent-os/rules/env-schema-add-sync.mdc`
 **Runbook:** `docs/deployment/runbooks/environment-variables.md`
 
 **Purpose:** Add, rename, or remove env vars safely — schema, `.env.example` halves, GitHub Secret vs Variable, platform-config wiring, and deploy sync.
@@ -842,8 +843,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10b. routing-tenancy
 
-**Path:** `agent-os/skills/routing-tenancy/SKILL.md`  
-**Rule:** `agent-os/rules/routing-tenancy-sync.mdc`  
+**Path:** `agent-os/skills/routing-tenancy/SKILL.md`
+**Rule:** `agent-os/rules/routing-tenancy-sync.mdc`
 **Spec:** `docs/reference/routing-and-tenancy.md`
 
 **Purpose:** Org-scoped routing, guard chains, `gatewayFromManifest`, session hydrate/invalidate, settings hash modal, `/` resolver.
@@ -863,7 +864,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10c. resource-crud
 
-**Path:** `agent-os/skills/resource-crud/SKILL.md`  
+**Path:** `agent-os/skills/resource-crud/SKILL.md`
 **Reference:** `src/core/resources/members.resource.ts`
 
 **Purpose:** Backend resource pages — list, URL-driven create/edit dialogs, `$param` folders, L7 registry bootstrap.
@@ -883,7 +884,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10d. http-forms-errors
 
-**Path:** `agent-os/skills/http-forms-errors/SKILL.md`  
+**Path:** `agent-os/skills/http-forms-errors/SKILL.md`
 **Platform doc:** `docs/reference/frontend-platform.md` (HTTP errors, QueryBoundary)
 
 **Purpose:** Form mutations + API error UX — `mapValidationErrors`, 429 `RateLimitNotice`, `notifyError`, `QueryBoundary` on reads.
@@ -896,14 +897,31 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 - 422 → RHF `setError` before toast
 - Read panels use `QueryBoundary` — no duplicate loading/error branches
 
-**Related skills:** composition-patterns, test-generation, resource-crud
+**Related skills:** composition-patterns, test-generation, resource-crud, resilient-interactions
+
+### 10e. resilient-interactions
+
+**Path:** `agent-os/skills/resilient-interactions/SKILL.md`
+**Rule:** `agent-os/rules/resilient-interactions.mdc` (the 28 one-liners, `alwaysApply`)
+
+**Purpose:** The worked reasoning behind the 28 always-on resilience rules — the failure each came from, the fix that looked right and was not, and the code that holds. The rule states them; this explains them.
+
+**Trigger keywords:** "single-flight", "double submit", "error boundary", "optimistic rollback", "loading state", "success toast", "§1", "§6"
+
+**Key behaviors:**
+
+- Section numbers match the rule file and are cited from code — never renumber
+- Read before arguing with a rule or applying an unfamiliar one
+- Pairs with `http-forms-errors` for the mutation/error wiring itself
+
+**Related skills:** http-forms-errors, composition-patterns, react-best-practices
 
 ---
 
 ### 10e. platform-hygiene
 
-**Path:** `agent-os/skills/platform-hygiene/SKILL.md`  
-**Rule:** `agent-os/rules/platform-hygiene-sync.mdc`  
+**Path:** `agent-os/skills/platform-hygiene/SKILL.md`
+**Rule:** `agent-os/rules/platform-hygiene-sync.mdc`
 **Overview:** `docs/reference/frontend-platform.md`
 
 **Purpose:** `platformConfig` vs raw Vite env, `build-env.ts` allowlist, knip, `validate:vite-env`, `validate:client-env`.
@@ -958,8 +976,8 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10h. pwa-manifest
 
-**Path:** `agent-os/skills/pwa-manifest/SKILL.md`  
-**Rule:** `agent-os/rules/pwa-manifest-sync.mdc`  
+**Path:** `agent-os/skills/pwa-manifest/SKILL.md`
+**Rule:** `agent-os/rules/pwa-manifest-sync.mdc`
 **Reference:** `docs/reference/pwa-manifest-and-app-icon.md`
 
 **Purpose:** PWA install surface — `app-manifest.ts` → `manifest.webmanifest`, Boxes icon, preset-aligned colors, favicon, VitePWA `includeAssets`.
@@ -978,7 +996,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 ### 10i. i18n-constants
 
-**Path:** `agent-os/skills/i18n-constants/SKILL.md`  
+**Path:** `agent-os/skills/i18n-constants/SKILL.md`
 **Purpose:** Extract static values into scoped constants files with react-i18next — one route island or module at a time. User-facing strings go in locale JSON; constants files hold keys, test IDs, analytics events, and non-copy defaults.
 
 **Trigger keywords:** "extract magic strings", "constants file", "i18n", "locale namespace", "user-facing copy", "move test ids", "analytics events", "defaults"
@@ -1066,6 +1084,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 | `src/shared/tenancy/`                                 | **routing-tenancy**, test-generation                                                                                                             |
 | `**/*.resource.ts`, `*ListPage.tsx`, `**/dialogs/**`  | **resource-crud**, route-island, e2e-testids                                                                                                     |
 | `**/forms/**`, mutation hooks                         | **http-forms-errors**, composition-patterns, test-generation                                                                                     |
+| `useAppMutation`, `useDeferredRowRemoval`, boundaries | **resilient-interactions**, http-forms-errors, test-generation                                                                                    |
 | `src/core/config/env-schema.ts`, `platform-config.ts` | **platform-hygiene**, **env-schema-add**, documentation-maintenance                                                                              |
 | `src/shared/components/`                              | component-promotion, composition-patterns, **shadcn** (`agent-os/skills/shadcn`), test-generation                                                |
 | `src/shared/components/ui/`                           | composition-patterns, web-design-guidelines, **shadcn** (`agent-os/skills/shadcn`)                                                               |
@@ -1097,19 +1116,20 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 
 These Cursor rules are always loaded and do not need to be invoked:
 
-| Rule                  | File                                       | Purpose                                                                                                   |
-| --------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| project-conventions   | `agent-os/rules/project-conventions.mdc`   | Architecture, imports, state management                                                                   |
-| ui-sources            | `agent-os/rules/ui-sources.mdc`            | Allowed 20 shadcn UI sources; for all shadcn work read the single skill `agent-os/skills/shadcn/SKILL.md` |
-| file-structure        | `agent-os/rules/file-structure.mdc`        | Directory layout, route.tsx convention                                                                    |
-| testing-requirements  | `agent-os/rules/testing-requirements.mdc`  | Test generation auto-trigger, data-testid convention                                                      |
-| context7-libraries    | `agent-os/rules/context7-libraries.mdc`    | Library doc lookup via Context7 MCP                                                                       |
-| skill-router          | `agent-os/rules/skill-router.mdc`          | Auto-routes tasks to the right skill; complete all steps without asking                                   |
-| routing-tenancy-sync  | `agent-os/rules/routing-tenancy-sync.mdc`  | Org routes, guards, gateway — read routing-tenancy skill                                                  |
-| platform-hygiene-sync | `agent-os/rules/platform-hygiene-sync.mdc` | Env/platform config — read platform-hygiene skill                                                         |
-| pwa-manifest-sync     | `agent-os/rules/pwa-manifest-sync.mdc`     | PWA manifest/icon — read pwa-manifest skill                                                               |
-| env-schema-add-sync   | `agent-os/rules/env-schema-add-sync.mdc`   | Env schema / `.env.example` — read env-schema-add skill                                                   |
-| agent-behavior        | `agent-os/rules/agent-behavior.mdc`        | Complete tests, route reg, RBAC, docs without asking; never ask "Do you want X?"                          |
+| Rule                   | File                                        | Purpose                                                                                                   |
+| ---------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| project-conventions    | `agent-os/rules/project-conventions.mdc`    | Architecture, imports, state management                                                                   |
+| ui-sources             | `agent-os/rules/ui-sources.mdc`             | Allowed 20 shadcn UI sources; for all shadcn work read the single skill `agent-os/skills/shadcn/SKILL.md` |
+| file-structure         | `agent-os/rules/file-structure.mdc`         | Directory layout, route.tsx convention                                                                    |
+| testing-requirements   | `agent-os/rules/testing-requirements.mdc`   | Test generation auto-trigger, data-testid convention                                                      |
+| context7-libraries     | `agent-os/rules/context7-libraries.mdc`     | Library doc lookup via Context7 MCP                                                                       |
+| skill-router           | `agent-os/rules/skill-router.mdc`           | Auto-routes tasks to the right skill; complete all steps without asking                                   |
+| routing-tenancy-sync   | `agent-os/rules/routing-tenancy-sync.mdc`   | Org routes, guards, gateway — read routing-tenancy skill                                                  |
+| platform-hygiene-sync  | `agent-os/rules/platform-hygiene-sync.mdc`  | Env/platform config — read platform-hygiene skill                                                         |
+| pwa-manifest-sync      | `agent-os/rules/pwa-manifest-sync.mdc`      | PWA manifest/icon — read pwa-manifest skill                                                               |
+| env-schema-add-sync    | `agent-os/rules/env-schema-add-sync.mdc`    | Env schema / `.env.example` — read env-schema-add skill                                                   |
+| agent-behavior         | `agent-os/rules/agent-behavior.mdc`         | Complete tests, route reg, RBAC, docs without asking; never ask "Do you want X?"                          |
+| resilient-interactions | `agent-os/rules/resilient-interactions.mdc` | 28 UI-resilience rules: single-flight writes, contained crashes, honest loading/empty/error states        |
 
 ## Orchestration manifests (machine-readable)
 

@@ -2,6 +2,7 @@ import { isNotFound, isRedirect } from '@tanstack/react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { queryClient } from '@/core/http/queryClient.ts';
+import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
 import type * as MyOrganizationsModule from '@/shared/tenancy/my-organizations.ts';
@@ -304,6 +305,31 @@ describe('workspace provision guards', () => {
     } as MeContext);
 
     await expect(requireOnboardingWorkspace()).resolves.toBeUndefined();
+  });
+
+  // Regression (ONB-4): the wizard's persisted store is bound to the signed-in
+  // user HERE, before the page renders. Done from an effect inside the page, a
+  // store left by a different user on this browser painted their name and
+  // workspace for a frame before the wipe.
+  it('requireOnboardingWorkspace claims the wizard store before the page renders', async () => {
+    const store = useOnboardingStore.getState();
+    store.claimForUser('usr_previous');
+    store.patch({ firstName: 'Prev' });
+    store.setStepIndex(2);
+
+    vi.mocked(ensureSessionContext).mockResolvedValue({
+      user: { id: 'usr_next', onboardingCompleted: false } as MeContext['user'],
+      activeOrganization: null,
+      organizations: [],
+      deploymentFlags: { personalOrganizations: true, teamOrganizations: true },
+    } as MeContext);
+
+    await requireOnboardingWorkspace();
+
+    const state = useOnboardingStore.getState();
+    expect(state.forUserId).toBe('usr_next');
+    expect(state.stepIndex).toBe(0);
+    expect(state.data.firstName).toBe('');
   });
 
   it('requireOnboardingWorkspace redirects away when user already has org memberships', async () => {

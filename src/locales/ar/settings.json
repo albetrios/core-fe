@@ -21,6 +21,7 @@
     "integrations": "التكاملات"
   },
   "security": {
+    "loadFailed": "تعذّر تحميل إعدادات الأمان. يرجى المحاولة مرة أخرى.",
     "heading": "الأمان",
     "description": "المصادقة الثنائية ومفاتيح المرور.",
     "mfa": {
@@ -71,7 +72,11 @@
       "mfaOn": "المصادقة الثنائية مفعّلة",
       "mfaOff": "المصادقة الثنائية معطّلة",
       "passkeysOn": "مفتاح مرور واحد مسجّل ({{count}})",
-      "passkeysOn_other": "{{count}} مفاتيح مرور مسجّلة",
+      "passkeysOn_zero": "{{count}} مفتاح مرور مسجّل",
+      "passkeysOn_two": "{{count}} مفتاحا مرور مسجّلان",
+      "passkeysOn_few": "{{count}} مفاتيح مرور مسجّلة",
+      "passkeysOn_many": "{{count}} مفتاح مرور مسجّلًا",
+      "passkeysOn_other": "{{count}} مفتاح مرور مسجّل",
       "passkeysOff": "لا مفاتيح مرور مسجّلة",
       "idleProtection": "تسجيل الخروج التلقائي عند الخمول نشط"
     },
@@ -98,7 +103,8 @@
       "verify": "تحقق",
       "verifying": "جارٍ التحقق…",
       "invalid": "لم يتطابق. حاول مرة أخرى.",
-      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة."
+      "passwordRequired": "يتطلب هذا الإجراء كلمة المرور أو رمز المصادقة.",
+      "sendFailed": "تعذّر إرسال الرمز. حاول مرة أخرى."
     }
   },
   "discard": {
@@ -106,6 +112,9 @@
     "description": "لديك تغييرات غير محفوظة. مغادرة هذا القسم ستتجاهلها.",
     "stay": "متابعة التحرير",
     "leave": "تجاهل التغييرات"
+  },
+  "dialog": {
+    "title": "الإعدادات"
   },
   "panels": {
     "members": {
@@ -128,7 +137,9 @@
       "removeConfirm": "إزالة",
       "removePending": "جارٍ إزالة {{name}}…",
       "emailPlaceholder": "member@example.com",
-      "rolePlaceholder": "اختر دورًا"
+      "rolePlaceholder": "اختر دورًا",
+      "invite": "دعوة عضو",
+      "memberFallback": "هذا العضو"
     },
     "roles": {
       "title": "الأدوار",
@@ -141,7 +152,11 @@
       "loadMore": "تحميل المزيد",
       "systemBadge": "نظام",
       "memberCount": "عضو {{count}}",
-      "memberCount_other": "{{count}} أعضاء",
+      "memberCount_zero": "{{count}} عضو",
+      "memberCount_two": "{{count}} عضوان",
+      "memberCount_few": "{{count}} أعضاء",
+      "memberCount_many": "{{count}} عضوًا",
+      "memberCount_other": "{{count}} عضو",
       "actionsAria": "إجراءات لـ {{name}}",
       "editAction": "تعديل الدور",
       "deleteAction": "حذف الدور",
@@ -151,7 +166,9 @@
       "deleteConfirm": "حذف",
       "deletePending": "جارٍ حذف {{name}}…",
       "namePlaceholder": "مثال: عضو",
-      "descriptionPlaceholder": "ما الذي يمكن لهذا الدور فعله؟"
+      "descriptionPlaceholder": "ما الذي يمكن لهذا الدور فعله؟",
+      "create": "دور جديد",
+      "roleFallback": "هذا الدور"
     },
     "listSort": {
       "label": "ترتيب حسب",
@@ -177,14 +194,179 @@
       "deleteTitle": "حذف حسابك؟",
       "deleteDescription": "هذا الإجراء دائم ولا يمكن التراجع عنه. ستُزال جميع بياناتك.",
       "deleteConfirm": "حذف الحساب",
-      "deleteCancel": "إلغاء"
+      "deleteCancel": "إلغاء",
+      "title": "الحساب",
+      "description": "بيانات الحساب والإجراءات التي لا يمكن التراجع عنها.",
+      "infoTitle": "معلومات الحساب",
+      "infoDescription": "تفاصيل حسابك.",
+      "accountIdLabel": "معرّف الحساب",
+      "emailLabel": "البريد الإلكتروني",
+      "roleLabel": "الدور",
+      "emailVerifiedLabel": "البريد الإلكتروني مُتحقَّق منه",
+      "verified": "مُتحقَّق منه",
+      "dangerZone": "منطقة الخطر",
+      "dangerZoneDescription": "إجراءات لا يمكن التراجع عنها لحسابك.",
+      "deleteHeading": "حذف الحساب",
+      "deleteBody": "احذف حسابك وجميع البيانات المرتبطة به نهائيًا.",
+      "deleteAction": "حذف الحساب"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "المؤسسة · عام",
+      "description": "هوية مؤسستك عبر المنصة.",
+      "loadFailed": "تعذّر تحميل تفاصيل المؤسسة.",
+      "basicsTitle": "الأساسيات",
+      "basicsDescription": "تظهر في مبدّل المؤسسات وفي الدعوات وفي إيصالات البريد الإلكتروني.",
+      "nameLabel": "اسم المؤسسة",
+      "slugLabel": "المعرّف النصي",
+      "slugHint": "يُستخدم في الروابط ومسارات API. تواصل مع الدعم لتغييره.",
+      "save": "حفظ التغييرات",
+      "logoTitle": "الشعار",
+      "logoDescription": "يظهر في مبدّل المؤسسات وفي الدعوات. الصور المربعة تبدو أفضل.",
+      "logoAlt": "شعار {{name}}",
+      "logoAltFallback": "شعار المؤسسة",
+      "uploadLogo": "رفع شعار",
+      "uploading": "جارٍ الرفع…",
+      "removeLogo": "إزالة",
+      "logoReadOnly": "يمكن لمسؤولي المؤسسة فقط تغيير الشعار."
     },
     "integrations": {
       "searchPlaceholder": "ابحث عن مفاتيح API…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "التكاملات",
+      "description": "مفاتيح API والويب هوك.",
+      "apiKeysTitle": "مفاتيح API",
+      "apiKeysLoadFailed": "تعذّر تحميل مفاتيح API. حاول مرة أخرى.",
+      "apiKeysEmptyTitle": "لا مفاتيح API",
+      "apiKeysEmptyDescription": "تتيح مفاتيح API للخدمات الخارجية التواصل مع مؤسستك.",
+      "apiKeysNoResults": "لا مفاتيح API مطابقة",
+      "apiKeysNoResultsDescription": "لا مفاتيح API تطابق بحثك.",
+      "apiKeyFallback": "مفتاح API هذا",
+      "revokeAria": "إبطال {{name}}",
+      "revokeTitle": "إبطال {{name}}؟",
+      "revokeDescription": "ستفقد أي خدمة تستخدم هذا المفتاح الوصول فورًا. لا يمكن التراجع عن ذلك.",
+      "revokeConfirm": "إبطال",
+      "loadMore": "تحميل المزيد",
+      "webhooksTitle": "الويب هوك",
+      "webhooksLoadFailed": "تعذّر تحميل الويب هوك. حاول مرة أخرى.",
+      "webhooksEmptyTitle": "لا ويب هوك",
+      "webhooksEmptyDescription": "أرسل أحداث المؤسسة إلى رابط خارجي.",
+      "addWebhook": "إضافة ويب هوك",
+      "addWebhookTitle": "إضافة ويب هوك",
+      "addWebhookDescription": "سنرسل الأحداث المحددة إلى هذا الرابط عبر POST.",
+      "payloadUrlLabel": "رابط الحمولة",
+      "eventsLabel": "الأحداث",
+      "cancel": "إلغاء",
+      "createWebhook": "إنشاء ويب هوك",
+      "creating": "جارٍ الإنشاء…",
+      "deleteWebhookAria": "حذف الويب هوك {{url}}",
+      "deleteWebhookTitle": "حذف هذا الويب هوك؟",
+      "deleteWebhookDescription": "ستتوقف الأحداث عن الوصول إلى هذا الرابط. لا يمكن التراجع عن ذلك.",
+      "deleteConfirm": "حذف"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "description": "اختر ما تُشعر به وكيفية ذلك.",
+      "deliveryTitle": "التسليم",
+      "deliveryDescription": "اختر قناة لكل نوع من التحديثات.",
+      "categories": {
+        "system": "المنتج والنظام",
+        "systemDescription": "التحديثات والإعلانات والنصائح.",
+        "member": "نشاط الفريق",
+        "memberDescription": "انضمام الأعضاء وتغييرات الأدوار والدعوات.",
+        "billing": "الفوترة",
+        "billingDescription": "الفواتير وتغييرات الخطة والتجديدات.",
+        "security": "الأمان",
+        "securityDescription": "عمليات تسجيل الدخول وتغييرات كلمة المرور وأحداث الأمان."
+      },
+      "channels": {
+        "email": "البريد الإلكتروني",
+        "inApp": "داخل التطبيق",
+        "desktop": "سطح المكتب"
+      }
+    },
+    "appearance": {
+      "title": "المظهر",
+      "description": "محفوظ على هذا الجهاز — تُطبَّق التغييرات فورًا.",
+      "shuffle": "عشوائي"
+    },
+    "sessions": {
+      "title": "الجلسات",
+      "description": "الأجهزة التي سجّلت الدخول حاليًا إلى حسابك.",
+      "loadFailed": "تعذّر تحميل جلساتك. حاول مرة أخرى.",
+      "emptyTitle": "لا توجد جلسات نشطة",
+      "emptyDescription": "تظهر الجلسات هنا بعد تسجيل الدخول على أحد الأجهزة.",
+      "currentBadge": "هذا الجهاز",
+      "lastActive": "{{details}} · نشط <1></1>",
+      "signOut": "تسجيل الخروج",
+      "revokeTitle": "تسجيل الخروج من هذه الجلسة؟",
+      "revokeDescription": "سيتم تسجيل الخروج من {{device}} فورًا.",
+      "revokeConfirm": "تسجيل الخروج",
+      "deviceFallback": "هذا الجهاز"
+    },
+    "billing": {
+      "title": "الفوترة",
+      "description": "خطتك وطرق الدفع والفواتير.",
+      "loadFailed": "تعذّر تحميل الفوترة. حاول مرة أخرى.",
+      "plansLoadFailed": "تعذّر تحميل الخطط. حاول مرة أخرى.",
+      "planHeading": "خطة {{name}}",
+      "noPlan": "لا توجد خطة",
+      "noSubscription": "لا يوجد اشتراك نشط بعد. اختر خطة من الأسفل.",
+      "summary": "{{used}} من {{total}} مقعدًا مستخدمًا · يتجدد في {{date}}",
+      "billedMonthly": "فوترة شهرية",
+      "billedYearly": "فوترة سنوية",
+      "pricePerMonth": "{{price}} / شهريًا",
+      "pricePerYear": "{{price}} / سنويًا",
+      "planFallbackDescription": "خطة فوترة مساحة العمل.",
+      "currentPlan": "الخطة الحالية",
+      "switchTo": "التبديل إلى {{name}}",
+      "choose": "اختيار {{name}}",
+      "switching": "جارٍ التبديل…",
+      "completePaymentTitle": "إتمام الدفع",
+      "completePaymentDescription": "أكّد طريقة الدفع لتفعيل الاشتراك. ستبقى داخل التطبيق — لن يفتح Stripe خطوة آمنة إلا إذا طلب مصرفك تحققًا.",
+      "changePlanTitle": "تغيير الخطة",
+      "changePlanDescription": "قارن الخطط وبدّل عندما يكون فريقك جاهزًا.",
+      "cycleLegend": "دورة الفوترة",
+      "monthly": "شهري",
+      "yearly": "سنوي",
+      "paymentMethods": {
+        "title": "طرق الدفع",
+        "description": "البطاقات المستخدمة لتجديد الاشتراك. تُدار بأمان داخل التطبيق عبر Stripe.",
+        "loadFailed": "تعذّر تحميل طرق الدفع. حاول مرة أخرى.",
+        "empty": "لا توجد طرق دفع محفوظة بعد.",
+        "add": "إضافة طريقة دفع",
+        "adding": "جارٍ التحميل…",
+        "cardFallback": "بطاقة",
+        "expires": "تنتهي في {{month}}/{{year}}",
+        "defaultBadge": "افتراضية"
+      },
+      "invoices": {
+        "title": "الفواتير",
+        "description": "التاريخ وتاريخ الاستحقاق والمبلغ والحالة من مزوّد الفوترة.",
+        "loadFailed": "تعذّر تحميل الفواتير. حاول مرة أخرى.",
+        "empty": "لا فواتير بعد.",
+        "view": "عرض الفاتورة",
+        "columns": {
+          "date": "التاريخ",
+          "due": "الاستحقاق",
+          "total": "الإجمالي",
+          "status": "الحالة",
+          "actions": "إجراءات"
+        }
+      },
+      "cancellation": {
+        "title": "الإلغاء",
+        "endsOn": "ينتهي اشتراكك في {{date}}. تحتفظ بالوصول حتى ذلك الحين.",
+        "cancelAnytime": "ألغِ في أي وقت — يستمر الوصول حتى {{date}}.",
+        "resume": "استئناف الاشتراك",
+        "resuming": "جارٍ الاستئناف…",
+        "cancelAction": "الإلغاء في نهاية الفترة",
+        "confirmTitle": "إلغاء الاشتراك؟",
+        "confirmDescription": "تحتفظ مساحة عملك بالوصول الكامل حتى {{date}}. بعد ذلك ينتهي الاشتراك وقد تُقيَّد الميزات المدفوعة.",
+        "keep": "الإبقاء على الاشتراك",
+        "confirm": "تأكيد الإلغاء",
+        "cancelling": "جارٍ الإلغاء…"
+      }
     }
   }
 }

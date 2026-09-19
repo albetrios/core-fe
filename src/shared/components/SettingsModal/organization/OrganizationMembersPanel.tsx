@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import i18n from '@/lib/i18n/i18n.ts';
+import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
+import { cn } from '@/lib/utils.ts';
 import type { Member, OrgRole } from '@/shared/api/organization-contracts.ts';
+import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { InviteMemberDialog } from '@/shared/components/InviteMemberDialog/index.ts';
@@ -29,8 +34,10 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
-import { useCan } from '@/shared/hooks/useCan/index.ts';
-import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
+import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
+import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
 import {
   useMembers,
   useRemoveMember,
@@ -38,8 +45,8 @@ import {
   useUpdateMemberStatus,
 } from '@/shared/hooks/useMembers/index.ts';
 import { useRoles } from '@/shared/hooks/useRoles/index.ts';
-import { MoreHorizontal, Users } from '@/shared/icons/index.ts';
-import { notifyDeferredCommit } from '@/shared/notify/notify-deferred.ts';
+import { Loader2, MoreHorizontal, UserPlus, Users } from '@/shared/icons/index.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
   DEFAULT_ORG_LIST_SORT,
@@ -106,6 +113,12 @@ function MemberRowActions({
     (role) => role.name.toLowerCase() !== 'owner',
   );
   const isSuspended = member.status === 'suspended';
+  /**
+   * One membership write at a time. The menu is still clickable while a change
+   * is in flight, and `useAppMutation` JOINS a second call to the first - so
+   * the second pick looked accepted and then vanished. Disable it (SET-12).
+   */
+  const isWriting = updateRole.isPending || updateStatus.isPending;
   // Suspend/reactivate only applies once a member has actually joined — core-be
   // rejects flipping a never-joined (invited) membership to active. Invited
   // members get role-change + remove (which revokes the invite).
@@ -119,8 +132,15 @@ function MemberRowActions({
           size="icon"
           aria-label={t(panels.actionsAria, { name: member.name })}
           data-testid={`member-actions-${member.id}`}
+          aria-busy={isWriting}
         >
-          <MoreHorizontal className="size-4" />
+          {/* Radix closes the menu on select, so the disabled items are out of
+              sight while the write runs. The row keeps the busy state visible. */}
+          {isWriting ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <MoreHorizontal className="size-4" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -130,6 +150,10 @@ function MemberRowActions({
             <DropdownMenuRadioGroup
               value={member.roleId}
               onValueChange={(roleId) => {
+                // Radix fires this for the already-selected item too - re-picking
+                // the member's current role is not a change, and used to send a
+                // PATCH and toast "Role updated" for nothing.
+                if (isWriting || roleId === member.roleId) return;
                 const role = assignableRoles.find((r) => r.id === roleId);
                 if (role) {
                   updateRole.mutate({
@@ -144,6 +168,7 @@ function MemberRowActions({
                 <DropdownMenuRadioItem
                   key={role.id}
                   value={role.id}
+                  disabled={isWriting}
                   data-testid={`member-set-role-${role.id}`}
                 >
                   {role.name}
@@ -155,6 +180,7 @@ function MemberRowActions({
         ) : null}
         {hasJoined ? (
           <DropdownMenuItem
+            disabled={isWriting}
             onSelect={() =>
               updateStatus.mutate({
                 membershipId: member.id,
@@ -187,7 +213,8 @@ export function OrganizationMembersPanel() {
   const { t } = useTranslation(SETTINGS_NS);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<OrgListSortPreset>(DEFAULT_ORG_LIST_SORT);
-  const debouncedSearch = useDebouncedValue(search.trim());
+  const { debounced: debouncedSearch, isPending: isSearchPending } =
+    useDebouncedSearch(search);
   const sortParams = orgListSortToParams(sort);
   const members = useMembers({
     q: debouncedSearch || undefined,
@@ -201,7 +228,31 @@ export function OrganizationMembersPanel() {
     permission: 'invitation:manage',
     teamOrganizationOnly: true,
   });
-  const removeMember = useRemoveMember();
+  /**
+   * `useCan` is synchronous and the guard chain fills the permission set a beat
+   * after this panel first renders, so a `false` here can mean "not yet". A
+   * disabled placeholder of the same size holds the slot instead of leaving a
+   * gap that fills itself a moment later (SET-23).
+   */
+  const accessResolved = useAccessResolved();
+  /**
+   * The undo toast owns the whole message sequence for a deferred removal
+   * ("Removing Jo…" → "Member removed"), so the mutation must stay quiet —
+   * otherwise one removal is confirmed twice, five seconds apart (SET-7).
+   */
+  const removeMember = useRemoveMember({ suppressSuccessToast: true });
+  const organizationId = useOrganizationStore((s) => s.organizationId);
+  /**
+   * Removal runs through the shared row-removal hook rather than the raw
+   * `notifyDeferredCommit`: the row has to leave the list at SCHEDULE time (the
+   * mutation's own optimistic patch is five seconds away, so the toast used to
+   * say "Removing Jo…" while Jo sat in the table), undo and a failed write both
+   * have to put that row back, and an unmount inside the undo window has to
+   * cancel the pending write instead of leaking a timer at a dead panel.
+   */
+  const scheduleRemoval = useDeferredRowRemoval<Member>(
+    orgQueryKeys.members(organizationId),
+  );
   const [toRemove, setToRemove] = useState<Member | null>(null);
 
   const panels = SETTINGS_KEYS.panels.members;
@@ -210,6 +261,7 @@ export function OrganizationMembersPanel() {
     t(SETTINGS_SECTION_LABEL_KEYS.members),
   );
   const isSearching = debouncedSearch.length > 0;
+  const isStale = isListStale(members.isRefreshing, isSearchPending);
 
   return (
     <section className="space-y-6" data-testid="settings-organization-members">
@@ -229,7 +281,13 @@ export function OrganizationMembersPanel() {
           searchTestId="members-search"
           sortTestId="members-sort"
         />
-        {canInvite ? <InviteMemberDialog /> : null}
+        {accessResolved ? null : (
+          <Button size="sm" disabled data-testid="invite-member-pending">
+            <UserPlus className="me-2 h-4 w-4" />
+            {t(panels.invite)}
+          </Button>
+        )}
+        {accessResolved && canInvite ? <InviteMemberDialog /> : null}
       </div>
 
       {members.isPending ? <MembersLoading /> : null}
@@ -252,7 +310,10 @@ export function OrganizationMembersPanel() {
 
       {!members.isError && members.rows.length > 0 ? (
         <>
-          <Card className="gap-0 overflow-hidden py-0">
+          <Card
+            className={cn('gap-0 overflow-hidden py-0', listRefreshClass(isStale))}
+            aria-busy={isStale}
+          >
             <ul className="divide-border divide-y" data-testid="members-list">
               {members.rows.map((member) => (
                 <li key={member.id} className="flex items-center gap-3 p-3">
@@ -276,7 +337,15 @@ export function OrganizationMembersPanel() {
                     {member.status}
                   </Badge>
                   {canManage && member.role !== 'owner' ? (
-                    <MemberRowActions member={member} onRemove={setToRemove} />
+                    // One row's menu is its own failure domain - a member with
+                    // malformed data must not blank the whole list.
+                    <SectionErrorBoundary
+                      variant="inline"
+                      title={member.name}
+                      testId={`member-actions-error-${member.id}`}
+                    >
+                      <MemberRowActions member={member} onRemove={setToRemove} />
+                    </SectionErrorBoundary>
                   ) : null}
                 </li>
               ))}
@@ -303,7 +372,9 @@ export function OrganizationMembersPanel() {
         onOpenChange={(open) => {
           if (!open) setToRemove(null);
         }}
-        title={t(panels.removeTitle, { name: toRemove?.name ?? 'member' })}
+        title={t(panels.removeTitle, {
+          name: toRemove?.name ?? t(panels.memberFallback),
+        })}
         description={t(panels.removeDescription)}
         confirmLabel={t(panels.removeConfirm)}
         destructive
@@ -311,10 +382,20 @@ export function OrganizationMembersPanel() {
           if (!toRemove) return;
           const member = toRemove;
           setToRemove(null);
-          notifyDeferredCommit({
+          scheduleRemoval({
+            id: member.id,
             pendingMessage: t(panels.removePending, { name: member.name }),
+            // The copy the mutation would have toasted, handed to the undo
+            // toast so the whole sequence lands on one toast id.
+            committedMessage: i18n.t(ERRORS_KEYS.frontend.hooks.members.removeSuccess, {
+              ns: ERRORS_NS,
+            }),
             toastId: `remove-member-${member.id}`,
-            onCommit: () => removeMember.mutate(member.id),
+            // `mutateAsync`, never `mutate`: the deferred commit has to AWAIT
+            // the DELETE. `mutate` returns void, so the toast reported success
+            // before the request landed and a rejection could never reach
+            // `onCommitError` — the row stayed gone after a failed delete.
+            commit: () => removeMember.mutateAsync(member.id),
           });
         }}
       />

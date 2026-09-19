@@ -76,7 +76,8 @@
     "slugLabel": "工作空间 URL（可选）",
     "slugPlaceholder": "acme",
     "urlPreview": "您的工作空间地址为 <1>core.app/{{slug}}</1>",
-    "slugFallback": "您的工作空间"
+    "slugFallback": "您的工作空间",
+    "slugInvalid": "仅可使用小写字母、数字和连字符。"
   },
   "invite": {
     "emailLabel": "成员邮箱",
@@ -91,7 +92,6 @@
     "organizationLabel": "组织",
     "invitesLabel": "邀请",
     "emptyValue": "—",
-    "invitesPending_one": "{{count}} 个待处理",
     "invitesPending_other": "{{count}} 个待处理"
   },
   "actions": {
@@ -107,9 +107,13 @@
   },
   "toast": {
     "finishSuccess": "欢迎！您的工作空间已就绪。",
+    "finishSuccessWithInvites_other": "欢迎！你的工作区已就绪 — 已发送 {{count}} 份邀请。",
     "finishError": "完成设置时出错，请重试。",
-    "invitePartialFailure_one": "工作空间已就绪 — {{count}} 个邀请未能发送，可在成员页重发。",
+    "profileSaveFailed": "无法保存您的姓名。工作区已就绪 — 请在设置中添加。",
     "invitePartialFailure_other": "工作空间已就绪 — {{count}} 个邀请未能发送，可在成员页重发。"
+  },
+  "session": {
+    "loadError": "无法加载你的账户设置。请检查网络连接后重试。"
   },
   "guard": {
     "title": "退出入门引导？",

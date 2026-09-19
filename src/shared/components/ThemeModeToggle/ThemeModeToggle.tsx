@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu.tsx';
 import { Monitor, Moon, Sparkles, Sun } from '@/shared/icons/index.ts';
+import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
 /**
@@ -37,7 +38,8 @@ export function ThemeModeToggle({
   menuSide?: 'top' | 'right' | 'bottom' | 'left';
   menuAlign?: 'start' | 'center' | 'end';
 }) {
-  const { t } = useTranslation(LOCALE_NS);
+  const { t: tLocale } = useTranslation(LOCALE_NS);
+  const { t } = useTranslation(LAYOUT_NS);
   const theme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
   const shuffleTheme = useThemeStore((s) => s.shuffleTheme);
@@ -69,7 +71,7 @@ export function ThemeModeToggle({
           variant="ghost"
           size="icon"
           className={surfaceTriggerClass}
-          aria-label={t(LOCALE_KEYS.toggleTheme)}
+          aria-label={tLocale(LOCALE_KEYS.toggleTheme)}
           data-testid="theme-toggle"
         >
           <ThemeIcon className={cn('h-4 w-4', surfaceIconClass)} />
@@ -77,20 +79,20 @@ export function ThemeModeToggle({
       </DropdownMenuTrigger>
       <DropdownMenuContent align={menuAlign} side={menuSide}>
         <DropdownMenuItem onClick={() => setTheme('light')} data-testid="theme-light">
-          <Sun className="me-2 h-4 w-4" /> Light
+          <Sun className="me-2 h-4 w-4" /> {t(LAYOUT_KEYS.app.theme.light)}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')} data-testid="theme-dark">
-          <Moon className="me-2 h-4 w-4" /> Dark
+          <Moon className="me-2 h-4 w-4" /> {t(LAYOUT_KEYS.app.theme.dark)}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')} data-testid="theme-system">
-          <Monitor className="me-2 h-4 w-4" /> System
+          <Monitor className="me-2 h-4 w-4" /> {t(LAYOUT_KEYS.app.theme.system)}
         </DropdownMenuItem>
         {/* DEV-only testing shortcut — canonical shuffle lives in Settings → Appearance. */}
         {platformConfig.devtools && !platformConfig.themeLock ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={shuffleTheme} data-testid="theme-shuffle-menu">
-              <Sparkles className="me-2 h-4 w-4" /> Shuffle theme
+              <Sparkles className="me-2 h-4 w-4" /> {t(LAYOUT_KEYS.app.theme.shuffle)}
             </DropdownMenuItem>
           </>
         ) : null}

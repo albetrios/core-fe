@@ -1,5 +1,5 @@
 import { Link, Outlet, useNavigate } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { platformConfig } from '@/core/config/env.ts';
@@ -373,25 +373,130 @@ export function MobileNav({
   );
 }
 
+/**
+ * Scroll offset carried across a shell swap.
+ *
+ * Each variant owns its own `<main>`, so changing shells unmounts this one and
+ * mounts a different node — the browser has nothing to restore and the user is
+ * thrown back to the top of a page they were reading (SHELL-1). Module scope,
+ * not state: it must outlive the component that is being replaced.
+ *
+ * Outliving the component also meant outliving the SESSION. Signing out and
+ * signing back in as somebody else left the fresh session being chase-scrolled
+ * to the previous user's offset for the whole restore window below, on a page
+ * they had never scrolled. A logout now clears it — see
+ * {@link bindScrollResetToSession}.
+ */
+let lastMainScrollTop = 0;
+
+/** How long a restore keeps chasing content that is still rendering in. */
+const SCROLL_RESTORE_WINDOW_MS = 1500;
+
+let scrollResetBound = false;
+
+/**
+ * Drop the carried offset when the session ends.
+ *
+ * Every local logout path — the user menu, a dead/expired session, the
+ * cross-tab logout broadcast — funnels through the auth service's
+ * `clearLocalAuthState()`, and its one effect observable from here is
+ * `useAuthStore.clearAuth()`. Watching that one transition therefore covers all
+ * of them without this shell having to know about any of them, and follows the
+ * store-subscription pattern already used for auth transitions in
+ * `shared/icons/icon-registry.ts`.
+ *
+ * Bound once from the first `AppMain` mount and deliberately never unbound. The
+ * offset it guards cannot be non-zero unless `AppMain` has mounted, so binding
+ * on mount misses nothing; keeping the subscription alive afterwards is what
+ * makes it correct, because the logout it has to hear is usually the same event
+ * that unmounts `AppMain` (a subscription owned by the effect would be torn
+ * down in that same teardown), and a cross-tab logout can arrive while this tab
+ * already sits on `/login` with no shell mounted at all.
+ */
+function bindScrollResetToSession(): void {
+  if (scrollResetBound) return;
+  scrollResetBound = true;
+  useAuthStore.subscribe((state, prev) => {
+    if (prev.isAuthenticated && !state.isAuthenticated) lastMainScrollTop = 0;
+  });
+}
+
 /** The scrolling content region (email banner + routed page). */
 export function AppMain() {
   const { t } = useTranslation(ERRORS_NS);
+  const mainRef = useRef<HTMLElement>(null);
   const layoutPreference = useThemeStore((s) => s.layoutWidth);
   const layoutWidth = resolveEffectiveLayoutWidth(
     platformConfig.layoutWidthForced,
     layoutPreference,
   );
 
+  useEffect(() => {
+    bindScrollResetToSession();
+    const el = mainRef.current;
+    if (!el) return;
+    const target = lastMainScrollTop;
+    let restoring = target > 0;
+    let written: number | null = null;
+    let observer: ResizeObserver | undefined;
+    let frame = 0;
+    const deadline = performance.now() + SCROLL_RESTORE_WINDOW_MS;
+
+    const stop = () => {
+      restoring = false;
+      observer?.disconnect();
+    };
+
+    // One assignment is not enough: the routed island remounts with the shell,
+    // so at this instant its content can still be short and `scrollTop` clamps
+    // back to 0. Re-apply while the content grows into the offset.
+    const apply = () => {
+      if (!restoring) return;
+      // Someone moved it who is not us — the user wins, stop restoring.
+      if (written !== null && el.scrollTop !== written) return stop();
+      el.scrollTop = target;
+      written = el.scrollTop;
+      if (written >= target || performance.now() > deadline) stop();
+    };
+
+    // Save continuously rather than on unmount: during a shell swap React can
+    // mount the replacement before the outgoing instance's cleanup runs, and a
+    // value written then arrives one commit too late to be read.
+    const onScroll = () => {
+      if (restoring || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        lastMainScrollTop = el.scrollTop;
+      });
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+
+    apply();
+    if (restoring && typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(apply);
+      observer.observe(el);
+      if (el.firstElementChild) observer.observe(el.firstElementChild);
+    }
+
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  }, []);
+
   return (
     <>
       <SectionErrorBoundary
         title={t(ERRORS_KEYS.widget.emailBanner)}
         testId="email-banner-error"
+        variant="inline"
       >
         <EmailVerificationBanner />
       </SectionErrorBoundary>
       <main
         id="main-content"
+        ref={mainRef}
         className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 md:pb-6"
         data-testid="main-content"
         data-layout-width={layoutWidth}

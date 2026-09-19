@@ -11,16 +11,35 @@
     "pageMessage": "Beim Rendern dieser Seite ist etwas schiefgelaufen.",
     "tryAgain": "Erneut versuchen",
     "goHome": "Zur Startseite",
-    "refresh": "Seite aktualisieren"
+    "refresh": "Seite aktualisieren",
+    "forbidden": "Sie haben keine Berechtigung für diese Seite.",
+    "signOut": "Abmelden",
+    "signingOut": "Abmeldung läuft…"
   },
   "widget": {
     "unavailable": "{{title}} nicht verfügbar",
     "message": "Beim Laden dieses Abschnitts ist etwas schiefgelaufen. Erneut versuchen.",
     "retry": "Erneut versuchen",
+    "unavailableShort": "Nicht verfügbar",
+    "controlRetry": "{{title}} nicht verfügbar. Zum Wiederholen auswählen.",
     "pageContent": "Seiteninhalt",
+    "navigation": "Navigation",
     "emailBanner": "E-Mail-Bestätigung",
     "notifications": "Benachrichtigungen",
-    "organizationSwitcher": "Organisationswechsler"
+    "organizationSwitcher": "Organisationswechsler",
+    "commandPalette": "Befehlspalette",
+    "settings": "Einstellungen",
+    "appearance": "Darstellung",
+    "analytics": "Analysen",
+    "members": "Mitglieder",
+    "schedule": "Zeitplan",
+    "highlights": "Highlights",
+    "themeShowcase": "Theme-Vorschau",
+    "sessionTimeout": "Sitzungs-Timer",
+    "securityCheck": "Sicherheitsprüfung",
+    "appearanceControls": "Darstellungsoptionen",
+    "payment": "Zahlung",
+    "cancellation": "Kündigung"
   },
   "toast": {
     "dismiss": "Benachrichtigung schließen",
@@ -65,7 +84,8 @@
       "logoReadFailed": "Datei konnte nicht gelesen werden.",
       "formCheck": "Formular prüfen",
       "updateSuccess": "Organisation aktualisiert",
-      "createSuccess": "{{name}} erstellt"
+      "createSuccess": "{{name}} erstellt",
+      "createdSwitchFailed": "{{name}} wurde erstellt, konnte aber nicht geöffnet werden. Wähle sie im Organisationswechsler aus."
     },
     "account": {
       "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
@@ -132,7 +152,10 @@
       },
       "subscription": {
         "changePlanFailed": "Plan konnte nicht geändert werden",
-        "changePlanSuccess": "Zum {{plan}}-Plan gewechselt"
+        "changePlanSuccess": "Zum {{plan}}-Plan gewechselt",
+        "paymentSetupFailed": "Tarif geändert, aber der Zahlungsschritt konnte nicht gestartet werden. Öffne die Abrechnung erneut, um ihn abzuschließen.",
+        "cancelSuccess": "Abo endet zum Ende des Abrechnungszeitraums",
+        "resumeSuccess": "Abo fortgesetzt"
       },
       "invitations": {
         "sendFailed": "Einladung konnte nicht gesendet werden",
@@ -140,5 +163,10 @@
       }
     },
     "profileUpdated": "Profil aktualisiert"
+  },
+  "suspended": {
+    "title": "Organisation gesperrt",
+    "message": "Diese Organisation ist derzeit gesperrt. Wenden Sie sich an eine Organisationsadministration, um die Abrechnung zu prüfen, oder wechseln Sie zu einer anderen Organisation.",
+    "switchOrganization": "Organisation wechseln"
   }
 }

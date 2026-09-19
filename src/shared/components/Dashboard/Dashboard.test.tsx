@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
@@ -9,24 +10,46 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { Dashboard } from './Dashboard.tsx';
 
-const { useMeContextMock } = vi.hoisted(() => ({ useMeContextMock: vi.fn() }));
+const { useMeContextMock, chartMock } = vi.hoisted(() => ({
+  useMeContextMock: vi.fn(),
+  chartMock: vi.fn(() => null),
+}));
 vi.mock('@/shared/hooks/useMeContext/index.ts', () => ({
   useMeContext: useMeContextMock,
   meContextQueryKey: ['auth', 'me-context'],
 }));
-vi.mock('@/shared/components/Dashboard/Dashboard.deferred.tsx', () => ({
-  DeferredAnalyticsChart: () => <div data-testid="dashboard-analytics-chart" />,
-  DeferredHighlightsCarousel: () => (
-    <div data-testid="dashboard-highlights-carousel">
-      <div data-testid="dashboard-highlights-tabs" />
-    </div>
-  ),
-  DeferredMembersTable: () => <div data-testid="members-table" />,
-  DeferredScheduleCalendar: () => <div data-testid="dashboard-schedule-calendar" />,
-  DeferredThemeShowcase: () => <div data-testid="dashboard-theme-showcase" />,
-  DeferredSourceDonut: () => <div data-testid="dashboard-source-donut" />,
-  DeferredUsageBars: () => <div data-testid="dashboard-usage-bars" />,
-}));
+/*
+ * The deferred widgets are stubbed for speed, but the analytics stub keeps the
+ * ONE thing that matters for containment: each real `Deferred*` wraps its widget
+ * in its own SectionErrorBoundary (Dashboard.deferred.tsx). Stubbing that away
+ * would move a throw up to whatever boundary sits around the whole section, and
+ * the isolation test below would then be asserting the wrong layer.
+ */
+vi.mock('@/shared/components/Dashboard/Dashboard.deferred.tsx', async () => {
+  const { SectionErrorBoundary } =
+    await import('@/shared/components/WidgetErrorBoundary/index.ts');
+  // A COMPONENT, not a call expression: `chartMock()` inline would throw while
+  // building the boundary's children — i.e. in the parent's render, above the
+  // boundary — and escape the very thing this stub exists to reproduce.
+  const ChartStub = () => chartMock() as unknown as ReactNode;
+  return {
+    DeferredAnalyticsChart: () => (
+      <SectionErrorBoundary title="Analytics" testId="dashboard-analytics-error">
+        <ChartStub />
+      </SectionErrorBoundary>
+    ),
+    DeferredHighlightsCarousel: () => (
+      <div data-testid="dashboard-highlights-carousel">
+        <div data-testid="dashboard-highlights-tabs" />
+      </div>
+    ),
+    DeferredMembersTable: () => <div data-testid="members-table" />,
+    DeferredScheduleCalendar: () => <div data-testid="dashboard-schedule-calendar" />,
+    DeferredThemeShowcase: () => <div data-testid="dashboard-theme-showcase" />,
+    DeferredSourceDonut: () => <div data-testid="dashboard-source-donut" />,
+    DeferredUsageBars: () => <div data-testid="dashboard-usage-bars" />,
+  };
+});
 
 function ctx(overrides: Partial<MeContext> = {}): MeContext {
   return {
@@ -79,6 +102,9 @@ const queryResult = (
 describe('Dashboard', () => {
   beforeEach(() => {
     useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });
+    chartMock.mockReturnValue(<div data-testid="dashboard-analytics-chart" />);
+    // Arrangement variants are a preview axis rolled by the Shuffle; pin the
+    // classic one so a stray roll cannot change what these assertions render.
     useThemeStore.setState({ dashboardVariant: 0 });
   });
 
@@ -181,6 +207,36 @@ describe('Dashboard', () => {
     renderWithProviders(<Dashboard />);
     expect(await screen.findByTestId('dashboard-page')).toBeInTheDocument();
     expect(screen.queryByTestId('dashboard-stat-workspaces')).not.toBeInTheDocument();
+  });
+
+  // Regression (DASH-2): the chart, the roster and the calendar shared ONE
+  // SectionErrorBoundary wrapped around the whole Insights section, so a throw
+  // in any one of them removed all three plus the section heading.
+  describe('when one insights widget throws', () => {
+    let consoleError: ReturnType<typeof vi.spyOn>;
+    beforeEach(() => {
+      consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      consoleError.mockRestore();
+      chartMock.mockReturnValue(<div data-testid="dashboard-analytics-chart" />);
+    });
+
+    it('keeps the other widgets and the section heading on screen', async () => {
+      useMeContextMock.mockReturnValue(queryResult(ctx()));
+      chartMock.mockImplementation(() => {
+        throw new Error('analytics chart exploded');
+      });
+
+      renderWithProviders(<Dashboard />);
+
+      // The failing widget is contained by its OWN boundary — the one the real
+      // DeferredAnalyticsChart carries, not a section-wide net...
+      expect(await screen.findByTestId('dashboard-analytics-error')).toBeInTheDocument();
+      // ...and its neighbours survive.
+      expect(screen.getByTestId('members-table')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard-schedule-calendar')).toBeInTheDocument();
+    });
   });
 
   // TEMP preview axis: the Shuffle rolls `dashboardVariant` and every

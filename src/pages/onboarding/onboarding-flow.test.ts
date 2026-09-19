@@ -22,6 +22,12 @@ const CTX_WITH_PERSONAL = {
   ],
 } as unknown as MeContext;
 
+/** A loaded context with no organizations at all — a brand-new team-only user. */
+const CTX_EMPTY = {
+  personalOrganizationId: null,
+  organizations: [],
+} as unknown as MeContext;
+
 describe('deriveOnboardingSteps', () => {
   it('skips workspace and invite in personal-only mode', () => {
     expect(deriveOnboardingSteps(PERSONAL_ONLY, CTX_WITH_PERSONAL)).toEqual([
@@ -33,7 +39,7 @@ describe('deriveOnboardingSteps', () => {
   });
 
   it('requires workspace in team-only mode', () => {
-    expect(deriveOnboardingSteps(TEAM_ONLY, null)).toEqual([
+    expect(deriveOnboardingSteps(TEAM_ONLY, CTX_EMPTY)).toEqual([
       'welcome',
       'profile',
       'questions',
@@ -69,17 +75,40 @@ describe('deriveOnboardingSteps', () => {
   });
 });
 
+/*
+ * ONB-9. The step list is derived from me/context, and `useDeploymentFlags`
+ * falls back to the permissive defaults when that context is missing — so an
+ * absent context used to yield a DIFFERENT, shorter flow that a user could still
+ * complete.
+ *
+ * Enforcement is the non-nullable `ctx` parameter, checked by `pnpm type-check`
+ * — NOT by this file, which tsconfig.app.json excludes, so a `@ts-expect-error`
+ * here would assert nothing. What this pins is the reason the signature is
+ * strict: the two flows below really are different, so deriving one from a
+ * context you do not have picks the wrong one silently.
+ */
+describe('a loaded me/context is required to derive a flow', () => {
+  it('gives team-only and personal-and-team users DIFFERENT flows', () => {
+    // The exact divergence the missing-context fallback used to hide: the
+    // permissive default is personal-and-team, which drops the workspace step.
+    expect(deriveOnboardingSteps(TEAM_ONLY, CTX_EMPTY)).toContain('workspace');
+    expect(deriveOnboardingSteps(BOTH_FLAGS, CTX_EMPTY)).not.toContain('workspace');
+    expect(shouldCreateOrganizationOnFinish(TEAM_ONLY, CTX_EMPTY)).toBe(true);
+    expect(shouldCreateOrganizationOnFinish(BOTH_FLAGS, CTX_EMPTY)).toBe(false);
+  });
+});
+
 describe('shouldCreateOrganizationOnFinish', () => {
   it('never creates in personal-only mode', () => {
-    expect(shouldCreateOrganizationOnFinish(PERSONAL_ONLY, null)).toBe(false);
+    expect(shouldCreateOrganizationOnFinish(PERSONAL_ONLY, CTX_EMPTY)).toBe(false);
   });
 
   it('always creates in team-only mode', () => {
-    expect(shouldCreateOrganizationOnFinish(TEAM_ONLY, null)).toBe(true);
+    expect(shouldCreateOrganizationOnFinish(TEAM_ONLY, CTX_EMPTY)).toBe(true);
   });
 
   it('never creates in both mode (team orgs come from the switcher)', () => {
-    expect(shouldCreateOrganizationOnFinish(BOTH_FLAGS, null)).toBe(false);
+    expect(shouldCreateOrganizationOnFinish(BOTH_FLAGS, CTX_EMPTY)).toBe(false);
     expect(shouldCreateOrganizationOnFinish(BOTH_FLAGS, CTX_WITH_PERSONAL)).toBe(false);
   });
 });

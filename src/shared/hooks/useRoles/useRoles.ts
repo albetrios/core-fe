@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import * as orgApi from '@/shared/api/organization-api.ts';
@@ -9,6 +7,7 @@ import {
   orgQueryKeys,
 } from '@/shared/api/organization-query-keys.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
+import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import {
   type CursorListResult,
   useCursorList,
@@ -27,6 +26,8 @@ export function useRoles(params: RolesListParams = {}): CursorListResult<RoleSum
   return useCursorList<RoleSummary>({
     queryKey: orgQueryKeys.rolesList(orgId, params),
     queryFn: (after) => orgApi.listRoles({ ...params, after }),
+    // The roles panel renders a RetryError for exactly this failure.
+    notifyOnError: false,
     // No active org (mid org-switch, or before context resolves) → skip the
     // request instead of firing a `Forbidden` against an empty org scope.
     enabled: Boolean(orgId),
@@ -39,7 +40,7 @@ export function useRoles(params: RolesListParams = {}): CursorListResult<RoleSum
  */
 export function useRolePermissions(roleId: string | undefined) {
   const orgId = useOrganizationStore((s) => s.organizationId);
-  return useQuery({
+  return useAppQuery({
     queryKey: [...orgQueryKeys.roles(orgId), 'permissions', roleId],
     queryFn: () => orgApi.getRolePermissions(roleId ?? ''),
     enabled: roleId !== undefined,
@@ -80,7 +81,7 @@ export function useUpdateRole() {
 }
 
 /** Delete a custom role — optimistically drops it from the list. */
-export function useDeleteRole() {
+export function useDeleteRole(options?: { suppressSuccessToast?: boolean }) {
   const orgId = useOrganizationStore((s) => s.organizationId);
   return useAppMutation({
     mutationFn: (roleId: string) => orgApi.deleteRole(roleId),
@@ -89,8 +90,9 @@ export function useDeleteRole() {
       queryKey: orgQueryKeys.roles(orgId),
       update: (rows: RoleSummary[], roleId) => rows.filter((role) => role.id !== roleId),
     },
-    successMessage: i18n.t(ERRORS_KEYS.frontend.hooks.roles.deleteSuccess, {
-      ns: ERRORS_NS,
-    }),
+    // See useRemoveMember: the undo toast owns the messaging on deferred paths.
+    successMessage: options?.suppressSuccessToast
+      ? undefined
+      : i18n.t(ERRORS_KEYS.frontend.hooks.roles.deleteSuccess, { ns: ERRORS_NS }),
   });
 }

@@ -21,6 +21,7 @@
     "integrations": "Integrations"
   },
   "security": {
+    "loadFailed": "Couldn't load your security settings. Please try again.",
     "heading": "Security",
     "description": "Two-factor authentication and passkeys.",
     "mfa": {
@@ -98,7 +99,8 @@
       "verify": "Verify",
       "verifying": "Verifying…",
       "invalid": "That didn’t match. Please try again.",
-      "passwordRequired": "This action needs your password or an authenticator code."
+      "passwordRequired": "This action needs your password or an authenticator code.",
+      "sendFailed": "We couldn't send the code. Please try again."
     }
   },
   "discard": {
@@ -106,6 +108,9 @@
     "description": "You have unsaved changes. Leaving this section will discard them.",
     "stay": "Keep editing",
     "leave": "Discard changes"
+  },
+  "dialog": {
+    "title": "Settings"
   },
   "panels": {
     "members": {
@@ -128,7 +133,9 @@
       "removeConfirm": "Remove",
       "removePending": "Removing {{name}}…",
       "emailPlaceholder": "teammate@company.com",
-      "rolePlaceholder": "Select a role"
+      "rolePlaceholder": "Select a role",
+      "invite": "Invite member",
+      "memberFallback": "this member"
     },
     "roles": {
       "title": "Roles",
@@ -151,7 +158,9 @@
       "deleteConfirm": "Delete",
       "deletePending": "Deleting {{name}}…",
       "namePlaceholder": "e.g. Member",
-      "descriptionPlaceholder": "What can this role do?"
+      "descriptionPlaceholder": "What can this role do?",
+      "create": "New role",
+      "roleFallback": "this role"
     },
     "listSort": {
       "label": "Sort by",
@@ -177,14 +186,179 @@
       "deleteTitle": "Delete your account?",
       "deleteDescription": "This action is permanent and cannot be undone. All your data will be removed.",
       "deleteConfirm": "Delete account",
-      "deleteCancel": "Cancel"
+      "deleteCancel": "Cancel",
+      "title": "Account",
+      "description": "Account metadata and irreversible actions.",
+      "infoTitle": "Account information",
+      "infoDescription": "Details about your account.",
+      "accountIdLabel": "Account ID",
+      "emailLabel": "Email",
+      "roleLabel": "Role",
+      "emailVerifiedLabel": "Email verified",
+      "verified": "Verified",
+      "dangerZone": "Danger zone",
+      "dangerZoneDescription": "Irreversible actions for your account.",
+      "deleteHeading": "Delete account",
+      "deleteBody": "Permanently delete your account and all associated data.",
+      "deleteAction": "Delete account"
     },
     "general": {
-      "namePlaceholder": "Acme Inc."
+      "namePlaceholder": "Acme Inc.",
+      "title": "Organization · General",
+      "description": "Identity for your organization across the platform.",
+      "loadFailed": "Couldn't load organization details.",
+      "basicsTitle": "Basics",
+      "basicsDescription": "These appear in the org switcher, invites, and email receipts.",
+      "nameLabel": "Organization name",
+      "slugLabel": "Slug",
+      "slugHint": "Used in URLs and API paths. Contact support to change it.",
+      "save": "Save changes",
+      "logoTitle": "Logo",
+      "logoDescription": "Shown in the org switcher and on invites. Square images look best.",
+      "logoAlt": "{{name}} logo",
+      "logoAltFallback": "Organization logo",
+      "uploadLogo": "Upload logo",
+      "uploading": "Uploading…",
+      "removeLogo": "Remove",
+      "logoReadOnly": "Only organization admins can change the logo."
     },
     "integrations": {
       "searchPlaceholder": "Search API keys…",
-      "webhookUrlPlaceholder": "https://example.com/hooks"
+      "webhookUrlPlaceholder": "https://example.com/hooks",
+      "title": "Integrations",
+      "description": "API keys and webhooks.",
+      "apiKeysTitle": "API keys",
+      "apiKeysLoadFailed": "Couldn't load API keys. Please try again.",
+      "apiKeysEmptyTitle": "No API keys",
+      "apiKeysEmptyDescription": "API keys let external services talk to your organization.",
+      "apiKeysNoResults": "No matching API keys",
+      "apiKeysNoResultsDescription": "No API keys match your search.",
+      "apiKeyFallback": "this API key",
+      "revokeAria": "Revoke {{name}}",
+      "revokeTitle": "Revoke {{name}}?",
+      "revokeDescription": "Any service using this key will immediately lose access. This can't be undone.",
+      "revokeConfirm": "Revoke",
+      "loadMore": "Load more",
+      "webhooksTitle": "Webhooks",
+      "webhooksLoadFailed": "Couldn't load webhooks. Please try again.",
+      "webhooksEmptyTitle": "No webhooks",
+      "webhooksEmptyDescription": "Send organization events to an external URL.",
+      "addWebhook": "Add webhook",
+      "addWebhookTitle": "Add a webhook",
+      "addWebhookDescription": "We'll POST the selected events to this URL.",
+      "payloadUrlLabel": "Payload URL",
+      "eventsLabel": "Events",
+      "cancel": "Cancel",
+      "createWebhook": "Create webhook",
+      "creating": "Creating…",
+      "deleteWebhookAria": "Delete webhook {{url}}",
+      "deleteWebhookTitle": "Delete this webhook?",
+      "deleteWebhookDescription": "Events will stop being delivered to this URL. This can't be undone.",
+      "deleteConfirm": "Delete"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choose what you're notified about, and how.",
+      "deliveryTitle": "Delivery",
+      "deliveryDescription": "Pick a channel for each kind of update.",
+      "categories": {
+        "system": "Product & system",
+        "systemDescription": "Updates, announcements, and tips.",
+        "member": "Team activity",
+        "memberDescription": "Member joins, role changes, and invitations.",
+        "billing": "Billing",
+        "billingDescription": "Invoices, plan changes, and renewals.",
+        "security": "Security",
+        "securityDescription": "Sign-ins, password changes, and safety events."
+      },
+      "channels": {
+        "email": "Email",
+        "inApp": "In-app",
+        "desktop": "Desktop"
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Saved on this device — changes apply live.",
+      "shuffle": "Shuffle"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Devices currently signed in to your account.",
+      "loadFailed": "Couldn't load your sessions. Please try again.",
+      "emptyTitle": "No active sessions",
+      "emptyDescription": "Sessions appear here once you sign in on a device.",
+      "currentBadge": "This device",
+      "lastActive": "{{details}} · active <1></1>",
+      "signOut": "Sign out",
+      "revokeTitle": "Sign out this session?",
+      "revokeDescription": "{{device}} will be signed out immediately.",
+      "revokeConfirm": "Sign out",
+      "deviceFallback": "This device"
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Your plan, payment methods, and invoices.",
+      "loadFailed": "Couldn't load billing. Please try again.",
+      "plansLoadFailed": "Couldn't load plans. Please try again.",
+      "planHeading": "{{name}} plan",
+      "noPlan": "No plan",
+      "noSubscription": "No active subscription yet. Choose a plan below.",
+      "summary": "{{used}} of {{total}} seats used · renews {{date}}",
+      "billedMonthly": "Billed monthly",
+      "billedYearly": "Billed yearly",
+      "pricePerMonth": "{{price}} / mo",
+      "pricePerYear": "{{price}} / yr",
+      "planFallbackDescription": "Workspace billing plan.",
+      "currentPlan": "Current plan",
+      "switchTo": "Switch to {{name}}",
+      "choose": "Choose {{name}}",
+      "switching": "Switching…",
+      "completePaymentTitle": "Complete payment",
+      "completePaymentDescription": "Confirm your payment method to activate the subscription. You stay in the app — Stripe only opens a secure step if your bank requires verification.",
+      "changePlanTitle": "Change plan",
+      "changePlanDescription": "Compare plans and switch when your team is ready.",
+      "cycleLegend": "Billing cycle",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "paymentMethods": {
+        "title": "Payment methods",
+        "description": "Cards used for subscription renewals. Managed securely in-app via Stripe.",
+        "loadFailed": "Couldn't load payment methods. Please try again.",
+        "empty": "No payment methods on file yet.",
+        "add": "Add payment method",
+        "adding": "Loading…",
+        "cardFallback": "Card",
+        "expires": "Expires {{month}}/{{year}}",
+        "defaultBadge": "Default"
+      },
+      "invoices": {
+        "title": "Invoices",
+        "description": "Date, due date, amount, and status from your billing provider.",
+        "loadFailed": "Couldn't load invoices. Please try again.",
+        "empty": "No invoices yet.",
+        "view": "View invoice",
+        "columns": {
+          "date": "Date",
+          "due": "Due",
+          "total": "Total",
+          "status": "Status",
+          "actions": "Actions"
+        }
+      },
+      "cancellation": {
+        "title": "Cancellation",
+        "endsOn": "Your subscription ends on {{date}}. You keep access until then.",
+        "cancelAnytime": "Cancel anytime — access continues through {{date}}.",
+        "resume": "Resume subscription",
+        "resuming": "Resuming…",
+        "cancelAction": "Cancel at period end",
+        "confirmTitle": "Cancel subscription?",
+        "confirmDescription": "Your workspace keeps full access until {{date}}. After that, the subscription ends and paid features may be limited.",
+        "keep": "Keep subscription",
+        "confirm": "Confirm cancellation",
+        "cancelling": "Cancelling…"
+      }
     }
   }
 }

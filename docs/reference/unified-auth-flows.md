@@ -50,12 +50,24 @@ new method through `AuthMethodButton` and it inherits these rules:
 - **One spinner at a time** — only the clicked method spins; every other method is **disabled
   without a spinner**. Exactly one auth action is ever in flight (`AuthContinuePending`).
 - **Captcha coupling is per-method** — pass `captchaGated` only for methods that need a Turnstile
-  token (OAuth, email send/verify — not passkey). A captcha-gated button shows the "minting first
-  token" spinner **only when nothing else is pending**. This matters because the Turnstile token is
-  **single-use**: submitting one method consumes it, and without the guard every OAuth button would
-  spin at once.
+  token (OAuth, email send/verify — not passkey). A gated button **disables without spinning**
+  while a token mints. The Turnstile token is **single-use**, so submitting one method consumes it
+  and the widget mints another in the background; that wait used to be drawn as a spinner on the
+  button, which claimed the click was being processed when no request was in flight — after
+  send-code, **Verify & continue** sat spinning and greyed out, and typing the code did not clear
+  it (LOGIN-4). A spinner now means this method's own request, nothing else.
 - **Method-specific disables** (invalid form, resend cooldown, incomplete code) go through
   `extraDisabled` — never a second loading path.
+
+The wait is surfaced as **text** instead, by
+[`CaptchaGateNotice`](../../src/shared/forms/AuthForm/components/CaptchaGateNotice/CaptchaGateNotice.tsx),
+which reads live state from `useCaptchaGate()`: it renders nothing once a token exists (so the
+happy path is unchanged), a quiet line while the re-mint is under way, and — once the mint stalls
+past `CAPTCHA_REMINT_STALL_MS` — a `role="alert"` with a **Retry**, because a re-mint that never
+lands is otherwise a dead end. The challenge itself renders **inline** in a
+[`CaptchaSlot`](../../src/shared/auth/captcha/CaptchaSlot.tsx): each auth surface mounts one as the
+anchor the app-global invisible Turnstile portals into (most recently mounted slot wins). `AuthForm`
+mounts the notice with the method picker and `AuthEmailPanel` mounts its own for the email steps.
 
 Cross-method state lives in [`auth-form-pending.ts`](../../src/shared/forms/AuthForm/auth-form-pending.ts)
 (`authMethodIsLoading` / `authMethodIsDisabled` / `authEmailPanelIsBlocked`). Non-button surfaces

@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Command } from 'cmdk';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ORGANIZATION } from '@/core/config/constants.ts';
@@ -8,6 +8,7 @@ import { logout } from '@/shared/auth/service.ts';
 import { SETTINGS_NS } from '@/shared/components/SettingsModal/settings.constants.ts';
 import { settingsHash } from '@/shared/components/SettingsModal/settings-hash-grammar.ts';
 import { visibleSettingsNavGroups } from '@/shared/components/SettingsModal/settings-nav-visibility.ts';
+import { mapApiError, reportError } from '@/shared/errors/errorHandler.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import {
@@ -21,6 +22,7 @@ import {
   Sun,
 } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
+import { notify } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
@@ -28,6 +30,13 @@ import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
 import { CommandItem } from './CommandPaletteItem.tsx';
 import { CommandPaletteOrgGroup } from './CommandPaletteOrgGroup.tsx';
+
+/**
+ * Stable id for the logout-failed toast (house rule 7): a user whose sign-out
+ * failed will try again, and the second failure should replace the first
+ * message rather than stack another copy of it.
+ */
+export const PALETTE_LOGOUT_TOAST_ID = 'command-palette-logout-failed';
 
 /**
  * Global command palette powered by cmdk.
@@ -70,16 +79,46 @@ export function CommandPalette() {
   );
   const setShortcutsOpen = useUIStore((s) => s.setShortcutsOpen);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
+  /**
+   * Whatever held focus when the palette opened.
+   *
+   * A lazy state initializer, because it runs during this component's FIRST
+   * render — before React commits the subtree, and therefore before the input
+   * below moves focus with `autoFocus`. An effect reads `document.activeElement`
+   * after that commit and would capture the palette's own input. This component
+   * only ever mounts while open, so first render IS the moment of opening.
+   */
+  const [previousFocus] = useState<HTMLElement | null>(
+    () => document.activeElement as HTMLElement | null,
+  );
 
+  /**
+   * Hand focus back when the palette goes away.
+   *
+   * The restore lives in the CLEANUP, not in the effect body. The body's `else`
+   * branch needed a render with `open === false`, and there is never one:
+   * `CommandPaletteLazy` returns `null` the instant `open` flips, so this
+   * component unmounts and the effect never runs again. Focus fell to `<body>`
+   * and a keyboard or screen-reader user lost their place (SHELL-7). Cleanup is
+   * the one thing React guarantees on unmount.
+   */
   useEffect(() => {
-    if (open) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
-    } else if (previousFocusRef.current) {
-      previousFocusRef.current.focus();
-      previousFocusRef.current = null;
-    }
-  }, [open]);
+    if (!open) return;
+
+    return () => {
+      // StrictMode re-runs mount effects as mount -> cleanup -> mount in
+      // development. Restoring here would steal focus from the palette's own
+      // input 2 ms after it opened — and then Escape would go to the trigger
+      // instead of the palette, so it could never be closed again. Only restore
+      // when the palette is genuinely closing: the store flips first, which is
+      // what unmounts this component in the first place.
+      if (useUIStore.getState().commandPaletteOpen) return;
+
+      // Only if it is still in the document — selecting a palette item can
+      // navigate away, and focusing a detached node just drops focus again.
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [open, previousFocus]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +146,10 @@ export function CommandPalette() {
     document.addEventListener('keydown', handleTab);
     return () => document.removeEventListener('keydown', handleTab);
   }, [open]);
+
+  const closePalette = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
 
   const runCommand = useCallback(
     (command: () => void) => {
@@ -224,10 +267,11 @@ export function CommandPalette() {
             {meContext ? (
               <CommandPaletteOrgGroup
                 meContext={meContext}
+                personalOrganizationsEnabled={deploymentFlags.personalOrganizations}
                 heading={t(cp.groups.organizations)}
                 currentOrganizationLabel={(name) => t(cp.currentOrganization, { name })}
                 switchOrganizationLabel={(name) => t(cp.switchOrganization, { name })}
-                runCommand={runCommand}
+                closePalette={closePalette}
                 navigate={navigate}
               />
             ) : null}
@@ -281,7 +325,16 @@ export function CommandPalette() {
               <CommandItem
                 onSelect={() =>
                   runCommand(() => {
-                    logout().catch(() => {});
+                    logout().catch((error: unknown) => {
+                      // `.catch(() => {})` meant a sign-out that did not happen
+                      // looked exactly like one that did: the palette closed,
+                      // nothing else moved, and the user was still signed in
+                      // with nothing said and nothing reported (SHELL-12).
+                      reportError(error, { scope: 'command-palette-logout' });
+                      notify.error(mapApiError(error), {
+                        id: PALETTE_LOGOUT_TOAST_ID,
+                      });
+                    });
                   })
                 }
                 icon={LogOut}
