@@ -1,20 +1,84 @@
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { platformConfig } from '@/core/config/env.ts';
+import { Skeleton } from '@/lib/animations/Skeleton.tsx';
+import { isMultiLocaleBuild } from '@/lib/i18n/build-runtime.ts';
+import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
+import { useRetryableLazy } from '@/lib/lazy-module.ts';
 import { cn } from '@/lib/utils.ts';
+import { useEnterAnimationProps } from '@/shared/components/LazyOverlay/index.ts';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
 } from '@/shared/components/SettingsModal/settings.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
+import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { Sparkles, X } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
-import { AppearancePanel } from './AppearancePanel.tsx';
+import { APPEARANCE_KEYS } from './appearance.constants.ts';
+import { loadAppearancePanel } from './appearance-panel-loader.ts';
+
+function AppearanceContent() {
+  const { t } = useTranslation(ERRORS_NS);
+  const { t: tLocale } = useTranslation(LOCALE_NS);
+  const { Component: Panel, retry } = useRetryableLazy(loadAppearancePanel);
+  const localeSections = [
+    isMultiLocaleBuild() ? LOCALE_KEYS.languageHeading : LOCALE_KEYS.textDirectionHeading,
+    LOCALE_KEYS.dateTimeHeading,
+    LOCALE_KEYS.numberStyleHeading,
+  ];
+  const sections = platformConfig.themeLock
+    ? [APPEARANCE_KEYS.themeTitle, ...localeSections]
+    : [
+        ...localeSections,
+        APPEARANCE_KEYS.themeTitle,
+        APPEARANCE_KEYS.modeTitle,
+        APPEARANCE_KEYS.colourTitle,
+        APPEARANCE_KEYS.typeTitle,
+        APPEARANCE_KEYS.iconsTitle,
+        ...(platformConfig.layoutWidthForced === null
+          ? [APPEARANCE_KEYS.layoutTitle]
+          : []),
+        APPEARANCE_KEYS.dashboardTitle,
+        APPEARANCE_KEYS.surfaceTitle,
+        APPEARANCE_KEYS.notificationsTitle,
+      ];
+
+  return (
+    <SectionErrorBoundary
+      title={t(ERRORS_KEYS.widget.appearance)}
+      testId="appearance-dialog-error"
+      variant="inline"
+      onReset={retry}
+    >
+      <Suspense
+        fallback={
+          <div data-testid="appearance-dialog-pending" className="flex flex-col gap-4">
+            <output className="sr-only">{tLocale(LOCALE_KEYS.loading)}</output>
+            {sections.map((section) => (
+              <div key={section} className="flex flex-col gap-3">
+                <h3 className="text-base font-semibold">{tLocale(section)}</h3>
+                <div className="flex gap-2" aria-hidden="true">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      >
+        <Panel />
+      </Suspense>
+    </SectionErrorBoundary>
+  );
+}
 
 /**
  * Dedicated Appearance popup — a NON-MODAL side panel pinned to the right edge.
@@ -60,6 +124,8 @@ export function AppearanceDialog() {
     };
   }, [open, setOpen]);
 
+  const enterProps = useEnterAnimationProps();
+
   const handleShuffle = () => {
     shuffleTheme();
     notify.info('Theme shuffled', { description: 'A fresh look across every axis.' });
@@ -69,6 +135,9 @@ export function AppearanceDialog() {
 
   return (
     <aside
+      // Suppressed when a placeholder already painted this panel — replaying the
+      // slide-in there makes it blink out and slide back in from the edge.
+      {...enterProps}
       ref={panelRef}
       role="dialog"
       aria-modal="false"
@@ -110,7 +179,7 @@ export function AppearanceDialog() {
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-        <AppearancePanel />
+        <AppearanceContent />
       </div>
     </aside>
   );

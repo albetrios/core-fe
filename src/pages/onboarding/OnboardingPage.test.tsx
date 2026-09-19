@@ -146,12 +146,14 @@ function memberRole(id = 'rol_member') {
  */
 const doneStepThrows = vi.hoisted(() => ({ value: false }));
 vi.mock('./components/DoneStep/index.ts', async (importOriginal) => {
-  const actual = await importOriginal<{ DoneStep: () => ReactNode }>();
+  const actual = await importOriginal<{
+    DoneStep: (props: { steps: readonly unknown[] }) => ReactNode;
+  }>();
   return {
     ...actual,
-    DoneStep: () => {
+    DoneStep: (props: { steps: readonly unknown[] }) => {
       if (doneStepThrows.value) throw new Error('DoneStep crashed');
-      return actual.DoneStep();
+      return actual.DoneStep(props);
     },
   };
 });
@@ -336,6 +338,17 @@ describe('OnboardingPage', () => {
   it('renders the page container', async () => {
     renderWithProviders(<OnboardingPage />);
     expect(await screen.findByTestId('onboarding-page')).toBeInTheDocument();
+  });
+
+  // The island renders into PublicLayout's `PublicMain`, which is `w-full
+  // max-w-md`, while every PublicLayout variant already paints `bg-background`
+  // over a `min-h-dvh` viewport. A background set HERE is 448px wide on top of a
+  // full-width one — a tinted vertical band with visible seams down the middle of
+  // the page. Widening it cannot help; the layout has to own the surface.
+  it('paints no background of its own — the layout owns the page surface', async () => {
+    renderWithProviders(<OnboardingPage />);
+    const page = await screen.findByTestId('onboarding-page');
+    expect(page.className).not.toMatch(/(^|\s)bg-/);
   });
 
   // The wipe itself now happens in `requireOnboardingWorkspace` (see

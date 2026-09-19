@@ -29,13 +29,13 @@ test.afterAll(async () => {
 test.describe('core-be server — auth & tenancy contracts', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('[+] email send-code returns uniform 201 + request_id', async () => {
+  test('[+] email send-code returns uniform 200 + request_id', async () => {
     const email = uniqueE2eEmail();
     const res = await api.post(AUTH_EMAIL_CODE_SEND_PATH, {
       data: { email },
       headers: e2eAuthHeaders(),
     });
-    expect(res.status()).toBe(201);
+    expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.data.message).toBeTruthy();
     expect(body.data.expires_in_minutes).toBeGreaterThan(0);
@@ -74,7 +74,7 @@ test.describe('core-be server — auth & tenancy contracts', () => {
     const sw = await api.post('/api/v1/auth/switch-to-personal', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    expect([200, 201]).toContain(sw.status());
+    expect([200]).toContain(sw.status());
     expect((await sw.json()).data.access_token).toBeTruthy();
   });
 
@@ -123,14 +123,14 @@ test.describe('core-be server — auth & tenancy contracts', () => {
       },
       data: { name, slug },
     });
-    expect(create.status()).toBe(201);
+    expect(create.status()).toBe(200);
     const orgId = (await create.json()).data.id;
 
     const sw = await api.post('/api/v1/auth/switch-to-organization', {
       headers: { Authorization: `Bearer ${accessToken}` },
       data: { organization_id: orgId },
     });
-    expect([200, 201]).toContain(sw.status());
+    expect([200]).toContain(sw.status());
     const teamToken = (await sw.json()).data.access_token;
 
     const ctx = await api.get('/api/v1/auth/me/context', {
@@ -158,8 +158,8 @@ test.describe('core-be server — auth & tenancy contracts', () => {
       data: { email: uniqueE2eEmail() },
       headers: e2eAuthHeaders(),
     });
-    expect(known.status()).toBe(201);
-    expect(unknown.status()).toBe(201);
+    expect(known.status()).toBe(200);
+    expect(unknown.status()).toBe(200);
     const knownBody = await known.json();
     const unknownBody = await unknown.json();
     expect(knownBody.data.message).toBe(unknownBody.data.message);
@@ -230,7 +230,7 @@ test.describe('core-be server — auth & tenancy contracts', () => {
   test('[-] logout twice on the same token → second call still safe', async () => {
     const { accessToken } = await createSessionViaEmailCode(api);
     const auth = { Authorization: `Bearer ${accessToken}` };
-    expect((await api.post('/api/v1/auth/logout', { headers: auth })).status()).toBe(201);
+    expect((await api.post('/api/v1/auth/logout', { headers: auth })).status()).toBe(200);
     expect((await api.get('/api/v1/auth/me/context', { headers: auth })).status()).toBe(
       401,
     );

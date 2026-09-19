@@ -189,8 +189,31 @@ export default defineConfig(({ mode }) => {
       },
     },
 
+    // Dev-server pre-bundling ONLY — this does not touch the production build.
+    //
+    // Every dep listed here is reachable only from a lazy route (dashboard charts,
+    // tables, billing, the deferred icon sets). Left undeclared, Vite first meets
+    // them when you navigate to that route, re-optimizes mid-session and hands the
+    // page a new dep hash. Modules already evaluated keep the old one, so the tab
+    // ends up running TWO copies of React: `react/compiler-runtime` then reads a
+    // null dispatcher off the wrong copy and every compiled component dies on
+    // "Cannot read properties of null (reading 'useMemoCache')", behind a
+    // "504 (Outdated Optimize Dep)" in the network log. Declaring them up front
+    // means one optimize pass at server start and no mid-session swap.
     optimizeDeps: {
-      include: ['react', 'react-dom'],
+      include: [
+        'react',
+        'react-dom',
+        // Pinned to the same pass as react — it reads React's internals directly.
+        'react/compiler-runtime',
+        'recharts',
+        '@tanstack/react-table',
+        '@stripe/react-stripe-js',
+        '@stripe/stripe-js',
+        '@phosphor-icons/react',
+        '@tabler/icons-react',
+        '@sentry/react',
+      ],
     },
   };
 });

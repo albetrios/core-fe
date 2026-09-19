@@ -190,6 +190,11 @@ describe('AccountSecurityPanel', () => {
     // The score is a claim too — it must not be computed from the defaults.
     expect(screen.queryByTestId('security-overview')).not.toBeInTheDocument();
     expect(screen.getByTestId('security-overview-loading')).toBeInTheDocument();
+    expect(
+      screen
+        .getByTestId('security-overview-loading')
+        .querySelector('[data-slot="card-title"]'),
+    ).toHaveTextContent(/\S/);
   });
 
   it('reports a failed 2FA read as an error with a retry, not as "off"', async () => {

@@ -3,15 +3,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Stub the heavy modal: this suite tests the lazy SHELL (hash gating + chunk
 // mounting), not the panels — SettingsModal.test.tsx covers those.
-vi.mock('./SettingsModal.tsx', () => ({
-  SettingsModal: () => <div data-testid="settings-modal-stub" />,
+const { transport, reportErrorMock } = vi.hoisted(() => ({
+  transport: { failuresLeft: 1, throwOnRender: false },
+  reportErrorMock: vi.fn(),
 }));
+vi.mock('./SettingsModal.tsx', async () => {
+  if (transport.failuresLeft > 0) {
+    transport.failuresLeft -= 1;
+    throw new Error('Settings chunk unavailable');
+  }
+  return {
+    SettingsModal: () => {
+      if (transport.throwOnRender) throw new Error('Settings render failed');
+      return <div data-testid="settings-modal-stub" />;
+    },
+  };
+});
+vi.mock('@/shared/errors/errorHandler.ts', () => ({ reportError: reportErrorMock }));
 
 const navigateMock = vi.fn();
 const routerState = { hash: '', pathname: '/dashboard' };
 const authState = { isAuthenticated: true, isLoading: false };
 vi.mock('@tanstack/react-router', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
+  Outlet: () => <div data-testid="route-outlet" />,
   useNavigate: () => navigateMock,
   useRouterState: ({ select }: { select: (s: unknown) => unknown }) =>
     select({ location: { hash: routerState.hash, pathname: routerState.pathname } }),
@@ -31,16 +46,52 @@ describe('SettingsModalLazy', () => {
     navigateMock.mockReset();
   });
 
-  it('renders nothing while the hash is not a settings hash', () => {
+  it('keeps the outlet mounted when preload fails and settings is retried', async () => {
+    const { rerender } = render(<SettingsModalLazy />);
+    const outlet = screen.getByTestId('route-outlet');
+    await waitFor(() =>
+      expect(reportErrorMock).toHaveBeenCalledWith(expect.any(Error), {
+        scope: 'settings-preload',
+      }),
+    );
+    expect(outlet).toBeVisible();
+    routerState.hash = 'settings/account/profile';
+    rerender(<SettingsModalLazy />);
+    expect(await screen.findByTestId('settings-modal-stub')).toBeInTheDocument();
+    expect(screen.getByTestId('route-outlet')).toBe(outlet);
     routerState.hash = '';
-    const { container } = render(<SettingsModalLazy />);
-    expect(container.firstChild).toBeNull();
+    rerender(<SettingsModalLazy />);
+    expect(screen.getByTestId('route-outlet')).toBe(outlet);
   });
 
-  it('renders nothing for unrelated hashes', () => {
+  it('contains a settings render failure without discarding the page', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { rerender } = render(<SettingsModalLazy />);
+    const outlet = screen.getByTestId('route-outlet');
+    transport.throwOnRender = true;
+    routerState.hash = 'settings/account/profile';
+    try {
+      rerender(<SettingsModalLazy />);
+      expect(await screen.findByTestId('settings-modal-load-error')).toBeInTheDocument();
+      expect(screen.getByTestId('route-outlet')).toBe(outlet);
+    } finally {
+      transport.throwOnRender = false;
+      consoleError.mockRestore();
+    }
+  });
+
+  it('readies settings with the app even before a settings hash is present', async () => {
+    routerState.hash = '';
+    render(<SettingsModalLazy />);
+    expect(await screen.findByTestId('route-outlet')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-modal-stub')).not.toBeInTheDocument();
+  });
+
+  it('renders the app without a modal for unrelated hashes', async () => {
     routerState.hash = 'some-anchor';
-    const { container } = render(<SettingsModalLazy />);
-    expect(container.firstChild).toBeNull();
+    render(<SettingsModalLazy />);
+    expect(await screen.findByTestId('route-outlet')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-modal-stub')).not.toBeInTheDocument();
   });
 
   it('mounts the modal chunk when a settings hash is present on an allowed path', async () => {
@@ -53,8 +104,9 @@ describe('SettingsModalLazy', () => {
   it('does not mount on onboarding and strips the settings hash', async () => {
     routerState.hash = 'settings/account/profile';
     routerState.pathname = '/onboarding';
-    const { container } = render(<SettingsModalLazy />);
-    expect(container.firstChild).toBeNull();
+    render(<SettingsModalLazy />);
+    expect(screen.getByTestId('route-outlet')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-modal-stub')).not.toBeInTheDocument();
     await waitFor(() =>
       expect(navigateMock).toHaveBeenCalledWith(
         expect.objectContaining({ hash: '', replace: true }),
@@ -77,8 +129,9 @@ describe('SettingsModalLazy', () => {
     authState.isLoading = true;
     authState.isAuthenticated = false;
     routerState.hash = 'settings/account/profile';
-    const { container } = render(<SettingsModalLazy />);
-    expect(container.firstChild).toBeNull();
+    render(<SettingsModalLazy />);
+    expect(screen.getByTestId('route-outlet')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-modal-stub')).not.toBeInTheDocument();
     expect(navigateMock).not.toHaveBeenCalled();
   });
 });

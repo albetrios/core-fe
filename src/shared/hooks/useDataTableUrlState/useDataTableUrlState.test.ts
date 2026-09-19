@@ -6,39 +6,53 @@ import {
   sortingToSearch,
 } from './useDataTableUrlState.ts';
 
-describe('useDataTableUrlState helpers', () => {
-  it('sortingFromSearch parses column:direction', () => {
+describe('sortingFromSearch', () => {
+  it('parses a well-formed column:direction descriptor', () => {
     expect(sortingFromSearch('name:asc')).toEqual([{ id: 'name', desc: false }]);
-    expect(sortingFromSearch('joinedAt:desc')).toEqual([{ id: 'joinedAt', desc: true }]);
+    expect(sortingFromSearch('joined:desc')).toEqual([{ id: 'joined', desc: true }]);
   });
 
-  it('sortingFromSearch returns empty for invalid input', () => {
+  it('rejects missing, malformed, and partial descriptors', () => {
     expect(sortingFromSearch(undefined)).toEqual([]);
-    expect(sortingFromSearch('bad')).toEqual([]);
+    expect(sortingFromSearch('')).toEqual([]);
+    expect(sortingFromSearch('name')).toEqual([]);
+    expect(sortingFromSearch('name:sideways')).toEqual([]);
+    expect(sortingFromSearch(':asc')).toEqual([]);
   });
+});
 
-  it('sortingToSearch serializes the first sort column', () => {
-    expect(sortingToSearch([{ id: 'role', desc: true }])).toBe('role:desc');
+describe('sortingToSearch', () => {
+  it('serializes the first sort and drops empty state', () => {
     expect(sortingToSearch([])).toBeUndefined();
+    expect(sortingToSearch([{ id: 'name', desc: false }])).toBe('name:asc');
+    expect(sortingToSearch([{ id: 'role', desc: true }])).toBe('role:desc');
   });
 
-  it('filtersFromSearch maps q and role to column filters', () => {
-    expect(filtersFromSearch({ q: 'ada', role: 'admin' }, true)).toEqual([
-      { id: 'name', value: 'ada' },
+  it('round-trips through sortingFromSearch', () => {
+    const state = [{ id: 'email', desc: true }];
+    expect(sortingFromSearch(sortingToSearch(state))).toEqual(state);
+  });
+});
+
+describe('filtersFromSearch', () => {
+  it('returns nothing when URL sync is disabled', () => {
+    expect(filtersFromSearch({ q: 'ada', role: 'admin' }, false)).toEqual([]);
+  });
+
+  it('maps q to the name filter and a concrete role to the role filter', () => {
+    expect(filtersFromSearch({ q: 'ada' }, true)).toEqual([{ id: 'name', value: 'ada' }]);
+    expect(filtersFromSearch({ role: 'admin' }, true)).toEqual([
       { id: 'role', value: 'admin' },
     ]);
-  });
-
-  it('filtersFromSearch drops the "all" role sentinel and empty query', () => {
-    expect(filtersFromSearch({ q: '', role: 'all' }, true)).toEqual([]);
-    expect(filtersFromSearch({ role: 'member' }, true)).toEqual([
-      { id: 'role', value: 'member' },
+    expect(filtersFromSearch({ q: 'ada', role: 'viewer' }, true)).toEqual([
+      { id: 'name', value: 'ada' },
+      { id: 'role', value: 'viewer' },
     ]);
   });
 
-  it('filtersFromSearch returns empty when disabled (local-only table)', () => {
-    // Guards the seed-once contract: the hook memoizes this on [enabled] only,
-    // so when disabled it must never surface URL-derived filters.
-    expect(filtersFromSearch({ q: 'ada', role: 'admin' }, false)).toEqual([]);
+  it('treats role=all and empty q as no filter', () => {
+    expect(filtersFromSearch({ role: 'all' }, true)).toEqual([]);
+    expect(filtersFromSearch({ q: '' }, true)).toEqual([]);
+    expect(filtersFromSearch({}, true)).toEqual([]);
   });
 });

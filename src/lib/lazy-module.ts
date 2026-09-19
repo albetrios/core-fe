@@ -1,5 +1,16 @@
 import { type ComponentType, lazy, useCallback, useMemo, useState } from 'react';
 
+/** A loader with a synchronous peek at its settled result — see {@link onceAsync}. */
+export interface ModuleLoader<T> {
+  (): Promise<T>;
+  /**
+   * The already-resolved module, or `undefined` while pending or after a
+   * failure. Lets a caller skip Suspense entirely for a module that is already
+   * in memory — see {@link useRetryableLazy}.
+   */
+  peek: () => T | undefined;
+}
+
 /**
  * Memoize a dynamic-import factory so every caller shares one module promise.
  *
@@ -17,15 +28,32 @@ import { type ComponentType, lazy, useCallback, useMemo, useState } from 'react'
  * @param factory - Import thunk, called again only after a failed attempt.
  * @returns A loader returning the shared in-flight or resolved module promise.
  */
-export function onceAsync<T>(factory: () => Promise<T>): () => Promise<T> {
+export function onceAsync<T>(factory: () => Promise<T>): ModuleLoader<T> {
   let promise: Promise<T> | undefined;
-  return () => {
-    promise ??= factory().catch((error: unknown) => {
-      promise = undefined;
-      throw error;
-    });
-    return promise;
-  };
+  let settled: T | undefined;
+
+  return Object.assign(
+    (): Promise<T> => {
+      promise ??= factory().then(
+        (value) => {
+          settled = value;
+          return value;
+        },
+        (error: unknown) => {
+          promise = undefined;
+          throw error;
+        },
+      );
+      return promise;
+    },
+    { peek: () => settled },
+  );
+}
+
+/** The settled module behind a loader, for loaders that can report one. */
+function peekModule<T>(load: () => Promise<T>): T | undefined {
+  const peek = (load as Partial<ModuleLoader<T>>).peek;
+  return typeof peek === 'function' ? peek() : undefined;
 }
 
 /**
@@ -46,11 +74,24 @@ export function useRetryableLazy(load: () => Promise<{ default: ComponentType }>
   retry: () => void;
 } {
   const [attempt, setAttempt] = useState(0);
-  const Component = useMemo(
-    () => lazy(load),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `attempt` IS the retry key
-    [load, attempt],
-  );
+  const Component = useMemo(() => {
+    // Already in memory: render the real component, no Suspense hop.
+    //
+    // `lazy()` memoizes on the object it returns, and this builds a NEW one on
+    // every mount — so an overlay that unmounts when closed suspends again on
+    // every reopen, even though the chunk never left memory. That one-tick
+    // suspend is a full placeholder flash: the Appearance panel showed its
+    // skeleton on the 2nd, 3rd, Nth open, not just the 1st.
+    //
+    // Only on `attempt === 0`: a retry must go back through `lazy()` so the
+    // failed chunk is actually re-fetched (SHELL-3). `peek()` reports a module
+    // only after a SUCCESSFUL load, so a rejection can never be cached here.
+    if (attempt === 0) {
+      const settled = peekModule(load);
+      if (settled) return settled.default;
+    }
+    return lazy(load);
+  }, [load, attempt]);
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
   return { Component, retry };
 }

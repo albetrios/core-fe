@@ -17,6 +17,7 @@ import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { useRetryableLazy } from '@/lib/lazy-module.ts';
 import { cn } from '@/lib/utils.ts';
+import { PlaceholderPrecededContext } from '@/shared/components/LazyOverlay/lazy-surface-context.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { reportError } from '@/shared/errors/errorHandler.ts';
 import { AlertTriangle, X } from '@/shared/icons/index.ts';
@@ -50,6 +51,18 @@ export interface LazyOverlayProps {
    * when this is omitted: there would be no state to flip.
    */
   onDismiss?: () => void;
+  /**
+   * Draw the viewport-pinned close control on the PENDING surface. Default true.
+   *
+   * Set false when the loaded overlay has no close control of its own — the
+   * command palette dismisses by Escape or a click on its scrim, so a ✕ that
+   * appears in the screen corner only while the chunk loads and then vanishes is
+   * a control the finished UI never had. Escape is unaffected either way: it is
+   * wired independently of this button, and a caller that turns the button off
+   * should give its skeleton a click-to-dismiss scrim so pointer users keep a
+   * route out of a slow chunk.
+   */
+  pendingDismissControl?: boolean;
   testId?: string;
 }
 
@@ -296,11 +309,19 @@ function LazyOverlayError({
 function LazyOverlayPending({
   children,
   onDismiss,
+  control = true,
+  onShown,
 }: {
   children: ReactNode;
   onDismiss?: () => void;
+  control?: boolean;
+  onShown?: () => void;
 }) {
   const { t } = useTranslation(LOCALE_NS);
+
+  useEffect(() => {
+    onShown?.();
+  }, [onShown]);
 
   useEffect(() => {
     if (!onDismiss) return;
@@ -317,7 +338,7 @@ function LazyOverlayPending({
   return (
     <>
       {children}
-      {onDismiss ? (
+      {onDismiss && control ? (
         // Above the z-50 scrim, and pinned to the viewport rather than to the
         // caller's `pending` node — that node is an arbitrary ReactNode this
         // component cannot reach into to place a control.
@@ -377,10 +398,18 @@ export function LazyOverlay({
   pending,
   title,
   onDismiss,
+  pendingDismissControl = true,
   testId,
 }: LazyOverlayProps) {
   // A fresh `lazy()` per attempt — the only way back out of a cached rejection.
   const { Component: Overlay, retry } = useRetryableLazy(load);
+  // State, not a ref. The provider's value is captured during THIS component's
+  // render, and resolving the lazy child re-renders the Suspense subtree without
+  // necessarily re-rendering this parent — so a ref written by the fallback was
+  // still read as `false` when the overlay arrived, and the entrance replayed
+  // anyway. A state flip re-renders the provider while the fallback is still up.
+  const [placeholderShown, setPlaceholderShown] = useState(false);
+  const markPlaceholderShown = useCallback(() => setPlaceholderShown(true), []);
 
   return (
     <ErrorBoundary
@@ -405,10 +434,18 @@ export function LazyOverlay({
     >
       <Suspense
         fallback={
-          <LazyOverlayPending onDismiss={onDismiss}>{pending}</LazyOverlayPending>
+          <LazyOverlayPending
+            onDismiss={onDismiss}
+            control={pendingDismissControl}
+            onShown={markPlaceholderShown}
+          >
+            {pending}
+          </LazyOverlayPending>
         }
       >
-        <Overlay />
+        <PlaceholderPrecededContext.Provider value={placeholderShown}>
+          <Overlay />
+        </PlaceholderPrecededContext.Provider>
       </Suspense>
     </ErrorBoundary>
   );

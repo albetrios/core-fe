@@ -30,6 +30,7 @@ import {
 } from '@/shared/components/ui/carousel.tsx';
 import type { LucideIcon } from '@/shared/icons/index.ts';
 import { ChevronRight, Palette, ShieldCheck, UserPlus } from '@/shared/icons/index.ts';
+import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
 const HIGHLIGHT_ICONS: Record<DashboardHighlightSlide['id'], LucideIcon> = {
   appearance: Palette,
@@ -86,6 +87,7 @@ function HighlightSlide({
   const { t } = useTranslation(DASHBOARD_NS);
   const Icon = HIGHLIGHT_ICONS[slide.id];
   const atmosphere = SLIDE_ATMOSPHERE[slide.id];
+  const Action = slide.id === 'appearance' ? 'button' : 'a';
 
   return (
     <div
@@ -122,8 +124,14 @@ function HighlightSlide({
           </div>
 
           <Button asChild size="sm" className="group h-9 w-fit rounded-full ps-4 pe-1">
-            <a
+            <Action
+              type={slide.id === 'appearance' ? 'button' : undefined}
               href={slide.href}
+              onClick={
+                slide.id === 'appearance'
+                  ? () => useUIStore.getState().setAppearanceOpen(true)
+                  : undefined
+              }
               tabIndex={isActive ? 0 : -1}
               data-testid={`dashboard-highlight-action-${slide.id}`}
             >
@@ -134,7 +142,7 @@ function HighlightSlide({
               >
                 <ChevronRight className="size-3.5" data-icon="inline-end" />
               </span>
-            </a>
+            </Action>
           </Button>
         </div>
       </div>

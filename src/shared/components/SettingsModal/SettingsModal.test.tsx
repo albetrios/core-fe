@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -37,6 +37,8 @@ const ALL_PERMS: OrganizationPermission[] = [
   'membership:read',
   'role:read',
   'webhook:read',
+  'subscription:read',
+  'api-key:read',
 ];
 const meCtx = (type: 'PERSONAL' | 'TEAM') => ({
   data: { activeOrganization: { type } },
@@ -56,14 +58,49 @@ describe('SettingsModal', () => {
   beforeEach(() => {
     useAuthStore.setState({ user: USER, isAuthenticated: true });
     useOrganizationStore.getState().clearOrganization();
-    // default: context resolved with no active organization → permission-only
-    // gating. (`isPending` matters now: see the SET-15 tests below.)
     useMeContextMock.mockReturnValue({
       data: undefined,
       isPending: false,
       isLoading: false,
       isError: false,
     });
+  });
+
+  it.each([
+    ['account/account', 'settings-section-account'],
+    ['account/security', 'settings-section-security'],
+    ['account/sessions', 'settings-account-sessions'],
+    ['account/billing', 'settings-account-billing'],
+    ['organization/general', 'settings-section-org-general'],
+    ['organization/members', 'settings-organization-members'],
+    ['organization/roles', 'settings-organization-roles'],
+    ['organization/integrations', 'settings-organization-integrations'],
+  ])(
+    'loads the selected content inside the persistent shell: %s',
+    async (section, id) => {
+      useOrganizationStore.getState().setOrganization('org_team', 'acme');
+      useOrganizationStore.getState().setPermissions(ALL_PERMS);
+      useMeContextMock.mockReturnValue(meCtx('TEAM'));
+      renderWithProviders(<SettingsModal />, {
+        initialEntries: [`/#settings/${section}`],
+      });
+      expect(await screen.findByTestId(id)).toBeInTheDocument();
+      expect(screen.getByTestId('settings-search')).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
+    },
+  );
+
+  it('can change sections while context is pending without losing the shell', async () => {
+    useMeContextMock.mockReturnValue(meCtxLoading);
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+    fireEvent.click(await screen.findByTestId('settings-nav-account-security'));
+    await waitFor(() =>
+      expect(router.state.location.hash).toBe('settings/account/security'),
+    );
+    expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
   });
 
   it('renders nothing without a settings hash', () => {
@@ -76,7 +113,7 @@ describe('SettingsModal', () => {
       initialEntries: ['/#settings/account/profile'],
     });
     expect(await screen.findByTestId('settings-modal')).toBeInTheDocument();
-    expect(screen.getByTestId('settings-section-profile')).toBeInTheDocument();
+    expect(await screen.findByTestId('settings-section-profile')).toBeInTheDocument();
   });
 
   it('a team org shows member + role management in the nav', async () => {
@@ -130,7 +167,7 @@ describe('SettingsModal', () => {
     });
     const profileNav = await screen.findByTestId('settings-nav-account-profile');
     expect(profileNav).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByTestId('settings-section-profile')).toBeInTheDocument();
+    expect(await screen.findByTestId('settings-section-profile')).toBeInTheDocument();
     await waitFor(() => {
       expect(router.state.location.hash).toBe('settings/account/profile');
     });
@@ -195,7 +232,7 @@ describe('SettingsModal', () => {
 
   // ── SET-15: the rail does not guess its own shape ────────────────────────
 
-  it('holds a skeleton rail until the session context lands', async () => {
+  it('keeps account navigation usable while organization context loads', async () => {
     // Regression: WHICH organization sections exist depends on the org TYPE, and
     // an unknown type was read as "allow everything" — so the Organization group
     // painted in full and was then deleted in front of the user.
@@ -208,7 +245,9 @@ describe('SettingsModal', () => {
 
     // The modal is open and sized — it just does not claim a shape yet.
     expect(await screen.findByTestId('settings-modal')).toBeInTheDocument();
-    expect(screen.getByTestId('settings-nav-loading')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-nav-account-profile')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-search')).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
     expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     expect(
       screen.queryByTestId('settings-nav-organization-members'),
@@ -228,9 +267,9 @@ describe('SettingsModal', () => {
       initialEntries: ['/#settings/organization/members'],
     });
 
-    expect(await screen.findByTestId('settings-nav-loading')).toBeInTheDocument();
+    expect(await screen.findByTestId('settings-nav-account-profile')).toBeInTheDocument();
     expect(screen.queryByTestId('settings-organization-members')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('settings-content')).not.toBeInTheDocument();
+    expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     // …and the hash is untouched, so the link still resolves once the context is in.
     expect(router.state.location.hash).toBe('settings/organization/members');
   });

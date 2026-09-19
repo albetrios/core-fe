@@ -884,8 +884,15 @@ export function OnboardingPage() {
   return (
     <>
       {guardDialog}
+      {/* No page-level background here. This island renders inside PublicLayout,
+          whose every variant already paints `bg-background` across a `min-h-dvh`
+          viewport — and it renders into `PublicMain`, which is `w-full max-w-md`.
+          A backdrop set here is therefore 448px wide over a full-width one: a
+          tinted vertical band down the middle of the page with visible seams,
+          which is exactly what `bg-muted/30` drew. Widening it cannot fix that
+          (`w-full` is still the 448px slot); the layout has to own the surface. */}
       <div
-        className="bg-muted/30 flex min-h-screen items-center justify-center p-4"
+        className="flex min-h-screen items-center justify-center p-4"
         data-testid={ONBOARDING_TEST_IDS.page}
       >
         <div ref={cardRef} className="w-full max-w-lg transform-gpu">

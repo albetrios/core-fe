@@ -70,4 +70,37 @@ test.describe('Visual Regression', () => {
       animations: 'disabled',
     });
   });
+
+  test('404 page (light mode)', async ({ page }) => {
+    await gotoApp(page, '/definitely-not-a-route');
+    await expect(page.getByTestId('not-found-page')).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveScreenshot('404-light.png', {
+      fullPage: true,
+      maxDiffPixelRatio: 0.02,
+      animations: 'disabled',
+    });
+  });
+
+  test('404 page (dark mode)', async ({ page }) => {
+    await gotoApp(page, '/definitely-not-a-route');
+    await page.evaluate(() => document.documentElement.classList.add('dark'));
+    await expect(page.getByTestId('not-found-page')).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveScreenshot('404-dark.png', {
+      fullPage: true,
+      maxDiffPixelRatio: 0.02,
+      animations: 'disabled',
+    });
+  });
+
+  test('accept-invite error card (light mode)', async ({ page }) => {
+    await gotoApp(page, '/accept-invite/inv_expired');
+    await expect(page.getByTestId('accept-invite-error')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page).toHaveScreenshot('accept-invite-error-light.png', {
+      fullPage: true,
+      maxDiffPixelRatio: 0.02,
+      animations: 'disabled',
+    });
+  });
 });
