@@ -1,7 +1,8 @@
-import { Link, useLocation } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { Link, useRouterState } from '@tanstack/react-router';
+import { type ReactNode, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useReplayedAnimation } from '@/lib/animations/index.ts';
 import { isMultiLocaleBuild } from '@/lib/i18n/build-runtime.ts';
 import {
   LOCALE_KEYS,
@@ -26,6 +27,9 @@ import {
   LAYOUT_NS,
 } from '@/shared/layouts/layout.constants.ts';
 import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
+
+/** The keyframe class on the form slot. Replayed imperatively — see {@link AuthForm}. */
+const AUTH_FORM_ANIMATION_CLASS = 'animate-fade-in-up';
 
 // eslint-disable-next-line react-refresh/only-export-components -- static config colocated with the layout shell
 export const AUTH_MARKETING_FEATURES = [
@@ -114,13 +118,36 @@ export function BrandMark({ className }: { className?: string }) {
   );
 }
 
-/** The animated form slot — owns `auth-form-container`, re-keyed per route. */
+/**
+ * The animated form slot — owns `auth-form-container`.
+ *
+ * The fade replays on the SAME element, and the element survives navigation.
+ * This used to be `key={pathname}` off `useLocation()`, which was wrong twice
+ * over. `useLocation()` reports the PENDING location: the router sets it the
+ * moment `navigate()` is called, before the destination's guards, lazy chunk
+ * and translations have loaded. So the key flipped while `/login` was still the
+ * rendered match, React threw the login subtree away, and the freshly mounted
+ * `AuthEmailPanel` came back at step "enter your email" — the user watched the
+ * login form reappear after their code was accepted, then get replaced by the
+ * real destination once it finally committed (LOGIN-7). The remount also wiped
+ * the single-flight latches that keep a verified code from being submitted
+ * twice, and the MFA hand-off latch.
+ *
+ * `resolvedLocation` only moves when a navigation COMMITS, so the fade plays
+ * for real in-shell transitions (`/login` → `/mfa`) and never mid-flight. On
+ * the very first render there is no resolved location yet, so fall back to the
+ * current one.
+ */
 export function AuthForm({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation();
+  const pathname = useRouterState({
+    select: (s) => s.resolvedLocation?.pathname ?? s.location.pathname,
+  });
+  const ref = useRef<HTMLDivElement>(null);
+  useReplayedAnimation(ref, AUTH_FORM_ANIMATION_CLASS, pathname);
   return (
     <div
-      key={pathname}
-      className="animate-fade-in-up w-full"
+      ref={ref}
+      className={cn(AUTH_FORM_ANIMATION_CLASS, 'w-full')}
       data-testid="auth-form-container"
     >
       {children}

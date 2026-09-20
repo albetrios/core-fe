@@ -17,13 +17,13 @@ store fallback. localStorage plays no role in organization context.
 
 ## Files
 
-| File                            | Responsibility                                                                                                                                                   |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `organization-context.ts`       | `syncOrganizationFromRoute` (URL → store), `getActiveOrganizationId`                                                                                             |
-| `organization-membership.ts`    | `findMembership`, `ensurePermissionsFor` — refetches permissions when the organization changes (a once-if-empty check would leak org A's permissions into org B) |
-| `organization-resolver.ts`      | `resolveRootRedirect` for `/`: **not onboarded** (`!user.onboarding_completed`) → onboarding; else active org (validated) → dashboard, else picker               |
-| `my-organizations.ts` (+ .test) | `listMyOrganizations()`, `createOrganization()` + schemas                                                                                                        |
-| `tenancy-service.ts` (+ .test)  | Subdomain fallback resolution (`resolveOrganizationFromSubdomain`) — boot-time default for the organization header                                               |
+| File                            | Responsibility                                                                                                                                                                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `organization-context.ts`       | `syncOrganizationFromRoute` (URL → store), `getActiveOrganizationId`                                                                                                                                                                    |
+| `organization-membership.ts`    | `findMembership`, `ensurePermissionsFor` — refetches permissions when the organization changes (a once-if-empty check would leak org A's permissions into org B), reading the cached `me/context` first and falling back to the network |
+| `organization-resolver.ts`      | `resolveRootRedirect` for `/`: **not onboarded** (`!user.onboarding_completed`) → onboarding; else active org (validated) → dashboard, else picker                                                                                      |
+| `my-organizations.ts` (+ .test) | `listMyOrganizations()`, `createOrganization()` + schemas                                                                                                                                                                               |
+| `tenancy-service.ts` (+ .test)  | Subdomain fallback resolution (`resolveOrganizationFromSubdomain`) — boot-time default for the organization header                                                                                                                      |
 
 ## Consumers
 

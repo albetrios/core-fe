@@ -44,6 +44,9 @@ vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
 
 vi.mock('@/shared/api/organization-api.ts', () => ({
   getMyPermissions: vi.fn().mockResolvedValue(['organization:read']),
+  // The cache-first branch `ensurePermissionsFor` takes when me/context is
+  // already loaded — which, in the guard chain these tests exercise, it is.
+  toOrganizationPermissions: (codes: string[]) => codes,
 }));
 
 const { switchToOrganizationMock } = vi.hoisted(() => ({

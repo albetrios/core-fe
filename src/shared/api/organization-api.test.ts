@@ -21,6 +21,7 @@ import {
   createApiKey,
   createRole,
   deleteRole,
+  getMyPermissions,
   getRolePermissions,
   inviteMember,
   listApiKeys,
@@ -28,6 +29,7 @@ import {
   listRoles,
   removeMember,
   revokeApiKey,
+  toOrganizationPermissions,
   updateMemberRole,
   updateMemberStatus,
   updateRole,
@@ -306,5 +308,51 @@ describe('organization-api api-keys (live)', () => {
     deleteMock.mockResolvedValue({ data: null });
     expect(await revokeApiKey('key_1')).toEqual({ id: 'key_1' });
     expect(deleteMock).toHaveBeenCalledWith(expect.stringContaining('/api-keys/key_1'));
+  });
+});
+
+describe('organization-api permissions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('toOrganizationPermissions drops codes this build does not know', () => {
+    // A newer backend can grant a code this frontend has no policy for. Passing it
+    // through would put an unrenderable permission into the store.
+    expect(
+      toOrganizationPermissions(['organization:read', 'not:a:real:permission']),
+    ).toEqual(['organization:read']);
+  });
+
+  it('getMyPermissions reads the filtered codes off me/context', async () => {
+    // The network fallback for when no me/context is cached — the guard chain
+    // normally has one, and reads it directly (see ensurePermissionsFor).
+    getMock.mockResolvedValue({
+      data: {
+        user: {
+          id: USR,
+          email: 'owner@example.com',
+          first_name: null,
+          last_name: null,
+          avatar_url: null,
+          status: 'ACTIVE',
+          is_email_verified: true,
+          is_mfa_enabled: false,
+          onboarding_completed: true,
+          created_at: TS,
+          updated_at: TS,
+        },
+        active_organization: null,
+        active_organization_id: null,
+        my_permissions: ['organization:read', 'nope:nope'],
+        global_role: null,
+        organizations: [],
+        deployment_flags: { personal_organizations: true, team_organizations: true },
+        personal_organization_id: null,
+      },
+    });
+
+    expect(await getMyPermissions()).toEqual(['organization:read']);
+    expect(getMock).toHaveBeenCalledWith(expect.stringContaining('/auth/me/context'));
   });
 });

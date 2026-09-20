@@ -1,5 +1,8 @@
 import { queryClient } from '@/core/http/queryClient.ts';
-import { getMyPermissions } from '@/shared/api/organization-api.ts';
+import {
+  getMyPermissions,
+  toOrganizationPermissions,
+} from '@/shared/api/organization-api.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import { type MeContext, meContextQueryKey } from './me-context.ts';
@@ -81,11 +84,18 @@ export async function ensurePermissionsFor(organizationId: string): Promise<void
     // unresolved set holds their place until the real one lands (SET-23).
     store.clearPermissions();
   }
-  // Permissions come live from the me-context (`getMyPermissions` filters the
-  // active org's grants, which the token already scopes to this organization).
-  // A future dedicated org-scoped endpoint (org id in the path) could replace
-  // the me-context read without changing this call site.
-  store.setPermissions(await getMyPermissions());
+  // Permissions come live from the me-context (the token already scopes its
+  // grants to this organization). Cache-first for the same reason as
+  // `findMembershipBySlug` above, and it matters most right after sign-in: the
+  // guard chain runs `requireProvisionedWorkspace` → `ensureSessionContext()`
+  // immediately before this, so the cache is warm, and a second network read
+  // here held the auth screen up for a whole extra round trip while the URL
+  // already pointed at the destination (LOGIN-7). Same INVARIANT as above — on
+  // a cache miss we fall back to the network, which is correct, just slower.
+  const cached = queryClient.getQueryData<MeContext>(meContextQueryKey);
+  store.setPermissions(
+    cached ? toOrganizationPermissions(cached.myPermissions) : await getMyPermissions(),
+  );
   permissionsLoadedFor = organizationId;
 }
 
