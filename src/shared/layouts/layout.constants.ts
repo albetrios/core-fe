@@ -148,6 +148,8 @@ export const LAYOUT_KEYS = {
       description: 'app.sessionTimeout.description',
       signOut: 'app.sessionTimeout.signOut',
       staySignedIn: 'app.sessionTimeout.staySignedIn',
+      signingOut: 'app.sessionTimeout.signingOut',
+      signingOutDescription: 'app.sessionTimeout.signingOutDescription',
     },
   },
   public: {

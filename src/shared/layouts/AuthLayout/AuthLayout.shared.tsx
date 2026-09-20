@@ -131,7 +131,10 @@ export function AuthForm({ children }: { children: ReactNode }) {
 export function AuthHeroBadge() {
   const { t } = useTranslation(LAYOUT_NS);
   return (
-    <span className="border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
+    <span
+      data-slot="pill"
+      className="border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+    >
       <Sparkles className={cn('h-3 w-3', iconOnBrandSurface)} aria-hidden="true" />{' '}
       {t(LAYOUT_KEYS.auth.badge)}
     </span>

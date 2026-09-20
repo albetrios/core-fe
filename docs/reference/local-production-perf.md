@@ -81,6 +81,49 @@ build environment; the enforced size limits remain the source of truth.
 
 ---
 
+## Cold-load timeline
+
+What a user waits for on a first load is not a Lighthouse score: it is **when
+the page they came for is on screen**. Measure that directly — a Playwright run
+against `pnpm preview` with service workers blocked (every run is cold), marking
+three moments from an init script: the destination's element entering the DOM,
+the splash starting to fade (`.app-splash-exiting`), and the splash node being
+removed.
+
+Reference run (2026-09-20, production build on localhost, core-be on `:3000`,
+median of 5):
+
+| Path                        | Destination in DOM | Splash gone       |
+| --------------------------- | ------------------ | ----------------- |
+| Guest — `/` → login form    | 879 → **384 ms**   | 1469 → **651 ms** |
+| Signed in — `/` → dashboard | 553 → **232 ms**   | 1152 → **467 ms** |
+
+Where the time was, in the order it was found:
+
+1. **The router's 500 ms pending minimum.** `defaultPendingMinMs` is 500 unless
+   overridden, counted from the moment the pending fallback renders. On a cold
+   load the fallback renders at once, so every boot was parked for half a second:
+   `/auth/refresh` answered at ~130 ms and the login screen's chunks were not
+   requested until ~650 ms. → `BOOT_PENDING_POLICY` in `routeTree.tsx`.
+2. **~600 ms of finished page behind an opaque splash** — a fixed 250 ms grace
+   window plus a 320 ms fade. → the splash leaves within frames of the router
+   settling (`markAppContentSettled`), and fades in 200 ms.
+3. **A chunk waterfall behind the auth round trip** — guard, _then_ route chunks,
+   _then_ the layout's variant. → `preloadBootRoutes()` warms the destination
+   while `/auth/refresh` is in flight; shell route `loader`s fetch the variant.
+
+Expect a smaller relative gain on a slow link: under 150 ms latency + 4× CPU the
+same change is worth roughly 250–400 ms, because JS evaluation and latency
+dominate and a 500 ms minimum costs nothing once the real work takes longer than
+that. The signed-in number also assumes the session hint is present — it is
+after any interactive sign-in; without it that path is unchanged, not slower.
+
+Wall-clock numbers flake, so **CI does not assert them**. It asserts the
+invariants that made the load _feel_ slow (`tests/e2e/boot-splash.e2e.test.ts`):
+the splash fades exactly once, and the page is never blank behind it.
+
+---
+
 ## Full health pass
 
 After large perf changes (10+ files):

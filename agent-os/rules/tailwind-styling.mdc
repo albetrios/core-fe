@@ -59,7 +59,34 @@ Use Tailwind's mobile-first breakpoints:
 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 ```
 
-Standard breakpoints: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px).
+Breakpoints: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px), `2xl` (1536px),
+plus two declared in `index.css` for the big-monitor tier — **`3xl` (1920px)** and
+**`4xl` (2560px)**. A layout that stops growing at `2xl` floats in the middle of a big
+monitor: let the content column, the sidebar, hero type and large overlays keep scaling.
+
+House rules (full reasoning: `docs/reference/design.md` → Screen tiers):
+
+- The sidebar is a **drawer below `lg`**, not `md`; closed means `invisible`, not just
+  translated away (off-screen is still focusable).
+- The bottom tab bar exists below `md`. Anything else pinned to the bottom edge uses
+  `bottom-[calc(var(--floating-bottom-offset,0rem)+…)]` so it rides above the bar.
+- An overlay that is a sheet on phones must **undo** the sheet from `sm`
+  (`sm:w-[calc(100%-2rem)] sm:rounded-lg`), not merely cap its width.
+- User-supplied text that may have no break opportunity gets `wrap-anywhere`.
+- New floating surfaces take the bottom-**start** corner; the end corner is taken.
+
+## Corner radius
+
+Use a **named** step — `rounded-xs` … `rounded-4xl`. All of them follow the Corner radius
+axis (`sm/md/lg/xl` are set inline; the rest derive from `--radius-lg` in `index.css`).
+A bare `rounded` and an arbitrary `rounded-[3px]` follow nothing and are rejected by
+`pnpm validate:theme-axis`; `rounded-[var(--radius-*)]` is fine.
+
+`rounded-full` is a **shape** decision. On anything that is a surface — a chip, a count
+badge, an icon disc, a track — add `data-slot="pill"` (or use a primitive that already has
+a slot: `Badge`, `Avatar`, `Button`) so the Sharp shape can square it. Status dots and
+blurred glows stay round. Never write an unconditional `rounded-none`; scope it to the
+breakpoint where the element really is edge-to-edge.
 
 ## Typography
 

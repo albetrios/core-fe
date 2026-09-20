@@ -85,9 +85,19 @@ export function SettingsModal() {
 }
 
 /** One dialog shell for both the loading and the resolved states. */
+/**
+ * A full-screen sheet on phones (square — it IS the screen), a dialog from `sm`.
+ *
+ * The `sm:` half has to undo the sheet, not just cap it: `w-full` with only a
+ * `max-w` left the modal flush against both edges on anything between 640px and
+ * 960px (every tablet), and an unconditional `rounded-none` kept it square on
+ * desktop under every radius setting. `sm:rounded-lg` is token-backed and the
+ * dialog slot squares it again under the Sharp shape.
+ */
 const SETTINGS_DIALOG_CLASS =
   'h-dvh max-h-dvh w-full max-w-full gap-0 overflow-hidden rounded-none p-0 ' +
-  'sm:h-[640px] sm:max-h-[85vh] sm:max-w-[960px]';
+  'sm:h-[640px] sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-[960px] sm:rounded-lg ' +
+  '3xl:h-[760px] 3xl:max-w-[1120px]';
 
 function SettingsModalBody() {
   const { t } = useTranslation(SETTINGS_NS);

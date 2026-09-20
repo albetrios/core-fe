@@ -5,6 +5,7 @@ import { PRODUCT_NAMESPACE } from '@/lib/product-identity.ts';
 import {
   clearSessionStart,
   getSessionAge,
+  hasSessionHint,
   isSessionExpired,
   markSessionStart,
   startSessionLifetimeWatch,
@@ -23,6 +24,42 @@ describe('session-lifetime', () => {
   afterEach(() => {
     vi.useRealTimers();
     localStorage.clear();
+  });
+
+  describe('hasSessionHint — which chunks the boot warms, never who may enter', () => {
+    it('is false for a browser that has never signed in', () => {
+      expect(hasSessionHint()).toBe(false);
+    });
+
+    it('is true from an interactive sign-in until logout', () => {
+      markSessionStart();
+      expect(hasSessionHint()).toBe(true);
+
+      clearSessionStart();
+      expect(hasSessionHint()).toBe(false);
+    });
+
+    it('stays true for an old session — age is the cap’s business, not the hint’s', () => {
+      markSessionStart();
+      vi.setSystemTime(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      expect(hasSessionHint()).toBe(true);
+    });
+
+    it('is false for a stamp that is not a number', () => {
+      localStorage.setItem(KEY, 'not-a-timestamp');
+
+      expect(hasSessionHint()).toBe(false);
+    });
+
+    it('is false when storage is unavailable', () => {
+      const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new Error('SecurityError');
+      });
+
+      expect(hasSessionHint()).toBe(false);
+      getItem.mockRestore();
+    });
   });
 
   it('records and forgets the session start', () => {

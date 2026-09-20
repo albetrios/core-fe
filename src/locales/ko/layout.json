@@ -127,7 +127,9 @@
       "title": "세션 만료 예정",
       "description": "비활성으로 인해 {{countdown}} 후 세션이 만료됩니다. 계속하려면 \"로그인 유지\"를 클릭하세요.",
       "signOut": "로그아웃",
-      "staySignedIn": "로그인 유지"
+      "staySignedIn": "로그인 유지",
+      "signingOut": "로그아웃하는 중…",
+      "signingOutDescription": "세션을 안전하게 종료하는 중입니다. 로그인 페이지로 이동합니다."
     },
     "membersTable": {
       "actionsAria": "{{name}}에 대한 작업",

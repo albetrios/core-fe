@@ -3,7 +3,6 @@ import { lazy, startTransition, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
-import { onceAsync } from '@/lib/lazy-module.ts';
 import { CommandPaletteLazy } from '@/shared/components/CommandPalette/index.ts';
 import { KeyboardShortcutsLazy } from '@/shared/components/KeyboardShortcutsDialog/KeyboardShortcutsLazy.tsx';
 import { SessionTimeoutDialog } from '@/shared/components/SessionTimeoutDialog/index.ts';
@@ -12,6 +11,14 @@ import { reportError } from '@/shared/errors/errorHandler.ts';
 import { useVisibleNav } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlagsState } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useOrgBrand } from '@/shared/hooks/useOrgBrand/index.ts';
+import {
+  loadFocusShell,
+  loadRailShell,
+  loadSidebarShell,
+  loadTopNavShell,
+  preloadAllAppShellVariants,
+  preloadAppShellVariant,
+} from '@/shared/layouts/AppLayout/app-layout-variants.ts';
 import { NAV_ITEMS, SkipLink } from '@/shared/layouts/AppLayout/AppLayout.shared.tsx';
 import {
   type AppShellVariant,
@@ -21,28 +28,19 @@ import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/in
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { resolveDeploymentMode } from '@/shared/tenancy/deployment-mode.ts';
 
-// Each shell is fetched on first render (or preload) and shared from then on.
-// A module-scope `import()` would instead fetch all four the moment this
-// module evaluates, which defeats the split.
-const loadSidebar = onceAsync(() => import('./variants/AppLayoutSidebar.tsx'));
-const loadTopNav = onceAsync(() => import('./variants/AppLayoutTopNav.tsx'));
-const loadRail = onceAsync(() => import('./variants/AppLayoutRail.tsx'));
-const loadFocus = onceAsync(() => import('./variants/AppLayoutFocus.tsx'));
+// The loaders live in `app-layout-variants.ts` so the route tree can warm the
+// shell a session calls for without importing this layout into the entry chunk.
+const SidebarShell = lazy(() =>
+  loadSidebarShell().then((m) => ({ default: m.SidebarShell })),
+);
+const TopNavShell = lazy(() =>
+  loadTopNavShell().then((m) => ({ default: m.TopNavShell })),
+);
+const RailShell = lazy(() => loadRailShell().then((m) => ({ default: m.RailShell })));
+const FocusShell = lazy(() => loadFocusShell().then((m) => ({ default: m.FocusShell })));
 
-const SidebarShell = lazy(() => loadSidebar().then((m) => ({ default: m.SidebarShell })));
-const TopNavShell = lazy(() => loadTopNav().then((m) => ({ default: m.TopNavShell })));
-const RailShell = lazy(() => loadRail().then((m) => ({ default: m.RailShell })));
-const FocusShell = lazy(() => loadFocus().then((m) => ({ default: m.FocusShell })));
-
+/** In `APP_SHELL_VARIANT` order — index-aligned with the loaders. */
 const APP_SHELLS = [SidebarShell, TopNavShell, RailShell, FocusShell] as const;
-
-/** Chunk loaders in `APP_SHELL_VARIANT` order — index-aligned with APP_SHELLS. */
-const APP_SHELL_LOADERS = [loadSidebar, loadTopNav, loadRail, loadFocus] as const;
-
-/** Fetch one shell's chunk without mounting it. */
-function preloadAppShellVariant(variant: AppShellVariant): Promise<unknown> {
-  return (APP_SHELL_LOADERS[variant] ?? loadFocus)();
-}
 
 /**
  * What sits inside the shell boundary: the failure, the skeleton, or the shell.
@@ -219,11 +217,7 @@ export function Component() {
   );
 }
 
-/** Warms every shell chunk so tests can render any variant without a Suspense race. */
-const preloadAppLayoutVariants = () =>
-  Promise.all([loadSidebar(), loadTopNav(), loadRail(), loadFocus()]);
-
 /** Re-export for tests and direct imports that need the outlet shell without routing. */
 /* eslint-disable react-refresh/only-export-components -- test-facing re-exports beside the layout */
-export { preloadAppLayoutVariants };
+export { preloadAllAppShellVariants as preloadAppLayoutVariants };
 /* eslint-enable react-refresh/only-export-components */

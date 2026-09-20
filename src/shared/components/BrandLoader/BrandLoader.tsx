@@ -40,10 +40,14 @@ export function BrandLoader({ className }: BrandLoaderProps) {
         </span>
       </div>
       <span
+        data-slot="pill"
         className="bg-muted block h-1 w-32 overflow-hidden rounded-full"
         aria-hidden="true"
       >
-        <span className="bg-primary animate-boot-progress block h-full w-1/2 rounded-full" />
+        <span
+          data-slot="pill"
+          className="bg-primary animate-boot-progress block h-full w-1/2 rounded-full"
+        />
       </span>
     </div>
   );

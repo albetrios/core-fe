@@ -186,5 +186,11 @@
   },
   "table": {
     "searchPlaceholder": "搜索..."
+  },
+  "consent": {
+    "description": "我们使用 Cookie 进行产品分析，以改进 {{productName}}。基本功能和错误监控无需 Cookie 即可运行。",
+    "privacyPolicy": "隐私政策",
+    "accept": "接受",
+    "decline": "拒绝"
   }
 }

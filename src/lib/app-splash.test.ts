@@ -1,11 +1,22 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   dismissAppSplash,
   holdAppSplash,
   isAppSplashActive,
+  markAppContentPending,
+  markAppContentSettled,
   onAppSplashDismissed,
 } from './app-splash.ts';
+
+const isFading = () =>
+  document.getElementById('app-splash')?.classList.contains('app-splash-exiting') ??
+  false;
+const isGone = () => document.getElementById('app-splash') === null;
 
 describe('app-splash', () => {
   beforeEach(() => {
@@ -187,6 +198,151 @@ describe('app-splash', () => {
       vi.advanceTimersByTime(250);
       vi.advanceTimersByTime(480);
       expect(document.getElementById('app-splash')).toBeNull();
+    });
+  });
+
+  // ── The router has settled: the grace window is no longer a guess worth making ──
+
+  describe('settled content (markAppContentSettled)', () => {
+    it('leaves within frames once the router has settled, not after the grace window', () => {
+      // Regression: the login form (or the dashboard) sat fully rendered behind
+      // an opaque overlay for a fixed 250ms on every cold load — a wait for a
+      // "next loader" that, once the router has resolved, is never coming.
+      vi.useFakeTimers();
+      dismissAppSplash();
+      markAppContentSettled();
+
+      vi.advanceTimersByTime(31);
+      expect(isFading()).toBe(false);
+      vi.advanceTimersByTime(1);
+      expect(isFading()).toBe(true);
+    });
+
+    it('brings an exit check that is already waiting on the grace window forward', () => {
+      vi.useFakeTimers();
+      dismissAppSplash();
+      vi.advanceTimersByTime(100); // 150ms of grace still to run
+      markAppContentSettled();
+
+      vi.advanceTimersByTime(32);
+      expect(isFading()).toBe(true);
+    });
+
+    it('still waits for a hold — settled is not the same as ready', () => {
+      // The org shell mounts a loader while its lazy layout arrives. The router
+      // is resolved by then; the screen is not.
+      vi.useFakeTimers();
+      const release = holdAppSplash();
+      dismissAppSplash();
+      markAppContentSettled();
+
+      vi.advanceTimersByTime(2000);
+      expect(isFading()).toBe(false);
+
+      release();
+      vi.advanceTimersByTime(32);
+      expect(isFading()).toBe(true);
+    });
+
+    it('lets a hold taken in the same commit land first', () => {
+      vi.useFakeTimers();
+      dismissAppSplash();
+      markAppContentSettled();
+      // A layout effect in the commit the router just resolved.
+      const release = holdAppSplash();
+
+      vi.advanceTimersByTime(500);
+      expect(isFading()).toBe(false);
+      release();
+    });
+
+    it('goes back to the grace window once another navigation starts', () => {
+      // The OAuth callback → next screen handoff: the outgoing loader unmounts a
+      // few frames before the incoming one mounts. Exiting on that gap is the
+      // blink the grace window exists to prevent.
+      vi.useFakeTimers();
+      const releaseOutgoing = holdAppSplash();
+      dismissAppSplash();
+      markAppContentSettled();
+      markAppContentPending();
+
+      releaseOutgoing();
+      vi.advanceTimersByTime(70);
+      expect(isFading()).toBe(false);
+      const releaseIncoming = holdAppSplash();
+
+      vi.advanceTimersByTime(1000);
+      expect(isFading()).toBe(false);
+      releaseIncoming();
+    });
+
+    it('does nothing before a dismissal was requested', () => {
+      // React has not painted yet: settling must not start a fade on its own.
+      vi.useFakeTimers();
+      markAppContentSettled();
+
+      vi.advanceTimersByTime(1000);
+      expect(isFading()).toBe(false);
+
+      // …but the dismissal that follows takes the short path straight away.
+      dismissAppSplash();
+      vi.advanceTimersByTime(32);
+      expect(isFading()).toBe(true);
+    });
+
+    it('is a no-op once the splash is gone', () => {
+      document.getElementById('app-splash')?.remove();
+
+      expect(() => {
+        markAppContentSettled();
+        markAppContentPending();
+      }).not.toThrow();
+      expect(isGone()).toBe(true);
+    });
+
+    it('does not leak "settled" into a fresh overlay', () => {
+      vi.useFakeTimers();
+      markAppContentSettled();
+      // The node is removed on exit and remade between tests/boots.
+      document.getElementById('app-splash')?.remove();
+      const next = document.createElement('div');
+      next.id = 'app-splash';
+      document.body.prepend(next);
+
+      dismissAppSplash();
+      vi.advanceTimersByTime(32);
+      expect(isFading()).toBe(false);
+      vi.advanceTimersByTime(218);
+      expect(isFading()).toBe(true);
+    });
+  });
+
+  // ── index.html owns the fade; this module owns the fallback that ends it ──
+
+  describe('index.html drift', () => {
+    const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+    const html = readFileSync(join(root, 'index.html'), 'utf8');
+    const fadeMs = Number(/#app-splash \{[^}]*?opacity (\d+)ms/s.exec(html)?.[1]);
+
+    it('declares a fade short enough to read as a reveal, not a wait', () => {
+      expect(fadeMs).toBeGreaterThanOrEqual(120);
+      expect(fadeMs).toBeLessThanOrEqual(240);
+    });
+
+    it('never cuts that fade short, and never outlives it by much', () => {
+      // `transitionend` normally removes the node. The timer is the fallback for
+      // a tab that never fires it — too short and it hard-cuts the fade, too long
+      // and an inert overlay sits on the page.
+      vi.useFakeTimers();
+      dismissAppSplash();
+      markAppContentSettled();
+      vi.advanceTimersByTime(32);
+      expect(isFading()).toBe(true);
+
+      vi.advanceTimersByTime(fadeMs);
+      expect(isGone()).toBe(false);
+      vi.advanceTimersByTime(200);
+      expect(isGone()).toBe(true);
     });
   });
 });

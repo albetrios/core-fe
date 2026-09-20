@@ -6,6 +6,12 @@
 #   2. Hardcoded focus-visible:ring / focus:ring (data-focus owns focus via data-slot)
 #   3. Direct lucide-react imports (must use @/shared/icons barrel)
 #   4. bg-card / bg-popover class shells without data-slot on the same line
+#   5. Off-scale corner radius — a bare `rounded`, or an arbitrary `rounded-[…]`
+#      that is not a `var(--radius-*)`. Neither is driven by the Corner radius
+#      axis, so the element stays round when the rest of the app goes square.
+#      (Every NAMED step, `rounded-xs` … `rounded-4xl`, derives from --radius-lg
+#      in index.css and is fine; `rounded-full` is a shape decision — tag the
+#      element `data-slot="pill"` so the Sharp shape can square it.)
 #
 # Documented exceptions: tooling/validate/theme-axis-allowlist.txt
 # Run from project root: pnpm validate:theme-axis
@@ -56,6 +62,19 @@ scan() {
 scan "hardcoded shadow-* (use data-elevation + data-slot)" 'shadow-(sm|md|lg|xl|2xl)'
 scan "hardcoded focus ring (use data-slot + data-focus)" 'focus-visible:ring|focus:ring'
 scan "direct lucide-react import (use @/shared/icons)" "from 'lucide-react'"
+
+# 5 — off-scale radius. Two shapes: a bare `rounded` class token, and an
+# arbitrary `rounded-[…]` / `rounded-s-[…]` that is not a `var(--radius-*)`.
+# Comment lines are skipped: prose says "rounded" too.
+RADIUS_RAW=$(grep -rEn "(^|[\"'\` ])rounded([\"'\` ]|\$)|rounded(-[a-z]{1,2})?-\[" src \
+  --include='*.tsx' --include='*.ts' \
+  | grep -v '^src/shared/components/ui/' \
+  | grep -v '\.test\.' \
+  | grep -v '\.fixtures\.' \
+  | grep -Ev ':[0-9]+:[[:space:]]*(//|\*|/\*|\{/\*)' \
+  | grep -Ev 'rounded(-[a-z]{1,2})?-\[(calc\()?var\(--radius-' \
+  | filter_allowlist || true)
+report_hits "off-scale radius (use rounded-xs…4xl, or rounded-[var(--radius-*)])" "$RADIUS_RAW"
 
 SLOT_RAW=$(grep -rEn 'className=.*\bbg-(card|popover)\b' src --include='*.tsx' \
   | grep -v '^src/shared/components/ui/' \

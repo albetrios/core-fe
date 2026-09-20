@@ -127,7 +127,9 @@
       "title": "Sessione in scadenza",
       "description": "La sessione scadrà tra {{countdown}} per inattività. Fai clic su \"Resta connesso\" per continuare.",
       "signOut": "Esci",
-      "staySignedIn": "Resta connesso"
+      "staySignedIn": "Resta connesso",
+      "signingOut": "Uscita in corso…",
+      "signingOutDescription": "Stiamo chiudendo la sessione in modo sicuro. Verrai reindirizzato alla pagina di accesso."
     },
     "membersTable": {
       "actionsAria": "Azioni per {{name}}",

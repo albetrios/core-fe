@@ -168,6 +168,7 @@ function ToastIconBadge({
   const useTintBadge = variant === 'tint' || variant === 'outline';
   return (
     <span
+      data-slot="pill"
       className={cn(
         'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full',
         useTintBadge && tone.iconBadge,

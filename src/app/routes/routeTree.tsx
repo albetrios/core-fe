@@ -46,7 +46,7 @@ import { manifest as organizationShellManifest } from '@/pages/organization/$org
 import { manifest as suspendedManifest } from '@/pages/organization/$organizationSlug/suspended/suspended.manifest.ts';
 import { manifest as organizationPickerManifest } from '@/pages/organization/organization.manifest.ts';
 import { AppearanceDialogLazy } from '@/shared/components/AppearanceDialog/index.ts';
-import { ConsentBanner } from '@/shared/components/ConsentBanner/index.ts';
+import { ConsentBannerLazy } from '@/shared/components/ConsentBanner/index.ts';
 import { FloatingEdgeControls } from '@/shared/components/FloatingEdgeControls/index.ts';
 import { FullPageSpinner } from '@/shared/components/FullPageSpinner/index.ts';
 import { OfflineIndicator } from '@/shared/components/OfflineIndicator/index.ts';
@@ -58,6 +58,7 @@ import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/in
 import { AppToaster } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
+import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { resolveRootRedirect } from '@/shared/tenancy/organization-resolver.ts';
 
 import { ErrorBoundary } from './ErrorBoundary.tsx';
@@ -154,6 +155,57 @@ const PublicLayout = lazyRouteComponent(
   'PublicLayout',
 );
 
+/**
+ * The variant loaders are imported DYNAMICALLY, never statically: this file is
+ * the entry chunk, and the initial-JS budget has well under a kilobyte to spare.
+ * A static import of either module costs more than that on every load, to save
+ * one request on the loads that reach a shell. The import is a few hundred bytes
+ * and runs alongside the route's own chunks, so nothing waits on it.
+ */
+function preloadAuthLayoutVariant(): Promise<unknown> {
+  return import('@/shared/layouts/AuthLayout/auth-layout-variants.ts').then((m) =>
+    m.preloadAuthLayoutVariant(useThemeStore.getState().authVariant),
+  );
+}
+
+function preloadSessionAppShell(): Promise<unknown> {
+  return import('@/shared/layouts/AppLayout/app-layout-variants.ts').then((m) =>
+    m.preloadSessionAppShell(),
+  );
+}
+
+/** The auth layout AND the variant it is about to lazy-load, side by side. */
+function preloadAuthShell(): Promise<unknown> {
+  return Promise.all([AuthLayout.preload?.(), preloadAuthLayoutVariant()]);
+}
+
+/**
+ * Warm the chunks a cold load is about to need, WHILE the auth bootstrap is in
+ * flight — called once from `main.tsx`.
+ *
+ * Every entry route awaits `/auth/refresh` in `beforeLoad` before the router
+ * loads a single component, so the destination's chunks were requested only
+ * after the network had answered: guard, THEN chunks, THEN (for the layouts) a
+ * variant chunk. None of that depends on the answer. `likelySignedIn` is a hint,
+ * not a decision — it only picks which side to warm first, and being wrong costs
+ * a few idle kilobytes; the guards still decide where the user actually lands.
+ *
+ * Failures are swallowed on purpose: this is speculation. The router loads the
+ * same chunks again through the normal path, where a failure has an error
+ * boundary and a Retry (`onceAsync` and the route loaders do not cache a
+ * rejection).
+ */
+export function preloadBootRoutes(hint: { likelySignedIn: boolean }): void {
+  const warm = hint.likelySignedIn
+    ? [
+        PersonalShell.preload?.(),
+        OrganizationShell.preload?.(),
+        DashboardPage.preload?.(),
+      ]
+    : [preloadAuthShell(), LoginPage.preload?.()];
+  Promise.all(warm).catch(() => undefined);
+}
+
 // ── Root ──
 const rootRoute = createRootRoute({
   head: () => ({
@@ -187,8 +239,9 @@ const rootRoute = createRootRoute({
       <OfflineIndicator />
       {/* aria-live announcer: reads the new document.title on navigation. */}
       <RouteAnnouncer />
-      {/* Cookie-consent gate for analytics (PostHog). */}
-      <ConsentBanner />
+      {/* Cookie-consent gate for analytics (PostHog). Lazy: only an undecided
+          visitor ever needs the card, so it stays out of the entry chunk. */}
+      <ConsentBannerLazy />
       <AppToaster />
     </>
   ),
@@ -201,24 +254,6 @@ const rootRoute = createRootRoute({
 // once over every auth page; the pages keep their top-level URLs (/login, …).
 // AuthLayout is rendered inside a custom component (it wraps Outlet), so it
 // keeps a local Suspense boundary — the router only manages route components.
-/**
- * Pending config for the **network-gated entry routes** — `/`, the auth shell,
- * `/onboarding`, `/organization`.
- *
- * `defaultPendingMs: 3000` below is right for in-app navigation: it keeps the
- * current screen up while a guard runs, and the `RouteProgressBar` reports the
- * work. On a **cold load** there is no current screen — the `/` resolver renders
- * `null`, the boot splash has already faded out after first paint, and the user
- * sits in front of a blank page with a 2px bar for up to three seconds (X-6).
- * These four routes are exactly the ones a cold visit lands on, and every one of
- * them awaits the network before it can render anything, so they show the
- * spinner immediately instead.
- */
-const COLD_ENTRY_PENDING = {
-  pendingMs: 0,
-  pendingComponent: () => <FullPageSpinner />,
-} as const;
-
 const authShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'auth-shell',
@@ -227,12 +262,10 @@ const authShellRoute = createRoute({
   beforeLoad: async () => {
     await redirectIfAuthenticated();
   },
-  // Nested layouts are invisible to the router's component preloader.
-  loader: () => AuthLayout.preload?.(),
-  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
-  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
-  ...COLD_ENTRY_PENDING,
-
+  // Nested layouts are invisible to the router's component preloader — and so
+  // is the variant the layout then lazy-loads, which used to cost one more round
+  // trip AFTER the layout had mounted (skeleton → variant → form).
+  loader: () => preloadAuthShell(),
   component: () => (
     <Suspense fallback={<FullPageSpinner />}>
       <AuthLayout>
@@ -300,10 +333,6 @@ const onboardingRoute = createRoute({
     await requireAuth(location.href);
     await requireOnboardingWorkspace();
   },
-  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
-  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
-  ...COLD_ENTRY_PENDING,
-
   component: OnboardingPage,
   errorComponent: RouteErrorBoundary,
 });
@@ -348,9 +377,6 @@ const indexRoute = createRoute({
     await requireAuth(location.href);
     throw redirect(await resolveRootRedirect());
   },
-  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
-  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
-  ...COLD_ENTRY_PENDING,
   component: () => null,
 });
 
@@ -364,9 +390,6 @@ const organizationPickerRoute = createRoute({
     await requireAuth(location.href);
     await requireProvisionedWorkspace({ params: {}, redirectFrom: location.href });
   },
-  // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
-  // looking at 2px of progress bar. Show the spinner immediately here (X-6).
-  ...COLD_ENTRY_PENDING,
   component: OrganizationPickerPage,
   errorComponent: RouteErrorBoundary,
 });
@@ -386,6 +409,9 @@ const organizationShellRoute = createRoute({
     await requireProvisionedWorkspace({ params, redirectFrom: location.href });
     await resolveActiveOrg({ params });
   },
+  // The shell AppLayout will pick, fetched alongside the route's own chunks
+  // rather than after the layout mounts (see preloadSessionAppShell).
+  loader: () => preloadSessionAppShell(),
   component: function OrganizationShellRoute() {
     const isLoading = useAuthStore((s) => s.isLoading);
     if (isLoading) return <FullPageSpinner />;
@@ -440,6 +466,7 @@ const personalShellRoute = createRoute({
     requirePersonalDeployment({});
     await requirePersonalDashboardWorkspace({ redirectFrom: location.href });
   },
+  loader: () => preloadSessionAppShell(),
   component: function PersonalShellRoute() {
     return (
       <Suspense fallback={<FullPageSpinner />}>
@@ -495,21 +522,70 @@ const routeTree = rootRoute.addChildren([
   notFoundRoute,
 ]);
 
-export const router = createRouter({
-  routeTree,
-  // Preload the destination island's chunk (and pure loaders) on hover/touch.
-  defaultPreload: 'intent',
-  // Preloaded guard results are immediately stale: beforeLoad re-runs on the
-  // real navigation, so the side-effectful guard chain (org context sync,
-  // permission refetch) is never satisfied by a hover.
-  defaultPreloadStaleTime: 0,
-  // Keep the current screen rendered during in-app navigations (e.g. switching
-  // org) instead of blanking to a full-page spinner — the RouteProgressBar gives
-  // feedback. The full-page spinner only appears if a navigation is genuinely
-  // stuck (> 3s); the initial boot still shows it via the shell's isLoading gate.
+/**
+ * When the router shows its pending component, and for how long — two policies,
+ * because "is anything on screen yet?" has two answers.
+ *
+ * **BOOT** — until the first navigation resolves. Nothing is on screen to keep:
+ * the HTML splash is up, and the pending component (`FullPageSpinner`) renders
+ * nothing of its own but HOLDS that splash. So it mounts at once (`pendingMs: 0`)
+ * on EVERY cold URL — `/`, a bookmarked dashboard, an emailed invite link — which
+ * is what makes the boot one continuous screen instead of a splash that fades to
+ * a blank page while a guard awaits the network (X-6). It used to be opted into
+ * by four routes; a cold visit can land on any of them.
+ *
+ * It is also not held for a minimum time. The router's built-in
+ * `defaultPendingMinMs` is **500ms**, counted from the moment the fallback
+ * renders. It exists so a spinner cannot flash — but on boot the "spinner" is the
+ * splash the user is already looking at, so there is nothing to flash, and the
+ * rule simply parked every cold load for half a second: a guest's `/auth/refresh`
+ * was answered at ~130ms and the login screen's own chunks were not even
+ * requested until ~650ms.
+ *
+ * **IN-APP** — from then on. There IS a current screen, so keep it for up to 3s
+ * while guards run (the `RouteProgressBar` reports the work); if the full-page
+ * spinner does have to appear, the 500ms minimum is right — it now would flash.
+ * This also covers the hop after sign-in: `/login` → `/` used to swap the form
+ * for a spinner immediately and then hold it for the same half second.
+ */
+export const BOOT_PENDING_POLICY = {
+  defaultPendingMs: 0,
+  defaultPendingMinMs: 0,
+} as const;
+
+/** After the first navigation resolves: keep the current screen; a spinner may not flash. */
+export const IN_APP_PENDING_POLICY = {
   defaultPendingMs: 3000,
-  defaultPendingComponent: () => <FullPageSpinner />,
-});
+  defaultPendingMinMs: 500,
+} as const;
+
+/** Build the app router under the boot policy; it settles itself after first load. */
+export function createAppRouter() {
+  const appRouter = createRouter({
+    routeTree,
+    // Preload the destination island's chunk (and pure loaders) on hover/touch.
+    defaultPreload: 'intent',
+    // Preloaded guard results are immediately stale: beforeLoad re-runs on the
+    // real navigation, so the side-effectful guard chain (org context sync,
+    // permission refetch) is never satisfied by a hover.
+    defaultPreloadStaleTime: 0,
+    ...BOOT_PENDING_POLICY,
+    defaultPendingComponent: () => <FullPageSpinner />,
+  });
+
+  // `onResolved` fires only for the navigation that actually commits — a `/` →
+  // `/login` redirect is one boot, not two — so the policy flips exactly when
+  // the first real screen is up.
+  const unsubscribe = appRouter.subscribe('onResolved', () => {
+    unsubscribe();
+    appRouter.update({ ...appRouter.options, ...IN_APP_PENDING_POLICY });
+  });
+
+  return appRouter;
+}
+
+/** The app's one router — boots under {@link BOOT_PENDING_POLICY}, then settles itself. */
+export const router = createAppRouter();
 
 declare module '@tanstack/react-router' {
   interface Register {

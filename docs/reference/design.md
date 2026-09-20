@@ -118,14 +118,43 @@ on its surface, in both modes.
 - **Layout layers (product default).** Three tiers — do not collapse into one
   max-width:
   1. **App shell** — `contained` → `max-w-screen-2xl` (1536px) centered in
-     `AppMain` (default); **Full** and **Reading** (~768px) via Appearance →
-     Layout; deploy lock via `VITE_LAYOUT_WIDTH`.
+     `AppMain` (default), growing to `112rem` at `3xl` and `136rem` at `4xl` so
+     the column does not float in the middle of a big monitor; **Full** and
+     **Reading** (~768px) via Appearance → Layout; deploy lock via
+     `VITE_LAYOUT_WIDTH`.
   2. **Page grid** — free responsive grids: `auto-fit` + `minmax()` for tile rows,
      `2fr / 1fr` splits for asymmetric panels (`src/lib/responsive-grid.ts`); see
      dashboard.
   3. **Reading measure** — `max-w-prose` (~65ch) for paragraphs only; **not**
      the whole app. Claude-style ~768px caps belong on reading/chat pages
      locally, not on admin shells.
+
+- **Screen tiers — phone to ultrawide.** Tailwind's scale stops at `2xl`
+  (96rem, a 1536px laptop). Two more are declared in `index.css` for the
+  big-monitor tier: **`3xl:` = 120rem (1920px)** and **`4xl:` = 160rem
+  (2560px)**. Use them wherever a layout would otherwise stop growing — the
+  content column, the sidebar (`3xl:w-80`), the auth hero's type and padding,
+  large overlays. At the other end:
+  - **Below `lg` the sidebar is a drawer**, not a column. `lg`, not `md`: at
+    768px a 280px column is over a third of a portrait tablet. The drawer is
+    `invisible` while closed (translated-away is still focusable), closes on
+    navigation and on Escape, and never exceeds `85vw`. From `lg` up the column
+    is pinned by CSS and ignores drawer state — `rtl:lg:translate-x-0` included,
+    because `rtl:translate-x-full` outranks a bare `lg:` utility.
+  - **Below `md` there is a bottom tab bar** (`data-slot="mobile-nav"`). Anything
+    else pinned to the bottom edge rides above it through
+    `--floating-bottom-offset` (published by `index.css` via `:has()`), never
+    over it — the consent card and the Sentry feedback trigger both do.
+  - **Overlays are a sheet on phones and a dialog from `sm`.** The `sm:` half
+    has to _undo_ the sheet (`sm:w-[calc(100%-2rem)] sm:rounded-lg`), not just
+    cap its width — `w-full` with only a `max-w` runs edge to edge on every
+    tablet, and an unconditional `rounded-none` stays square under every radius
+    setting.
+  - **User data wraps.** A name with no break opportunity (email-derived) gets
+    `wrap-anywhere`, or it runs past its card and is clipped mid-word.
+  - **The end corner belongs to the feedback trigger and the edge handles.** A
+    new floating surface takes the bottom-_start_ corner (`start-*`, so it
+    mirrors under RTL) — see `ConsentBanner`.
 
 - **Not Claude-width by default.** Chat products cap ~720–768px for long answers.
   This product is a control surface — width is for tables and panels; constrain
@@ -171,6 +200,19 @@ Motion is **subtle, fast, and purposeful** — it orients, it doesn't perform.
 - Announce loading once per pending region, hide decorative skeletons from
   assistive technology, and respect reduced motion. The startup splash must have
   a bounded exit deadline that late loading holds cannot restart or cancel.
+- **The cold load is one continuous screen: splash → content.** The router runs a
+  _boot_ pending policy until its first navigation resolves
+  (`BOOT_PENDING_POLICY`: the pending component mounts at once on **every** cold
+  URL and holds the splash; no 500ms pending minimum — on boot there is nothing
+  for a spinner to flash over), then settles into the in-app one (keep the
+  current screen ≤ 3s, 500ms minimum). The splash leaves within frames of the
+  router settling (`markAppContentSettled`) rather than after a fixed grace
+  window, and fades in 200ms. While `/auth/refresh` is in flight the boot warms
+  the chunks the destination will need (`preloadBootRoutes`, steered by a
+  session _hint_ that never authorizes anything). Invariants, proven in a browser
+  by `tests/e2e/boot-splash.e2e.test.ts`: the splash fades **exactly once**, and
+  the page is **never blank** behind it. Numbers and method:
+  [local-production-perf.md](local-production-perf.md#cold-load-timeline).
 - Verify first-open and repeat-open behavior with delayed chunks on desktop and
   mobile. Test close, keyboard focus, switching sections, and retry after failure.
 

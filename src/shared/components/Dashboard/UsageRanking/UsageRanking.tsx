@@ -95,6 +95,7 @@ export function UsageRanking() {
               >
                 <div className="flex items-center gap-2 text-sm">
                   <span
+                    data-slot="pill"
                     className={cn(
                       'text-foreground inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums',
                       RANK_DOTS[index % RANK_DOTS.length],

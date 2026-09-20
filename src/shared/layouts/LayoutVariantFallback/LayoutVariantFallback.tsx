@@ -44,9 +44,9 @@ export function LayoutVariantFallback() {
           aria-hidden="true"
         />
         <div className="flex-1 space-y-4 p-4 sm:p-6" aria-hidden="true">
-          <div className="bg-muted/40 h-8 w-1/3 animate-pulse rounded" />
-          <div className="bg-muted/30 h-40 animate-pulse rounded" />
-          <div className="bg-muted/30 h-40 animate-pulse rounded" />
+          <div className="bg-muted/40 h-8 w-1/3 animate-pulse rounded-sm" />
+          <div className="bg-muted/30 h-40 animate-pulse rounded-sm" />
+          <div className="bg-muted/30 h-40 animate-pulse rounded-sm" />
         </div>
       </div>
     </output>

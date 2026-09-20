@@ -26,7 +26,10 @@ function GlobalErrorFallback({
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-      <div className="bg-destructive/10 flex h-16 w-16 items-center justify-center rounded-full">
+      <div
+        data-slot="pill"
+        className="bg-destructive/10 flex h-16 w-16 items-center justify-center rounded-full"
+      >
         <span className="text-2xl" aria-hidden="true">
           !
         </span>

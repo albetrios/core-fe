@@ -51,6 +51,19 @@ export function getSessionAge(): number | null {
   }
 }
 
+/**
+ * "This browser was signed in the last time we looked" — a HINT, never a fact.
+ *
+ * The start stamp is written on interactive sign-in and removed on logout, so
+ * its presence is a good guess at which side of the login wall a cold load will
+ * land on. It exists only to let the boot warm the right chunks while
+ * `/auth/refresh` is still in flight; nothing may AUTHORIZE on it — the refresh
+ * cookie is HttpOnly and the server alone knows whether the session is alive.
+ */
+export function hasSessionHint(): boolean {
+  return getSessionAge() !== null;
+}
+
 /** Has the session exceeded the absolute cap? */
 export function isSessionExpired(maxAgeMs: number = SESSION.MAX_AGE_MS): boolean {
   const age = getSessionAge();

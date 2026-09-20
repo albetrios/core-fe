@@ -88,6 +88,7 @@ export function PasswordStrengthMeter({
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
+            data-slot="pill"
             className={cn(
               'h-1 flex-1 rounded-full',
               i < filled ? SEGMENT_TONE[strength.score] : 'bg-muted',

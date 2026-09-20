@@ -19,7 +19,10 @@ export function SuspendedPage() {
       className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center"
       data-testid="suspended-page"
     >
-      <div className="bg-destructive/10 text-destructive flex h-12 w-12 items-center justify-center rounded-full">
+      <div
+        data-slot="pill"
+        className="bg-destructive/10 text-destructive flex h-12 w-12 items-center justify-center rounded-full"
+      >
         <ShieldAlert className="h-6 w-6" />
       </div>
       <div className="space-y-1">

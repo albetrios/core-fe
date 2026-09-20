@@ -186,5 +186,11 @@
   },
   "table": {
     "searchPlaceholder": "Cerca..."
+  },
+  "consent": {
+    "description": "Utilizziamo i cookie per l’analisi del prodotto e per migliorare {{productName}}. Le funzioni essenziali e il monitoraggio degli errori funzionano anche senza.",
+    "privacyPolicy": "Informativa sulla privacy",
+    "accept": "Accetta",
+    "decline": "Rifiuta"
   }
 }

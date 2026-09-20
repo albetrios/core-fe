@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { manifest as suspendedManifest } from '@/pages/organization/$organizationSlug/suspended/suspended.manifest.ts';
+import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-import { router } from './routeTree.tsx';
+import {
+  BOOT_PENDING_POLICY,
+  createAppRouter,
+  IN_APP_PENDING_POLICY,
+  preloadBootRoutes,
+  router,
+} from './routeTree.tsx';
 
 const gatewayExecutor = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const gatewayFromManifest = vi.hoisted(() =>
@@ -10,6 +17,17 @@ const gatewayFromManifest = vi.hoisted(() =>
 );
 const requireAuth = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const shellLoads = vi.hoisted(() => ({ auth: vi.fn(), public: vi.fn() }));
+const preloadAuthLayoutVariant = vi.hoisted(() =>
+  vi.fn((_variant: number) => Promise.resolve()),
+);
+const preloadSessionAppShell = vi.hoisted(() => vi.fn(() => Promise.resolve()));
+
+vi.mock('@/shared/layouts/AuthLayout/auth-layout-variants.ts', () => ({
+  preloadAuthLayoutVariant,
+}));
+vi.mock('@/shared/layouts/AppLayout/app-layout-variants.ts', () => ({
+  preloadSessionAppShell,
+}));
 
 vi.mock('@/shared/layouts/AuthLayout/index.ts', () => {
   shellLoads.auth();
@@ -102,43 +120,171 @@ describe('router configuration', () => {
     expect(router.options.defaultPendingComponent).toBeDefined();
   });
 
-  describe('cold entry routes show their pending state immediately (X-6)', () => {
-    // `defaultPendingMs: 3000` keeps the CURRENT screen during in-app
-    // navigation. On a cold load there is no current screen — `/` renders null,
-    // the boot splash has faded, and the user gets a blank page with a 2px bar
-    // for three seconds. The routes a cold visit can land on override it.
+  describe('pending policy — boot, then in-app (X-6)', () => {
     type RouteOptions = {
       id: string;
-      options: { pendingMs?: number; pendingComponent?: unknown };
+      options: { pendingMs?: number; pendingMinMs?: number; loader?: unknown };
     };
     const allRoutes = Object.values(router.routesById) as unknown as RouteOptions[];
-    // Pathless routes carry a prefixed id, so match on the suffix.
-    const routeEndingWith = (suffix: string) =>
-      allRoutes.find((route) => route.id.endsWith(suffix));
 
-    it('keeps the 3s default for in-app navigation', () => {
-      expect(router.options.defaultPendingMs).toBe(3000);
+    /** The event the router emits for the navigation that actually commits. */
+    function resolveFirstNavigation(target: ReturnType<typeof createAppRouter>) {
+      target.emit({ type: 'onResolved' } as Parameters<typeof target.emit>[0]);
+    }
+
+    it('boots showing the pending component at once — there is no screen to keep', () => {
+      // The pending component is FullPageSpinner, which renders nothing on boot
+      // but HOLDS the HTML splash. Deferring it 3s let the splash fade to a blank
+      // page while a guard awaited the network.
+      const fresh = createAppRouter();
+      expect(fresh.options.defaultPendingMs).toBe(0);
+      expect(fresh.options.defaultPendingComponent).toBeDefined();
     });
 
-    it.each(['auth-shell', '/onboarding', '/organization'])(
-      '%s renders its pending component at once',
-      (suffix) => {
-        const route = routeEndingWith(suffix);
-        expect(route, `route ${suffix} is missing`).toBeDefined();
-        expect(route?.options.pendingMs, `route ${suffix}`).toBe(0);
-        expect(route?.options.pendingComponent, `route ${suffix}`).toBeDefined();
+    it('does not hold the boot for the router’s built-in 500ms pending minimum', () => {
+      // Regression: `defaultPendingMinMs` is 500 unless overridden, counted from
+      // the moment the fallback renders. On boot the "spinner" is the splash the
+      // user is already looking at, so there is nothing to flash — it just parked
+      // every cold load for half a second (refresh answered at ~130ms, the login
+      // screen's chunks not even requested until ~650ms).
+      const fresh = createAppRouter();
+      expect(fresh.options.defaultPendingMinMs).toBe(0);
+      expect(BOOT_PENDING_POLICY).toEqual({
+        defaultPendingMs: 0,
+        defaultPendingMinMs: 0,
+      });
+    });
+
+    it('settles into the in-app policy once the first navigation resolves', () => {
+      // Now there IS a current screen: keep it for up to 3s while guards run, and
+      // if the spinner does have to show, keep it long enough not to flash.
+      const fresh = createAppRouter();
+
+      resolveFirstNavigation(fresh);
+
+      expect(fresh.options.defaultPendingMs).toBe(3000);
+      expect(fresh.options.defaultPendingMinMs).toBe(500);
+      expect(IN_APP_PENDING_POLICY).toEqual({
+        defaultPendingMs: 3000,
+        defaultPendingMinMs: 500,
+      });
+    });
+
+    it('keeps every other router option across that switch', () => {
+      const fresh = createAppRouter();
+      const before = { ...fresh.options };
+
+      resolveFirstNavigation(fresh);
+
+      expect(fresh.options.routeTree).toBe(before.routeTree);
+      expect(fresh.options.defaultPreload).toBe('intent');
+      expect(fresh.options.defaultPreloadStaleTime).toBe(0);
+      expect(fresh.options.defaultPendingComponent).toBe(before.defaultPendingComponent);
+    });
+
+    it('switches once — later navigations do not touch the options again', () => {
+      const fresh = createAppRouter();
+      const update = vi.spyOn(fresh, 'update');
+
+      resolveFirstNavigation(fresh);
+      resolveFirstNavigation(fresh);
+      resolveFirstNavigation(fresh);
+
+      expect(update).toHaveBeenCalledOnce();
+    });
+
+    it('no route opts out: the policy is the router’s, so every cold URL is covered', () => {
+      // It used to be opted into by four routes (`/`, the auth shell,
+      // `/onboarding`, `/organization`) — but a cold visit lands just as often on
+      // a bookmarked dashboard or an emailed invite, which got the blank page.
+      const overriding = allRoutes.filter(
+        (route) =>
+          route.options.pendingMs !== undefined ||
+          route.options.pendingMinMs !== undefined,
+      );
+      expect(overriding.map((route) => route.id)).toEqual([]);
+    });
+  });
+
+  describe('chunk warm-up', () => {
+    type Loadable = { id: string; options: { loader?: () => unknown } };
+    const routeEndingWith = (suffix: string) =>
+      (Object.values(router.routesById) as unknown as Loadable[]).find((route) =>
+        route.id.endsWith(suffix),
+      );
+
+    beforeEach(() => {
+      preloadAuthLayoutVariant.mockClear();
+      preloadSessionAppShell.mockClear();
+    });
+
+    it('the auth shell loader fetches the active layout variant with the layout', async () => {
+      // The layout lazy-loads its variant only AFTER mounting, which cost a second
+      // round trip (skeleton → variant → form) on the way to the login screen.
+      useThemeStore.setState({ authVariant: 2 });
+
+      await routeEndingWith('auth-shell')?.options.loader?.();
+
+      expect(preloadAuthLayoutVariant).toHaveBeenCalledExactlyOnceWith(2);
+      useThemeStore.setState({ authVariant: 0 });
+    });
+
+    it.each([['/organization/$organizationSlug'], ['personal-app']])(
+      'the %s shell loader fetches the app shell the session calls for',
+      async (suffix) => {
+        // By the time a loader runs, `beforeLoad` has put me/context in the store,
+        // so the shell can be fetched alongside the route's own chunks instead of
+        // after AppLayout mounts.
+        await routeEndingWith(suffix)?.options.loader?.();
+
+        expect(preloadSessionAppShell).toHaveBeenCalledOnce();
       },
     );
 
-    it('the `/` resolver does too — it renders null, so 3s of it is a blank page', () => {
-      const index = allRoutes.find((route) => route.id === '/');
-      expect(index?.options.pendingMs).toBe(0);
-      expect(index?.options.pendingComponent).toBeDefined();
+    it('warms the sign-in side for a likely guest, in parallel with the auth bootstrap', async () => {
+      preloadBootRoutes({ likelySignedIn: false });
+
+      // The variant loaders are imported dynamically (they must stay out of the
+      // entry chunk), so the call lands a tick after the warm-up starts.
+      await vi.waitFor(() => expect(preloadAuthLayoutVariant).toHaveBeenCalledOnce());
+      expect(preloadSessionAppShell).not.toHaveBeenCalled();
     });
 
-    it('leaves every other route on the default', () => {
-      const immediate = allRoutes.filter((route) => route.options.pendingMs === 0);
-      expect(immediate).toHaveLength(4);
+    it('warms the app side for a likely signed-in user, not the sign-in side', async () => {
+      preloadBootRoutes({ likelySignedIn: true });
+      // Give a wrongly-started sign-in warm-up the same tick to show itself.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(preloadAuthLayoutVariant).not.toHaveBeenCalled();
+      // The shell VARIANT is not guessed at boot: it depends on the session's
+      // deployment flags, so the shell route's loader fetches it once me/context
+      // is in the store.
+      expect(preloadSessionAppShell).not.toHaveBeenCalled();
+    });
+
+    it('never imports the variant loaders statically — the route tree IS the entry chunk', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { dirname, join } = await import('node:path');
+      const { fileURLToPath } = await import('node:url');
+      const source = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'routeTree.tsx'),
+        'utf8',
+      );
+      const staticImports = source
+        .split('\n')
+        .filter(
+          (line) => line.startsWith('import ') && line.includes('-layout-variants'),
+        );
+
+      expect(staticImports).toEqual([]);
+    });
+
+    it('swallows a failed warm-up — the router loads the same chunk again, with a Retry', async () => {
+      preloadAuthLayoutVariant.mockRejectedValueOnce(new Error('chunk 404'));
+
+      expect(() => preloadBootRoutes({ likelySignedIn: false })).not.toThrow();
+      // Let the rejection settle: an unhandled one would fail the run.
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
   });
 

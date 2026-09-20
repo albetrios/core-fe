@@ -1,21 +1,23 @@
 import { lazy, type ReactNode, Suspense } from 'react';
 
-import { onceAsync } from '@/lib/lazy-module.ts';
+import {
+  loadMinimalAuth,
+  loadSplitAuth,
+  loadSpotlightAuth,
+  preloadAllAuthLayoutVariants,
+} from '@/shared/layouts/AuthLayout/auth-layout-variants.ts';
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
-// Each variant is fetched on first render (or preload) and shared from then on.
-// A module-scope `import()` would instead fetch all three the moment this
-// module evaluates, which defeats the split.
-const loadSplit = onceAsync(() => import('./variants/AuthLayoutSplit.tsx'));
-const loadSpotlight = onceAsync(() => import('./variants/AuthLayoutSpotlight.tsx'));
-const loadMinimal = onceAsync(() => import('./variants/AuthLayoutMinimal.tsx'));
-
-const SplitAuth = lazy(() => loadSplit().then((m) => ({ default: m.SplitAuth })));
+// The loaders live in `auth-layout-variants.ts` so the route tree can warm the
+// active variant without importing this layout into the entry chunk.
+const SplitAuth = lazy(() => loadSplitAuth().then((m) => ({ default: m.SplitAuth })));
 const SpotlightAuth = lazy(() =>
-  loadSpotlight().then((m) => ({ default: m.SpotlightAuth })),
+  loadSpotlightAuth().then((m) => ({ default: m.SpotlightAuth })),
 );
-const MinimalAuth = lazy(() => loadMinimal().then((m) => ({ default: m.MinimalAuth })));
+const MinimalAuth = lazy(() =>
+  loadMinimalAuth().then((m) => ({ default: m.MinimalAuth })),
+);
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -47,10 +49,6 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   return <AuthLayoutShell variant={authVariant}>{children}</AuthLayoutShell>;
 }
 
-/** Warms every variant chunk so tests can render any shell without a Suspense race. */
-const preloadAuthLayoutVariants = () =>
-  Promise.all([loadSplit(), loadSpotlight(), loadMinimal()]);
-
 /* eslint-disable react-refresh/only-export-components -- test-facing preload hook */
-export { preloadAuthLayoutVariants };
+export { preloadAllAuthLayoutVariants as preloadAuthLayoutVariants };
 /* eslint-enable react-refresh/only-export-components */

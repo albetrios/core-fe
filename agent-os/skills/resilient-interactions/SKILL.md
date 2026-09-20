@@ -1,11 +1,11 @@
 ---
 name: resilient-interactions
-description: The worked reasoning behind the 28 always-on resilient-interaction rules — the concrete failure each one came from, the wrong fix, and the code that actually holds. Use when applying or arguing with a rule from agent-os/rules/resilient-interactions.mdc, when a write can double-submit, when a component crash escapes its boundary, when a success message can outrun the work, or when a screen derives its shape from a query.
+description: The worked reasoning behind the 30 always-on resilient-interaction rules — the concrete failure each one came from, the wrong fix, and the code that actually holds. Use when applying or arguing with a rule from agent-os/rules/resilient-interactions.mdc, when a write can double-submit, when a component crash escapes its boundary, when a success message can outrun the work, or when a screen derives its shape from a query.
 ---
 
 # Resilient interactions — the reasoning
 
-`agent-os/rules/resilient-interactions.mdc` carries the 28 rules as one-liners so
+`agent-os/rules/resilient-interactions.mdc` carries the 30 rules as one-liners so
 they cost almost nothing in a session that never needs them. This skill carries
 what a one-liner cannot: the failure each rule came from, the fix that looked
 right and was not, and the code that actually holds.
@@ -16,7 +16,7 @@ Section numbers here match the rule file exactly — code cites them by number
 
 # Resilient Interactions
 
-Twenty-eight failure modes cost real money, a whole screen, or the user's trust. Each has a house
+Thirty failure modes cost real money, a whole screen, or the user's trust. Each has a house
 answer; use it rather than re-solving per feature.
 
 ## 1. Writes are single-flight — never trust `disabled` alone
@@ -862,20 +862,44 @@ why the default here is 3000 ms. On a **cold load** there is nothing: the boot s
 first paint, the route is still in `beforeLoad`, and the user watches a blank page with a 2 px bar
 for three seconds (X-6).
 
+The answer is a **policy with two phases, not a list of routes**:
+
 ```tsx
-// the routes a cold visit can land on — all of them await the network first
-const COLD_ENTRY_PENDING = { pendingMs: 0, pendingComponent: () => <FullPageSpinner /> } as const;
+// app/routes/routeTree.tsx
+export const BOOT_PENDING_POLICY = { defaultPendingMs: 0, defaultPendingMinMs: 0 } as const;
+export const IN_APP_PENDING_POLICY = { defaultPendingMs: 3000, defaultPendingMinMs: 500 } as const;
+
+const unsubscribe = appRouter.subscribe('onResolved', () => {
+  unsubscribe(); // fires only for the navigation that COMMITS — a `/` → `/login` redirect is one boot
+  appRouter.update({ ...appRouter.options, ...IN_APP_PENDING_POLICY });
+});
 ```
 
-- **Know which routes a cold visit can land on.** Here: `/` (a resolver that renders `null`), the
-  auth shell, `/onboarding`, `/organization`. Every one of them awaits auth or tenancy before it
-  can render anything.
-- **A resolver route is the worst case.** `component: () => null` plus a pending window means the
-  page is *definitionally* blank for that whole window.
-- **Do not raise the global default instead.** In-app navigation genuinely benefits from keeping
-  the old screen; this is a per-route override, not a policy change.
-- **Test the config, not the pixels.** Assert `pendingMs === 0` and a `pendingComponent` on those
-  route ids, and that nothing else picked it up by accident.
+- **It used to be a per-route override, and the list was wrong.** `/`, the auth shell, `/onboarding`
+  and `/organization` opted into `pendingMs: 0`, on the theory that those are "the routes a cold
+  visit lands on". A cold visit lands just as often on a bookmarked dashboard or an emailed invite
+  link — every one of which awaits `/auth/refresh` in `beforeLoad` and got the blank page. "Is
+  anything on screen yet?" is a question about **time**, not about which route it is.
+- **On boot the pending component is not a spinner, it is a hold.** `FullPageSpinner` renders nothing
+  while the HTML splash is up and `holdAppSplash()`es it — so mounting it at once on every cold URL
+  is what makes the boot one continuous screen.
+- **The router's built-in `defaultPendingMinMs` is 500 ms, and it is counted from the moment the
+  fallback renders.** It exists so a spinner cannot flash. On boot there is nothing to flash — the
+  "spinner" is the splash the user is already looking at — so it simply parked every cold load for
+  half a second: a guest's `/auth/refresh` was answered at ~130 ms and the login screen's chunks
+  were not even *requested* until ~650 ms. Measured on a production build, guest `/` → login form
+  went 879 → 384 ms from this alone plus the warm-up in §30. A minimum is only right once there is a
+  real screen for a spinner to flash over, which is exactly the in-app phase.
+- **The same half second sat in the hop after sign-in.** `/login` → `/` swapped the form for a
+  full-page spinner immediately and then held it for the minimum. Under the in-app policy the form
+  stays (busy) until the dashboard is ready.
+- **A resolver route is still the worst case.** `component: () => null` plus a pending window means
+  the page is *definitionally* blank for that whole window.
+- **Test the policy in both directions, and the browser invariant.** Unit: a fresh `createAppRouter()`
+  boots on `0/0`, flips to `3000/500` on the first `onResolved`, flips once, and no route overrides
+  either option. Browser (`tests/e2e/boot-splash.e2e.test.ts`): the splash fades **exactly once** and
+  the page is **never blank** behind it — with `/auth/refresh` held open for 1.5 s, because on
+  localhost the guard answers faster than the splash can leave and the test passes against the bug.
 
 ## 24. A listener does not outlive the thing that installed it
 
@@ -1037,3 +1061,82 @@ reads most carefully (X-9).
   looks translated.
 - **Match the key to the namespace the component already reads**, and pass `{ ns }` explicitly when
   it reads from another one — a key resolved against the wrong namespace renders as the raw key.
+
+## 29. A global listener never answers the prompt it raised
+
+**Rule: a listener on `document` sees every press — including the ones aimed at the dialog it just
+opened.** If that listener's job is to decide "the user is back", then the user reaching for the
+dialog's own button *is* the user being back, and the dialog is dismissed by the very gesture that
+was trying to answer it.
+
+The idle timer listened for `mousedown`, `click`, `keydown` and `touchstart` on `document`, and any
+of them during the warning ended it: `onActive()` closed the "Session expiring" dialog and restarted
+the clock. So a press on **Sign out** ran `mousedown` → dialog closed → the `click` had nothing left
+to land on. The button could not sign anybody out — by mouse, by touch, or by keyboard, where the
+`Tab` that reaches the button counts too. It looked like it worked in every unit test, because the
+dialog's suite mocked the timer and the timer's suite had no dialog: the bug lived *between* the two
+modules.
+
+```ts
+function handleActivity() {
+  // Warned: only an explicit choice may continue the session.
+  if (isWarning) return;
+  …
+}
+
+return { extend, stop }; // "Stay signed in" calls extend() — nothing else restarts the clock
+```
+
+- **Once a prompt is up, presence is no longer the question.** The question is *which answer*, and
+  only the prompt's controls can give one. Suspend the global listener for as long as the prompt is
+  open, and give the prompt an explicit way to say "continue" (`extend()`), because the side effect
+  it used to rely on is gone.
+- **The same shape hides elsewhere.** An outside-click dismiss that also fires for clicks inside a
+  portalled child; a "close on any key" that eats the key meant for the input it contains; a
+  scroll-to-dismiss on a sheet that scrolls.
+- **Default focus is part of the answer.** Radix focuses the *first* tabbable element when there is
+  no Cancel, and here that was **Sign out**: Space or Enter to wake the screen signed the user out.
+  An unattended prompt focuses the option that loses nothing.
+- **Test the gesture the way a browser delivers it.** `mousedown`, `mouseup` and `click` are separate
+  tasks and React commits between them. Fired inside one `act()`, the click still finds a dialog a
+  real browser had already unmounted — and the test passes against the bug. Give each half its own
+  `act()` and re-query the element (`SessionTimeoutDialog.sign-out.test.tsx`), and prove it in a
+  browser with a real `mouse.down()` … `mouse.up()` (`tests/e2e/session-timeout.e2e.test.ts`).
+- **Prove the test bites.** Put the old line back and watch it fail; a green test you never saw red
+  is how this shipped.
+
+## 30. A hint warms; it never decides — and work that needs no answer starts before the answer
+
+**Rule: if a step does not depend on a response, it must not wait for the response.** Every entry
+route awaits `/auth/refresh` in `beforeLoad`, and the router loads no component until that resolves
+— so the destination's chunks were requested only *after* the network had answered: guard, **then**
+route chunks, **then** (for the layouts) a variant chunk after the layout had mounted. None of that
+waterfall depends on the answer.
+
+```ts
+// main.tsx — alongside startAuthBootstrap(), not after it
+preloadBootRoutes({ likelySignedIn: hasSessionHint() });
+```
+
+- **The hint picks a side to warm; the guards still decide where the user lands.** `hasSessionHint()`
+  is "this browser was signed in the last time we looked" — a localStorage timestamp, written on
+  interactive sign-in and removed on logout. It may be wrong in both directions, and the only cost of
+  being wrong is a few idle kilobytes. **Nothing may authorize on it**: the refresh cookie is HttpOnly
+  and the server alone knows whether the session is alive. A hint that skipped the refresh call would
+  break every session the hint does not know about (cleared storage, a parent-domain cookie).
+- **Warm the level below, too.** A layout that lazy-loads its variant *after mounting* adds a round
+  trip the router's preloader cannot see. Fetch it from the route `loader` — after `beforeLoad` has
+  put `me/context` in the store, so the choice is exact, not a guess — and the layout finds it in
+  memory (`preloadSessionAppShell()`, `preloadAuthLayoutVariant()`).
+- **Speculation swallows its failures.** A rejected warm-up is not an error: the router loads the same
+  chunk again through the normal path, where a failure has a boundary and a Retry. (`onceAsync` does
+  not cache a rejection, so the retry really refetches.)
+- **It must not cost the entry chunk what it saves.** The route tree *is* the entry chunk. Import the
+  loaders dynamically from the functions that use them; a static import of two tiny modules was
+  enough to break the initial-JS budget. See `bundle-performance` → "the root route's barrels".
+- **A splash leaves on a signal, not on a guess.** `EXIT_GRACE_MS` (250 ms) is a guess about the
+  future — "another loader may be about to mount" — and it is only right while a navigation is in
+  flight. Once the router has resolved, the splash goes on the next frames
+  (`markAppContentSettled()`); a new navigation puts the conservative window back
+  (`markAppContentPending()`), which is the OAuth-callback handoff it was measured on.
+

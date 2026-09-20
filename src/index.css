@@ -55,11 +55,30 @@
   --color-chart-4: oklch(0.708 0 0);
   --color-chart-5: oklch(0.835 0 0);
 
-  /* Radii */
+  /* Breakpoints past Tailwind's `2xl` (96rem) — the big-monitor tier. `2xl`
+     stops at a 1536px laptop; a 1920px desktop and a 2560px+ monitor are
+     different canvases again, and without a name for them every layout simply
+     stopped growing and floated in the middle of the glass. Use `3xl:` / `4xl:`
+     to let shells, containers and the auth hero keep scaling. */
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
+
+  /* Radii. `sm`/`md`/`lg`/`xl` are the ones the Corner radius axis sets inline
+     (presets.ts). Every OTHER step DERIVES from `--radius-lg`, so `rounded-xs`,
+     `rounded-2xl`… follow the axis too: left at Tailwind's fixed defaults they
+     kept a 16px corner under radius "None", which is how the dashboard hero
+     stayed round in an otherwise square app. With the default `lg` of 0.5rem
+     these resolve to exactly Tailwind's stock values — nothing moves until the
+     axis does. (A bare `rounded` and `rounded-[…]` are NOT token-backed; the
+     theme-axis gate rejects them in app code.) */
+  --radius-xs: calc(var(--radius-lg) * 0.25);
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
+  --radius-2xl: calc(var(--radius-lg) * 2);
+  --radius-3xl: calc(var(--radius-lg) * 3);
+  --radius-4xl: calc(var(--radius-lg) * 4);
 
   /* Font families */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -403,6 +422,24 @@
   border-color: color-mix(in oklch, var(--color-border) 55%, transparent);
 }
 
+/* ── Floating surface default lift ──
+   A non-modal surface pinned over the page (the consent card) has no scrim to
+   separate it, so it carries a soft shadow even before any generated look has
+   set `data-elevation`. Declared ABOVE the elevation block on purpose: those
+   rules have the same specificity, so the theme axis still wins whenever it is
+   set — `flat` removes this, `lifted`/`floating` deepen it. */
+[data-slot='surface'][data-floating] {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.06),
+    0 12px 32px -12px oklch(0 0 0 / 0.22);
+}
+/* `:where()` keeps this at the same specificity as the axis rules below. */
+:where(.dark) [data-slot='surface'][data-floating] {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 16px 36px -12px oklch(0 0 0 / 0.7);
+}
+
 /* ── Surface elevation (data-elevation) — flat (border-only) … lifted (deep shadow).
    Targets shadcn `[data-slot]` surfaces. App code must not add shadow-* on these slots. ── */
 [data-elevation='flat'] [data-slot='card'],
@@ -565,7 +602,23 @@
 [data-shape='sharp'] [data-slot='dropdown-menu-item'],
 [data-shape='sharp'] [data-slot='dropdown-menu-checkbox-item'],
 [data-shape='sharp'] [data-slot='dropdown-menu-radio-item'],
-[data-shape='sharp'] [data-slot='dropdown-menu-sub-trigger'] {
+[data-shape='sharp'] [data-slot='dropdown-menu-sub-trigger'],
+/* Round BY DESIGN — `rounded-full` in every other shape — but under Sharp nothing
+   is round. Primitives first, then `pill`: the opt-in slot for app-level chips,
+   count badges, icon discs and tracks. Status dots (≤ 10px) and blurred glows
+   are indicators, not surfaces, and deliberately do not opt in. */
+[data-shape='sharp'] [data-slot='badge'],
+[data-shape='sharp'] [data-slot='avatar'],
+[data-shape='sharp'] [data-slot='avatar-fallback'],
+[data-shape='sharp'] [data-slot='checkbox'],
+[data-shape='sharp'] [data-slot='switch'],
+[data-shape='sharp'] [data-slot='switch-thumb'],
+[data-shape='sharp'] [data-slot='progress'],
+[data-shape='sharp'] [data-slot='progress-indicator'],
+[data-shape='sharp'] [data-slot='input-otp-slot'],
+[data-shape='sharp'] [data-slot='floating-edge'],
+[data-shape='sharp'] [data-slot='kbd'],
+[data-shape='sharp'] [data-slot='pill'] {
   border-radius: 0;
 }
 
@@ -854,6 +907,49 @@
   [role='checkbox']:not(:disabled):not([data-disabled]),
   summary {
     cursor: pointer;
+  }
+}
+
+/* ── Floating corner surfaces (consent card, feedback trigger) ──
+   A shell that renders the mobile tab bar publishes its height here, so nothing
+   pinned to the bottom edge sits on top of primary navigation. `:has()` keeps it
+   declarative: no shell has to know which floating surfaces exist, and a screen
+   without a tab bar (login, onboarding) reserves nothing. The tab bar is
+   `md:hidden`, so the reservation ends at the same breakpoint. */
+:root:has([data-slot='mobile-nav']) {
+  --floating-bottom-offset: 3.75rem;
+}
+@media (min-width: 48rem) {
+  :root:has([data-slot='mobile-nav']) {
+    --floating-bottom-offset: 0rem;
+  }
+}
+
+/* Below `sm` the consent card spans the width and can cover a page's last
+   control. It publishes its measured height (ConsentBanner) and whatever scrolls
+   reserves that much at its end, so the control can be scrolled clear. The
+   document scrolls on the auth/public layouts; the app shell scrolls `<main>`. */
+@media (max-width: 39.9375rem) {
+  body {
+    padding-bottom: var(--consent-card-height, 0px);
+  }
+  [data-slot='app-main'] {
+    padding-bottom: calc(5rem + var(--consent-card-height, 0px));
+  }
+}
+
+/* The Sentry feedback trigger is third-party and lives in a shadow root, but it
+   positions itself from custom properties on its host — so it can be steered
+   from here. It owns the bottom-END corner; lift it clear of the tab bar too. */
+#sentry-feedback {
+  --inset: auto 0 var(--floating-bottom-offset, 0rem) auto;
+}
+/* Below `sm` the consent card spans the full width, so the two would share a
+   corner and the trigger lands on top of "Accept". The consent decision is a
+   one-off, seconds-long state: the trigger simply waits for it. */
+@media (max-width: 39.9375rem) {
+  :root:has([data-slot='surface'][data-floating]) #sentry-feedback {
+    display: none;
   }
 }
 

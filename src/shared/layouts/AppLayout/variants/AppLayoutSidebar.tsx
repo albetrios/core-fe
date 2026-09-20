@@ -1,3 +1,5 @@
+import { useRouterState } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
@@ -27,6 +29,11 @@ import { shouldShowOrganizationSwitcher } from '@/shared/tenancy/deployment-mode
 // Computed once at module load — a copyright year is not render-reactive.
 const CURRENT_YEAR = new Date().getFullYear();
 
+/**
+ * The sidebar shell: a permanent column from `lg` up, an off-canvas drawer below
+ * it. The header row is one identity lockup (mark + organization switcher) and is
+ * exactly as tall as the page header beside it.
+ */
 export function SidebarShell({
   navItems,
   organizationSlug,
@@ -37,6 +44,24 @@ export function SidebarShell({
   const { t } = useTranslation(LAYOUT_NS);
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
+  const href = useRouterState({ select: (s) => s.location.href });
+
+  // A drawer that survives the navigation it just performed covers the page the
+  // user asked for. `href`, not `pathname`: Settings opens through the hash.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `href` IS the trigger — the effect reads nothing from it
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [href, setSidebarOpen]);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [sidebarOpen, setSidebarOpen]);
   const deploymentFlags = useDeploymentFlags();
   const showOrgSwitcher = shouldShowOrganizationSwitcher(deploymentFlags);
   const personalOnly = !deploymentFlags.teamOrganizations;
@@ -48,18 +73,40 @@ export function SidebarShell({
     <>
       {sidebarOpen && (
         <div
-          className="bg-overlay/50 fixed inset-0 z-40 md:hidden"
+          className="bg-overlay/50 fixed inset-0 z-40 lg:hidden"
           aria-hidden="true"
+          data-testid="sidebar-scrim"
           onClick={toggleSidebar}
         />
       )}
 
+      {/*
+        A drawer below `lg`, a permanent column from `lg` up.
+
+        `lg`, not `md`: at 768px a 280px column is over a third of a portrait
+        tablet, and the dashboard behind it was squeezed to two cramped columns.
+        The tablet gets the whole width and opens navigation on demand.
+
+        Closed means `invisible`, not merely translated away. Off-screen is still
+        focusable: Tab walked through a switcher and links nobody could see, and
+        a screen reader announced them. `visibility` is in the transition so the
+        panel stays painted until it has finished sliding out. `lg:visible` and
+        `lg:translate-x-0` pin the column regardless of drawer state — and the
+        `rtl:` twin is required, because `rtl:translate-x-full` outranks a bare
+        `lg:` utility and would push the desktop column off-screen under RTL.
+      */}
       <aside
+        id="app-sidebar"
         aria-label={t(LAYOUT_KEYS.a11y.sidebarNavigation)}
         data-testid="sidebar"
+        data-state={sidebarOpen ? 'open' : 'closed'}
         className={cn(
-          'bg-sidebar text-sidebar-foreground fixed inset-y-0 start-0 z-50 flex w-[17.5rem] flex-col border-e transition-transform md:relative md:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
+          'bg-sidebar text-sidebar-foreground fixed inset-y-0 start-0 z-50 flex w-[17.5rem] max-w-[85vw] flex-col border-e',
+          'transition-[transform,visibility] duration-300 ease-out motion-reduce:transition-none',
+          '3xl:w-80 lg:visible lg:relative lg:z-auto lg:max-w-none lg:translate-x-0 rtl:lg:translate-x-0',
+          sidebarOpen
+            ? 'visible translate-x-0'
+            : 'invisible -translate-x-full rtl:translate-x-full',
         )}
       >
         <div
@@ -67,28 +114,40 @@ export function SidebarShell({
           aria-hidden="true"
         />
 
-        <div className="border-sidebar-border relative border-b px-4 py-4">
-          <div className="flex items-start gap-3">
-            <BrandLogo />
-            <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-sidebar-foreground/55 text-[11px] font-semibold tracking-wider uppercase">
+        {/*
+          One identity row, exactly as tall as the page header beside it (`h-14`),
+          so the two bottom borders read as a single line across the app. The mark
+          and the switcher are ONE control here — see OrganizationSwitcher's
+          `leading` — rather than a logo floating beside a caption with the
+          dropdown indented underneath, where nothing shared an edge or a baseline.
+        */}
+        <div
+          className="border-sidebar-border relative flex h-14 shrink-0 items-center border-b px-2"
+          data-testid="sidebar-brand"
+        >
+          {showOrgSwitcher ? (
+            <SectionErrorBoundary
+              title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
+              testId="org-switcher-error-sidebar"
+              variant="control"
+            >
+              <OrganizationSwitcher
+                className="w-full"
+                align="start"
+                surface="sidebar"
+                leading={<BrandLogo />}
+                caption={t(LAYOUT_KEYS.brand.name)}
+              />
+            </SectionErrorBoundary>
+          ) : (
+            // No switcher (personal-only): the same lockup, just not a button.
+            <div className="flex min-w-0 items-center gap-3 px-2">
+              <BrandLogo />
+              <p className="text-sidebar-foreground truncate text-sm leading-5 font-semibold">
                 {t(LAYOUT_KEYS.brand.name)}
               </p>
-              {showOrgSwitcher ? (
-                <SectionErrorBoundary
-                  title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
-                  testId="org-switcher-error-sidebar"
-                  variant="control"
-                >
-                  <OrganizationSwitcher
-                    className="w-full"
-                    align="start"
-                    surface="sidebar"
-                  />
-                </SectionErrorBoundary>
-              ) : null}
             </div>
-          </div>
+          )}
         </div>
 
         <nav
@@ -132,20 +191,22 @@ export function SidebarShell({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="shrink-0 lg:hidden"
             onClick={toggleSidebar}
             aria-label={t(LAYOUT_KEYS.app.toggleSidebar)}
+            aria-expanded={sidebarOpen}
+            aria-controls="app-sidebar"
             data-testid="sidebar-toggle"
           >
             <Menu className="h-5 w-5" />
           </Button>
           {showOrgSwitcher ? (
-            // `md:hidden` belongs on the WRAPPER, not on the switcher: when the
+            // `lg:hidden` belongs on the WRAPPER, not on the switcher: when the
             // switcher throws it is replaced by the fallback, which carried no
             // responsive class of its own — so a failure put a second error
             // control on desktop, next to the sidebar one, where the mobile
             // switcher itself never appears.
-            <div className="min-w-0 flex-1 md:hidden">
+            <div className="min-w-0 flex-1 sm:max-w-64 lg:hidden">
               <SectionErrorBoundary
                 title={t(ERRORS_KEYS.widget.organizationSwitcher, { ns: ERRORS_NS })}
                 testId="org-switcher-error-mobile"
@@ -156,16 +217,22 @@ export function SidebarShell({
             </div>
           ) : null}
           <SearchTrigger />
-          <div className="flex-1" />
-          <SectionErrorBoundary
-            title={t(ERRORS_KEYS.widget.notifications, { ns: ERRORS_NS })}
-            testId="notifications-widget-error"
-            variant="inline"
-          >
-            <NotificationCenter />
-          </SectionErrorBoundary>
-          <ThemeModeToggle />
-          <UserMenu />
+          {/* `ms-auto`, not a `flex-1` spacer. Below `md` the mobile switcher is
+              the flexible item, and a spacer split the free space with it — the
+              organization name was crushed down to a single letter. `ms-auto`
+              yields to the switcher when it is there and still pins these to the
+              end edge when it is not (personal-only, or from `md` up). */}
+          <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <SectionErrorBoundary
+              title={t(ERRORS_KEYS.widget.notifications, { ns: ERRORS_NS })}
+              testId="notifications-widget-error"
+              variant="inline"
+            >
+              <NotificationCenter />
+            </SectionErrorBoundary>
+            <ThemeModeToggle />
+            <UserMenu />
+          </div>
         </header>
         <AppMain />
       </div>

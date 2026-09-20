@@ -42,6 +42,7 @@ export function StepIndicator({
         return (
           <li key={step} className="flex items-center gap-2">
             <span
+              data-slot="pill"
               className={stepCircleClass(state)}
               aria-current={state === 'current' ? 'step' : undefined}
             >

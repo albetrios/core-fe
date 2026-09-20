@@ -51,7 +51,7 @@ export function AccountSessionsPanel() {
           <ul className="divide-border divide-y">
             {['a', 'b'].map((key) => (
               <li key={key} className="flex items-center gap-3 p-3">
-                <Skeleton className="size-5 shrink-0 rounded" />
+                <Skeleton className="size-5 shrink-0 rounded-sm" />
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <Skeleton className="h-4 w-40" />
                   <Skeleton className="h-3 w-64" />

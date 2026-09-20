@@ -197,6 +197,7 @@ function ColourField({
         aria-label={`${ariaLabel} — custom`}
         title={tColour(APPEARANCE_KEYS.pickAnyColour)}
         data-testid={`${testPrefix}-custom`}
+        data-slot="pill"
         className="border-border size-7 cursor-pointer rounded-full border bg-transparent p-0 outline-none"
       />
       <span className="bg-border mx-1 h-6 w-px" aria-hidden="true" />

@@ -187,7 +187,10 @@ export function SearchTrigger({
     >
       <Search className="h-4 w-4 shrink-0" />
       <span className="text-sm">{t(LAYOUT_KEYS.app.searchPlaceholder)}</span>
-      <kbd className="bg-background text-foreground/70 ms-auto hidden rounded border px-1.5 text-[10px] font-medium sm:inline">
+      <kbd
+        data-slot="kbd"
+        className="bg-background text-foreground/70 ms-auto hidden rounded-sm border px-1.5 text-[10px] font-medium sm:inline"
+      >
         {isMac
           ? t(LAYOUT_KEYS.app.searchShortcutMac)
           : t(LAYOUT_KEYS.app.searchShortcutWindows)}
@@ -354,6 +357,9 @@ export function MobileNav({
   return (
     <nav
       aria-label={t(LAYOUT_KEYS.a11y.mobileNavigation)}
+      // `mobile-nav` is what `index.css` looks for to lift floating corner
+      // surfaces (consent card, feedback trigger) clear of this bar.
+      data-slot="mobile-nav"
       className="bg-background fixed start-0 end-0 bottom-0 z-40 flex border-t md:hidden"
       data-testid="mobile-bottom-bar"
     >
@@ -497,7 +503,11 @@ export function AppMain() {
       <main
         id="main-content"
         ref={mainRef}
-        className="flex-1 overflow-y-auto p-4 pb-20 sm:p-6 md:pb-6"
+        // `app-main`: index.css extends the bottom padding by the consent card's
+        // height on phones. `sm:pb-20` is not redundant — `sm:p-6` resets every
+        // side, and the tab bar this padding clears stays until `md`.
+        data-slot="app-main"
+        className="3xl:p-8 flex-1 overflow-y-auto p-4 pb-20 sm:p-6 sm:pb-20 md:pb-6"
         data-testid="main-content"
         data-layout-width={layoutWidth}
       >

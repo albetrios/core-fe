@@ -10,10 +10,6 @@ import { closeControlClassName } from '@/lib/icon-surface.ts';
 import { useRetryableLazy } from '@/lib/lazy-module.ts';
 import { cn } from '@/lib/utils.ts';
 import { useEnterAnimationProps } from '@/shared/components/LazyOverlay/index.ts';
-import {
-  SETTINGS_KEYS,
-  SETTINGS_NS,
-} from '@/shared/components/SettingsModal/settings.constants.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { Sparkles, X } from '@/shared/icons/index.ts';
@@ -22,6 +18,10 @@ import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
 import { APPEARANCE_KEYS } from './appearance.constants.ts';
+import {
+  APPEARANCE_DIALOG_KEYS,
+  APPEARANCE_DIALOG_NS,
+} from './appearance-dialog.constants.ts';
 import { loadAppearancePanel } from './appearance-panel-loader.ts';
 
 function AppearanceContent() {
@@ -90,7 +90,7 @@ function AppearanceContent() {
  */
 export function AppearanceDialog() {
   const { t } = useTranslation(LOCALE_NS);
-  const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const { t: tSettings } = useTranslation(APPEARANCE_DIALOG_NS);
   const open = useUIStore((s) => s.appearanceOpen);
   const setOpen = useUIStore((s) => s.setAppearanceOpen);
   const shuffleTheme = useThemeStore((s) => s.shuffleTheme);
@@ -149,10 +149,10 @@ export function AppearanceDialog() {
       <div className="border-border flex items-start justify-between gap-3 border-b px-5 py-3">
         <div className="space-y-0.5">
           <h2 id="appearance-popover-title" className="text-sm font-semibold">
-            {tSettings(SETTINGS_KEYS.panels.appearance.title)}
+            {tSettings(APPEARANCE_DIALOG_KEYS.title)}
           </h2>
           <p className="text-muted-foreground text-xs">
-            {tSettings(SETTINGS_KEYS.panels.appearance.description)}
+            {tSettings(APPEARANCE_DIALOG_KEYS.description)}
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -164,7 +164,7 @@ export function AppearanceDialog() {
             data-testid="theme-shuffle"
           >
             <Sparkles className="me-1.5 size-3.5" aria-hidden="true" />
-            {tSettings(SETTINGS_KEYS.panels.appearance.shuffle)}
+            {tSettings(APPEARANCE_DIALOG_KEYS.shuffle)}
           </Button>
           <button
             type="button"

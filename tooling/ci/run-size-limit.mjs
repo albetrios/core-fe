@@ -72,8 +72,18 @@ const config = [
      *
      * The split is otherwise intact: build:check reports no deferred module on
      * the first-paint path, and the module-scope import() audit is clean.
+     *
+     * 235 → 234 kB. Part of that un-itemised 5.7 kB is now attributed: the
+     * root-mounted `AppearanceDialog` imported `settings.constants.ts` for THREE
+     * header keys, which put the whole Settings key table (~17 kB of source,
+     * ~3 kB gzipped) on the first paint of every load. It declares those keys
+     * locally now (pinned by `appearance-dialog.constants.test.ts`), and the cookie
+     * consent card went lazy. Measured after: 232.8 kB, against main's 234.3 —
+     * while the same change ADDED the boot warm-up, the router pending policy
+     * and the pending-revoke sign-out. Lowered per the rule above; the ~1.2 kB
+     * of headroom matches what the previous limit left.
      */
-    limit: '235 kB',
+    limit: '234 kB',
     gzip: true,
   },
   ...(cssPaths.length

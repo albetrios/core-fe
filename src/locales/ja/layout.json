@@ -127,7 +127,9 @@
       "title": "セッションの期限切れが近づいています",
       "description": "非アクティブのため、セッションは {{countdown}} 後に期限切れになります。「サインインを維持」をクリックして続行してください。",
       "signOut": "サインアウト",
-      "staySignedIn": "サインインを維持"
+      "staySignedIn": "サインインを維持",
+      "signingOut": "サインアウトしています…",
+      "signingOutDescription": "セッションを安全に終了しています。サインインページに移動します。"
     },
     "membersTable": {
       "actionsAria": "{{name}} のアクション",

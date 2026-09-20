@@ -127,7 +127,9 @@
       "title": "Session expiring",
       "description": "Your session will expire in {{countdown}} due to inactivity. Click \"Stay signed in\" to continue.",
       "signOut": "Sign out",
-      "staySignedIn": "Stay signed in"
+      "staySignedIn": "Stay signed in",
+      "signingOut": "Signing out…",
+      "signingOutDescription": "Ending your session securely. You will be taken to the sign-in page."
     },
     "membersTable": {
       "actionsAria": "Actions for {{name}}",

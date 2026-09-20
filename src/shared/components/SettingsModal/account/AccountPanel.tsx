@@ -110,7 +110,7 @@ export function AccountPanel() {
         <CardContent className="divide-y">
           <InfoRow label={t(accountPanels.accountIdLabel)}>
             <span className="flex items-center gap-2">
-              <code className="bg-muted rounded px-1.5 py-0.5 text-xs">{userId}</code>
+              <code className="bg-muted rounded-sm px-1.5 py-0.5 text-xs">{userId}</code>
               <Button
                 variant="ghost"
                 size="icon-sm"

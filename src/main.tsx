@@ -5,12 +5,18 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { initSentry } from '@/app/observability/sentry.ts';
-import { router } from '@/app/routes/routeTree.tsx';
+import { preloadBootRoutes, router } from '@/app/routes/routeTree.tsx';
 import { showUpdateAvailableToast } from '@/app/version/show-update-available-toast.ts';
 import { platformConfig } from '@/core/config/env.ts';
 import { bootstrapResources } from '@/core/resources/index.ts';
 import { startVersionCheck } from '@/core/version/check.ts';
-import { afterPaint, dismissAppSplash, onAppSplashDismissed } from '@/lib/app-splash.ts';
+import {
+  afterPaint,
+  dismissAppSplash,
+  markAppContentPending,
+  markAppContentSettled,
+  onAppSplashDismissed,
+} from '@/lib/app-splash.ts';
 import { IDLE_PREFETCH_TIMEOUT_MS } from '@/lib/chunk-prefetch.ts';
 import { subscribeToAuthBroadcast } from '@/shared/auth/auth-channel.ts';
 import { peekTurnstileToken } from '@/shared/auth/captcha/turnstile-token-store.ts';
@@ -19,6 +25,7 @@ import {
   handleCrossTabLogout,
   startAuthBootstrap,
 } from '@/shared/auth/service.ts';
+import { hasSessionHint } from '@/shared/auth/session-lifetime.ts';
 import { initDeferredIconSets } from '@/shared/icons/icon-registry.ts';
 import {
   hasAnalyticsConsent,
@@ -127,8 +134,23 @@ root.render(
 // Ease out the HTML boot splash once React has painted underneath (no hard cut).
 afterPaint(() => dismissAppSplash());
 
+// …and let it go the moment the router has settled on a destination, instead of
+// sitting out a fixed grace window over a page that is already rendered. While a
+// navigation is in flight (a redirect, the OAuth handoff) the conservative
+// window still applies. Both subscriptions end with the splash.
+const stopSettled = router.subscribe('onResolved', markAppContentSettled);
+const stopPending = router.subscribe('onBeforeNavigate', markAppContentPending);
+onAppSplashDismissed(() => {
+  stopSettled();
+  stopPending();
+});
+
 // Attempt silent refresh in background (no backend = fast fail → login screen).
 void startAuthBootstrap();
+
+// Warm the destination's chunks WHILE that refresh is in flight — every entry
+// route awaits it before the router will load a single component.
+preloadBootRoutes({ likelySignedIn: hasSessionHint() });
 
 // Initialize observability/analytics after splash dismiss + idle (auth funnels stay lean).
 initObservabilityWhenIdle();
