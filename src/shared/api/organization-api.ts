@@ -26,11 +26,19 @@ const INVITATIONS_API = `${API_BASE_PATH}/tenancy/invitations`;
 
 const VALID_PERMISSIONS = new Set<string>(organizationPermissionSchema.options);
 
+/**
+ * Keeps only the permission codes this build knows about.
+ *
+ * Exported so a caller that already holds a me-context can reuse the same
+ * filter instead of paying a second `me/context` round trip for it.
+ */
+export function toOrganizationPermissions(codes: string[]): OrganizationPermission[] {
+  return codes.filter((p): p is OrganizationPermission => VALID_PERMISSIONS.has(p));
+}
+
 export async function getMyPermissions(): Promise<OrganizationPermission[]> {
   const ctx = await fetchMeContext();
-  return ctx.myPermissions.filter((p): p is OrganizationPermission =>
-    VALID_PERMISSIONS.has(p),
-  );
+  return toOrganizationPermissions(ctx.myPermissions);
 }
 
 export interface AcceptedInvitation {

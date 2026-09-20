@@ -64,6 +64,8 @@ vi.mock('@/core/http/queryClient.ts', () => ({
 }));
 
 import { queryClient } from '@/core/http/queryClient.ts';
+// The real auth-shell form slot the panel lives inside — see LOGIN-7 below.
+import { AuthForm as AuthFormSlot } from '@/shared/layouts/AuthLayout/AuthLayout.shared.tsx';
 
 import type { AuthContinuePending } from './auth-form-pending.ts';
 import { AuthEmailPanel } from './AuthEmailPanel.tsx';
@@ -527,6 +529,72 @@ describe('AuthEmailPanel', () => {
       expect(emailLogin).toHaveBeenCalledTimes(1);
       // ...and therefore no red "invalid code" banner over the departing screen.
       expect(screen.queryByTestId('auth-email-error-banner')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── LOGIN-7 ───────────────────────────────────────────────────────────────
+  // Everything above renders the panel BARE, and that is how this shipped: in
+  // the real app the panel sits inside the auth shell's form slot, which was
+  // `key={pathname}` off `useLocation()`. That hook reports the PENDING
+  // location, set the instant `navigate()` is called — so the key flipped while
+  // `/login` was still the rendered match, React threw the slot away, and the
+  // remounted panel came back at step one. The user, having just been told
+  // their code was accepted, watched the "enter your email" screen fade back in
+  // and sit there until the destination finished loading. Mount the real slot
+  // around the panel and the whole defect is observable.
+  describe('post-login handoff inside the auth shell (LOGIN-7)', () => {
+    function PanelInAuthShell() {
+      const [pending, setPending] = useState<AuthContinuePending | null>(null);
+      return (
+        <AuthFormSlot>
+          <AuthEmailPanel pending={pending} onPendingChange={setPending} />
+        </AuthFormSlot>
+      );
+    }
+
+    async function verifyIntoHeldNavigation() {
+      const user = userEvent.setup();
+      render(
+        <RouterProvider
+          router={createDestinationRouter('/login', '/onboarding', PanelInAuthShell)}
+        />,
+      );
+      await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+      await user.click(screen.getByTestId('auth-email-submit'));
+      await screen.findByTestId('auth-email-verify-panel');
+      const slotBeforeNavigation = screen.getByTestId('auth-form-container');
+      await user.type(await screen.findByTestId('auth-email-code'), '123456');
+
+      await waitFor(() => expect(establishSession).toHaveBeenCalledTimes(1));
+      return { slotBeforeNavigation };
+    }
+
+    it('never rewinds to the email step while the destination resolves', async () => {
+      await verifyIntoHeldNavigation();
+
+      // The router's pending location already reads /onboarding; the guard is
+      // held open, so the auth screen is still the mounted match.
+      expect(screen.getByTestId('auth-email-verify-panel')).toBeInTheDocument();
+      // The regression itself: step one, back on screen, after a valid code.
+      expect(screen.queryByTestId('auth-email')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('dest-onboarding')).not.toBeInTheDocument();
+    });
+
+    it('keeps the same slot element, so no state below it is destroyed', async () => {
+      const { slotBeforeNavigation } = await verifyIntoHeldNavigation();
+
+      // Node identity is the direct test: the key lived on this element, so a
+      // key change replaces it. Same node ⇒ nothing underneath remounted, which
+      // is what preserves the step, the code, and the single-flight latches.
+      expect(screen.getByTestId('auth-form-container')).toBe(slotBeforeNavigation);
+      expect(screen.getByTestId('auth-email-verify')).toBeDisabled();
+    });
+
+    it('has no accessibility violations mid-handoff', async () => {
+      await verifyIntoHeldNavigation();
+
+      const results = await axe(screen.getByTestId('auth-form-container'));
+      expect(results).toHaveNoViolations();
     });
   });
 

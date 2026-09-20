@@ -138,14 +138,49 @@ export async function loginViaEmailCodeUI(
   });
 
   const code = await pollVerificationCodeFromMailOutbox(email);
+  await watchForEmailStepReappearing(page);
   await fillEmailVerificationCode(page, code);
 
   await expect(page).toHaveURL(
     /\/onboarding|\/organization\/[^/]+\/dashboard|\/dashboard/,
     { timeout: 20000 },
   );
+  await expectEmailStepNeverReappeared(page);
 
   return { email };
+}
+
+/**
+ * Starts watching for the email step coming back, covering the window between
+ * submitting a valid code and landing on the destination.
+ *
+ * A plain `expect(...).not.toBeVisible()` afterwards cannot catch this: the
+ * regression was a remount that rewound the form to step one for exactly as
+ * long as the destination took to load (LOGIN-7), so by the time the URL
+ * assertion resolves the evidence is gone. An observer armed beforehand sees it
+ * even if it lasts a single frame. The verdict is parked on `<html>`, which the
+ * observer does not watch, so recording it cannot retrigger the observer.
+ */
+async function watchForEmailStepReappearing(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document.documentElement.dataset.e2eAuthEmailStepReappeared = 'false';
+    new MutationObserver(() => {
+      if (document.querySelector('[data-testid="auth-email"]')) {
+        document.documentElement.dataset.e2eAuthEmailStepReappeared = 'true';
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+}
+
+/** Asserts the sign-in screen only ever moved forward. Pairs with the watch above. */
+async function expectEmailStepNeverReappeared(page: Page): Promise<void> {
+  const reappeared = await page.evaluate(
+    () => document.documentElement.dataset.e2eAuthEmailStepReappeared === 'true',
+  );
+  expect(
+    reappeared,
+    'the email step reappeared after a valid code — the sign-in screen went backwards (LOGIN-7)',
+  ).toBe(false);
 }
 
 /**
