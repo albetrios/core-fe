@@ -31,7 +31,7 @@ Find in `.tsx` / `.ts` (not tests):
 
 ### 2. Create files
 
-```
+```text
 pages/<page>/
 ├── <page>.constants.ts          ← keys, test ids, analytics
 ├── components/<Unit>/
@@ -180,7 +180,7 @@ declare the boundary in the PR body — a fully untranslated component reads as 
 known gap; a half-translated one reads as a bug.
 
 **Every new key lands in all 11 packs.** `validate:i18n-parity` compares each
-locale against English, so a *missing* key fails — but a key left **unused in
+locale against English, so a _missing_ key fails — but a key left **unused in
 code** survives in every pack. Deleting a surface means deleting its keys too.
 
 **Constants hold key paths, never prose.** `*.constants.ts` exports dotted paths
