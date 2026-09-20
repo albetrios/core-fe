@@ -161,6 +161,18 @@ const RESTRICTED_CALENDAR_PATTERN = { group: [...], message: '…' };
 Probe from **each** layer (`src/shared/…`, `src/pages/…`) plus the exempt path. A
 probe placed only in `src/lib` proves nothing about `src/shared`.
 
+**Keep the ESLint probe too.** A lint restriction is a gate like any other, and "I linted a
+scratch file once" is the same one-day proof. `tests/ci/eslint-restricted-syntax.policy.test.ts`
+lints **virtual file paths against the real config** —
+`new ESLint({ cwd }).lintText(source, { filePath: 'src/…/Probe.tsx' })` — and filters the messages
+by `ruleId`, so one test pins both halves: the **wiring** (which globs the rule reaches, and that
+colocated tests are exempt) and the **behaviour** (what it flags, and the legitimate forms it must
+leave alone). It works because this config has no type-aware parsing; a `projectService` config would
+need real files. This is also the test that notices the replacement trap above: a later block that
+re-declares `no-restricted-syntax` for the same files makes the older selector silently stop
+existing, and nothing else fails. Mutation-check it the usual way — switch the rule `'off'` and watch
+exactly the "flags" cases go red.
+
 ### 4. Shelling out to a binary that may not exist
 
 `execFileSync('rg', …)` inside a `try/catch` that treats every error as "no

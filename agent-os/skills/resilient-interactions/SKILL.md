@@ -1,11 +1,11 @@
 ---
 name: resilient-interactions
-description: The worked reasoning behind the 30 always-on resilient-interaction rules — the concrete failure each one came from, the wrong fix, and the code that actually holds. Use when applying or arguing with a rule from agent-os/rules/resilient-interactions.mdc, when a write can double-submit, when a component crash escapes its boundary, when a success message can outrun the work, or when a screen derives its shape from a query.
+description: The worked reasoning behind the 31 always-on resilient-interaction rules — the concrete failure each one came from, the wrong fix, and the code that actually holds. Use when applying or arguing with a rule from agent-os/rules/resilient-interactions.mdc, when a write can double-submit, when a component crash escapes its boundary, when a success message can outrun the work, or when a screen derives its shape from a query.
 ---
 
 # Resilient interactions — the reasoning
 
-`agent-os/rules/resilient-interactions.mdc` carries the 30 rules as one-liners so
+`agent-os/rules/resilient-interactions.mdc` carries the 31 rules as one-liners so
 they cost almost nothing in a session that never needs them. This skill carries
 what a one-liner cannot: the failure each rule came from, the fix that looked
 right and was not, and the code that actually holds.
@@ -16,7 +16,7 @@ Section numbers here match the rule file exactly — code cites them by number
 
 # Resilient Interactions
 
-Thirty failure modes cost real money, a whole screen, or the user's trust. Each has a house
+Thirty-one failure modes cost real money, a whole screen, or the user's trust. Each has a house
 answer; use it rather than re-solving per feature.
 
 ## 1. Writes are single-flight — never trust `disabled` alone
@@ -935,6 +935,15 @@ export function cancelTokenRefresh(): void {
   call is judged by what that call does to the session, not by the memory it holds.
 - **Test the cancel path.** Defer, cancel, then dispatch the event and assert **nothing** happened —
   and loop it a few times to prove listeners are not stacking.
+- **The mirror image: a flag the cleanup clears, the effect must set.** An "am I still mounted"
+  ref (`aliveRef`, `isMountedRef`) guards the awaits of a long chain. Written as
+  `useEffect(() => () => { aliveRef.current = false; }, [])` it is set by `useRef(true)` exactly
+  once — and a ref **survives** React's Strict Mode remount (mount → cleanup → mount, in dev and so
+  in every E2E run). After that simulated cleanup the component is permanently "gone" to itself:
+  the invite accept finished, hit `if (!aliveRef.current) return`, and the card sat on
+  "Accepting…" forever, with no success, no error and no redirect. Production never double-mounts,
+  so it shipped. Set it in the effect body: `aliveRef.current = true; return () => { … = false }`.
+  Three pages use the pattern; two already did this, with a comment saying why.
 
 ## 25. Per-row state belongs to the row
 
@@ -1139,4 +1148,51 @@ preloadBootRoutes({ likelySignedIn: hasSessionHint() });
   flight. Once the router has resolved, the splash goes on the next frames
   (`markAppContentSettled()`); a new navigation puts the conservative window back
   (`markAppContentPending()`), which is the OAuth-callback handoff it was measured on.
+
+## 31. A fallback that gets written down waits for every answer
+
+**Rule: a decision that is PERSISTED — a canonicalized URL, a redirect, a stored preference, a form
+reset — may only be made when every input it reads is an answer. "Not known yet" written down
+becomes "no", permanently.**
+
+§22 already says a `false` from a permission check is ambiguous and gives the store a way to say so
+(`permissionsResolved`, `clearPermissions()`). That protects anything that merely *renders* from the
+value: it flickers, then corrects itself. It does nothing for a consumer that **writes the wrong
+answer back**, because that one never gets a second look.
+
+The settings modal resolved `#settings/organization/general` to a section, and when the section was
+not available it wrote the fallback into the URL (`replace: true`) so the link would be canonical. Its
+readiness test was `!meContext.isPending`. Measured in a browser:
+
+```text
+6817ms  NAV …#settings/organization/general             ← the deep link
+6819ms  orgType=TEAM  perms=0   groups=[account]         ← unresolved, read as "no"
+6838ms  NAV …#settings/account/profile                  ← written down, 19 ms later
+6842ms  orgType=TEAM  perms=14  groups=[account, organization]
+```
+
+me/context was right the whole time. Entering an organization runs `ensurePermissionsFor()`, which
+clears the permission set a beat before the real one lands; for that beat the list is `[]` and
+`permissionsResolved` is `false`. The nav recovered on its own at 6842 ms — the URL never did.
+
+```ts
+const accessResolved = useAccessResolved();
+const contextReady = !meContext.isPending && (accessResolved || !meContext.data);
+```
+
+- **Audit the writers, not the readers.** Grep for the places a derived value goes *back out* —
+  `navigate({ replace: true })` in an effect, a guard's `redirect()`, `localStorage.setItem`,
+  `form.reset(defaults)` — and for each, list every input and ask whether it can be "not yet". A
+  renderer can afford to be early; a writer cannot.
+- **Waiting needs an exit.** The permission set is *derived from* me/context, so when that settled
+  without data no answer is ever coming: the modal does not wait then (`|| !meContext.data`), or it
+  would sit on its skeleton forever. Every "wait for X" names the case where X cannot arrive.
+- **Waiting is not allowing.** Once the set IS resolved and the section is genuinely out of reach,
+  the fallback is written exactly as before. Test all three: unresolved → URL untouched; resolved
+  yes → opens; resolved no → canonicalized (`SettingsModal.test.tsx`).
+- **The hypothesis was wrong, and the measurement said so.** The ticket blamed stale me/context; a
+  per-render log of the component's inputs showed `orgType: "TEAM"` and `perms: 0` in one line.
+  Instrument the inputs before fixing the one you suspect.
+- **A repeat-each run is the proof for a timing bug.** One green run of a race proves little:
+  `--repeat-each=3 --retries=0` on the spec that reproduces it.
 

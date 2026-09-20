@@ -1,4 +1,4 @@
-import type { APIRequestContext, APIResponse } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
 import pg from 'pg';
 
 import { API_BASE_PATH, API_ENDPOINTS } from '@/core/config/constants.ts';
@@ -6,8 +6,10 @@ import { API_BASE_PATH, API_ENDPOINTS } from '@/core/config/constants.ts';
 import { withApiRetry } from './e2e-api-retry.ts';
 import { loadCachedE2eAuthHeaders } from './e2e-captcha.ts';
 import { uniqueE2eEmail } from './e2e-faker.ts';
+import { echoedVerificationCode } from './e2e-verification-code.ts';
 
 export { uniqueE2eEmail } from './e2e-faker.ts';
+export { echoedVerificationCode } from './e2e-verification-code.ts';
 
 const API = API_BASE_PATH;
 
@@ -124,25 +126,6 @@ export async function pollInvitationTokenFromMailOutbox(email: string): Promise<
   }
 
   throw new Error(`Timed out waiting for invitation email to ${email}`);
-}
-
-/**
- * The code core-be echoes on `send-code` when it runs in its local/TEST mode
- * (`debug_verification_code` — the same field the sign-in form prefills from), or
- * `null` on a backend that does not echo.
- *
- * Prefer it to `mail_outbox`: the echo is the code that was just issued, in the
- * response already in hand, so there is no second system to poll and no window in
- * which the outbox row is "not there yet". The outbox stays as the fallback.
- */
-export async function echoedVerificationCode(
-  response: APIResponse,
-): Promise<string | null> {
-  const body = (await response.json().catch(() => null)) as {
-    data?: { debug_verification_code?: unknown };
-  } | null;
-  const code = body?.data?.debug_verification_code;
-  return typeof code === 'string' && code.length > 0 ? code : null;
 }
 
 /**

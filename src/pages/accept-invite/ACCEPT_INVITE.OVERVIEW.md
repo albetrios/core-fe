@@ -1,7 +1,10 @@
 # `pages/accept-invite` — Membership invitation acceptance
 
-Route: `/accept-invite/$invitationId`. Public entry point a user reaches from an invite
-email link.
+Route: `/accept-invite/$invitationId`. Reached from an invite email link, and
+**auth-required** (`requireAuth` in the route's `beforeLoad`, INV-4): the recipient is
+usually not signed in yet, so a guest goes to sign-in first with the whole link — token
+included — carried as the post-login redirect. The error card below is a signed-in state;
+a guest never sees it.
 
 ## Files
 
@@ -20,6 +23,17 @@ email link.
 5. If that follow-up fails, the membership still stands: report the error, warn the user
    (`partial` state + `notify.warning`), and hand off to `/` — the resolver — never to
    `/login` (INV-1). See `agent-os/rules/resilient-interactions.mdc` section 6.
+
+## Gotcha — the `aliveRef` is set on every mount
+
+The accept is a chain of long awaits, and `aliveRef` stops a finished chain from navigating
+or setting state after the user has left (INV-2). Its effect **sets it to `true` as well as
+clearing it**: a ref survives React's Strict Mode remount (dev, and therefore every E2E
+run), so a cleanup that only ever writes `false` left the page permanently "gone" to itself
+— the accept finished and the card sat on "Accepting your invitation…" forever. Production
+has no double mount, which is how it went unnoticed. The regression test uses plain
+`render` inside `<StrictMode>`; `renderWithProviders` mounts through the router after the
+first commit and never double-mounts.
 
 ## Test ids
 

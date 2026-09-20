@@ -1,11 +1,11 @@
 ---
-description: Thirty standing UI-resilience rules, one line each: writes are single-flight, a component crash stays contained, a success message never outruns the work, no flow is derived from state that has not loaded, and every data surface renders all of its states. Applies to every mutating control, every composed surface, every success toast, and every screen whose shape comes from a query. The worked reasoning, the failure each rule came from and the code that holds are in the resilient-interactions SKILL.
+description: Thirty-one standing UI-resilience rules, one line each: writes are single-flight, a component crash stays contained, a success message never outruns the work, no flow is derived from state that has not loaded, and every data surface renders all of its states. Applies to every mutating control, every composed surface, every success toast, and every screen whose shape comes from a query. The worked reasoning, the failure each rule came from and the code that holds are in the resilient-interactions SKILL.
 alwaysApply: true
 ---
 
 # Resilient Interactions
 
-Thirty failure modes that cost real money, a whole screen, or the user's
+Thirty-one failure modes that cost real money, a whole screen, or the user's
 trust. Each has a house answer; use it rather than re-solving per feature.
 
 **These are the rules. The reasoning is not here on purpose** — this file loads
@@ -45,3 +45,4 @@ Section numbers are cited from code (`§1`, `§6` today). **Never renumber.**
 28. User-facing copy lives in the locale files — error screens included
 29. A global listener never answers the prompt it raised
 30. A hint warms; it never decides — and work that needs no answer starts before the answer
+31. A fallback that gets written down waits for every answer — "not known yet" is never persisted as "no"

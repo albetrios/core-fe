@@ -472,3 +472,32 @@ export { preload };
 component memoizes lazy chunks, export a `preload*()` and call it in `beforeAll`
 — re-importing the modules in the test creates a second promise and reintroduces
 the Suspense race.
+
+**A Strict Mode regression needs plain `render` — `renderWithProviders` never double-mounts.**
+`main.tsx` mounts the app in `<StrictMode>`, so in dev (and every E2E run) each component goes
+mount → cleanup → mount, and refs **survive** it. A bug that lives in that remount — an
+"am I mounted" ref the cleanup clears and nothing sets again — is invisible to every test that
+mounts once. Wrapping in `<StrictMode>` is not enough on its own: `renderWithProviders` renders the
+UI through the memory router *after* the first commit, and the simulated remount never reaches it.
+A Strict Mode test written on that helper passed against the accept-invite hang; only the mutation
+check showed it could not fail.
+
+```tsx
+render(
+  <StrictMode>
+    <AcceptInvitePage />
+  </StrictMode>,
+);
+expect(await screen.findByTestId('accept-invite-success')).toBeInTheDocument();
+expect(acceptInvitationMock).toHaveBeenCalledTimes(1); // the double mount must not double the WRITE
+```
+
+Plain `render` has no router context, so drive the path that renders no `<Link>`, or mock it. To see
+what a given helper really does, log `mount` / `cleanup` from a probe component before trusting it.
+
+**Reset shared state in `beforeEach`, not on a test's last line.** A trailing
+`window.history.replaceState({}, '', '/')` never runs when its test FAILS, so the next test
+inherits the URL and fails for a reason that has nothing to do with it — one real failure reads as
+two. It only shows up while something is red, which is exactly when you need the report to be
+accurate (seen while mutation-checking `AccountBillingPanel`).
+

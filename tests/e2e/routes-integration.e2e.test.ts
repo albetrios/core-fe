@@ -42,17 +42,17 @@ test.describe('Live routes integration', () => {
       await expectLoginFormReady(page);
     });
 
-    test('accept-invite with an invalid id shows error and sign-in affordance', async ({
+    test('accept-invite sends a guest to sign-in with the invite as the redirect', async ({
       page,
     }) => {
-      await gotoApp(page, '/accept-invite/inv_expired');
-      await expect(page.getByTestId('accept-invite-page')).toBeVisible({
-        timeout: 15000,
-      });
-      await expect(page.getByTestId('accept-invite-error')).toBeVisible({
-        timeout: 10000,
-      });
-      await expect(page.getByTestId('accept-invite-login')).toBeVisible();
+      // Not a public page any more (INV-4): the accept needs a session whose email
+      // matches the invite, so the guard asks for one before the page renders.
+      await gotoApp(page, '/accept-invite/inv_expired?token=tok_e2e_guest');
+      await expect(page).toHaveURL(/\/login\?redirect=/, { timeout: 10000 });
+      const redirect = new URL(page.url()).searchParams.get('redirect') ?? '';
+      expect(redirect).toContain('/accept-invite/inv_expired');
+      expect(redirect).toContain('token=tok_e2e_guest');
+      await expectLoginFormReady(page);
     });
 
     test('unauthorized page renders without auth', async ({ page }) => {

@@ -902,7 +902,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 ### 10e. resilient-interactions
 
 **Path:** `agent-os/skills/resilient-interactions/SKILL.md`
-**Rule:** `agent-os/rules/resilient-interactions.mdc` (the 30 one-liners, `alwaysApply`)
+**Rule:** `agent-os/rules/resilient-interactions.mdc` (the 31 one-liners, `alwaysApply`)
 
 **Purpose:** The worked reasoning behind the 30 always-on resilience rules — the failure each came from, the fix that looked right and was not, and the code that holds. The rule states them; this explains them.
 

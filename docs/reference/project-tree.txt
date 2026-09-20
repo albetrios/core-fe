@@ -1386,7 +1386,7 @@ core-fe/
 │   └── vite-env.d.ts
 ├── tests/
 │   ├── ci/
-│   │   └── [27 test files]
+│   │   └── [29 test files]
 │   ├── cross-browser/
 │   │   └── [2 test files]
 │   ├── e2e/
@@ -1423,6 +1423,7 @@ core-fe/
 │   │   ├── e2e-hybrid.ts
 │   │   ├── e2e-session.ts
 │   │   ├── e2e-tenancy.ts
+│   │   ├── e2e-verification-code.ts
 │   │   ├── README.md
 │   │   ├── renderWithProviders.tsx
 │   │   └── setup.ts
