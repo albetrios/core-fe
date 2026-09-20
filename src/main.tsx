@@ -10,6 +10,7 @@ import { showUpdateAvailableToast } from '@/app/version/show-update-available-to
 import { platformConfig } from '@/core/config/env.ts';
 import { bootstrapResources } from '@/core/resources/index.ts';
 import { startVersionCheck } from '@/core/version/check.ts';
+import { startStaleChunkRecovery } from '@/core/version/stale-chunk-recovery.ts';
 import {
   afterPaint,
   dismissAppSplash,
@@ -157,6 +158,10 @@ initObservabilityWhenIdle();
 
 // Alt icon libraries (Phosphor/Tabler) load after auth — Lucide covers first paint.
 initDeferredIconSets();
+
+// Recover from a lazy chunk that a newer deploy has already renamed away: one
+// reload onto the current build per buildId, never over a field being typed in.
+startStaleChunkRecovery();
 
 // Start version check — notify + deferred reload when a new deployment ships (prod only)
 startVersionCheck({

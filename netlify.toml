@@ -8,6 +8,19 @@
 [build.environment]
   NODE_VERSION = "24"
 
+# A MISSING content-hashed asset is a stale chunk from a superseded deploy — never
+# a client route. Without this rule the SPA catch-all below rewrites it to
+# index.html with a 200 and the browser reports "Expected a JavaScript-or-Wasm
+# module script but the server responded with a MIME type of text/html", which
+# says nothing about the real cause. A real 404 keeps the failure honest and lets
+# `vite:preloadError` fire cleanly for src/core/version/stale-chunk-recovery.ts.
+# Netlify serves existing files before applying redirects, so live assets never
+# reach this rule.
+[[redirects]]
+  from = "/assets/*"
+  to = "/offline.html"
+  status = 404
+
 # SPA: serve index.html for non-file routes (client-side routing)
 # Netlify serves existing files from publish dir first; only missing paths get this rewrite
 [[redirects]]
