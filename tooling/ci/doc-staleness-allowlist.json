@@ -2,6 +2,14 @@
   "_comment": "Intentional doc references the staleness scanner (pnpm docs:staleness) should NOT flag. Paths resolve against GIT-TRACKED files (deterministic across machines + CI), so `paths` = tokens with no tracked file/dir on purpose: illustrative example paths, cross-repo (core-be) paths, and gitignored per-developer local files (mcp.json, settings.local.json). `symbols` = identifiers that intentionally do not exist as a src/ export yet (planned APIs, prose examples). Each entry needs a reason; the scanner is advisory (weekly sync-drift canary) so this list absorbs deliberate references, not real drift. Keep it shrinking toward zero.",
   "paths": [
     {
+      "value": "docs/american-spelling-organization",
+      "reason": "Illustrative Git branch name in the branch-naming tables in CLAUDE.md, agent-os/rules/git-branch-naming.mdc, and docs/process/trunk-based-workflow.md; not a filesystem path."
+    },
+    {
+      "value": "docs/branch-naming-guidance",
+      "reason": "Illustrative Git branch name in the git branch -m and git push commands in CLAUDE.md; not a filesystem path."
+    },
+    {
       "value": ".claude/rules",
       "reason": "AGENTS.md documents this symlink is intentionally absent (Claude Code follows CLAUDE.md)."
     },
