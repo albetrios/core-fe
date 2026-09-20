@@ -78,6 +78,30 @@ and `index.html` squares the splash on it, so the HTML → React loader handoff 
 change shape half way through the boot (drift-tested in `locale-init.drift.test.ts`).
 `SettingsModal` dropped an unconditional `rounded-none` (it is a sheet only below `sm`).
 
+**Follow-up — measure, don't read (2026-09).** Grep found the class strings; it could not
+find these, and a computed-style sweep in a browser did
+(`tests/e2e/theme-shape.e2e.test.ts` — now the definitive Phase 3 step for radius/shape):
+
+- **`ui/carousel` re-slots its arrow `<Button>`s** (`data-slot="carousel-previous"` /
+  `-next`), so the `button` rule stopped matching and the dashboard's highlight arrows
+  stayed round. Both slots joined the Sharp list. _A vendored primitive that is round by
+  design needs its own slot there — the `<Button>` inside it proves nothing._
+- **`lib/animations` skeletons had no slot.** Only `ui/skeleton` did, and the dashboard,
+  the members table and the shell load with the `lib` ones — a Sharp app painted round
+  placeholders and snapped square. Both now carry `data-slot="skeleton"`.
+- **Pseudo-element markers cannot carry a slot.** The active-route markers
+  (`before:rounded-full` sidebar, `after:rounded-full` top nav) are squared through
+  `[data-slot='nav-item']::before/::after`.
+- The 16px palette swatches (`ThemeShowcase`) and the accent-toast preview bar became
+  `pill`. The status-dot exemption stops at **10px**.
+
+The gate grew **check 6** to hold the line: a `rounded-full` with no slot in reach fails
+(`pnpm validate:theme-axis`). Writing the gate's own test
+(`tooling/validate/theme-axis.test.mjs`) also showed that **check 3 had never fired**: its
+pattern held a `'`, and `scan` builds its grep inside an `eval` that single-quotes the
+pattern, so the quote closed the string early. It is fixed (`.` stands in for the quote) and
+the icon barrel is allowlisted. A gate nobody has watched fail is a green checkmark.
+
 ---
 
 ## Full config catalog
@@ -213,6 +237,15 @@ pnpm eslint --fix <changed-files>
 pnpm test -- --run <colocated-tests-for-touched-components>
 ```
 
+Radius / shape — measured, not eyeballed (needs core-be on `:3000`):
+
+```bash
+pnpm exec playwright test tests/e2e/theme-shape.e2e.test.ts
+```
+
+It seeds radius None + Sharp and fails with the list of elements that still have a
+rounded corner. Add a screen or overlay to it when the audit touches one.
+
 Manual: Appearance → toggle axis across **all options** on:
 
 - `/login` (public card layout)
@@ -246,21 +279,21 @@ Manual: Appearance → toggle axis across **all options** on:
 
 ## Quick grep cheatsheet by axis
 
-| Axis       | Grep / inspect                                                                                                           |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Radius     | bare `rounded`, `rounded-[…px]` (gate check 5); any named step is fine                                                   |
-| Shape      | `rounded-full` with no `data-slot` (`pill`/`badge`/`button`…) on a surface; `rounded-none` that is not breakpoint-scoped |
-| Elevation  | custom `shadow-lg`, `shadow-none` on `[data-slot='card']`                                                                |
-| Separation | custom `border-2` on cards                                                                                               |
-| Density    | hardcoded pixel padding (`p-[13px]`), fixed heights bypassing scale                                                      |
-| Motion     | `duration-\d+`, `ease-` on app components (not animations)                                                               |
-| Contrast   | raw greys, `text-white`, `bg-black`                                                                                      |
-| Focus      | `focus-visible:ring` on app code outside `ui/`                                                                           |
-| Type scale | `text-[15px]`, arbitrary font sizes                                                                                      |
-| Base       | non-semantic surface colours                                                                                             |
-| Menu       | popover/dropdown without blur when `data-menu=translucent\|glass`                                                        |
-| Fonts      | `h1`–`h6` use `var(--font-heading)` in `@layer base`                                                                     |
-| Icons      | direct `lucide-react` imports outside `ui/`                                                                              |
+| Axis       | Grep / inspect                                                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Radius     | bare `rounded`, `rounded-[…px]` (gate check 5); any named step is fine                                                                             |
+| Shape      | `rounded-full` with no slot in reach (gate check 6); a vendored primitive that re-slots a `<Button>`; `rounded-none` that is not breakpoint-scoped |
+| Elevation  | custom `shadow-lg`, `shadow-none` on `[data-slot='card']`                                                                                          |
+| Separation | custom `border-2` on cards                                                                                                                         |
+| Density    | hardcoded pixel padding (`p-[13px]`), fixed heights bypassing scale                                                                                |
+| Motion     | `duration-\d+`, `ease-` on app components (not animations)                                                                                         |
+| Contrast   | raw greys, `text-white`, `bg-black`                                                                                                                |
+| Focus      | `focus-visible:ring` on app code outside `ui/`                                                                                                     |
+| Type scale | `text-[15px]`, arbitrary font sizes                                                                                                                |
+| Base       | non-semantic surface colours                                                                                                                       |
+| Menu       | popover/dropdown without blur when `data-menu=translucent\|glass`                                                                                  |
+| Fonts      | `h1`–`h6` use `var(--font-heading)` in `@layer base`                                                                                               |
+| Icons      | direct `lucide-react` imports outside `ui/`                                                                                                        |
 
 ---
 

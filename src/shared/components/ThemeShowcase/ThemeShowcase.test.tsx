@@ -19,6 +19,20 @@ describe('ThemeShowcase', () => {
     expect(screen.getByTestId('dashboard-theme-palette')).toBeInTheDocument();
   });
 
+  it('tags every palette swatch as a pill, so the Sharp shape squares it', () => {
+    // 16px with a ring is a surface, not a status dot (those stop at 10px and
+    // stay round on purpose) — untagged, the swatches were the one round thing
+    // left on a Sharp dashboard.
+    render(<ThemeShowcase />);
+
+    const swatches = [...screen.getByTestId('dashboard-theme-palette').children];
+    expect(swatches.length).toBeGreaterThan(0);
+    for (const swatch of swatches) {
+      expect(swatch).toHaveClass('rounded-full');
+      expect(swatch).toHaveAttribute('data-slot', 'pill');
+    }
+  });
+
   it('shuffling generates a custom theme and updates the label', async () => {
     const user = userEvent.setup();
     render(<ThemeShowcase />);

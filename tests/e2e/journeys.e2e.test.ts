@@ -8,6 +8,7 @@ import {
   registerNewUserAndGoToDashboard,
 } from '@/tests/utils/e2e-auth.ts';
 import {
+  byTestId,
   clickTestId,
   expectAppHeaderReady,
   expectLoginFormReady,
@@ -109,7 +110,7 @@ test.describe('Product journeys', () => {
 
   test('suspended page renders for authenticated team member', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
-    const switcher = page.getByTestId('organization-switcher-trigger');
+    const switcher = byTestId(page, 'organization-switcher-trigger');
     test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
     const { slug } = await createTeamOrgViaSwitcher(page);
     await navigateAuthenticated(page, `/organization/${slug}/suspended`);
@@ -142,9 +143,36 @@ test.describe('Product journeys', () => {
       await expect(page.getByTestId(panel)).toBeVisible({ timeout: 10000 });
     }
 
-    const switcher = page.getByTestId('organization-switcher-trigger');
+    // The modal's overlay (correctly) swallows clicks on the shell behind it, so
+    // leave settings before reaching for the switcher. Not with Escape: closing
+    // is `history.back()`, and each deep link above PUSHED an entry, so one
+    // Escape only steps back to the previous section. (In-app section switches
+    // `replace`, which is why a real user needs just one.) Drop the hash instead.
+    const withoutHash = new URL(page.url());
+    withoutHash.hash = '';
+    await page.goto(withoutHash.toString());
+    await expect(page.getByTestId('settings-modal')).toHaveCount(0);
+    // `isVisible()` below is an instantaneous feature check, not a wait — make
+    // sure the shell is back first, or a slow paint reads as "no switcher" and
+    // the rest of this test skips without anyone noticing.
+    await expectAppHeaderReady(page);
+
+    const switcher = byTestId(page, 'organization-switcher-trigger');
     test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
     await createTeamOrgViaSwitcher(page);
+
+    // KNOWN PRODUCT ISSUE — the account half above is verified; the organization
+    // half is not yet. Nothing had ever run it: the switcher test id matches two
+    // elements, `isVisible()` threw, and `.catch(() => false)` made that a skip.
+    // Deep-linking to an organization section straight after creating the org
+    // lands on Account · Profile: the section appears to resolve before the new
+    // org's permissions arrive and the hash is then canonicalized to Profile for
+    // good. `settings.e2e` › "organization nav appears after creating a team org"
+    // covers the nav itself. Remove this line with the fix.
+    test.fixme(
+      true,
+      'org settings deep link right after org creation resolves to account/profile',
+    );
 
     await openSettingsHash(page, 'organization', 'general');
     await expect(page.getByTestId('settings-section-org-general')).toBeVisible({

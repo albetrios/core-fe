@@ -213,6 +213,13 @@ export default defineConfig(({ mode }) => {
         '@phosphor-icons/react',
         '@tabler/icons-react',
         '@sentry/react',
+        // The MFA enrollment QR code (`shared/components/QrCode`) is their only
+        // importer, and it sits behind the lazy Security settings panel. Missing
+        // here, the first visit re-optimized mid-session and BOTH lazy settings
+        // panels that pull pre-bundled deps (Security, Billing) died on a 504 for
+        // the rest of that server's life — eight E2E specs red on a cold cache.
+        'qrcode',
+        'culori',
       ],
     },
   };

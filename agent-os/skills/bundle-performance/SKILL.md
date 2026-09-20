@@ -73,6 +73,36 @@ change being made at all. Then **lower** the limit to lock the gain in
 (`run-size-limit.mjs` — "lower as the bundle shrinks, never raise to absorb
 growth") and say in the comment what was attributed.
 
+## CSS: Tailwind generates from whatever it can read
+
+The initial-CSS budget crept to its limit and the cause was not a component. Tailwind's
+automatic detection reads **every tracked file in the repository**, so any class-shaped
+string is emitted: a doc that says "never write `bg-blue-500`", an agent-os skill's examples,
+a gate's test fixtures (`p-[24px]`, `rounded-[3px]`), an E2E spec. That was **196 utilities,
+~2.2 kB gzipped** — 9% of the stylesheet — including raw-palette classes that
+`validate:tokens` forbids in app code.
+
+`src/index.css` scopes the scan, and tests are not the app either:
+
+```css
+@import 'tailwindcss' source('../src');
+@source not './**/*.test.ts';
+@source not './**/*.test.tsx';
+```
+
+Before widening it, know what it protects against: a class the app only **composes at
+runtime** (`` `col-span-${n}` ``) was never safe — it merely worked while some doc happened to
+spell it. Write the full class name in source.
+
+- **Tripwire:** `pnpm build:check` → `tooling/ci/check-css-sources.mjs`. Every raw-palette
+  utility in `dist/` must be spelled in non-test `src/` (vendored `ui/` is the legitimate
+  source); one that is not means the scan has widened again. Tested both directions in
+  `check-css-sources.test.mjs`.
+- **Attribute CSS the way you attribute JS:** diff the class sets of two builds, not their
+  byte counts. A size delta with no matching component change is a scan problem.
+- **A CSS selector starting with a digit is escaped** (`3xl:p-8` → `.\33 xl\:p-8`). Grepping the
+  build for the unescaped name reports 0 and looks like a regression that is not there.
+
 ## Module-scope `import()` is eager — it deletes the split
 
 ```ts

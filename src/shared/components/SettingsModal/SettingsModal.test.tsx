@@ -108,6 +108,47 @@ describe('SettingsModal', () => {
     expect(screen.queryByTestId('settings-modal')).not.toBeInTheDocument();
   });
 
+  it('is a sheet on phones and a gutter-ed, token-rounded dialog from sm up', async () => {
+    // Regression, twice over: `w-full` with only a `max-w` left the modal flush
+    // against both edges between 640px and 960px (every tablet), and an
+    // unconditional `rounded-none` kept it square on desktop under EVERY radius
+    // setting. The dialog slot is what squares it again under the Sharp shape.
+    renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+
+    const dialog = await screen.findByTestId('settings-modal');
+    expect(dialog).toHaveClass('sm:w-[calc(100%-2rem)]', 'sm:max-w-[960px]');
+    expect(dialog).toHaveClass('sm:rounded-lg');
+    expect(dialog).toHaveClass('3xl:h-[760px]', '3xl:max-w-[1120px]');
+    expect(dialog).toHaveAttribute('data-slot', 'dialog-content');
+    // Only the phone sheet is square by construction.
+    const rounded = [...dialog.classList].filter((name) => name.includes('rounded-none'));
+    expect(rounded.every((name) => !name.startsWith('sm:'))).toBe(true);
+  });
+
+  it('gives every pane the standard dialog inset, on the spacing scale', async () => {
+    // One inset for the whole modal (it was 12px / 32px / 12px-over-16px), written
+    // as scale steps so the theme's Density setting moves it with every other
+    // dialog's `p-6`.
+    renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+
+    const content = await screen.findByTestId('settings-content');
+    expect(content).toHaveClass('px-4', 'sm:px-6', 'sm:pb-6');
+    expect(content).not.toHaveClass('sm:px-8');
+
+    // Phone sheet: the section picker starts on the content's gutter, so it and
+    // the fields under it share a left edge; `pe-12` clears the close button.
+    const picker = screen.getByTestId('settings-mobile-section').parentElement;
+    expect(picker).toHaveClass('ps-4', 'pe-12', 'sm:hidden');
+
+    for (const pane of [content, picker]) {
+      expect(pane?.className ?? '').not.toMatch(/\bp[xysetb]?-\[/);
+    }
+  });
+
   it('opens at the section addressed by the hash', async () => {
     renderWithProviders(<SettingsModal />, {
       initialEntries: ['/#settings/account/profile'],

@@ -91,7 +91,18 @@ const config = [
         {
           name: 'Initial CSS',
           path: cssPaths,
-          limit: '25 kB',
+          /*
+           * 25 → 23.5 kB. The stylesheet had crept to 25.01 kB and the cause
+           * was not the app: Tailwind's automatic detection reads every tracked
+           * file, so class-shaped strings in `docs/`, agent-os skills, `tooling/`
+           * gate fixtures and E2E specs were being emitted — 196 utilities,
+           * ~2.2 kB gzipped, including raw-palette classes `validate:tokens`
+           * forbids in app code. `src/index.css` now scopes the scan
+           * (`source('../src')`, tests excluded) and `build:check` trips if it
+           * ever widens again. Measured after: 22.76 kB, below main's 23.8.
+           * Lowered per the ratchet rule; ~0.7 kB of headroom.
+           */
+          limit: '23.5 kB',
           gzip: true,
         },
       ]

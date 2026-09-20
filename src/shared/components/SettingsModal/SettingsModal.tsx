@@ -243,8 +243,10 @@ function SettingsModalBody() {
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
             <SettingsNav groups={readyGroups} active={active} onSelect={goTo} />
             <div className="flex min-h-0 flex-col">
-              {/* Mobile section picker — the sidebar is hidden below sm */}
-              <div className="shrink-0 border-b p-3 pe-12 sm:hidden">
+              {/* Mobile section picker — the sidebar is hidden below sm. `ps-4` is
+                  the content pane's gutter, so the picker and the fields under it
+                  share a left edge; `pe-12` clears the close button. */}
+              <div className="shrink-0 border-b py-3 ps-4 pe-12 sm:hidden">
                 <Select
                   value={`${active.scope}/${active.section}`}
                   onValueChange={(value) => {
@@ -288,7 +290,8 @@ function SettingsModalBody() {
                 )}
               />
               <div
-                className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6 sm:px-8 sm:pt-2 sm:pb-8"
+                // `sm:px-6` / `sm:pb-6`: the standard dialog inset (see SettingsNav).
+                className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6 sm:px-6 sm:pt-2 sm:pb-6"
                 data-testid="settings-content"
                 onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
               >

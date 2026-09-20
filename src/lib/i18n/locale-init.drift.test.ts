@@ -56,8 +56,15 @@ describe('boot splash shape drift (theme-init.js ↔ index.html ↔ BrandLoader)
   });
 
   it('index.css squares the matching React slots', () => {
-    expect(css).toContain("[data-shape='sharp'] [data-slot='icon-chip']");
-    expect(css).toContain("[data-shape='sharp'] [data-slot='pill']");
+    // The Sharp rule lists its slots inside `:is( … )` (one prefix for the whole
+    // list), so read the list rather than looking for a long-hand selector.
+    // `\s*`: Prettier decides whether `:is(` stays on the prefix's line.
+    const start = css.search(/\[data-shape='sharp'\]\s*:is\(/);
+    expect(start).toBeGreaterThan(-1);
+    const sharpSlots = css.slice(start, css.indexOf('{', start));
+
+    expect(sharpSlots).toContain("[data-slot='icon-chip']");
+    expect(sharpSlots).toContain("[data-slot='pill']");
   });
 
   it('BrandLoader renders its mark and track through those slots', () => {

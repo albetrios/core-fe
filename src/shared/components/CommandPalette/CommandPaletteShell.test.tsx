@@ -27,6 +27,21 @@ describe('CommandPaletteShell', () => {
     expect(useUIStore.getState().commandPaletteOpen).toBe(false);
   });
 
+  it('keeps a gutter on phones and grows on big monitors', () => {
+    // Regression: `w-full` under `max-w-lg` ran edge to edge on any screen
+    // narrower than 32rem — the palette touched both sides of a phone.
+    useUIStore.setState({ commandPaletteOpen: true });
+    render(
+      <CommandPaletteShell>
+        <span>Content</span>
+      </CommandPaletteShell>,
+    );
+
+    const frame = screen.getByText('Content').parentElement?.parentElement;
+    expect(frame).toHaveClass('w-[calc(100%-1.5rem)]', 'max-w-lg', '3xl:max-w-xl');
+    expect(frame).not.toHaveClass('w-full');
+  });
+
   it('cycles reverse Tab inside the shell while content changes', () => {
     useUIStore.setState({ commandPaletteOpen: true });
     render(

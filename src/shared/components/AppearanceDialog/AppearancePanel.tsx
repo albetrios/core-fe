@@ -158,6 +158,7 @@ function ToastVariantSwatches({
         >
           {variant === 'accent' ? (
             <span
+              data-slot="pill"
               className="bg-success absolute inset-y-1 start-0 w-1 rounded-full"
               aria-hidden="true"
             />

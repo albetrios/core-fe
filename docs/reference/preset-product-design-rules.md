@@ -254,15 +254,15 @@ chat/reading product. Layout strategy is **layered**, not one global choice.
 
 ### Comparison — what to use when
 
-| Pattern                   | Typical max width               | Best for                                         | Use here?                                                              |
-| ------------------------- | ------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
-| **Claude / chat column**  | ~768px (`max-w-3xl`)            | Long-form AI replies, single reading stream      | **No** as app shell — wastes horizontal space on dashboards and tables |
-| **Prose / measure**       | ~65ch (`max-w-prose` ≈ 680px)   | Paragraphs, descriptions, empty states           | **Yes** — section descriptions, error copy, onboarding hints only      |
-| **Form / auth column**    | ~448px (`max-w-md`)             | Login, MFA, narrow wizards                       | **Yes** — auth + public layouts                                        |
-| **Contained admin shell** | **1536px** (`max-w-screen-2xl`) | Dashboards, settings, multi-column product UI    | **Yes — default** (`AppMain`)                                          |
-| **Full bleed shell**      | 100% viewport                   | Wide data tables, analytics, split views         | **Opt-in** — `VITE_LAYOUT_WIDTH=full`                                  |
-| **Free responsive grid**  | Inside shell                    | Dashboards, tiles, card lists, asymmetric panels | **Yes — default** — `grid-cols-1 sm:2 lg:3`, `col-span-2`, `flex-wrap` |
-| **12-column page grid**   | Inside shell                    | Fine-grained bento when 3-col is not enough      | **Optional** — only when spans need a 12-track                         |
+| Pattern                   | Typical max width                                                               | Best for                                         | Use here?                                                              |
+| ------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| **Claude / chat column**  | ~768px (`max-w-3xl`)                                                            | Long-form AI replies, single reading stream      | **No** as app shell — wastes horizontal space on dashboards and tables |
+| **Prose / measure**       | ~65ch (`max-w-prose` ≈ 680px)                                                   | Paragraphs, descriptions, empty states           | **Yes** — section descriptions, error copy, onboarding hints only      |
+| **Form / auth column**    | ~448px (`max-w-md`)                                                             | Login, MFA, narrow wizards                       | **Yes** — auth + public layouts                                        |
+| **Contained admin shell** | **1536px** (`max-w-screen-2xl`), growing to 1792px at `3xl` and 2176px at `4xl` | Dashboards, settings, multi-column product UI    | **Yes — default** (`AppMain`)                                          |
+| **Full bleed shell**      | 100% viewport                                                                   | Wide data tables, analytics, split views         | **Opt-in** — `VITE_LAYOUT_WIDTH=full`                                  |
+| **Free responsive grid**  | Inside shell                                                                    | Dashboards, tiles, card lists, asymmetric panels | **Yes — default** — `grid-cols-1 sm:2 lg:3`, `col-span-2`, `flex-wrap` |
+| **12-column page grid**   | Inside shell                                                                    | Fine-grained bento when 3-col is not enough      | **Optional** — only when spans need a 12-track                         |
 
 **Do not** copy Claude’s ~768px shell for the whole app. Claude caps width so
 **answers stay readable** (~65–80 characters per line). Admin UI needs **width
@@ -273,7 +273,7 @@ by shrinking the entire workspace.
 
 ```text
 ┌─ L1 App shell (AppMain) ─────────────────────────────────────┐
-│  contained: mx-auto max-w-screen-2xl (1536px)  OR  full: 100% │
+│  contained: mx-auto max-w-screen-2xl (→ 3xl/4xl)  OR  full: 100% │
 │  ┌─ L2 Page grid (optional) ────────────────────────────────┐ │
 │  │  lg:grid-cols-3  ·  col-span-2 / 1  ·  gap-*  ·  flex-wrap  │ │
 │  │  ┌─ L3 Content ─────────────────────────────────────────┐ │ │
@@ -317,7 +317,16 @@ hero subcopy). Headings and data components stay full column width.
 
 **Rule L-7 — Responsive breakpoints:** Mobile = single column, full bleed with
 `p-4` shell padding. `lg` (1024px+) = multi-column page grids (e.g. 3-col +
-2+1 split). Sidebar collapse is layout-shell concern (`AppLayout`), not per-page.
+2+1 split). Sidebar collapse is layout-shell concern (`AppLayout`), not per-page:
+the sidebar is a **drawer below `lg`** and a permanent column from `lg` up; the
+bottom tab bar exists below `md`.
+
+**Rule L-8 — Big monitors keep growing.** Tailwind's scale ends at `2xl` (1536px).
+`index.css` declares **`3xl` (1920px)** and **`4xl` (2560px)**; the contained
+column, the sidebar, the auth hero and large overlays use them. A layout that stops
+at `2xl` covers well under half of an ultrawide and stops lining up with the header
+above it. Reading (~768px) and Full widths are unaffected — a measure does not grow
+with the glass.
 
 ### Current implementation map
 

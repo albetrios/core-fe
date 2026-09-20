@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:check": "node tooling/ci/check-preload-graph.mjs",
+    "build:check": "node tooling/ci/check-preload-graph.mjs && node tooling/ci/check-css-sources.mjs",
     "preview": "vite preview",
     "preview:https": "vite preview --https",
     "lint": "eslint .",
@@ -78,7 +78,7 @@
     "github:tool:governance-mode": "node tooling/setup/github/governance-mode.mjs",
     "github:tool:governance-mode:check": "node tooling/setup/github/governance-mode.mjs --check",
     "validate:deploy-env": "node tooling/setup/github/validate-github-env.mjs",
-    "test:github-scripts": "node --import tsx --test tooling/setup/github/**/*.test.mjs tooling/dev/**/*.test.ts tooling/validate/*.test.mjs",
+    "test:github-scripts": "node --import tsx --test tooling/setup/github/**/*.test.mjs tooling/dev/**/*.test.ts tooling/validate/*.test.mjs tooling/ci/*.test.mjs",
     "tool:sync-env-example": "tsx tooling/validate/sync-env-example.ts",
     "tool:sync-env-example:fix": "tsx tooling/validate/sync-env-example.ts --fix",
     "env:catalog": "node --import tsx tooling/env-registry/env-registry.ts --catalog",

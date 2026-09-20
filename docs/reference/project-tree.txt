@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~617 src files · ~355 tests in src/ · 50 E2E specs · 23 shadcn UI primitives
+Stats: ~617 src files · ~356 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -374,7 +374,7 @@ core-fe/
 │   │   │   ├── prefers-reduced-motion.ts
 │   │   │   ├── Skeleton.tsx
 │   │   │   ├── useAnimeCountUp.ts
-│   │   │   └── [3 test files]
+│   │   │   └── [4 test files]
 │   │   ├── billing/
 │   │   │   ├── stripe-return.ts
 │   │   │   └── [1 test file]
@@ -1402,7 +1402,7 @@ core-fe/
 │   │   │   ├── login-light-chromium-darwin.png
 │   │   │   └── login-theme-extremes-chromium-darwin.png
 │   │   ├── global-setup.ts
-│   │   └── [40 test files]
+│   │   └── [41 test files]
 │   ├── factories/
 │   │   └── README.md
 │   ├── fixtures/
@@ -1434,6 +1434,7 @@ core-fe/
 │   ├── ci/
 │   │   ├── bulk-audit.mjs
 │   │   ├── check-api-contract-drift.mjs
+│   │   ├── check-css-sources.mjs
 │   │   ├── check-doc-staleness.mjs
 │   │   ├── check-patch-coverage.mjs
 │   │   ├── check-preload-graph.mjs
@@ -1441,7 +1442,8 @@ core-fe/
 │   │   ├── coverage-summary.mjs
 │   │   ├── doc-staleness-allowlist.json
 │   │   ├── lint-changed-markdown.sh
-│   │   └── run-size-limit.mjs
+│   │   ├── run-size-limit.mjs
+│   │   └── [1 test file]
 │   ├── dev/
 │   │   ├── chrome-devtools-mcp.mjs
 │   │   ├── mcp-config.ts
@@ -1521,7 +1523,7 @@ core-fe/
 │   │   ├── theme-axis.sh
 │   │   ├── theme-catalog.mjs
 │   │   ├── vite-env-reads.mjs
-│   │   └── [1 test file]
+│   │   └── [2 test files]
 │   ├── load-env-files.mjs
 │   └── README.md
 ├── .commitlintrc.json

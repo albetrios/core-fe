@@ -1,4 +1,4 @@
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext, APIResponse } from '@playwright/test';
 import pg from 'pg';
 
 import { API_BASE_PATH, API_ENDPOINTS } from '@/core/config/constants.ts';
@@ -127,8 +127,28 @@ export async function pollInvitationTokenFromMailOutbox(email: string): Promise<
 }
 
 /**
+ * The code core-be echoes on `send-code` when it runs in its local/TEST mode
+ * (`debug_verification_code` — the same field the sign-in form prefills from), or
+ * `null` on a backend that does not echo.
+ *
+ * Prefer it to `mail_outbox`: the echo is the code that was just issued, in the
+ * response already in hand, so there is no second system to poll and no window in
+ * which the outbox row is "not there yet". The outbox stays as the fallback.
+ */
+export async function echoedVerificationCode(
+  response: APIResponse,
+): Promise<string | null> {
+  const body = (await response.json().catch(() => null)) as {
+    data?: { debug_verification_code?: unknown };
+  } | null;
+  const code = body?.data?.debug_verification_code;
+  return typeof code === 'string' && code.length > 0 ? code : null;
+}
+
+/**
  * Creates a session via passwordless email send-code + login against core-be on :3000.
- * Requires DATABASE_URL so the helper can read the code from auth.mail_outbox.
+ * Takes the code from the send-code echo when the backend provides one; otherwise
+ * reads it from auth.mail_outbox, which needs DATABASE_URL.
  */
 export async function createSessionViaEmailCode(
   api: APIRequestContext,
@@ -144,7 +164,9 @@ export async function createSessionViaEmailCode(
     throw new Error(`send-code failed: ${send.status()} ${await send.text()}`);
   }
 
-  const code = await pollVerificationCodeFromMailOutbox(email);
+  const code =
+    (await echoedVerificationCode(send)) ??
+    (await pollVerificationCodeFromMailOutbox(email));
 
   const login = await withApiRetry(() =>
     api.post(`${API}${API_ENDPOINTS.AUTH.EMAIL_CODE_LOGIN}`, {

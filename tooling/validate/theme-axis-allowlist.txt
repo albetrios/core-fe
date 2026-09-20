@@ -11,3 +11,19 @@ App.tsx
 # Highlights tab pill: active-state shadow-sm mirrors the vendored shadcn
 # tabs-trigger depth (category D — not a card surface; focus uses data-slot).
 'bg-background text-foreground shadow-sm'
+# The icon barrel IS the one module allowed to import lucide-react — every other
+# file goes through it (that is the rule this check enforces).
+src/shared/icons/index.ts
+# ── Check 6 (`rounded-full` with no slot in reach) ──────────────────────────
+# Each entry is a class FRAGMENT, not a file: it exempts one line from one
+# check, where a file name would exempt the whole file from every check.
+#
+# Class constants — the gate reads lines, not data flow. `pillClassName` lands on
+# a <Button> (data-slot="button"); `stepCircleClass()` lands on a span tagged
+# data-slot="pill". Both are squared under Sharp; only the string lives elsewhere.
+gap-1.5 rounded-full px-3 text-xs font-medium
+justify-center rounded-full text-xs transition-all
+# The assistant orb's core sits inside its own blurred halo (exempt as a glow).
+# It is an illustration, not a surface: a square core in a round halo reads as a
+# rendering bug, so the pair stays round in every shape.
+inset-1 rounded-full bg-gradient-to-tl

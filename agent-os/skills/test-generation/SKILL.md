@@ -390,6 +390,48 @@ Full test matrix: `docs/reference/testing.md`.
 
 ## Review-caught rules
 
+**Commit between the halves of a gesture.** In a browser `mousedown`, `mouseup` and
+`click` are separate tasks and React commits between them. Fired inside ONE `act()`,
+the `click` still finds an element a real browser had already unmounted — and the
+test passes against the bug. Give each event its own `act()` and **re-query** the
+element each time, so a component that disappears mid-gesture makes the query throw:
+
+```tsx
+function press(testId: string) {
+  act(() => { fireEvent.mouseDown(screen.getByTestId(testId)); });
+  act(() => { fireEvent.mouseUp(screen.getByTestId(testId)); });
+  act(() => { fireEvent.click(screen.getByTestId(testId)); });
+}
+```
+
+**A bug between two modules needs a test that mocks neither.** The idle timer's suite
+had no dialog and the dialog's suite mocked the timer, so both were green while
+"Sign out" could not be pressed. When a unit is wired to a collaborator through the
+DOM or a global (`document` listeners, storage events, a shared store), add one
+`<Unit>.<aspect>.test.tsx` that uses the real collaborator
+(`SessionTimeoutDialog.sign-out.test.tsx`).
+
+**Mutation-check a regression test.** Put the old line back, run the test, watch it
+fail, restore. A regression test that has never been red proves only that it compiles.
+
+**`vi.resetModules()` resets the stores too.** A module with memoised state
+(`onceAsync`, a bootstrap promise) needs a fresh instance per test — but after the
+reset, a store imported statically at the top of the test file is a _different
+instance_ from the one the fresh module reads. Import the stores dynamically after
+the reset, in the same `beforeEach`, and type them with `import type * as X`
+(`typeof import('…')` annotations are lint errors here).
+
+**Observe what was fetched through the loader, not through the mock factory.** A
+`vi.mock` factory runs once per registry, so a spy inside it stops counting after the
+first test. For `onceAsync` loaders assert on `loader.peek()` instead
+(`app-layout-variants.test.ts`).
+
+**A CSS contract is tested by reading the stylesheet.** jsdom resolves neither
+`@theme` nor `calc()`. For rules that live in `index.css` (token scales, `[data-*]`
+slot coverage, breakpoints) read the file and assert on it
+(`src/shared/theme/radius-shape-css.test.ts`); for values hand-copied into
+`index.html` / `public/*.js`, a drift test that reads both sides.
+
 **Do not pin per-test timeouts below the suite floor.** `vitest.config.ts` owns
 `testTimeout`. Per-test pins written when the default was lower silently become
 *reductions* when the floor rises — on core-fe, 19 pins of `15_000`/`20_000`

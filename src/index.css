@@ -1,4 +1,16 @@
-@import 'tailwindcss';
+/* `source('../src')` — generate utilities from the APP, not from the repository.
+   Left to its automatic detection Tailwind reads every tracked file, so any
+   class-shaped string in `docs/`, the agent-os skills, a `tooling/` gate fixture
+   or an E2E spec was emitted into the production stylesheet: `p-[24px]` and
+   `rounded-[3px]` shipped to users because a validator's TEST spells them out as
+   things not to write. `index.html` needs no entry — the boot splash is styled
+   by its own inline CSS. */
+@import 'tailwindcss' source('../src');
+/* …and tests are not the app either: a class that appears only in an assertion
+   (`not.toHaveClass('sm:px-8')`) is not something a user can ever see. jsdom
+   never loads this CSS, so nothing under test needs it. */
+@source not './**/*.test.ts';
+@source not './**/*.test.tsx';
 /* Enter/exit utilities (animate-in / animate-out / fade / zoom / slide)
    used by the shadcn overlays: dialog, dropdown, popover, tooltip, select. */
 @import 'tw-animate-css';
@@ -441,17 +453,20 @@
 }
 
 /* ── Surface elevation (data-elevation) — flat (border-only) … lifted (deep shadow).
-   Targets shadcn `[data-slot]` surfaces. App code must not add shadow-* on these slots. ── */
-[data-elevation='flat'] [data-slot='card'],
-[data-elevation='flat'] [data-slot='surface'],
-[data-elevation='flat'] [data-slot='popover-content'],
-[data-elevation='flat'] [data-slot='dropdown-menu-content'],
-[data-elevation='flat'] [data-slot='dialog-content'],
-[data-elevation='flat'] [data-slot='alert-dialog-content'],
-[data-elevation='flat'] [data-slot='select-content'] {
-  box-shadow: none !important;
-}
-[data-elevation='flat'] [data-slot='floating-edge'] {
+   Targets shadcn `[data-slot]` surfaces. App code must not add shadow-* on these slots.
+   Lists use `:is()` for the same reason the Shape block does (one prefix per
+   list; every argument a single attribute selector, so specificity is unchanged). ── */
+[data-elevation='flat']
+  :is(
+    [data-slot='card'],
+    [data-slot='surface'],
+    [data-slot='popover-content'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dialog-content'],
+    [data-slot='alert-dialog-content'],
+    [data-slot='select-content'],
+    [data-slot='floating-edge']
+  ) {
   box-shadow: none !important;
 }
 [data-elevation='soft'] [data-slot='card'] {
@@ -460,12 +475,15 @@
 .dark[data-elevation='soft'] [data-slot='card'] {
   box-shadow: 0 1px 3px oklch(0 0 0 / 0.35);
 }
-[data-elevation='soft'] [data-slot='surface'],
-[data-elevation='soft'] [data-slot='popover-content'],
-[data-elevation='soft'] [data-slot='dropdown-menu-content'],
-[data-elevation='soft'] [data-slot='dialog-content'],
-[data-elevation='soft'] [data-slot='alert-dialog-content'],
-[data-elevation='soft'] [data-slot='select-content'] {
+[data-elevation='soft']
+  :is(
+    [data-slot='surface'],
+    [data-slot='popover-content'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dialog-content'],
+    [data-slot='alert-dialog-content'],
+    [data-slot='select-content']
+  ) {
   box-shadow: 0 4px 14px -6px oklch(0 0 0 / 0.12);
 }
 [data-elevation='soft'] [data-slot='floating-edge'] {
@@ -474,12 +492,15 @@
 [data-elevation='lifted'] [data-slot='card'] {
   box-shadow: 0 10px 24px -12px oklch(0 0 0 / 0.28);
 }
-[data-elevation='lifted'] [data-slot='surface'],
-[data-elevation='lifted'] [data-slot='popover-content'],
-[data-elevation='lifted'] [data-slot='dropdown-menu-content'],
-[data-elevation='lifted'] [data-slot='dialog-content'],
-[data-elevation='lifted'] [data-slot='alert-dialog-content'],
-[data-elevation='lifted'] [data-slot='select-content'] {
+[data-elevation='lifted']
+  :is(
+    [data-slot='surface'],
+    [data-slot='popover-content'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dialog-content'],
+    [data-slot='alert-dialog-content'],
+    [data-slot='select-content']
+  ) {
   box-shadow: 0 20px 44px -16px oklch(0 0 0 / 0.42);
 }
 [data-elevation='lifted'] [data-slot='floating-edge'] {
@@ -491,13 +512,16 @@
 [data-elevation='floating'] [data-slot='card'] {
   box-shadow: 0 16px 40px -14px oklch(0 0 0 / 0.35);
 }
-[data-elevation='floating'] [data-slot='surface'],
-[data-elevation='floating'] [data-slot='popover-content'],
-[data-elevation='floating'] [data-slot='dropdown-menu-content'],
-[data-elevation='floating'] [data-slot='dialog-content'],
-[data-elevation='floating'] [data-slot='alert-dialog-content'],
-[data-elevation='floating'] [data-slot='select-content'],
-[data-elevation='floating'] [data-slot='floating-edge'] {
+[data-elevation='floating']
+  :is(
+    [data-slot='surface'],
+    [data-slot='popover-content'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dialog-content'],
+    [data-slot='alert-dialog-content'],
+    [data-slot='select-content'],
+    [data-slot='floating-edge']
+  ) {
   box-shadow: 0 28px 56px -18px oklch(0 0 0 / 0.48);
 }
 .dark[data-elevation='floating'] [data-slot='card'] {
@@ -568,57 +592,83 @@
 }
 
 /* ── Shape language (data-shape) — pill (round buttons/inputs) / sharp (square
-   cards/inputs); uniform uses the global radius. ── */
-[data-shape='pill'] [data-slot='button'],
-[data-shape='pill'] [data-slot='input'],
-[data-shape='pill'] [data-slot='select-trigger'],
-[data-shape='pill'] [data-slot='textarea'],
-[data-shape='mixed'] [data-slot='button'],
-[data-shape='mixed'] [data-slot='input'],
-[data-shape='mixed'] [data-slot='select-trigger'],
-[data-shape='mixed'] [data-slot='textarea'],
-[data-shape='mixed'] [data-slot='nav-item'],
-[data-shape='mixed'] [data-slot='menu-item'] {
+   cards/inputs); uniform uses the global radius.
+
+   `:is()` on purpose: one prefix per list instead of one per slot. It takes the
+   specificity of its most specific argument — every argument here is a single
+   attribute selector, so each rule weighs exactly what the long-hand
+   `[data-shape='x'] [data-slot='y']` did. The initial-CSS budget is what asked
+   for it (`pnpm size`). ── */
+[data-shape='pill']
+  :is(
+    [data-slot='button'],
+    [data-slot='input'],
+    [data-slot='select-trigger'],
+    [data-slot='textarea']
+  ),
+[data-shape='mixed']
+  :is(
+    [data-slot='button'],
+    [data-slot='input'],
+    [data-slot='select-trigger'],
+    [data-slot='textarea'],
+    [data-slot='nav-item'],
+    [data-slot='menu-item']
+  ) {
   border-radius: 9999px;
 }
-[data-shape='sharp'] [data-slot='card'],
-[data-shape='sharp'] [data-slot='surface'],
-[data-shape='sharp'] [data-slot='dialog-content'],
-[data-shape='sharp'] [data-slot='alert-dialog-content'],
-[data-shape='sharp'] [data-slot='popover-content'],
-[data-shape='sharp'] [data-slot='dropdown-menu-content'],
-[data-shape='sharp'] [data-slot='tooltip-content'],
-[data-shape='sharp'] [data-slot='skeleton'],
-[data-shape='sharp'] [data-slot='icon-chip'],
-[data-shape='sharp'] [data-slot='nav-item'],
-[data-shape='sharp'] [data-slot='menu-item'],
-[data-shape='sharp'] [data-slot='input'],
-[data-shape='sharp'] [data-slot='textarea'],
-[data-shape='sharp'] [data-slot='button'],
-[data-shape='sharp'] [data-slot='select-trigger'],
-[data-shape='sharp'] [data-slot='select-content'],
-[data-shape='sharp'] [data-slot='select-item'],
-[data-shape='sharp'] [data-slot='dropdown-menu-sub-content'],
-[data-shape='sharp'] [data-slot='dropdown-menu-item'],
-[data-shape='sharp'] [data-slot='dropdown-menu-checkbox-item'],
-[data-shape='sharp'] [data-slot='dropdown-menu-radio-item'],
-[data-shape='sharp'] [data-slot='dropdown-menu-sub-trigger'],
-/* Round BY DESIGN — `rounded-full` in every other shape — but under Sharp nothing
-   is round. Primitives first, then `pill`: the opt-in slot for app-level chips,
-   count badges, icon discs and tracks. Status dots (≤ 10px) and blurred glows
-   are indicators, not surfaces, and deliberately do not opt in. */
-[data-shape='sharp'] [data-slot='badge'],
-[data-shape='sharp'] [data-slot='avatar'],
-[data-shape='sharp'] [data-slot='avatar-fallback'],
-[data-shape='sharp'] [data-slot='checkbox'],
-[data-shape='sharp'] [data-slot='switch'],
-[data-shape='sharp'] [data-slot='switch-thumb'],
-[data-shape='sharp'] [data-slot='progress'],
-[data-shape='sharp'] [data-slot='progress-indicator'],
-[data-shape='sharp'] [data-slot='input-otp-slot'],
-[data-shape='sharp'] [data-slot='floating-edge'],
-[data-shape='sharp'] [data-slot='kbd'],
-[data-shape='sharp'] [data-slot='pill'] {
+[data-shape='sharp'] :is(
+  [data-slot='card'],
+  [data-slot='surface'],
+  [data-slot='dialog-content'],
+  [data-slot='alert-dialog-content'],
+  [data-slot='popover-content'],
+  [data-slot='dropdown-menu-content'],
+  [data-slot='tooltip-content'],
+  [data-slot='skeleton'],
+  [data-slot='icon-chip'],
+  [data-slot='nav-item'],
+  [data-slot='menu-item'],
+  [data-slot='input'],
+  [data-slot='textarea'],
+  [data-slot='button'],
+  [data-slot='select-trigger'],
+  [data-slot='select-content'],
+  [data-slot='select-item'],
+  [data-slot='dropdown-menu-sub-content'],
+  [data-slot='dropdown-menu-item'],
+  [data-slot='dropdown-menu-checkbox-item'],
+  [data-slot='dropdown-menu-radio-item'],
+  [data-slot='dropdown-menu-sub-trigger'],
+  /* Round BY DESIGN — `rounded-full` in every other shape — but under Sharp
+     nothing is round. Primitives first, then `pill`: the opt-in slot for
+     app-level chips, count badges, icon discs and tracks. Status dots (≤ 10px)
+     and blurred glows are indicators, not surfaces, and deliberately do not
+     opt in. The vendored carousel RE-SLOTS its arrow <Button>s, so `button`
+     above no longer matches them — found by the browser sweep
+     (theme-shape.e2e), not by reading: the class string says `rounded-full`,
+     the slot says nothing. */
+  [data-slot='badge'],
+  [data-slot='avatar'],
+  [data-slot='avatar-fallback'],
+  [data-slot='checkbox'],
+  [data-slot='switch'],
+  [data-slot='switch-thumb'],
+  [data-slot='progress'],
+  [data-slot='progress-indicator'],
+  [data-slot='input-otp-slot'],
+  [data-slot='floating-edge'],
+  [data-slot='carousel-previous'],
+  [data-slot='carousel-next'],
+  [data-slot='kbd'],
+  [data-slot='pill']
+),
+/* The active-route markers are pseudo-elements (`before:rounded-full` on the
+   sidebar, `after:rounded-full` on the top nav) — they cannot carry a slot of
+   their own and a pseudo-element cannot go inside `:is()`, so they are squared
+   through the nav item that draws them. */
+[data-shape='sharp'] [data-slot='nav-item']::before,
+[data-shape='sharp'] [data-slot='nav-item']::after {
   border-radius: 0;
 }
 
