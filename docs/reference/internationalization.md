@@ -45,6 +45,11 @@ that wait before committing the switch. A failed or timed-out startup must recov
 to the bundled language without losing regional preferences or leaving a blank page.
 Bootstrap route-title labels eagerly because manifests evaluate before route chunks.
 
+Failed or cancelled switches release pending navigation waiters. Namespace requests
+that finish after a language change recheck the committed language before resolving,
+so readiness cannot describe copy for the previous language. Regression coverage in
+`src/lib/i18n/load-namespace.test.ts` exercises both races with deferred promises.
+
 1. User picks **language**, **text direction**, **timezone**, **regional format locale** (country), **date format**, and **number/currency** from Appearance.
 2. `setLocale()` (multi builds) lazy-loads that locale's JSON chunks, then `i18n.changeLanguage()`, and snaps region/currency (timezone is left alone — explicit picks and `auto` stay put). Document `dir` follows text-direction preference (Auto → language; LTR/RTL forced). A generation/`isStale` guard prevents a slower earlier switch from overwriting document/i18next.
 3. `setTextDirection()` / `setFormatLocale()` / `setTimeZone()` / `setDateFormat()` / money setters update immediately (no extra fetch). `setFormatLocale` snaps currency only — never timezone.

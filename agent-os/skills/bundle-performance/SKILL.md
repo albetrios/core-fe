@@ -22,7 +22,11 @@ dev server — see `docs/reference/local-production-perf.md`.
    `pnpm build:check` tripwires this; keep them lazy.
 2. **Lazy route islands.** Every route loads via its `<page>.route.tsx` lazy
    boundary; a route that becomes eagerly imported merges into the entry chunk.
-   Keep the boundary intact.
+   Keep the boundary intact. If a lazy layout is rendered inside a route wrapper,
+   await its TanStack `preload` in the owning route loader before rendering it.
+   The router cannot discover that nested layout from the wrapper alone. Preserve
+   TanStack's chunk recovery; cover both auth and public layout loaders in route
+   tests and check cold-entry browser warnings after router/React upgrades.
 3. **Split vendor from entry.** A large new dependency added to a shared,
    eagerly-loaded module inflates the entry. Import it in the leaf that needs
    it, or dynamic-import it; reconsider the dependency (see

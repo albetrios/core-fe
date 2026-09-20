@@ -799,6 +799,10 @@ if (query.isPending) return <Skeleton />;
 Translation readiness is shared across startup, routes, and overlays: hydrated
 preferences are not loaded copy. Cover a saved non-default language on cold boot,
 navigation during a slow language switch, superseded switches, and failed chunks.
+A failed or cancelled switch must release navigation waiters. Before resolving a
+late namespace request, recheck the committed language and load its copy if the
+language changed during the request. Keep deferred-promise regression tests for
+both races; a successful switch alone does not exercise either failure mode.
 Keep route-title labels eager. Deferred notification handoff must retain remaining
 lifetime rather than restarting it; failed imports must not make finite toasts permanent.
 

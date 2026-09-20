@@ -36,7 +36,7 @@ Section numbers are cited from code (`§1`, `§6` today). **Never renumber.**
 19. Four states, and the same three components every time
 20. Every write goes through `useAppMutation` — including the generic ones
 21. A disabled query is not a loading one
-22. Keep ready shells visible; skeletons match only unavailable dynamic content; coordinate translation readiness across startup and navigation
+22. Keep ready shells visible; skeletons match only unavailable dynamic content; coordinate translation readiness across startup and navigation, release failed-switch waiters, and recheck the committed locale for late namespaces
 23. A cold entry is never a blank page
 24. A listener does not outlive the thing that installed it
 25. Per-row state belongs to the row
