@@ -22,7 +22,7 @@ const switchWire = z.object({
   access_token: z.string().min(1),
   active_organization: organizationWire.nullable(),
   my_permissions: z.array(z.string()),
-  global_role: z.enum(['super_admin', 'admin', 'user']).nullable(),
+  global_role: z.enum(['super_admin', 'user']).nullable(),
 });
 
 function applyActiveOrg(

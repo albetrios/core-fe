@@ -162,7 +162,7 @@ describe('tenancy/switch', () => {
           slug: 'acme',
         },
         my_permissions: ['membership:manage'],
-        global_role: 'admin',
+        global_role: 'super_admin',
       },
     });
 
@@ -176,7 +176,7 @@ describe('tenancy/switch', () => {
     expect(useOrganizationStore.getState().organizationType).toBe('TEAM');
     expect(useOrganizationStore.getState().organizationId).toBe(TEAM_ID);
     // global_role is applied via the `??` fallback (a `&&` mutant would null it).
-    expect(result?.globalRole).toBe('admin');
+    expect(result?.globalRole).toBe('super_admin');
     // analytics fires with the org id + resolved type.
     expect(captureMock).toHaveBeenCalledWith(
       expect.anything(),
