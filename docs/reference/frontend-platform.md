@@ -125,9 +125,12 @@ off — routes still 404 via the gateway if linked directly.
 | 429 rate limit      | `shared/errors/rate-limit.ts` + `RateLimitNotice` component           |
 | Global toast        | `notifyError()` / `notify.ts` via query/mutation `meta.notifyOnError` |
 
-**Custom toasts (`notify.ts`):** never pass `id: undefined` to `toast.custom()` — Sonner
-[#679](https://github.com/emilkowalski/sonner/issues/679) overwrites the generated id and
-breaks dismiss. Only spread `{ id }` when defined.
+**Custom toasts:** application code calls `notify.ts`, which assigns or preserves
+a stable ID before publishing immediate feedback and handing it to the deferred
+`notify-runtime.tsx` adapter. Keep that ID across replacement, dismissal, and
+renderer handoff. Never forward an undefined ID to Sonner's `toast.custom()`;
+the bridge, not Sonner, owns ID generation for this path. The renderer adapter
+and real-Sonner integration tests protect dismissal and replacement behavior.
 
 **422 mapping:** pass mutation errors through `mapValidationErrors(error, setError)`
 before falling back to `notifyError`.

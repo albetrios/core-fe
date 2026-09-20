@@ -20,6 +20,10 @@ dev server — see `docs/reference/local-production-perf.md`.
    and the SettingsModal / CommandPalette trees must be `import()`-only — a
    single static import drags their chunk onto the first-paint preload path.
    `pnpm build:check` tripwires this; keep them lazy.
+   Settings is intentionally warmed with the authenticated outlet while its
+   bounded startup splash is held; dynamic splitting does not mean waiting for
+   the first settings click. Application notification callers use `notify`, not
+   direct Sonner imports; only its deferred runtime/components integrate Sonner.
 2. **Lazy route islands.** Every route loads via its `<page>.route.tsx` lazy
    boundary; a route that becomes eagerly imported merges into the entry chunk.
    Keep the boundary intact. If a lazy layout is rendered inside a route wrapper,

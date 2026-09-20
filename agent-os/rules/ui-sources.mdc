@@ -13,7 +13,7 @@ The repo has **one canonical shadcn skill** at **`agent-os/skills/shadcn/SKILL.m
 
 - **CLI-first**: use the project runner — `pnpm dlx shadcn@latest <info|search|docs|view|add> …`. Check installed components (`pnpm dlx shadcn@latest info`) and search registries before writing custom markup. Add via `pnpm dlx shadcn@latest add <name|url>`; review and fix imports/icons afterward.
 - **Project context** (from `shadcn info`): style `new-york`, base `radix`, icons `lucide`, Tailwind v4 (`src/index.css`), UI alias `@/shared/components/ui`.
-- **Critical rules to enforce** (see the skill's `rules/`): semantic color tokens only (`bg-primary`, `text-muted-foreground` — never raw `bg-blue-500` or manual `dark:` overrides); `flex … gap-*` instead of `space-x/y-*`; `size-*` for equal width/height; `cn()` for conditional classes; `data-icon` on icons inside `Button` (no icon sizing classes); full `Card`/`Tabs`/`Avatar`(+`AvatarFallback`) composition; use `Alert`/`Empty`/`Skeleton`/`Badge`/`Separator`/`sonner` instead of custom markup; no manual `z-index` on overlays.
+- **Critical rules to enforce** (see the skill's `rules/`): semantic color tokens only (`bg-primary`, `text-muted-foreground` — never raw `bg-blue-500` or manual `dark:` overrides); `flex … gap-*` instead of `space-x/y-*`; `size-*` for equal width/height; `cn()` for conditional classes; `data-icon` on icons inside `Button` (no icon sizing classes); full `Card`/`Tabs`/`Avatar`(+`AvatarFallback`) composition; use `Alert`/`Empty`/`Skeleton`/`Badge`/`Separator` instead of custom markup; no manual `z-index` on overlays. Application toast callers use the shared `notify` API; direct Sonner integration belongs only in the deferred notification runtime/components.
 
 ## Canonical list (20 sources)
 
