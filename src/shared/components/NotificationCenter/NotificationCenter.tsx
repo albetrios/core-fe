@@ -127,6 +127,7 @@ export function NotificationCenter({
           <Bell className="h-4 w-4" />
           {unread > 0 ? (
             <span
+              data-slot="pill"
               className="bg-primary text-primary-foreground absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
               data-testid="notification-badge"
             >
@@ -150,7 +151,10 @@ export function NotificationCenter({
               {t(LAYOUT_KEYS.app.notifications.title)}
             </p>
             {unread > 0 ? (
-              <span className="bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+              <span
+                data-slot="pill"
+                className="bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+              >
                 {t(LAYOUT_KEYS.app.notifications.newBadge, { count: unread })}
               </span>
             ) : null}

@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  omitStripeReturnParams,
   readStripeBillingReturnParams,
+  stripeReturnCleanupNavigation,
 } from '@/lib/billing/stripe-return.ts';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
@@ -213,19 +213,20 @@ function BillingContent({ sub, plans }: BillingContentProps) {
     await queryClient.invalidateQueries({ queryKey: billingQueryKeys.all });
   }
 
+  /**
+   * Clear Stripe's return params through the router (not a raw `replaceState`), so
+   * its cached location stays in sync and a later navigation cannot bring them back
+   * — and KEEP the settings hash while doing it (see `stripeReturnCleanupNavigation`).
+   */
+  function stripStripeReturnParams() {
+    void navigate(stripeReturnCleanupNavigation());
+  }
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: one-time Stripe redirect-return read on mount; navigate is a stable router handle and refreshBilling only wraps queryClient
   useEffect(() => {
     const { paymentIntentClientSecret, redirectStatus } = readStripeBillingReturnParams();
     if (redirectStatus === 'succeeded') {
-      // Strip the Stripe return params through the router (not raw replaceState)
-      // so its cached location stays in sync and a later navigation can't bring
-      // them back.
-      void navigate({
-        to: '.',
-        search: ((prev: Record<string, unknown>) =>
-          omitStripeReturnParams(prev)) as never,
-        replace: true,
-      });
+      stripStripeReturnParams();
       void refreshBilling();
       return;
     }
@@ -338,14 +339,7 @@ function BillingContent({ sub, plans }: BillingContentProps) {
                 onCancel={() => setPaymentClientSecret(null)}
                 onComplete={() => {
                   setPaymentClientSecret(null);
-                  // Strip the Stripe return params through the router (mirrors the
-                  // redirect-return effect above) so its cached location stays in sync.
-                  void navigate({
-                    to: '.',
-                    search: ((prev: Record<string, unknown>) =>
-                      omitStripeReturnParams(prev)) as never,
-                    replace: true,
-                  });
+                  stripStripeReturnParams();
                   void refreshBilling();
                 }}
               />

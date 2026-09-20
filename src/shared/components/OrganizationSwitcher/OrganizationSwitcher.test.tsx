@@ -3,6 +3,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PRODUCT_NAME } from '@/lib/product-identity.ts';
 import type { MeContext, OrganizationType } from '@/shared/tenancy/me-context.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
@@ -110,6 +111,95 @@ describe('OrganizationSwitcher', () => {
     renderWithProviders(<OrganizationSwitcher />);
     const trigger = await screen.findByTestId('organization-switcher-trigger');
     expect(trigger).toHaveAccessibleName(/switch organization.*acme inc\./i);
+  });
+
+  // ── Trigger layout: a small field, or the sidebar's brand lockup ──────────
+
+  describe('trigger layout', () => {
+    it('is a compact outlined field by default, led by the organization initial', async () => {
+      renderWithProviders(<OrganizationSwitcher />);
+      const trigger = await screen.findByTestId('organization-switcher-trigger');
+
+      expect(trigger).toHaveAttribute('data-layout', 'field');
+      expect(trigger).toHaveAttribute('data-variant', 'outline');
+      expect(trigger).toHaveClass('h-9');
+      expect(trigger).toHaveTextContent('A');
+    });
+
+    it('tags the initial chip so the radius and shape axes reach it', async () => {
+      // It carried a bare `rounded`, which no theme axis drives: the chip stayed
+      // rounded under Sharp while every other tile in the app went square.
+      renderWithProviders(<OrganizationSwitcher />);
+      const trigger = await screen.findByTestId('organization-switcher-trigger');
+      const chip = trigger.querySelector('[data-slot="icon-chip"]');
+
+      expect(chip).toHaveTextContent('A');
+      expect(chip?.className.split(/\s+/)).not.toContain('rounded');
+    });
+
+    it('ignores a caption outside the lockup — the field has one line', async () => {
+      renderWithProviders(<OrganizationSwitcher caption={PRODUCT_NAME} />);
+      await screen.findByTestId('organization-switcher-trigger');
+
+      expect(
+        screen.queryByTestId('organization-switcher-caption'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('becomes ONE brand lockup when given a leading mark', async () => {
+      // The sidebar header: the product mark and the switcher used to be two
+      // things stacked in a column — a logo top-aligned to an 11px caption with
+      // the dropdown indented beneath — so nothing shared an edge or a baseline.
+      renderWithProviders(
+        <OrganizationSwitcher
+          surface="sidebar"
+          leading={<span data-testid="brand-mark" />}
+          caption={PRODUCT_NAME}
+        />,
+      );
+      const trigger = await screen.findByTestId('organization-switcher-trigger');
+
+      expect(trigger).toHaveAttribute('data-layout', 'lockup');
+      // The mark replaces the initial rather than sitting beside it…
+      expect(trigger).toContainElement(screen.getByTestId('brand-mark'));
+      expect(trigger.querySelector('[data-slot="icon-chip"]')).toBeNull();
+      // …the name and the product caption stack as two lines of one row…
+      expect(trigger).toHaveTextContent('Acme Inc.');
+      expect(screen.getByTestId('organization-switcher-caption')).toHaveTextContent(
+        PRODUCT_NAME,
+      );
+      // …and it is a borderless row, not a bordered field inside the header.
+      expect(trigger).toHaveAttribute('data-variant', 'ghost');
+      expect(trigger).toHaveClass('h-11');
+    });
+
+    it('keeps its accessible name in the lockup (the caption is not part of it)', async () => {
+      renderWithProviders(
+        <OrganizationSwitcher
+          leading={<span aria-hidden="true" />}
+          caption={PRODUCT_NAME}
+        />,
+      );
+
+      expect(
+        await screen.findByRole('button', { name: /switch organization.*acme inc\./i }),
+      ).toBeInTheDocument();
+    });
+
+    it('opens a menu at least as wide as the trigger', async () => {
+      // A fixed 16rem menu stopped short of the full-width lockup's end edge.
+      const user = userEvent.setup();
+      renderWithProviders(
+        <OrganizationSwitcher leading={<span />} caption={PRODUCT_NAME} />,
+      );
+
+      await user.click(await screen.findByTestId('organization-switcher-trigger'));
+
+      const menu = await screen.findByRole('menu');
+      expect(menu.className).toContain(
+        'w-[max(16rem,var(--radix-dropdown-menu-trigger-width))]',
+      );
+    });
   });
 
   it('lists every organization (incl. personal) plus the create action', async () => {

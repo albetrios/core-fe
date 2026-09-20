@@ -6,6 +6,7 @@ import {
 } from '@/tests/utils/e2e-auth.ts';
 import { uniqueE2eEmail } from '@/tests/utils/e2e-faker.ts';
 import {
+  byTestId,
   clickTestId,
   fillTestId,
   gotoApp,
@@ -158,10 +159,7 @@ test.describe('Edge cases — auth email flow', () => {
     const nativeMessage = await page
       .getByTestId('auth-email')
       .evaluate((el) => (el as HTMLInputElement).validationMessage);
-    const inlineErrorVisible = await page
-      .getByTestId('auth-email-error')
-      .isVisible()
-      .catch(() => false);
+    const inlineErrorVisible = await page.getByTestId('auth-email-error').isVisible();
 
     expect(nativeMessage.length > 0 || inlineErrorVisible).toBe(true);
     await expect(page.getByTestId('auth-email-verify-panel')).not.toBeVisible();
@@ -199,23 +197,28 @@ test.describe('Edge cases — billing Stripe return', () => {
   test('succeeded Stripe return params are stripped from the URL on billing panel', async ({
     page,
   }) => {
+    // Regression: clearing Stripe's params used `navigate({ to: '.', search,
+    // replace })` with no `hash`, and the router resolves an omitted hash to
+    // none — so it also cleared `#settings/account/billing` and the modal closed
+    // under a customer who had just come back from 3DS. Nothing had ever run this
+    // spec (it was skipping by accident), which is how that shipped. The last
+    // assertion is the one that matters: the billing panel is still there.
     await registerNewUserAndGoToDashboard(page);
-    const switcher = page.getByTestId('organization-switcher-trigger');
-    test.skip(
-      !(await switcher.isVisible().catch(() => false)),
-      'team billing requires switcher',
-    );
+    const switcher = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await switcher.isVisible()), 'team billing requires switcher');
     await createTeamOrgViaSwitcher(page);
 
-    await page.evaluate(() => {
-      const url = new URL(window.location.href);
-      url.searchParams.set('redirect_status', 'succeeded');
-      url.searchParams.set('payment_intent_client_secret', 'pi_e2e_test_secret');
-      url.searchParams.set('setup_intent_client_secret', 'seti_e2e_test');
-      url.hash = '#settings/account/billing';
-      window.history.replaceState({}, '', url.toString());
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-    });
+    // A Stripe return is a full page LOAD of `…?redirect_status=…#settings/…`,
+    // so load it. The router is the source of truth for location
+    // (`lib/billing/stripe-return.ts`): a raw `history.replaceState` plus a
+    // synthetic `hashchange` opens the modal but leaves the router's cached
+    // location without the hash, and the section falls back to Profile.
+    const stripeReturn = new URL(page.url());
+    stripeReturn.searchParams.set('redirect_status', 'succeeded');
+    stripeReturn.searchParams.set('payment_intent_client_secret', 'pi_e2e_test_secret');
+    stripeReturn.searchParams.set('setup_intent_client_secret', 'seti_e2e_test');
+    stripeReturn.hash = '#settings/account/billing';
+    await page.goto(stripeReturn.toString());
 
     await expect(page.getByTestId('settings-modal')).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId('settings-account-billing')).toBeVisible({

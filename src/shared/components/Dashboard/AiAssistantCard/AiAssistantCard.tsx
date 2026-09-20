@@ -77,7 +77,10 @@ export function AiAssistantCard() {
           <span className="min-w-0 flex-1 truncate">
             {t(DASHBOARD_KEYS.ai.placeholder)}
           </span>
-          <kbd className="border-border bg-muted text-muted-foreground rounded border px-1.5 py-0.5 text-[10px] font-medium">
+          <kbd
+            data-slot="kbd"
+            className="border-border bg-muted text-muted-foreground rounded-sm border px-1.5 py-0.5 text-[10px] font-medium"
+          >
             ⌘K
           </kbd>
         </button>

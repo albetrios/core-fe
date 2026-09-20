@@ -192,7 +192,7 @@ test.describe('Billing & subscription', () => {
 
     const cancelButton = page.getByTestId('billing-cancel');
     test.skip(
-      !(await cancelButton.isEnabled().catch(() => false)),
+      !(await cancelButton.isEnabled()),
       'subscription not in a cancellable state',
     );
 
@@ -224,10 +224,7 @@ test.describe('Billing & subscription', () => {
     // payment step — all of which update the summary away from the current plan.
     const beforeSummary = (await summary.innerText()).trim();
     const switchButton = page.getByTestId('plan-options').getByRole('button').first();
-    test.skip(
-      !(await switchButton.isVisible().catch(() => false)),
-      'no alternate plan seeded to switch to',
-    );
+    test.skip(!(await switchButton.isVisible()), 'no alternate plan seeded to switch to');
     await switchButton.click();
 
     await expect(summary).not.toHaveText(beforeSummary, { timeout: 20000 });
@@ -248,7 +245,7 @@ test.describe('Billing & subscription', () => {
 
     const viewLink = page.getByTestId('billing-invoice-view').first();
     test.skip(
-      !(await viewLink.isVisible().catch(() => false)),
+      !(await viewLink.isVisible()),
       'no invoice generated for this subscription',
     );
     // Opens the hosted invoice safely in a new tab.

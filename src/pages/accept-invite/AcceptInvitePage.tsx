@@ -270,13 +270,21 @@ export function AcceptInvitePage() {
     void runAccept();
   }, [invitationId, runAccept]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    // Set on every run, not just the first. A ref outlives React's simulated
+    // unmount → remount (Strict Mode does it on every mount, in dev and so in
+    // every E2E run), and a cleanup that only ever flips this to `false` leaves
+    // the page permanently "gone" to itself: the accept finished, hit
+    // `if (!aliveRef.current) return`, and the card sat on "Accepting your
+    // invitation…" forever — no success, no error, no redirect. Production has no
+    // double mount, which is how it went unnoticed. Same trap, same fix as
+    // `BillingPaymentMethods`' `isMountedRef`.
+    aliveRef.current = true;
+    return () => {
       aliveRef.current = false;
       if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   if (!invitationId) {
     return null;

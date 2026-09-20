@@ -86,7 +86,9 @@ export function CommandPaletteShell({ children }: { children: ReactNode }) {
           aria-hidden="true"
           onClick={() => setOpen(false)}
         />
-        <div className="fixed top-[20%] left-1/2 w-full max-w-lg -translate-x-1/2">
+        {/* A gutter on phones: `w-full` under `max-w-lg` ran edge to edge on
+            any screen narrower than 32rem. Roomier on big monitors. */}
+        <div className="3xl:max-w-xl fixed top-[20%] left-1/2 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2">
           <div
             data-slot="popover-content"
             className="bg-popover overflow-hidden rounded-md border"

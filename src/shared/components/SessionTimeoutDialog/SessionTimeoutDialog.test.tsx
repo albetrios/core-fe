@@ -1,4 +1,5 @@
 import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
@@ -7,21 +8,41 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { SessionTimeoutDialog } from './SessionTimeoutDialog.tsx';
 
-const { startIdleTimeoutMock } = vi.hoisted(() => ({
-  startIdleTimeoutMock: vi.fn(() => vi.fn()),
-}));
+const { startIdleTimeoutMock, idleHandle, logoutMock, forceLogoutMock } = vi.hoisted(
+  () => {
+    const handle = { extend: vi.fn(), stop: vi.fn() };
+    return {
+      idleHandle: handle,
+      startIdleTimeoutMock: vi.fn((_options: unknown) => handle),
+      logoutMock: vi.fn((_opts?: { reason?: string }) => Promise.resolve()),
+      forceLogoutMock: vi.fn(),
+    };
+  },
+);
 vi.mock('@/shared/auth/idle-timeout.ts', () => ({
   startIdleTimeout: startIdleTimeoutMock,
 }));
 
+/** Grace period the dialog configures: warn at 5:00, sign out at 6:30. */
+const GRACE_MS = 90_000;
+
 /** The options the dialog handed the idle timer on its last mount. */
 function idleOptions() {
-  const options = startIdleTimeoutMock.mock.calls.at(-1)?.[0] as unknown as {
-    onWarn: () => void;
-    onActive: () => void;
-  };
+  const options = startIdleTimeoutMock.mock.calls.at(-1)?.[0] as
+    | {
+        onWarn: (info: { logoutAt: number }) => void;
+        onActive: () => void;
+        onLogout: () => void;
+        storageKey?: string;
+      }
+    | undefined;
   if (!options) throw new Error('startIdleTimeout was never called');
   return options;
+}
+
+/** Enter the warning the way the idle timer does — with its logout deadline. */
+function warn() {
+  idleOptions().onWarn({ logoutAt: Date.now() + GRACE_MS });
 }
 
 function dialogText() {
@@ -42,7 +63,8 @@ async function renderDialog() {
 }
 
 vi.mock('@/shared/auth/service.ts', () => ({
-  forceLogout: vi.fn(),
+  logout: logoutMock,
+  forceLogout: forceLogoutMock,
 }));
 
 describe('SessionTimeoutDialog', () => {
@@ -84,13 +106,137 @@ describe('SessionTimeoutDialog', () => {
     });
   });
 
-  it('returns cleanup function from startIdleTimeout', async () => {
-    const { startIdleTimeout } = await import('@/shared/auth/idle-timeout.ts');
-    const { unmount } = renderWithProviders(<SessionTimeoutDialog />);
-    await waitFor(() => expect(startIdleTimeout).toHaveBeenCalled());
-    const cleanup = vi.mocked(startIdleTimeout).mock.results[0]?.value;
+  it('stops the idle timer on unmount', async () => {
+    const { unmount } = await renderDialog();
+    expect(idleHandle.stop).not.toHaveBeenCalled();
+
     unmount();
-    expect(typeof cleanup).toBe('function');
+
+    expect(idleHandle.stop).toHaveBeenCalled();
+  });
+
+  it('shares activity across tabs through a namespaced storage key', async () => {
+    // Without it the timer is per tab while the session is per browser: a tab
+    // left in the background signs the user out of the one they are working in.
+    await renderDialog();
+
+    expect(idleOptions().storageKey).toBe('core:last-activity');
+  });
+
+  // ── The reported bug: "after inactivity, popup sign out doesn't work" ─────
+
+  describe('ending the session', () => {
+    it('Sign out revokes the session server-side — never forceLogout alone', async () => {
+      // Regression: the button called forceLogout(), which only clears THIS
+      // tab. The HttpOnly refresh cookie stayed valid, so /login booted, the
+      // silent refresh succeeded, and the guest-only guard sent the user
+      // straight back to the dashboard.
+      await renderDialog();
+      act(() => warn());
+
+      await userEvent.click(screen.getByTestId('session-signout'));
+
+      expect(logoutMock).toHaveBeenCalledExactlyOnceWith({ reason: 'logout' });
+      expect(forceLogoutMock).not.toHaveBeenCalled();
+    });
+
+    it('the idle deadline revokes server-side too, labelled idle_timeout', async () => {
+      await renderDialog();
+      act(() => warn());
+
+      act(() => idleOptions().onLogout());
+
+      expect(logoutMock).toHaveBeenCalledExactlyOnceWith({ reason: 'idle_timeout' });
+      expect(forceLogoutMock).not.toHaveBeenCalled();
+    });
+
+    it('holds the dialog open, busy and inert while the revoke is in flight', async () => {
+      // Closing on the press would hand the app back for a network round trip
+      // with a session that is being torn down underneath it.
+      let finish: () => void = () => undefined;
+      logoutMock.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+      );
+      await renderDialog();
+      act(() => warn());
+
+      await userEvent.click(screen.getByTestId('session-signout'));
+
+      const dialog = screen.getByTestId('session-timeout-dialog');
+      expect(dialog).toBeVisible();
+      expect(dialog).toHaveAttribute('aria-busy', 'true');
+      expect(screen.getByTestId('session-signout')).toBeDisabled();
+      expect(screen.getByTestId('session-signout')).toHaveTextContent('Signing out…');
+      expect(screen.getByTestId('session-stay')).toBeDisabled();
+      expect(dialogText()).toContain('Ending your session securely');
+      finish();
+    });
+
+    it('signs out once when the button and the deadline land together', async () => {
+      await renderDialog();
+      act(() => warn());
+
+      await userEvent.click(screen.getByTestId('session-signout'));
+      act(() => idleOptions().onLogout());
+
+      expect(logoutMock).toHaveBeenCalledOnce();
+      expect(idleHandle.stop).toHaveBeenCalled();
+    });
+
+    it('falls back to a local sign-out if the revoke itself throws', async () => {
+      // Both buttons are disabled by now — a rejected logout() must not strand
+      // the user behind a dialog nothing can close.
+      logoutMock.mockRejectedValueOnce(new Error('boom'));
+      await renderDialog();
+      act(() => warn());
+
+      await userEvent.click(screen.getByTestId('session-signout'));
+
+      await waitFor(() =>
+        expect(forceLogoutMock).toHaveBeenCalledExactlyOnceWith({ reason: 'logout' }),
+      );
+    });
+  });
+
+  describe('staying signed in', () => {
+    it('extends the idle timer explicitly and closes the dialog', async () => {
+      // Activity in this tab is ignored while the warning is up, so nothing but
+      // this call restarts the clock.
+      await renderDialog();
+      act(() => warn());
+
+      await userEvent.click(screen.getByTestId('session-stay'));
+
+      expect(idleHandle.extend).toHaveBeenCalledOnce();
+      expect(logoutMock).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.queryByTestId('session-timeout-dialog')).not.toBeInTheDocument(),
+      );
+    });
+
+    it('puts keyboard focus on "Stay signed in", not on "Sign out"', async () => {
+      // Radix focuses the first tabbable element, which is "Sign out": Space or
+      // Enter to wake the screen would sign the user out.
+      await renderDialog();
+      act(() => warn());
+
+      await waitFor(() => expect(screen.getByTestId('session-stay')).toHaveFocus());
+    });
+
+    it('closes when another tab shows the user is active', async () => {
+      await renderDialog();
+      act(() => warn());
+      expect(screen.getByTestId('session-timeout-dialog')).toBeVisible();
+
+      act(() => idleOptions().onActive());
+
+      await waitFor(() =>
+        expect(screen.queryByTestId('session-timeout-dialog')).not.toBeInTheDocument(),
+      );
+      expect(logoutMock).not.toHaveBeenCalled();
+    });
   });
 
   // ── SET-16: one interval, anchored to the deadline ───────────────────────
@@ -129,22 +275,21 @@ describe('SessionTimeoutDialog', () => {
       // warn left the first one ticking for the tab's lifetime — two timers
       // counting the same number down at double speed.
       await renderDialog();
-      const { onWarn } = idleOptions();
 
-      act(() => onWarn());
+      act(() => warn());
       expect(countdownTicks()).toBe(1);
       const first = currentCountdownId();
 
-      act(() => onWarn());
+      act(() => warn());
       expect(countdownTicks()).toBe(2);
       expect(clearIntervalSpy).toHaveBeenCalledWith(first);
     });
 
     it('clears its interval when the user goes active again', async () => {
       await renderDialog();
-      const { onWarn, onActive } = idleOptions();
+      const { onActive } = idleOptions();
 
-      act(() => onWarn());
+      act(() => warn());
       const id = currentCountdownId();
 
       act(() => onActive());
@@ -155,7 +300,7 @@ describe('SessionTimeoutDialog', () => {
       // A throttled background tab gets roughly one tick a minute, so a counter
       // that subtracts one per tick drifts away from the moment logout fires.
       await renderDialog();
-      act(() => idleOptions().onWarn());
+      act(() => warn());
       expect(dialogText()).toContain('1:30');
 
       // 30 seconds of wall clock, one interval tick.
@@ -169,7 +314,7 @@ describe('SessionTimeoutDialog', () => {
 
     it('stops at zero instead of running past the deadline', async () => {
       await renderDialog();
-      act(() => idleOptions().onWarn());
+      act(() => warn());
       const id = currentCountdownId();
 
       act(() => {
@@ -179,6 +324,17 @@ describe('SessionTimeoutDialog', () => {
 
       expect(dialogText()).toContain('0:00');
       expect(clearIntervalSpy).toHaveBeenCalledWith(id);
+    });
+
+    it('counts down to the deadline the idle timer gave it, not to its own', async () => {
+      // Waking inside the warning window leaves LESS than the full grace. A
+      // dialog that started its own 90s here would still read 1:30 at the
+      // moment the timer signed the user out.
+      await renderDialog();
+
+      act(() => idleOptions().onWarn({ logoutAt: Date.now() + 20_000 }));
+
+      expect(dialogText()).toContain('0:20');
     });
   });
 });

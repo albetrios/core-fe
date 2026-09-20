@@ -59,6 +59,11 @@ Categorize each hit:
 | C   | Hardcoded utility fights axis | Remove `shadow-lg`, `shadow-2xl`, etc. from `className` |
 | D   | Intentional                   | Document in cycle report (e.g. decorative icon glow)    |
 | E   | System gap                    | Extend `[data-*]` selectors in `index.css`              |
+| F   | Off-scale radius              | Bare `rounded` / `rounded-[3px]` → a named step (`rounded-sm`, `rounded-xs`); gate check 5 |
+| G   | Round by design, no slot      | `rounded-full` on a chip/badge/disc/track → add `data-slot="pill"`; never on dots or glows; gate check 6 |
+| H   | Primitive re-slots a `<Button>` | `ui/carousel` arrows carry `data-slot="carousel-previous"`, so the `button` rule misses them → add the primitive's OWN slot to the axis block |
+| I   | Pseudo-element draws the shape  | `before:rounded-full` cannot carry a slot → target `[data-slot='…']::before` in `index.css` |
+| J   | Fixed-size spacing (Density)    | `p-[24px]` / `gap-[6px]` → a scale step (`p-6`, `gap-1.5`); gate check 7. A `p-0` dialog repeats `DialogContent`'s `6` on each of its panes |
 
 ---
 
@@ -68,6 +73,12 @@ Categorize each hit:
 2. **Remove fighting `className` shadows/borders** on components that already use `data-slot`.
 3. **Replace custom shells** with `<Card>` (or add `data-slot`).
 4. **Add helpers** only when repeated 3+ times (`src/lib/icon-surface.ts` pattern).
+   - **A hole in a token scale is a system gap, not N component fixes.** `rounded-2xl` ignored
+     the radius axis because only `sm/md/lg/xl` were themed; deriving the other steps from
+     `--radius-lg` in `@theme` fixed every call site at once. Check the scale before the sites.
+   - **Check the boot splash for every axis that changes shape or colour.** It is HTML, painted
+     before the bundle: `theme-init.js` must set the attribute/var pre-paint and `index.html`
+     must style on it, or the loader changes look half way through the boot.
 5. Do **not** edit vendored `shared/components/ui/*` unless the axis requires new default slots — prefer index.css overrides.
 
 ---
@@ -79,6 +90,20 @@ pnpm type-check
 pnpm eslint --fix <changed-files>
 pnpm test -- --run <colocated-tests-for-touched-paths>
 ```
+
+**Radius / shape — measure it.** Reading class strings missed the carousel arrows, the
+`lib/animations` skeletons and the nav markers; a computed-style sweep in a browser found
+all three in one run (needs core-be on `:3000`):
+
+```bash
+pnpm exec playwright test tests/e2e/theme-shape.e2e.test.ts
+```
+
+It seeds radius None + Sharp and must return **no** element with a rounded corner (status
+dots ≤ 10px, blurred glows and dev tooling are exempt by rule, never by selector). Extend
+it when the audit touches a new screen or overlay. For any other axis with a computable
+effect, prefer the same shape of test — sweep + a control on the default look — over a
+manual toggle.
 
 Manual: toggle axis across **all options** on login, dashboard, settings (`#settings/...`), ⌘K, toast.
 

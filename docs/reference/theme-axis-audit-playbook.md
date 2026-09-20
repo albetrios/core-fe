@@ -19,7 +19,7 @@ method we used for **corner radius + shape**.
 
 | #   | Axis                                      | Mechanism                                    | Audit status      |
 | --- | ----------------------------------------- | -------------------------------------------- | ----------------- |
-| 1   | **Corner radius** (`radiusId`)            | `--radius-sm/md/lg/xl` inline                | ✅ Done (2025-06) |
+| 1   | **Corner radius** (`radiusId`)            | `--radius-sm/md/lg/xl` inline; rest derived  | ✅ Done (2025-06) |
 | 2   | **Shape language** (`shapeId`)            | `data-shape` + `[data-slot]`                 | ✅ Done with #1   |
 | 3   | **Elevation + separation**                | `data-elevation`, `data-separation`          | ✅ Done (2025-06) |
 | 4   | **Focus ring** (`focusId`)                | `data-focus` + `data-slot`                   | ✅ Done (2025-06) |
@@ -50,6 +50,57 @@ controls that use `closeControlClassName`/chip styling but bypassed the `<Button
 (`InviteStep` remove, `InvitationsTable` revoke, `QuestionsStep` choice chip) — these now
 reshape with `pill`/`mixed`/`sharp` instead of staying their hardcoded radius. Default
 (uniform) look is unchanged; the fixes only engage under non-default shape settings.
+
+**Re-audit — Radius + shape (2026-09): "square means square".** With radius **None** and
+shape **Sharp** the dashboard hero, every badge, the avatar, the floating edge handle and
+the settings modal were still round. Three separate causes, three systemic fixes:
+
+1. **The radius scale had holes.** The axis sets `--radius-sm/md/lg/xl` inline, but
+   `rounded-xs`, `rounded-2xl`, `rounded-3xl` and `rounded-4xl` resolved to Tailwind's
+   _fixed_ defaults — so `rounded-2xl` kept a 16px corner under radius None. `index.css`
+   now **derives** those four from `--radius-lg` (`calc(var(--radius-lg) * 2)` …). With the
+   default `lg` of 0.5rem they equal the stock values exactly, so the default look did not
+   move; pinned by `src/shared/theme/radius-shape-css.test.ts`.
+2. **Two spellings are not token-backed at all** — a bare `rounded` and an arbitrary
+   `rounded-[3px]`. Both are now rejected in app code by `pnpm validate:theme-axis`
+   (check 5; `rounded-[var(--radius-*)]` and `calc()` over a token pass). Use a named step.
+3. **Round-by-design elements had no way to follow Sharp.** `rounded-full` is a shape
+   decision, not a radius one. The `[data-shape='sharp']` block now also squares the
+   primitives that are round by design — `badge`, `avatar`(+`-fallback`), `checkbox`,
+   `switch`(+`-thumb`), `progress`(+`-indicator`), `input-otp-slot`, `floating-edge`, `kbd`
+   — and a new opt-in slot, **`data-slot="pill"`**, for app-level chips, count badges, icon
+   discs and tracks. **Not** opted in, on purpose: status dots ≤ 10px and blurred glows —
+   they are indicators, not surfaces. Off-scale surfaces that had no slot (`DashboardHero`,
+   the bento panel) became `data-slot="card"`.
+
+The boot splash follows too: `theme-init.js` sets `data-shape="sharp"` before first paint
+and `index.html` squares the splash on it, so the HTML → React loader handoff does not
+change shape half way through the boot (drift-tested in `locale-init.drift.test.ts`).
+`SettingsModal` dropped an unconditional `rounded-none` (it is a sheet only below `sm`).
+
+**Follow-up — measure, don't read (2026-09).** Grep found the class strings; it could not
+find these, and a computed-style sweep in a browser did
+(`tests/e2e/theme-shape.e2e.test.ts` — now the definitive Phase 3 step for radius/shape):
+
+- **`ui/carousel` re-slots its arrow `<Button>`s** (`data-slot="carousel-previous"` /
+  `-next`), so the `button` rule stopped matching and the dashboard's highlight arrows
+  stayed round. Both slots joined the Sharp list. _A vendored primitive that is round by
+  design needs its own slot there — the `<Button>` inside it proves nothing._
+- **`lib/animations` skeletons had no slot.** Only `ui/skeleton` did, and the dashboard,
+  the members table and the shell load with the `lib` ones — a Sharp app painted round
+  placeholders and snapped square. Both now carry `data-slot="skeleton"`.
+- **Pseudo-element markers cannot carry a slot.** The active-route markers
+  (`before:rounded-full` sidebar, `after:rounded-full` top nav) are squared through
+  `[data-slot='nav-item']::before/::after`.
+- The 16px palette swatches (`ThemeShowcase`) and the accent-toast preview bar became
+  `pill`. The status-dot exemption stops at **10px**.
+
+The gate grew **check 6** to hold the line: a `rounded-full` with no slot in reach fails
+(`pnpm validate:theme-axis`). Writing the gate's own test
+(`tooling/validate/theme-axis.test.mjs`) also showed that **check 3 had never fired**: its
+pattern held a `'`, and `scan` builds its grep inside an `eval` that single-quotes the
+pattern, so the quote closed the string early. It is fixed (`.` stands in for the quote) and
+the icon barrel is allowlisted. A gate nobody has watched fail is a green checkmark.
 
 ---
 
@@ -186,6 +237,15 @@ pnpm eslint --fix <changed-files>
 pnpm test -- --run <colocated-tests-for-touched-components>
 ```
 
+Radius / shape — measured, not eyeballed (needs core-be on `:3000`):
+
+```bash
+pnpm exec playwright test tests/e2e/theme-shape.e2e.test.ts
+```
+
+It seeds radius None + Sharp and fails with the list of elements that still have a
+rounded corner. Add a screen or overlay to it when the audit touches one.
+
 Manual: Appearance → toggle axis across **all options** on:
 
 - `/login` (public card layout)
@@ -203,34 +263,37 @@ Manual: Appearance → toggle axis across **all options** on:
 
 ## Helpers introduced by the audit
 
-| Helper                       | File                             | Pair with                                 |
-| ---------------------------- | -------------------------------- | ----------------------------------------- |
-| `iconChipClassName`          | `src/lib/icon-surface.ts`        | `data-slot="icon-chip"`                   |
-| `closeControlClassName`      | `src/lib/icon-surface.ts`        | `data-slot="button"` (dismiss controls)   |
-| `focusControlClassName`      | `src/lib/icon-surface.ts`        | `data-slot="button"` (no hardcoded rings) |
-| `themeChoiceButtonClassName` | `src/lib/icon-surface.ts`        | `data-slot="button"` (Appearance pickers) |
-| `data-slot="floating-edge"`  | floating edge buttons            | `[data-elevation]`                        |
-| `data-slot="menu-item"`      | notification rows, command items | focus + shape axes                        |
+| Helper                         | File                                                               | Pair with                                   |
+| ------------------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
+| `iconChipClassName`            | `src/lib/icon-surface.ts`                                          | `data-slot="icon-chip"`                     |
+| `closeControlClassName`        | `src/lib/icon-surface.ts`                                          | `data-slot="button"` (dismiss controls)     |
+| `focusControlClassName`        | `src/lib/icon-surface.ts`                                          | `data-slot="button"` (no hardcoded rings)   |
+| `themeChoiceButtonClassName`   | `src/lib/icon-surface.ts`                                          | `data-slot="button"` (Appearance pickers)   |
+| `data-slot="floating-edge"`    | floating edge buttons                                              | `[data-elevation]`, `[data-shape]`          |
+| `data-slot="pill"`             | chips, count badges, icon discs, tracks (`rounded-full` by design) | `[data-shape='sharp']` squares it           |
+| `data-slot="kbd"`              | keyboard-hint `<kbd>`                                              | radius + shape axes                         |
+| `data-floating` on a `surface` | a non-modal surface pinned over the page (consent card)            | default lift; `[data-elevation]` still wins |
+| `data-slot="menu-item"`        | notification rows, command items                                   | focus + shape axes                          |
 
 ---
 
 ## Quick grep cheatsheet by axis
 
-| Axis       | Grep / inspect                                                            |
-| ---------- | ------------------------------------------------------------------------- |
-| Radius     | `rounded-2xl`, `rounded-3xl`, `bg-card.*rounded`                          |
-| Shape      | elements with `rounded-*` but no `data-slot` on interactive/card surfaces |
-| Elevation  | custom `shadow-lg`, `shadow-none` on `[data-slot='card']`                 |
-| Separation | custom `border-2` on cards                                                |
-| Density    | hardcoded pixel padding (`p-[13px]`), fixed heights bypassing scale       |
-| Motion     | `duration-\d+`, `ease-` on app components (not animations)                |
-| Contrast   | raw greys, `text-white`, `bg-black`                                       |
-| Focus      | `focus-visible:ring` on app code outside `ui/`                            |
-| Type scale | `text-[15px]`, arbitrary font sizes                                       |
-| Base       | non-semantic surface colours                                              |
-| Menu       | popover/dropdown without blur when `data-menu=translucent\|glass`         |
-| Fonts      | `h1`–`h6` use `var(--font-heading)` in `@layer base`                      |
-| Icons      | direct `lucide-react` imports outside `ui/`                               |
+| Axis       | Grep / inspect                                                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Radius     | bare `rounded`, `rounded-[…px]` (gate check 5); any named step is fine                                                                             |
+| Shape      | `rounded-full` with no slot in reach (gate check 6); a vendored primitive that re-slots a `<Button>`; `rounded-none` that is not breakpoint-scoped |
+| Elevation  | custom `shadow-lg`, `shadow-none` on `[data-slot='card']`                                                                                          |
+| Separation | custom `border-2` on cards                                                                                                                         |
+| Density    | hardcoded pixel padding (`p-[13px]`), fixed heights bypassing scale                                                                                |
+| Motion     | `duration-\d+`, `ease-` on app components (not animations)                                                                                         |
+| Contrast   | raw greys, `text-white`, `bg-black`                                                                                                                |
+| Focus      | `focus-visible:ring` on app code outside `ui/`                                                                                                     |
+| Type scale | `text-[15px]`, arbitrary font sizes                                                                                                                |
+| Base       | non-semantic surface colours                                                                                                                       |
+| Menu       | popover/dropdown without blur when `data-menu=translucent\|glass`                                                                                  |
+| Fonts      | `h1`–`h6` use `var(--font-heading)` in `@layer base`                                                                                               |
+| Icons      | direct `lucide-react` imports outside `ui/`                                                                                                        |
 
 ---
 

@@ -20,19 +20,19 @@ interface UIStore {
   toggleAppearance: () => void;
 }
 
-/**
- * Sidebar starts open on tablet/desktop (≥ md) and closed on mobile so it does
- * not cover content as an overlay on first paint. Below `md` it is a toggled overlay.
- */
-function initialSidebarOpen(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return true;
-  }
-  return window.matchMedia('(min-width: 768px)').matches;
-}
-
+/** Ephemeral, per-tab UI state: which overlays and the navigation drawer are open. */
 export const useUIStore = create<UIStore>((set) => ({
-  sidebarOpen: initialSidebarOpen(),
+  /**
+   * Whether the off-canvas navigation DRAWER is open — phones and tablets only.
+   * From `lg` up the sidebar is a permanent column and this flag is ignored (the
+   * shell pins it with CSS).
+   *
+   * Always starts closed. It used to be seeded from a `min-width: 768px` media
+   * query "so desktop starts open", which made one boolean mean two things: a
+   * window loaded wide and then narrowed kept `true`, and the drawer sat open
+   * over the content on a screen size where nobody had opened it.
+   */
+  sidebarOpen: false,
   commandPaletteOpen: false,
   shortcutsOpen: false,
   appearanceOpen: false,

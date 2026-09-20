@@ -51,6 +51,55 @@ Probe **both** directions when the gate has an allowlist: the violating case mus
 fail *and* the exempt case must pass. Paste the probe output into the PR
 description — "gate added" is not evidence; "gate flags X, allows Y" is.
 
+**A second way for the pattern to be unmatchable: quoting.** `theme-axis.sh` builds
+its grep inside an `eval` that single-quotes the pattern:
+
+```sh
+hits=$(eval "grep -rEn '$pattern' src …")
+scan "direct lucide-react import" "from 'lucide-react'"   # BROKEN
+```
+
+The `'` in the pattern closes that string early, the shell concatenates what is left,
+and the regex that actually runs is `from lucide-react` — which matches nothing. That
+check was dead from the day it was written, under a green gate, and ESLint's
+`no-restricted-imports` was silently carrying the rule alone. Use `.` for the quote
+(`from .lucide-react.`), or stop `eval`-ing patterns. It was found the moment the
+gate got a test — which is the next rule.
+
+**Keep the probe: make it a test.** A throwaway probe proves the gate fired _once_,
+on the day it was written. A shell gate becomes permanently testable if its root is
+injectable:
+
+```sh
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+ALLOWLIST="$SCRIPT_DIR/theme-axis-allowlist.txt"   # always the REAL allowlist
+cd "${THEME_AXIS_ROOT:-$SCRIPT_DIR/../..}" || exit 2
+```
+
+`tooling/validate/theme-axis.test.mjs` then writes ONE fixture file into a temp tree,
+runs the gate against it, and asserts the exit code — every violating spelling, every
+allowed one, prose in comments, the `ui/`/test/fixture exemptions, and that the OLDER
+checks still fire through the same path. It runs in CI via `pnpm test:github-scripts`
+(`tooling/validate/*.test.mjs`). Fixtures never go in the real `src/`: the gate would
+then fail for everybody.
+
+**Allowlist a fragment, not a file.** A substring allowlist matches the whole hit line
+(`path:line:content`), so an entry can be either. A **file name** switches off _every_
+check the gate has for that whole file, forever — including the checks added later. A
+**class fragment** (`inset-1 rounded-full bg-gradient-to-tl`) exempts one line from one
+check and stops matching the day someone edits that line, which is when the exception
+deserves a second look anyway. Write the reason above each entry, and test that the
+fragment does not leak: the allowed line passes, a second violation in the same file
+still fails on its own line number.
+
+**A grep gate reads lines, not data flow — say so in the script.** A look-back window
+("a `data-slot=` within 5 lines above") catches the forgotten tag; it cannot follow a
+class constant to the element it lands on, and a sibling's slot inside the window vouches
+for its neighbor. That is an accepted limit, not a bug: document it next to the helper,
+allowlist the class constants with their reason, and put the claim that actually matters
+under a test that can measure it (for the theme axes: a computed-style sweep in a
+browser — `tests/e2e/theme-shape.e2e.test.ts`).
+
 ### 2. The gate runs only locally
 
 `tooling/validate/health-check.sh` is the **local** script. A gate added there and
@@ -111,6 +160,18 @@ const RESTRICTED_CALENDAR_PATTERN = { group: [...], message: '…' };
 
 Probe from **each** layer (`src/shared/…`, `src/pages/…`) plus the exempt path. A
 probe placed only in `src/lib` proves nothing about `src/shared`.
+
+**Keep the ESLint probe too.** A lint restriction is a gate like any other, and "I linted a
+scratch file once" is the same one-day proof. `tests/ci/eslint-restricted-syntax.policy.test.ts`
+lints **virtual file paths against the real config** —
+`new ESLint({ cwd }).lintText(source, { filePath: 'src/…/Probe.tsx' })` — and filters the messages
+by `ruleId`, so one test pins both halves: the **wiring** (which globs the rule reaches, and that
+colocated tests are exempt) and the **behaviour** (what it flags, and the legitimate forms it must
+leave alone). It works because this config has no type-aware parsing; a `projectService` config would
+need real files. This is also the test that notices the replacement trap above: a later block that
+re-declares `no-restricted-syntax` for the same files makes the older selector silently stop
+existing, and nothing else fails. Mutation-check it the usual way — switch the rule `'off'` and watch
+exactly the "flags" cases go red.
 
 ### 4. Shelling out to a binary that may not exist
 
@@ -175,3 +236,5 @@ Probe it: a line containing both the idiom and a violation must still be flagged
 - [ ] Allowed-idiom filtering is token-level, not line-level
 - [ ] Exit codes captured, not read through a pipe
 - [ ] Probe evidence pasted into the PR description
+- [ ] The probe is kept as a `tooling/validate/<gate>.test.mjs` (root injectable; fixtures in a temp tree)
+- [ ] No literal quote inside a pattern that is `eval`-ed inside quotes

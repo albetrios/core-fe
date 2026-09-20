@@ -37,6 +37,71 @@ dev server — see `docs/reference/local-production-perf.md`.
    `agent-os/skills/dependency-management/SKILL.md`).
 4. **CSP constraint.** `assetsInlineLimit: 0` in `vite.config.ts` is required for
    CSP — do not inline assets to shave requests.
+5. **The root route's barrels.** Anything `routeTree.tsx` imports statically IS the
+   entry chunk, on every load. A surface it mounts exports **only a lazy shell**
+   from its barrel (`SettingsModalLazy`, `AppearanceDialogLazy`,
+   `ConsentBannerLazy`) — re-export the real component and it is back on first
+   paint. The cookie-consent card was there for every visitor, including the
+   returning majority who never see it.
+6. **Three keys do not justify a key table.** An entry-resident module that
+   imports a big constants module for a handful of values drags the whole module
+   in. `AppearanceDialog` read three header keys off `SETTINGS_KEYS` and put the
+   entire Settings key table (~17 kB of source, ~3 kB gzipped) on the first paint
+   of every load. Declare the few keys locally and **pin them to the originals
+   with a drift test** (`appearance-dialog.constants.test.ts`) so they cannot diverge.
+7. **Warm-ups must not cost what they save.** A boot-time `preload` helper lives
+   in the entry chunk. Import the loaders it calls **dynamically, inside the
+   function** — two tiny static imports were enough to break the budget. (That is
+   an `import()` in a function body, not the module-scope one below.)
+
+## Attribute a regression before you chase it
+
+When `pnpm size` fails, find out **which modules moved into the entry** before
+changing anything — the diff is usually one leak, not the code you just wrote.
+Production builds emit hidden source maps, and each map lists its `sources`:
+
+1. Build the branch (`pnpm build`), and build `main` in a throwaway worktree
+   _outside the checkout_ (`git worktree add --detach <scratch>/wt-main main`,
+   symlink `node_modules`, `pnpm build`; remove it with `git worktree remove`).
+2. Read `dist/index.html` for the entry script + every `modulepreload`, open each
+   `<chunk>.js.map`, and collect the non-`node_modules` `sources`.
+3. Diff the two sets: **added** modules are the leak; for modules in both, compare
+   comment-stripped `sourcesContent` length to see what grew.
+
+This is how the Settings key table was found: it was not in the diff of the
+change being made at all. Then **lower** the limit to lock the gain in
+(`run-size-limit.mjs` — "lower as the bundle shrinks, never raise to absorb
+growth") and say in the comment what was attributed.
+
+## CSS: Tailwind generates from whatever it can read
+
+The initial-CSS budget crept to its limit and the cause was not a component. Tailwind's
+automatic detection reads **every tracked file in the repository**, so any class-shaped
+string is emitted: a doc that says "never write `bg-blue-500`", an agent-os skill's examples,
+a gate's test fixtures (`p-[24px]`, `rounded-[3px]`), an E2E spec. That was **196 utilities,
+~2.2 kB gzipped** — 9% of the stylesheet — including raw-palette classes that
+`validate:tokens` forbids in app code.
+
+`src/index.css` scopes the scan, and tests are not the app either:
+
+```css
+@import 'tailwindcss' source('../src');
+@source not './**/*.test.ts';
+@source not './**/*.test.tsx';
+```
+
+Before widening it, know what it protects against: a class the app only **composes at
+runtime** (`` `col-span-${n}` ``) was never safe — it merely worked while some doc happened to
+spell it. Write the full class name in source.
+
+- **Tripwire:** `pnpm build:check` → `tooling/ci/check-css-sources.mjs`. Every raw-palette
+  utility in `dist/` must be spelled in non-test `src/` (vendored `ui/` is the legitimate
+  source); one that is not means the scan has widened again. Tested both directions in
+  `check-css-sources.test.mjs`.
+- **Attribute CSS the way you attribute JS:** diff the class sets of two builds, not their
+  byte counts. A size delta with no matching component change is a scan problem.
+- **A CSS selector starting with a digit is escaped** (`3xl:p-8` → `.\33 xl\:p-8`). Grepping the
+  build for the unescaped name reports 0 and looks like a regression that is not there.
 
 ## Module-scope `import()` is eager — it deletes the split
 

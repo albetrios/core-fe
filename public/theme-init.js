@@ -54,6 +54,16 @@ try {
   var mode = isDark ? 'dark' : 'light';
   var preset = state.preset || 'default';
 
+  // Shape language, for the boot splash only. Under Sharp nothing in the app is
+  // round — and the splash is the first thing on screen. Without this its mark
+  // and progress track stayed round until React applied the look and swapped in
+  // a square BrandLoader: a visible shape change half way through the boot.
+  // Mirrors applyDataAxis(root, 'shape', …) in shared/theme/presets.ts, which
+  // re-applies (or clears) it once the bundle loads.
+  if (preset === 'custom' && state.customTheme && state.customTheme.shapeId === 'sharp') {
+    root.dataset.shape = 'sharp';
+  }
+
   // Fast path: the exact palette the app resolved last time it applied THIS
   // theme, written by persistBootThemeVars() in shared/theme/presets.ts. Replay
   // it verbatim. The approximation below cannot run the real contrast math

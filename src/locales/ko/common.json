@@ -186,5 +186,11 @@
   },
   "table": {
     "searchPlaceholder": "검색..."
+  },
+  "consent": {
+    "description": "{{productName}} 개선을 위한 제품 분석에 쿠키를 사용합니다. 필수 기능과 오류 모니터링은 쿠키 없이도 작동합니다.",
+    "privacyPolicy": "개인정보 처리방침",
+    "accept": "동의",
+    "decline": "거부"
   }
 }

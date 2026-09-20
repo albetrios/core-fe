@@ -285,6 +285,7 @@ Family-shared is importable by the parent island and its descendants only — ne
 - Use `type` imports for type-only imports: `import type { User } from './types.ts'`
 - **Icons:** import from `@/shared/icons/index.ts` — never `lucide-react` directly (eslint-enforced; vendored `components/ui/` is exempt). One-file icon-library swap.
 - **Heavy deferred modules** (`@sentry/react`, `posthog-js`, the SettingsModal/CommandPalette trees) are **dynamic-import only** — a single static import drags their chunk onto the first-paint preload path (`pnpm build:check` tripwires this).
+- **`routeTree.tsx` IS the entry chunk.** A surface the root route mounts exports **only its lazy shell** from its barrel (`SettingsModalLazy`, `AppearanceDialogLazy`, `ConsentBannerLazy`), and an entry-resident module never imports a large constants table for a few keys — declare them locally and pin them with a drift test. Attribution method + the other levers: `agent-os/skills/bundle-performance/SKILL.md`.
 
 ```tsx
 // Good
@@ -332,6 +333,8 @@ import { User } from './contracts';
 - Design tokens via `@theme` directive (OKLCH color space).
 - Dark mode via `.dark` class — managed by `useThemeStore`.
 - Never use inline styles — use Tailwind utility classes.
+- **Corner radius + shape follow the theme, everywhere.** Use a **named** radius step (`rounded-xs` … `rounded-4xl` — all derive from the Corner radius axis); a bare `rounded` or `rounded-[3px]` follows nothing and fails `pnpm validate:theme-axis`. `rounded-full` on a surface (chip, count badge, icon disc, track) carries `data-slot="pill"` so the **Sharp** shape can square it; status dots and blurred glows stay round. Never an unconditional `rounded-none`.
+- **Screen tiers:** Tailwind's scale plus `3xl` (1920px) and `4xl` (2560px) from `index.css` — layouts keep growing on big monitors. The sidebar is a **drawer below `lg`** (invisible when closed); the bottom tab bar lives below `md` and anything else pinned to the bottom rides above it via `--floating-bottom-offset`. Full rules: `docs/reference/design.md` → Screen tiers.
 - **Semantic tokens only** in app code — `bg-background`, `text-success`, `bg-brand`, `bg-overlay/50`, never raw palette classes (`bg-emerald-400`, `text-white`); enforced by `pnpm validate:tokens` (vendored `components/ui/` exempt). A future theme is then just a CSS file of token values.
 - shadcn/ui components live in `src/shared/components/ui/`.
 - **Aesthetic quality:** when building/styling/beautifying UI, apply **`agent-os/skills/frontend-design/SKILL.md`** (typography hierarchy, intentional theme, high-impact motion, composition, memorable details) — but **within** the guardrails: shadcn components, neutral semantic tokens (no raw colors), configured fonts/brand, and `web-design-guidelines` for a11y. It elevates craft; it does not override the component library, tokens, or brand.
@@ -424,6 +427,8 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
   (proactive timer, 401 interceptor) and a `navigator.locks` Web Lock (`core-auth:refresh`)
   serializes tabs. Never add a second refresh call: the backend rotates refresh sessions
   with reuse-detection, so parallel refreshes kill the session.
+- **Ending a session is a server-side act.** `logout({ reason })` revokes (`POST /auth/logout`) and THEN clears locally; it is the ONE way to end a live session — user menu, command palette, **the idle-timeout dialog (button and deadline) and the absolute session cap**. `forceLogout()` is **local only**: used alone on a live session it signs nobody out (the HttpOnly refresh cookie survives, `/login` silently refreshes, the guest guard bounces the user back in) — it is right only when the server session is already gone. A revoke that cannot reach the server (offline on wake) is finished at the next boot via a `core:logout-pending` flag; a deliberate end also suppresses auto-Google sign-in. Details: `src/shared/auth/AUTH.OVERVIEW.md`.
+- **The idle timer** (`shared/auth/idle-timeout.ts`) is deaf to activity in its own tab while the warning is up (a press on the dialog's own button IS `document` activity), measures idle time on the wall clock (sleep/throttling cannot stretch it), and shares activity across tabs.
 - `assetsInlineLimit: 0` in Vite config for CSP compliance.
 - CSP ships as a build-generated **header** (`dist/_headers`, authoritative) plus an
   `index.html` meta fallback, both from `lib/csp-api-origin.ts`; set `VITE_CSP_REPORT_URI`
@@ -436,6 +441,8 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
 - Route config lives in `src/app/routes/routeTree.tsx`.
 - Protected routes use TanStack Router `beforeLoad` guards in `routeTree.tsx` — the `$organizationSlug` shell runs `requireAuth → requireTeamDeployment → requireProvisionedWorkspace → resolveActiveOrg` (context sync from the URL); leaf routes then run `gatewayFromManifest` (session → module → permission) followed by `requireOrgStatus`; see `src/app/guards/GUARDS.OVERVIEW.md`.
 - RBAC enforcement in `routeTree.tsx` `beforeLoad` via `gatewayFromManifest(manifest)` (+ tenancy guards).
+- **Pending policy has two phases, not a list of routes.** `BOOT_PENDING_POLICY` (pending component at once, **no** 500ms minimum) until the first navigation resolves — the pending component holds the HTML splash, so every cold URL is one continuous screen — then `IN_APP_PENDING_POLICY` (keep the current screen ≤ 3s, 500ms minimum). No route sets `pendingMs`/`pendingMinMs`. While `/auth/refresh` is in flight, `preloadBootRoutes()` warms the destination's chunks, steered by `hasSessionHint()` — a **hint that never authorizes**.
+- **Settings lives in the hash, so two things follow.** (1) A same-route `navigate({ to: '.' })` must **state the hash** — the router resolves an omitted `hash` to none, which closes the modal (`hash: true` keeps it, `hash: ''` clears it on purpose; ESLint rejects neither). Stripe's return params are cleared through `stripeReturnCleanupNavigation()`. (2) The modal decides nothing — and canonicalizes nothing — until it has **both** answers: me/context _and_ the permission set (`useAccessResolved()`); an empty **unresolved** list is "not known yet", never "not allowed". Spec: `docs/reference/routing-and-tenancy.md` §7.
 - Every manifest-backed route sets `head: manifestHead(manifest)` (`lib/routes/page-head.ts`) — app-shell routes without a manifest (`/unauthorized`, the `$` 404 splat) use inline `composePageTitle`; the document
   title comes from `manifest.title` as `` `<title> · <PRODUCT_NAME>` `` (`APP_TITLE = PRODUCT_NAME`); the root-mounted
   `RouteAnnouncer` announces it to screen readers on SPA navigations.
@@ -461,7 +468,7 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
   - **Performance:** `tests/performance/` (optional) — Lighthouse, bundle-size
 - **Colocated unit tests:** `src/**/*.test.{ts,tsx}` (+ `pages/**/__tests__/integration/` for cross-component flows)
 - **E2E:** `tests/e2e/*.e2e.test.ts` (Playwright) — requires **core-be** on `:3000` (`global-setup.ts` fails if down). Never `.spec.ts`.
-- **Hybrid E2E selectors:** `data-testid` for actions, `getByRole`/`getByLabel` for a11y guards — `agent-os/skills/playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`
+- **Hybrid E2E selectors:** `data-testid` for actions, `getByRole`/`getByLabel` for a11y guards — `agent-os/skills/playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`. A control mounted per breakpoint shares one test id, so reach it with `byTestId()` (visible + first); never `.catch()` an `isVisible()` / `isEnabled()` feature check (ESLint-enforced) — it can only hide a strict-mode violation and turn the spec into a silent skip. **Read the skipped count.**
 - **Gates:** `pnpm validate:structure` (colocation), `pnpm validate:testids` (page/form/shell testids), `pnpm validate:theme-axis`, `pnpm coverage:patch` (PR changed-lines ≥ 90%)
 - Unit/security: Vitest; E2E: Playwright (Chromium). Component tests require `vitest-axe`; portaled dialogs use `axeForDialog`.
 

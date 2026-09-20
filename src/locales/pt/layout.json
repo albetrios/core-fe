@@ -127,7 +127,9 @@
       "title": "Sessão expirando",
       "description": "Sua sessão expirará em {{countdown}} por inatividade. Clique em \"Continuar conectado\" para continuar.",
       "signOut": "Sair",
-      "staySignedIn": "Continuar conectado"
+      "staySignedIn": "Continuar conectado",
+      "signingOut": "Saindo…",
+      "signingOutDescription": "Encerrando sua sessão com segurança. Você será levado à página de login."
     },
     "membersTable": {
       "actionsAria": "Ações para {{name}}",

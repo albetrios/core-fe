@@ -5,6 +5,7 @@ import {
   registerNewUserAndGoToDashboard,
   selectOrganizationInSwitcher,
 } from '@/tests/utils/e2e-auth.ts';
+import { byTestId } from '@/tests/utils/e2e-hybrid.ts';
 import { verifyDatabaseConnection } from '@/tests/utils/e2e-session.ts';
 
 /**
@@ -24,22 +25,20 @@ test.describe('Organization switching (dual-URL)', () => {
   }) => {
     await registerNewUserAndGoToDashboard(page);
 
-    const switcher = page.getByTestId('organization-switcher-trigger');
-    test.skip(
-      !(await switcher.isVisible().catch(() => false)),
-      'org switcher hidden for deployment mode',
-    );
+    const switcher = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden for deployment mode');
 
     const { slug: teamSlug } = await createTeamOrgViaSwitcher(page);
     await expect(page).toHaveURL(new RegExp(`/organization/${teamSlug}/dashboard`));
 
-    await page.getByTestId('organization-switcher-trigger').click();
+    await byTestId(page, 'organization-switcher-trigger').click();
     const personalOption = page.getByTestId('organization-switcher-option-personal');
-    test.skip(
-      !(await personalOption.isVisible().catch(() => false)),
-      'personal org section disabled',
-    );
+    test.skip(!(await personalOption.isVisible()), 'personal org section disabled');
     await page.keyboard.press('Escape');
+    // Radix closes the menu with an exit animation. A trigger click that lands
+    // mid-close is swallowed (the same trap `theme.e2e` documents), so wait for
+    // the menu to be fully gone before the helper opens it again.
+    await expect(personalOption).toBeHidden();
 
     await selectOrganizationInSwitcher(page, 'personal');
     await expect(page).toHaveURL(/\/dashboard(?:\?|$|#)/, { timeout: 15000 });

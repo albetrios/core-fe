@@ -46,10 +46,15 @@ export function SplitAuth({ children }: AuthLayoutShellProps) {
           aria-hidden="true"
         />
 
-        <div className="relative z-10 flex flex-1 flex-col justify-between p-10 xl:p-14">
+        {/* `3xl:` / `4xl:` — the big-monitor tier (index.css). Without it the
+            hero stayed a 28rem column pinned to the corner of a 1400px panel. */}
+        <div className="3xl:p-20 4xl:p-28 relative z-10 flex flex-1 flex-col justify-between p-10 xl:p-14">
           <div className="flex items-center justify-between">
             <BrandMark />
-            <span className="border-brand-foreground/15 bg-brand-foreground/5 text-brand-foreground/70 flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
+            <span
+              data-slot="pill"
+              className="border-brand-foreground/15 bg-brand-foreground/5 text-brand-foreground/70 flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
+            >
               <span className="relative flex h-2 w-2">
                 <span className="bg-success absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
                 <span className="bg-success relative inline-flex h-2 w-2 rounded-full" />
@@ -58,13 +63,13 @@ export function SplitAuth({ children }: AuthLayoutShellProps) {
             </span>
           </div>
 
-          <div className="max-w-md space-y-10">
+          <div className="3xl:max-w-xl 4xl:max-w-2xl 3xl:space-y-12 max-w-md space-y-10">
             <div className="space-y-4">
               <AuthHeroBadge />
-              <h1 className="text-4xl leading-[1.1] font-semibold tracking-tight text-balance xl:text-5xl">
+              <h1 className="3xl:text-6xl 4xl:text-7xl text-4xl leading-[1.1] font-semibold tracking-tight text-balance xl:text-5xl">
                 {t(LAYOUT_KEYS.auth.heroTitle)}
               </h1>
-              <p className="text-brand-foreground/60">
+              <p className="text-brand-foreground/60 3xl:text-lg 4xl:text-xl">
                 {t(LAYOUT_KEYS.auth.heroSubtitle)}
               </p>
             </div>
@@ -76,8 +81,10 @@ export function SplitAuth({ children }: AuthLayoutShellProps) {
                     <Icon className={cn('h-4 w-4', iconOnBrandSurface)} />
                   </span>
                   <div>
-                    <p className="text-sm font-medium">{t(title)}</p>
-                    <p className="text-brand-foreground/55 text-sm">{t(body)}</p>
+                    <p className="3xl:text-base text-sm font-medium">{t(title)}</p>
+                    <p className="text-brand-foreground/55 3xl:text-base text-sm">
+                      {t(body)}
+                    </p>
                   </div>
                 </li>
               ))}
@@ -98,7 +105,7 @@ export function SplitAuth({ children }: AuthLayoutShellProps) {
           id="main-content"
           className="flex flex-1 items-center justify-center px-5 pb-12 sm:px-6"
         >
-          <div className="w-full max-w-[420px]">
+          <div className="3xl:max-w-[480px] w-full max-w-[420px]">
             <AuthForm>{children}</AuthForm>
           </div>
         </main>

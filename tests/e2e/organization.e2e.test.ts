@@ -4,7 +4,7 @@ import {
   createTeamOrgViaSwitcher,
   registerNewUserAndGoToDashboard,
 } from '@/tests/utils/e2e-auth.ts';
-import { gotoApp, navigateAuthenticated } from '@/tests/utils/e2e-hybrid.ts';
+import { byTestId, gotoApp, navigateAuthenticated } from '@/tests/utils/e2e-hybrid.ts';
 
 test.describe('Organization picker', () => {
   test('redirects unauthenticated visitors to login', async ({ page }) => {
@@ -21,8 +21,8 @@ test.describe('Organization picker', () => {
 
   test('the switcher opens an accessible menu and closes on Escape', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
-    const trigger = page.getByTestId('organization-switcher-trigger');
-    test.skip(!(await trigger.isVisible().catch(() => false)), 'org switcher hidden');
+    const trigger = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await trigger.isVisible()), 'org switcher hidden');
 
     await trigger.click();
     // Radix DropdownMenuContent exposes role="menu".
@@ -34,13 +34,13 @@ test.describe('Organization picker', () => {
 
   test('the create-organization action opens the create dialog', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
-    const trigger = page.getByTestId('organization-switcher-trigger');
-    test.skip(!(await trigger.isVisible().catch(() => false)), 'org switcher hidden');
+    const trigger = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await trigger.isVisible()), 'org switcher hidden');
 
     await trigger.click();
     const createItem = page.getByTestId('organization-switcher-create');
     test.skip(
-      !(await createItem.isVisible().catch(() => false)),
+      !(await createItem.isVisible()),
       'team creation disabled in this deployment mode',
     );
 
@@ -57,10 +57,10 @@ test.describe('Organization picker', () => {
 
   test('organization switcher lists team org after create', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
-    const switcher = page.getByTestId('organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    const switcher = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden');
     const { slug } = await createTeamOrgViaSwitcher(page);
-    await page.getByTestId('organization-switcher-trigger').click();
+    await byTestId(page, 'organization-switcher-trigger').click();
     await expect(page.getByTestId(`organization-switcher-option-${slug}`)).toBeVisible({
       timeout: 10000,
     });

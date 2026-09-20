@@ -103,6 +103,10 @@ export function useDataTableUrlState(enabled: boolean) {
         // The router types `search` per route; this hook intentionally works on
         // the structural subset above, on whatever route it is rendered in.
         search: updater as never,
+        // "Patches only the search keys" has to include the hash: the router
+        // resolves an omitted `hash` to none, so sorting a table rendered inside
+        // the settings hash modal would have closed the modal around it.
+        hash: true,
         replace: true,
       });
     },

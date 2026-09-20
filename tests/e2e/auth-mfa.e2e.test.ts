@@ -8,6 +8,7 @@ import { fillTestId, gotoApp } from '@/tests/utils/e2e-hybrid.ts';
 import {
   createSessionViaEmailCode,
   e2eAuthHeaders,
+  echoedVerificationCode,
   pollVerificationCodeFromMailOutbox,
   requireDatabaseUrl,
   uniqueE2eEmail,
@@ -54,6 +55,12 @@ async function freshTotp(secret: string, used: Set<string>): Promise<string> {
 /**
  * Request a fresh email verification code and wait for it to differ from the
  * last one seen. Retries through the per-email issue window (local caps vary).
+ *
+ * The code comes from the send-code response when core-be echoes it (its
+ * local/TEST mode — `debug_verification_code`, the field the sign-in form
+ * prefills from). Polling `mail_outbox` for it instead is a second system with
+ * its own lag, and under a long suite that lag was the whole 90s: this helper
+ * timed out while the backend had answered every request.
  */
 async function freshEmailCode(
   api: APIRequestContext,
@@ -62,15 +69,19 @@ async function freshEmailCode(
 ): Promise<string> {
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
-    await api.post(`${API}/auth/email/send-code`, {
+    const sent = await api.post(`${API}/auth/email/send-code`, {
       headers: e2eAuthHeaders(),
       data: { email },
     });
-    try {
-      const code = await pollVerificationCodeFromMailOutbox(email);
-      if (code !== previous) return code;
-    } catch {
-      // outbox poll timed out — fall through to resend
+    const echoed = await echoedVerificationCode(sent);
+    if (echoed && echoed !== previous) return echoed;
+    if (!echoed) {
+      try {
+        const code = await pollVerificationCodeFromMailOutbox(email);
+        if (code !== previous) return code;
+      } catch {
+        // outbox poll timed out — fall through to resend
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, 5_000));
   }

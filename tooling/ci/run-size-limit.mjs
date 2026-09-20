@@ -72,8 +72,18 @@ const config = [
      *
      * The split is otherwise intact: build:check reports no deferred module on
      * the first-paint path, and the module-scope import() audit is clean.
+     *
+     * 235 → 234 kB. Part of that un-itemised 5.7 kB is now attributed: the
+     * root-mounted `AppearanceDialog` imported `settings.constants.ts` for THREE
+     * header keys, which put the whole Settings key table (~17 kB of source,
+     * ~3 kB gzipped) on the first paint of every load. It declares those keys
+     * locally now (pinned by `appearance-dialog.constants.test.ts`), and the cookie
+     * consent card went lazy. Measured after: 232.8 kB, against main's 234.3 —
+     * while the same change ADDED the boot warm-up, the router pending policy
+     * and the pending-revoke sign-out. Lowered per the rule above; the ~1.2 kB
+     * of headroom matches what the previous limit left.
      */
-    limit: '235 kB',
+    limit: '234 kB',
     gzip: true,
   },
   ...(cssPaths.length
@@ -81,7 +91,18 @@ const config = [
         {
           name: 'Initial CSS',
           path: cssPaths,
-          limit: '25 kB',
+          /*
+           * 25 → 23.5 kB. The stylesheet had crept to 25.01 kB and the cause
+           * was not the app: Tailwind's automatic detection reads every tracked
+           * file, so class-shaped strings in `docs/`, agent-os skills, `tooling/`
+           * gate fixtures and E2E specs were being emitted — 196 utilities,
+           * ~2.2 kB gzipped, including raw-palette classes `validate:tokens`
+           * forbids in app code. `src/index.css` now scopes the scan
+           * (`source('../src')`, tests excluded) and `build:check` trips if it
+           * ever widens again. Measured after: 22.76 kB, below main's 23.8.
+           * Lowered per the ratchet rule; ~0.7 kB of headroom.
+           */
+          limit: '23.5 kB',
           gzip: true,
         },
       ]

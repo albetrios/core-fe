@@ -65,6 +65,16 @@ describe('AppearancePanel', () => {
     expect(screen.getByTestId('currency-code-select')).toBeInTheDocument();
   });
 
+  it('tags the accent preview bar as a pill, so the Sharp shape squares it', () => {
+    // The preview has to look like the toast it previews, and the real accent
+    // bar is square-ended under Sharp.
+    render(<AppearancePanel />);
+
+    const bar = screen.getByTestId('toast-swatch-accent').querySelector('span');
+    expect(bar).toHaveClass('rounded-full');
+    expect(bar).toHaveAttribute('data-slot', 'pill');
+  });
+
   it('notification shuffle rolls the toast variant', async () => {
     const user = userEvent.setup();
     render(<AppearancePanel />);

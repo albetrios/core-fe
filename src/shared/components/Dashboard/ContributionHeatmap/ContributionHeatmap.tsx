@@ -90,7 +90,7 @@ export function ContributionHeatmap() {
                 <div
                   key={day.id}
                   className={cn(
-                    'aspect-square w-full rounded-[3px] transition-transform duration-200 hover:scale-125 motion-reduce:transition-none',
+                    'aspect-square w-full rounded-xs transition-transform duration-200 hover:scale-125 motion-reduce:transition-none',
                     LEVEL_CLASSES[day.level] ?? LEVEL_CLASSES[0],
                   )}
                 />
@@ -101,7 +101,7 @@ export function ContributionHeatmap() {
         <div className="text-muted-foreground flex items-center justify-end gap-1.5 text-xs">
           <span>{t(DASHBOARD_KEYS.heatmap.less)}</span>
           {LEVEL_CLASSES.map((level) => (
-            <span key={level} className={cn('size-2.5 rounded-[3px]', level)} />
+            <span key={level} className={cn('size-2.5 rounded-xs', level)} />
           ))}
           <span>{t(DASHBOARD_KEYS.heatmap.more)}</span>
         </div>

@@ -1,4 +1,5 @@
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { HttpError } from '@/shared/errors/HttpError.ts';
@@ -108,6 +109,34 @@ describe('AcceptInvitePage', () => {
       expect(acceptInvitationMock).toHaveBeenCalledWith('inv_test', 'test-token'),
     );
     expect(await screen.findByTestId('accept-invite-success')).toBeInTheDocument();
+  });
+
+  // ── The way the app really mounts it: inside <StrictMode> (main.tsx) ───────
+  // React then mounts → unmounts → re-mounts every component once, in dev and so
+  // in every E2E run. A ref survives that; a cleanup that only ever writes `false`
+  // to it does not un-write itself.
+  //
+  // Plain `render`, on purpose: `renderWithProviders` mounts the page through the
+  // router AFTER the first commit, and StrictMode's simulated remount never
+  // reaches it — a StrictMode test written on that helper passes against the bug
+  // (it did; the mutation check is what caught it). The success path renders no
+  // `<Link>`, so it needs no router context.
+
+  it('reaches success under StrictMode — the page is not "gone" after the double mount', async () => {
+    // Regression: `aliveRef` was set to false by the simulated unmount and never
+    // set back, so the finished accept hit `if (!aliveRef.current) return` and the
+    // card sat on "Accepting your invitation…" forever — no success, no error, no
+    // redirect. Every other test here mounts once, and passed.
+    render(
+      <StrictMode>
+        <AcceptInvitePage />
+      </StrictMode>,
+    );
+
+    expect(await screen.findByTestId('accept-invite-success')).toBeInTheDocument();
+    expect(screen.queryByTestId('accept-invite-loading')).not.toBeInTheDocument();
+    // The double mount must not double the WRITE either.
+    expect(acceptInvitationMock).toHaveBeenCalledTimes(1);
   });
 
   it('recovers through login when the accept call itself 401s', async () => {

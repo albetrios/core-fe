@@ -94,8 +94,10 @@ describe('BillingPaymentMethods', () => {
     );
     renderMethods();
 
+    // `hash: true` — this card lives in the settings HASH modal; dropping the
+    // hash here closed the modal right after a card was saved.
     expect(navigateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ to: '.', replace: true }),
+      expect.objectContaining({ to: '.', replace: true, hash: true }),
     );
     const updater = navigateMock.mock.calls.at(-1)?.[0]?.search as (
       prev: Record<string, unknown>,

@@ -30,7 +30,11 @@ export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
       data-testid="settings-nav"
       className="bg-muted/30 hidden h-full flex-col border-e sm:flex"
     >
-      <div className="p-3">
+      {/* 24px — the inset every other dialog in the app gets from `DialogContent`
+          (`p-6`). This modal opts out of it (`p-0`, it lays out its own panes), so
+          each pane has to put it back: the search box used to sit 12px from the
+          corner beside a content pane inset 32px. */}
+      <div className="px-6 pt-6 pb-3">
         <div className="relative">
           <Search
             className="text-muted-foreground absolute start-2.5 top-1/2 size-4 -translate-y-1/2"
@@ -49,7 +53,7 @@ export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
       </div>
 
       <nav
-        className="flex-1 space-y-4 overflow-y-auto px-3 pb-3"
+        className="flex-1 space-y-4 overflow-y-auto px-6 pb-6"
         aria-label={t(SETTINGS_KEYS.nav.ariaSettings)}
       >
         {visible.length === 0 && (

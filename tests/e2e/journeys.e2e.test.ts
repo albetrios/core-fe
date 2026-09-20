@@ -8,6 +8,7 @@ import {
   registerNewUserAndGoToDashboard,
 } from '@/tests/utils/e2e-auth.ts';
 import {
+  byTestId,
   clickTestId,
   expectAppHeaderReady,
   expectLoginFormReady,
@@ -101,16 +102,27 @@ test.describe('Product journeys', () => {
     }
   });
 
-  test('accept invite without auth shows error affordance', async ({ page }) => {
-    await gotoApp(page, '/accept-invite/inv_expired');
-    await expect(page.getByTestId('accept-invite-error')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('accept-invite-login')).toBeVisible();
+  test('accept invite without auth goes through sign-in and keeps the invite', async ({
+    page,
+  }) => {
+    // `/accept-invite/$invitationId` is auth-required (INV-4, `requireAuth` in the
+    // route's `beforeLoad`): the recipient of an invite email is usually NOT signed
+    // in, and that is the common path — so a guest goes to sign-in FIRST, with the
+    // whole link (token included) carried as the post-login redirect. The page's
+    // error card is for a signed-in user; a guest never sees it.
+    await gotoApp(page, '/accept-invite/inv_expired?token=tok_e2e_guest');
+
+    await expect(page).toHaveURL(/\/login\?redirect=/, { timeout: 10000 });
+    const redirect = new URL(page.url()).searchParams.get('redirect') ?? '';
+    expect(redirect).toContain('/accept-invite/inv_expired');
+    expect(redirect).toContain('token=tok_e2e_guest');
+    await expectLoginFormReady(page);
   });
 
   test('suspended page renders for authenticated team member', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
-    const switcher = page.getByTestId('organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    const switcher = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden');
     const { slug } = await createTeamOrgViaSwitcher(page);
     await navigateAuthenticated(page, `/organization/${slug}/suspended`);
     await expect(page.getByTestId('suspended-page')).toBeVisible({ timeout: 10000 });
@@ -142,10 +154,30 @@ test.describe('Product journeys', () => {
       await expect(page.getByTestId(panel)).toBeVisible({ timeout: 10000 });
     }
 
-    const switcher = page.getByTestId('organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    // The modal's overlay (correctly) swallows clicks on the shell behind it, so
+    // leave settings before reaching for the switcher. Not with Escape: closing
+    // is `history.back()`, and each deep link above PUSHED an entry, so one
+    // Escape only steps back to the previous section. (In-app section switches
+    // `replace`, which is why a real user needs just one.) Drop the hash instead.
+    const withoutHash = new URL(page.url());
+    withoutHash.hash = '';
+    await page.goto(withoutHash.toString());
+    await expect(page.getByTestId('settings-modal')).toHaveCount(0);
+    // `isVisible()` below is an instantaneous feature check, not a wait — make
+    // sure the shell is back first, or a slow paint reads as "no switcher" and
+    // the rest of this test skips without anyone noticing.
+    await expectAppHeaderReady(page);
+
+    const switcher = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden');
     await createTeamOrgViaSwitcher(page);
 
+    // Regression: deep-linking to an organization section the instant the org
+    // exists used to land on Account · Profile. Entering an org clears the store's
+    // permissions a beat before the real set arrives; the modal read that empty,
+    // UNRESOLVED list as an answer and rewrote the URL — 19 ms after the deep
+    // link, for good. me/context was correct the whole time. Nothing had ever run
+    // this half of the spec (it was skipping by accident), which is how it shipped.
     await openSettingsHash(page, 'organization', 'general');
     await expect(page.getByTestId('settings-section-org-general')).toBeVisible({
       timeout: 10000,

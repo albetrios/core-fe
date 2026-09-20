@@ -4,8 +4,8 @@ const SPLASH_ID = 'app-splash';
 const EXIT_CLASS = 'app-splash-exiting';
 const DISMISS_EVENT = 'app-splash-dismissed';
 
-/** Matches the `#app-splash` opacity/visibility transition in index.html (320ms) plus slack. */
-const EXIT_FALLBACK_MS = 480;
+/** Matches the `#app-splash` opacity/visibility transition in index.html (200ms) plus slack. */
+const EXIT_FALLBACK_MS = 360;
 
 /**
  * Grace period between the last hold releasing and the fade actually starting.
@@ -20,6 +20,18 @@ const EXIT_FALLBACK_MS = 480;
 const EXIT_GRACE_MS = 250;
 
 /**
+ * How long to wait once the router says the destination is on screen.
+ *
+ * {@link EXIT_GRACE_MS} is a guess about the FUTURE — "another loader may be
+ * about to mount" — and it is only right while a navigation is still in flight.
+ * Once the router has resolved there is no next loader coming, and those 250ms
+ * were pure dead time: the login form (or the dashboard) sat fully rendered
+ * behind an opaque overlay, on every single cold load. Two frames is enough for a
+ * hold taken in the same commit (a layout effect) to land first.
+ */
+const SETTLED_EXIT_DELAY_MS = 32;
+
+/**
  * Ceiling on how long holds may keep the splash up once dismissal was requested.
  * A bootstrap that never resolves must not trap the user behind an inert HTML
  * overlay — past this the splash leaves and React's own loader takes the screen,
@@ -32,6 +44,8 @@ let tracked: HTMLElement | null = null;
 let holdCount = 0;
 let dismissRequested = false;
 let holdDeadlineReached = false;
+/** The router has resolved: what is mounted is the destination, not a way-point. */
+let contentSettled = false;
 let exitFinish: (() => void) | undefined;
 let exitTimer: number | undefined;
 let holdDeadline: number | undefined;
@@ -49,6 +63,7 @@ function currentSplash(): HTMLElement | null {
     holdCount = 0;
     dismissRequested = false;
     holdDeadlineReached = false;
+    contentSettled = false;
     exitFinish = undefined;
     if (exitTimer !== undefined) window.clearTimeout(exitTimer);
     exitTimer = undefined;
@@ -118,10 +133,41 @@ function cancelExit(): void {
  */
 function scheduleExitCheck(): void {
   if (releaseTimer !== undefined) return;
-  releaseTimer = window.setTimeout(() => {
-    releaseTimer = undefined;
-    if (holdCount === 0 && dismissRequested) runExit();
-  }, EXIT_GRACE_MS);
+  releaseTimer = window.setTimeout(
+    () => {
+      releaseTimer = undefined;
+      if (holdCount === 0 && dismissRequested) runExit();
+    },
+    contentSettled ? SETTLED_EXIT_DELAY_MS : EXIT_GRACE_MS,
+  );
+}
+
+/**
+ * The router finished resolving a navigation — the destination is mounted.
+ *
+ * From here a zero-hold moment is the real thing rather than a gap between two
+ * loaders, so the splash may leave on the next frames instead of sitting out the
+ * grace window. Any check already waiting on that window is brought forward.
+ * Wired to the router's `onResolved` in `main.tsx` (this module cannot import it:
+ * `lib` sits below `app`).
+ */
+export function markAppContentSettled(): void {
+  if (!isAppSplashActive() || contentSettled) return;
+  contentSettled = true;
+  if (releaseTimer === undefined) return;
+  window.clearTimeout(releaseTimer);
+  releaseTimer = undefined;
+  scheduleExitCheck();
+}
+
+/**
+ * A navigation started — whatever is mounted is on its way out again, and the
+ * next thing to mount may well be a loader. Back to the conservative grace
+ * window (this is the OAuth callback → next screen handoff it was measured on).
+ */
+export function markAppContentPending(): void {
+  if (!isAppSplashActive()) return;
+  contentSettled = false;
 }
 
 /**

@@ -1,12 +1,16 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 
-import { registerNewUserAndGoToDashboard } from '@/tests/utils/e2e-auth.ts';
+import {
+  navigateInApp,
+  registerNewUserAndGoToDashboard,
+} from '@/tests/utils/e2e-auth.ts';
 import {
   expectAuthScreenReady,
   gotoApp,
   openSettingsHash,
 } from '@/tests/utils/e2e-hybrid.ts';
+import { verifyDatabaseConnection } from '@/tests/utils/e2e-session.ts';
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -79,7 +83,14 @@ test.describe('Accessibility', () => {
   });
 
   test('accept-invite error state has no critical a11y violations', async ({ page }) => {
-    await gotoApp(page, '/accept-invite/inv_expired');
+    // The error card is a SIGNED-IN state: the route is auth-required (INV-4), so a
+    // guest is redirected to sign-in before this page ever renders.
+    test.skip(
+      !(await verifyDatabaseConnection()),
+      'DATABASE_URL must reach core-be Postgres (mail_outbox)',
+    );
+    await registerNewUserAndGoToDashboard(page);
+    await navigateInApp(page, '/accept-invite/inv_expired');
     await expect(page.getByTestId('accept-invite-error')).toBeVisible({
       timeout: 10000,
     });

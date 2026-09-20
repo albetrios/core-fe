@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import { useUIStore } from './useUIStore.ts';
 
 describe('useUIStore', () => {
@@ -9,10 +11,23 @@ describe('useUIStore', () => {
     });
   });
 
-  it('initial state: sidebarOpen=true, commandPaletteOpen=false', () => {
-    const state = useUIStore.getState();
-    expect(state.sidebarOpen).toBe(true);
-    expect(state.commandPaletteOpen).toBe(false);
+  it('initial state: every overlay closed — including the navigation drawer', () => {
+    // `sidebarOpen` is the off-canvas DRAWER (phones + tablets); from `lg` up the
+    // sidebar is a permanent column pinned by CSS. It used to be seeded from a
+    // `min-width: 768px` media query, so a window loaded wide and then narrowed
+    // kept `true` and the drawer sat open over content nobody had opened it on.
+    const initial = useUIStore.getInitialState();
+    expect(initial.sidebarOpen).toBe(false);
+    expect(initial.commandPaletteOpen).toBe(false);
+    expect(initial.shortcutsOpen).toBe(false);
+    expect(initial.appearanceOpen).toBe(false);
+  });
+
+  it('does not consult the viewport for its initial state', () => {
+    const matchMedia = vi.spyOn(window, 'matchMedia');
+    useUIStore.getInitialState();
+    expect(matchMedia).not.toHaveBeenCalled();
+    matchMedia.mockRestore();
   });
 
   it('toggleSidebar toggles sidebarOpen', () => {

@@ -127,7 +127,9 @@
       "title": "Sitzung läuft ab",
       "description": "Ihre Sitzung läuft in {{countdown}} wegen Inaktivität ab. Klicken Sie auf „Angemeldet bleiben“, um fortzufahren.",
       "signOut": "Abmelden",
-      "staySignedIn": "Angemeldet bleiben"
+      "staySignedIn": "Angemeldet bleiben",
+      "signingOut": "Abmeldung läuft…",
+      "signingOutDescription": "Ihre Sitzung wird sicher beendet. Sie werden zur Anmeldeseite weitergeleitet."
     },
     "membersTable": {
       "actionsAria": "Aktionen für {{name}}",

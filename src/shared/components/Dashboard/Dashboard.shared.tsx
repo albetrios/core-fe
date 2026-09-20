@@ -470,7 +470,10 @@ export function InsightsFrame({
           description={t(DASHBOARD_KEYS.analytics.description)}
         />
         {framed ? (
-          <div className="border-primary/20 from-primary/10 via-card to-card flex flex-col gap-4 rounded-2xl border bg-gradient-to-br p-3 sm:gap-5 sm:p-4">
+          <div
+            data-slot="card"
+            className="border-primary/20 from-primary/10 via-card to-card flex flex-col gap-4 rounded-2xl border bg-gradient-to-br p-3 sm:gap-5 sm:p-4"
+          >
             {children}
           </div>
         ) : (

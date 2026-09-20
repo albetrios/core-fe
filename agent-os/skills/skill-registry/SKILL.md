@@ -902,9 +902,9 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 ### 10e. resilient-interactions
 
 **Path:** `agent-os/skills/resilient-interactions/SKILL.md`
-**Rule:** `agent-os/rules/resilient-interactions.mdc` (the 28 one-liners, `alwaysApply`)
+**Rule:** `agent-os/rules/resilient-interactions.mdc` (the 31 one-liners, `alwaysApply`)
 
-**Purpose:** The worked reasoning behind the 28 always-on resilience rules — the failure each came from, the fix that looked right and was not, and the code that holds. The rule states them; this explains them.
+**Purpose:** The worked reasoning behind the 30 always-on resilience rules — the failure each came from, the fix that looked right and was not, and the code that holds. The rule states them; this explains them.
 
 **Trigger keywords:** "single-flight", "double submit", "error boundary", "optimistic rollback", "loading state", "success toast", "§1", "§6"
 
@@ -1129,7 +1129,7 @@ These Cursor rules are always loaded and do not need to be invoked:
 | pwa-manifest-sync      | `agent-os/rules/pwa-manifest-sync.mdc`      | PWA manifest/icon — read pwa-manifest skill                                                               |
 | env-schema-add-sync    | `agent-os/rules/env-schema-add-sync.mdc`    | Env schema / `.env.example` — read env-schema-add skill                                                   |
 | agent-behavior         | `agent-os/rules/agent-behavior.mdc`         | Complete tests, route reg, RBAC, docs without asking; never ask "Do you want X?"                          |
-| resilient-interactions | `agent-os/rules/resilient-interactions.mdc` | 28 UI-resilience rules: single-flight writes, contained crashes, honest loading/empty/error states        |
+| resilient-interactions | `agent-os/rules/resilient-interactions.mdc` | 30 UI-resilience rules: single-flight writes, contained crashes, honest loading/empty/error states        |
 
 ## Orchestration manifests (machine-readable)
 

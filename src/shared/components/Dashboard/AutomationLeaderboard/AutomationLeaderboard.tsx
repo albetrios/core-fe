@@ -86,6 +86,7 @@ export function AutomationLeaderboard() {
                 )}
               >
                 <span
+                  data-slot="pill"
                   className={cn(
                     'inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums',
                     RANK_CHIPS[index % RANK_CHIPS.length],

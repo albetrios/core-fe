@@ -170,9 +170,55 @@ Named presets and generated looks are mutually exclusive (`data-theme` vs inline
 - Hardcoded focus rings (`focus-visible:ring`, `focus:ring`)
 - Direct `lucide-react` imports outside the icon barrel
 - `bg-card` / `bg-popover` without a nearby `data-slot=` marker
+- **Off-scale corner radius** — a bare `rounded`, or an arbitrary `rounded-[3px]`.
+  Neither follows the Corner radius axis. Every _named_ step does (`rounded-xs` …
+  `rounded-4xl`: `sm/md/lg/xl` are set inline by the axis, the rest derive from
+  `--radius-lg` in `index.css`), and so does `rounded-[var(--radius-*)]`.
 
-Allowlisted exceptions live in `tooling/validate/theme-axis-allowlist.txt`. The gate
-runs in `pnpm health` (phase 8b) after `validate:tokens`.
+- **`rounded-full` the Sharp shape cannot reach** — `rounded-full` is a **shape**
+  decision rather than a radius one, so the element needs a slot the
+  `[data-shape='sharp']` list squares: its own `data-slot=` within 5 lines above
+  (usually **`data-slot="pill"`** — chip, count badge, icon disc, track, swatch), or a
+  primitive that brings one (`<Button>`, `<Badge>`, `<Avatar>`, `<Skeleton>`).
+  **Exempt, because they are indicators and not surfaces:** status dots of at most 10px
+  (`size-2.5`, `h-2 w-2`), blurred glows, the `animate-ping` halo, and pseudo-element
+  markers (`before:rounded-full` — squared in `index.css` through the `nav-item` that
+  draws them).
+
+- **Fixed-size spacing** — a padding / margin / gap written as a literal (`p-[24px]`,
+  `gap-[0.5rem]`). Every scale step is `calc(var(--spacing) * n)` and the **Density** axis
+  sets `--spacing`, so `p-6` follows the setting and `p-[24px]` — pixel-identical on the
+  default look — silently ignores it. `[var(--…)]` and `[calc(…)]` pass; sizes and offsets
+  (`h-[640px]`, `top-[20%]`) are not spacing and are not checked.
+
+**One inset for every dialog.** `DialogContent` gives each dialog `p-6`. A surface that opts
+out to lay out its own panes (`SettingsModal`, `p-0`) has to put the same step back on
+**each** pane — search box, nav and content are all `6` there, and the phone sheet's section
+picker starts on the content's `4` gutter. Browser-proven under Compact and Airy in
+`theme-shape.e2e.test.ts` (each inset is exactly six spacing units).
+
+Two traps the slot model has, both found by measuring rather than reading:
+
+- **A vendored primitive can re-slot a `<Button>`.** `ui/carousel` renders its arrows as
+  `<Button data-slot="carousel-previous">`, so the `button` rule no longer matches them.
+  A primitive that is round by design needs **its own** slot in the Sharp list.
+- **A placeholder needs the corners of the thing it stands in for.** `lib/animations`
+  ships the skeletons the dashboard actually loads with; both carry
+  `data-slot="skeleton"` like `ui/skeleton`, or a Sharp app paints round and snaps square.
+
+Allowlisted exceptions live in `tooling/validate/theme-axis-allowlist.txt` — prefer a
+class **fragment** over a file name: a fragment exempts one line from one check, a file
+name exempts the whole file from every check. The gate runs in `pnpm health` (phase 8b)
+after `validate:tokens`, and in the PR `static-sync` job. It is itself under test —
+`tooling/validate/theme-axis.test.mjs` runs it against fixture trees (every violating
+spelling, every allowed one) via `pnpm test:github-scripts`.
+
+**The gate reads class strings; only a browser can read corners.**
+`tests/e2e/theme-shape.e2e.test.ts` seeds radius **None** + shape **Sharp**, then asks
+for the computed `border-radius` of every painted element on the sign-in screen, the
+dashboard (desktop and phone shell) and the open overlays (settings, appearance,
+notifications). It must come back empty; a control test runs the same sweep on the
+default look and must find corners, and a third proves the **Round** look grows them.
 
 **Catalog doc sync:** `pnpm validate:theme-catalog` ensures `design.md` and
 `theming.md` list the same axis options as `presets.ts` (assertions in

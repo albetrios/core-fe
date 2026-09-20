@@ -29,6 +29,22 @@ describe('SettingsNav', () => {
     expect(screen.getByTestId('settings-nav-organization-members')).toBeInTheDocument();
   });
 
+  it('insets the search box and the nav by the standard dialog padding', () => {
+    // Every other dialog gets 24px from `DialogContent` (`p-6`). The settings
+    // modal opts out (`p-0`), and its search box used to sit 12px from the corner
+    // next to a content pane inset 32px. `6` is a spacing-scale step, so — like
+    // `p-6` — it follows the theme's Density setting; a fixed `[24px]` would not.
+    renderNav();
+
+    const search = screen.getByTestId('settings-search');
+    const searchPane = search.parentElement?.parentElement;
+    expect(searchPane).toHaveClass('px-6', 'pt-6');
+    expect(searchPane).not.toHaveClass('p-3');
+
+    // The pills share the search box's edges, so the column reads as one block.
+    expect(screen.getByRole('navigation')).toHaveClass('px-6', 'pb-6');
+  });
+
   it('marks the active section with aria-current="page"', () => {
     renderNav({ active: { scope: 'account', section: 'security' } });
     expect(screen.getByTestId('settings-nav-account-security')).toHaveAttribute(

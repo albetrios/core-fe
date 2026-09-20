@@ -1,7 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { registerNewUserAndGoToDashboard } from '@/tests/utils/e2e-auth.ts';
+import {
+  navigateInApp,
+  registerNewUserAndGoToDashboard,
+} from '@/tests/utils/e2e-auth.ts';
 import { expectAuthScreenReady, gotoApp } from '@/tests/utils/e2e-hybrid.ts';
+import { verifyDatabaseConnection } from '@/tests/utils/e2e-session.ts';
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -93,7 +97,14 @@ test.describe('Visual Regression', () => {
   });
 
   test('accept-invite error card (light mode)', async ({ page }) => {
-    await gotoApp(page, '/accept-invite/inv_expired');
+    // The error card is a SIGNED-IN state: the route is auth-required (INV-4), so a
+    // guest is redirected to sign-in before this page ever renders.
+    test.skip(
+      !(await verifyDatabaseConnection()),
+      'DATABASE_URL must reach core-be Postgres (mail_outbox)',
+    );
+    await registerNewUserAndGoToDashboard(page);
+    await navigateInApp(page, '/accept-invite/inv_expired');
     await expect(page.getByTestId('accept-invite-error')).toBeVisible({
       timeout: 10000,
     });

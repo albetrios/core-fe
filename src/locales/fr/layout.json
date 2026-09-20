@@ -127,7 +127,9 @@
       "title": "Session bientôt expirée",
       "description": "Votre session expirera dans {{countdown}} en raison de l'inactivité. Cliquez sur « Rester connecté » pour continuer.",
       "signOut": "Se déconnecter",
-      "staySignedIn": "Rester connecté"
+      "staySignedIn": "Rester connecté",
+      "signingOut": "Déconnexion…",
+      "signingOutDescription": "Fermeture sécurisée de votre session. Vous allez être redirigé vers la page de connexion."
     },
     "membersTable": {
       "actionsAria": "Actions pour {{name}}",

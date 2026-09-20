@@ -137,6 +137,7 @@ function HighlightSlide({
             >
               {t(slide.actionKey)}
               <span
+                data-slot="pill"
                 className="bg-primary-foreground/15 flex size-7 items-center justify-center rounded-full"
                 aria-hidden="true"
               >
@@ -302,6 +303,7 @@ export function HighlightsCarousel() {
                   <button
                     key={slide.id}
                     type="button"
+                    data-slot="pill"
                     className={cn(
                       'bg-muted-foreground/25 h-1 touch-manipulation rounded-full transition-[width,background-color] duration-300 ease-out',
                       index === activeIndex

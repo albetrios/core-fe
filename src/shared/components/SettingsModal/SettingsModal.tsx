@@ -37,6 +37,7 @@ import {
 } from '@/shared/components/ui/select.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { useAccessResolved } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
@@ -85,9 +86,19 @@ export function SettingsModal() {
 }
 
 /** One dialog shell for both the loading and the resolved states. */
+/**
+ * A full-screen sheet on phones (square — it IS the screen), a dialog from `sm`.
+ *
+ * The `sm:` half has to undo the sheet, not just cap it: `w-full` with only a
+ * `max-w` left the modal flush against both edges on anything between 640px and
+ * 960px (every tablet), and an unconditional `rounded-none` kept it square on
+ * desktop under every radius setting. `sm:rounded-lg` is token-backed and the
+ * dialog slot squares it again under the Sharp shape.
+ */
 const SETTINGS_DIALOG_CLASS =
   'h-dvh max-h-dvh w-full max-w-full gap-0 overflow-hidden rounded-none p-0 ' +
-  'sm:h-[640px] sm:max-h-[85vh] sm:max-w-[960px]';
+  'sm:h-[640px] sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-[960px] sm:rounded-lg ' +
+  '3xl:h-[760px] 3xl:max-w-[1120px]';
 
 function SettingsModalBody() {
   const { t } = useTranslation(SETTINGS_NS);
@@ -107,9 +118,22 @@ function SettingsModalBody() {
   // for a fallback (SET-15).
   const meContext = useMeContext();
   const orgType = meContext.data?.activeOrganization?.type;
-  // A failed fetch is not a reason to hang on the skeleton forever: fall back to
-  // permission-only gating, which is what the modal did before.
-  const contextReady = !meContext.isPending;
+  // The OTHER half of "do we know the shape of this modal yet": which sections
+  // the user may open comes from the org store's permission set, and entering an
+  // organization clears that set (`ensurePermissionsFor` → `clearPermissions()`)
+  // a beat before the real one lands. For that beat `permissions` is `[]` —
+  // which means "not known yet", not "you may do nothing" (SET-23; it is what
+  // `useAccessResolved` exists to tell apart). Reading it as an answer hid the
+  // Organization group, resolved `#settings/organization/general` to the
+  // fallback, and let the effect below REWRITE THE URL to `account/profile` —
+  // permanently, 19 ms after the deep link and ~50 ms before the permissions
+  // arrived. me/context was already correct (`TEAM`) the whole time.
+  const accessResolved = useAccessResolved();
+  // …unless there is nothing to wait for. The permission set is DERIVED from
+  // me/context (`deriveOrgContext`), so when that settled without data — a failed
+  // fetch — no answer is ever coming: do not hang on the skeleton, fall back to
+  // permission-only gating with whatever the store holds, as the modal always has.
+  const contextReady = !meContext.isPending && (accessResolved || !meContext.data);
   const deploymentFlags = useDeploymentFlags();
   const navigate = useNavigate();
   const router = useRouter();
@@ -233,8 +257,10 @@ function SettingsModalBody() {
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
             <SettingsNav groups={readyGroups} active={active} onSelect={goTo} />
             <div className="flex min-h-0 flex-col">
-              {/* Mobile section picker — the sidebar is hidden below sm */}
-              <div className="shrink-0 border-b p-3 pe-12 sm:hidden">
+              {/* Mobile section picker — the sidebar is hidden below sm. `ps-4` is
+                  the content pane's gutter, so the picker and the fields under it
+                  share a left edge; `pe-12` clears the close button. */}
+              <div className="shrink-0 border-b py-3 ps-4 pe-12 sm:hidden">
                 <Select
                   value={`${active.scope}/${active.section}`}
                   onValueChange={(value) => {
@@ -278,7 +304,8 @@ function SettingsModalBody() {
                 )}
               />
               <div
-                className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6 sm:px-8 sm:pt-2 sm:pb-8"
+                // `sm:px-6` / `sm:pb-6`: the standard dialog inset (see SettingsNav).
+                className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6 sm:px-6 sm:pt-2 sm:pb-6"
                 data-testid="settings-content"
                 onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
               >

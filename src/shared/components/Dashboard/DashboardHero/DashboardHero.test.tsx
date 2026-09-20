@@ -46,6 +46,36 @@ describe('DashboardHero', () => {
     expect(screen.queryByTestId('dashboard-org-status')).not.toBeInTheDocument();
   });
 
+  it('lets a name with no break opportunity wrap instead of running off the card', async () => {
+    // Regression: the name is user data. An email-derived one has no space to
+    // break at, so on a phone it ran past the card's edge and was clipped
+    // mid-word by the card's own `overflow-hidden`.
+    renderWithProviders(
+      <DashboardHero
+        firstName="bartholomew.featherstonehaugh.the.third"
+        orgName="Acme Inc."
+        orgType="TEAM"
+        orgStatus="ACTIVE"
+      />,
+    );
+
+    expect(await screen.findByTestId('dashboard-greeting')).toHaveClass('wrap-anywhere');
+  });
+
+  it('is a card to the theme axes — elevation, separation and shape reach it', async () => {
+    renderWithProviders(
+      <DashboardHero
+        firstName="Ada"
+        orgName="Acme Inc."
+        orgType="TEAM"
+        orgStatus="ACTIVE"
+      />,
+    );
+
+    const greeting = await screen.findByTestId('dashboard-greeting');
+    expect(greeting.closest('[data-slot="card"]')).not.toBeNull();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderWithProviders(
       <DashboardHero

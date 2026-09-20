@@ -87,14 +87,14 @@ Every custom event includes **shared context** from `getAnalyticsContext()`:
 
 ### Auth funnel
 
-| Event                      | When                              | Extra properties                                    |
-| -------------------------- | --------------------------------- | --------------------------------------------------- |
-| `auth_email_code_sent`     | Email OTP sent                    | `step: verify`                                      |
-| `auth_email_code_verified` | Code accepted                     | —                                                   |
-| `auth_oauth_started`       | OAuth redirect begins             | `provider`                                          |
-| `auth_oauth_completed`     | OAuth callback refresh OK         | —                                                   |
-| `session_started`          | Successful sign-in                | `method`: `email_code` \| `oauth`                   |
-| `session_ended`            | Logout / force logout / cross-tab | `reason`: `logout` \| `force_logout` \| `cross_tab` |
+| Event                      | When                      | Extra properties                                                                                                                                                                                                          |
+| -------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth_email_code_sent`     | Email OTP sent            | `step: verify`                                                                                                                                                                                                            |
+| `auth_email_code_verified` | Code accepted             | —                                                                                                                                                                                                                         |
+| `auth_oauth_started`       | OAuth redirect begins     | `provider`                                                                                                                                                                                                                |
+| `auth_oauth_completed`     | OAuth callback refresh OK | —                                                                                                                                                                                                                         |
+| `session_started`          | Successful sign-in        | `method`: `email_code` \| `oauth`                                                                                                                                                                                         |
+| `session_ended`            | Every way a session ends  | `reason`: `logout` (user asked) \| `idle_timeout` (idle dialog button or its deadline) \| `session_expired` (absolute 12 h cap) \| `cross_tab` (a sibling tab ended it) \| `force_logout` (the server killed the session) |
 
 ### Tenancy
 

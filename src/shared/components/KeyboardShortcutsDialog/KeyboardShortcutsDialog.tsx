@@ -49,7 +49,10 @@ export function KeyboardShortcutsDialog() {
                 className="flex items-center justify-between gap-4 px-4 py-3 text-sm"
               >
                 <span>{t(row.labelKey)}</span>
-                <kbd className="bg-muted rounded px-2 py-0.5 font-mono text-xs">
+                <kbd
+                  data-slot="kbd"
+                  className="bg-muted rounded-sm px-2 py-0.5 font-mono text-xs"
+                >
                   {row.keys}
                 </kbd>
               </li>

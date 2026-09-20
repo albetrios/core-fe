@@ -55,6 +55,7 @@ export function DashboardHero({
   return (
     <header
       data-testid="dashboard-hero"
+      data-slot="card"
       className="border-border/60 from-muted/50 via-card to-card relative overflow-hidden rounded-2xl border bg-gradient-to-br px-5 py-6 sm:px-7 sm:py-8"
     >
       <div
@@ -73,7 +74,10 @@ export function DashboardHero({
           </p>
           <h1
             data-testid="dashboard-greeting"
-            className="text-foreground text-2xl font-semibold tracking-tight text-balance sm:text-3xl"
+            // `wrap-anywhere`: the name is user data. An email-derived one has no
+            // break opportunity, so on a phone it ran past the card's edge and
+            // was clipped mid-word by the card's own `overflow-hidden`.
+            className="text-foreground text-2xl font-semibold tracking-tight text-balance wrap-anywhere sm:text-3xl"
           >
             {t(DASHBOARD_KEYS.greeting, { name: firstName })}
           </h1>

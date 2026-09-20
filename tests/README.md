@@ -6,16 +6,16 @@
 
 ## Layout
 
-| Path                       | Purpose                                                                                 | Tool                | Command                   |
-| -------------------------- | --------------------------------------------------------------------------------------- | ------------------- | ------------------------- |
-| **`tests/utils/`**         | Helpers: `renderWithProviders`, `e2e-hybrid`, `e2e-auth`, `axe-for-dialog`              | Vitest / Playwright | (imported by tests)       |
-| **`tests/fixtures/`**      | Test-only fixture data (never imported by `src/`)                                       | —                   | —                         |
-| **`tests/factories/`**     | Test data factories (never imported by `src/`)                                          | —                   | (imported by tests)       |
-| **`tests/e2e/`**           | Browser + API E2E (one suite)                                                           | Playwright          | `pnpm test:e2e`           |
-| **`tests/cross-browser/`** | Cross-browser E2E (Chromium / Firefox / WebKit)                                         | Playwright          | `pnpm test:cross-browser` |
-| **`tests/ci/`**            | CI-flow policy invariants (workflow wiring, release-please manifests, Dependabot rules) | Vitest              | `pnpm test:ci-policy`     |
-| **`tests/security/`**      | Security tripwires                                                                      | Vitest              | `pnpm test:security`      |
-| **`tests/performance/`**   | Optional Lighthouse / bundle-size checks                                                | Lighthouse          | (manual)                  |
+| Path                       | Purpose                                                                                                                                                                                                                          | Tool                | Command                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------------- |
+| **`tests/utils/`**         | Helpers: `renderWithProviders`, `e2e-hybrid`, `e2e-auth`, `axe-for-dialog`                                                                                                                                                       | Vitest / Playwright | (imported by tests)       |
+| **`tests/fixtures/`**      | Test-only fixture data (never imported by `src/`)                                                                                                                                                                                | —                   | —                         |
+| **`tests/factories/`**     | Test data factories (never imported by `src/`)                                                                                                                                                                                   | —                   | (imported by tests)       |
+| **`tests/e2e/`**           | Browser + API E2E (one suite)                                                                                                                                                                                                    | Playwright          | `pnpm test:e2e`           |
+| **`tests/cross-browser/`** | Cross-browser E2E (Chromium / Firefox / WebKit)                                                                                                                                                                                  | Playwright          | `pnpm test:cross-browser` |
+| **`tests/ci/`**            | CI-flow policy invariants (workflow wiring, release-please manifests, Dependabot rules) — plus the guards that have no other home: ESLint restrictions linted against the real config, and the E2E harness's sign-in-code helper | Vitest              | `pnpm test:ci-policy`     |
+| **`tests/security/`**      | Security tripwires                                                                                                                                                                                                               | Vitest              | `pnpm test:security`      |
+| **`tests/performance/`**   | Optional Lighthouse / bundle-size checks                                                                                                                                                                                         | Lighthouse          | (manual)                  |
 
 ## Two test layers
 

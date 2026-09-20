@@ -119,7 +119,9 @@
       "title": "会话即将过期",
       "description": "由于不活动，您的会话将在 {{countdown}} 后过期。点击「保持登录」以继续。",
       "signOut": "退出登录",
-      "staySignedIn": "保持登录"
+      "staySignedIn": "保持登录",
+      "signingOut": "正在退出登录…",
+      "signingOutDescription": "正在安全地结束您的会话，随后将转到登录页面。"
     },
     "membersTable": {
       "actionsAria": "{{name}} 的操作",

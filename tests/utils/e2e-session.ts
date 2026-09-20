@@ -6,8 +6,10 @@ import { API_BASE_PATH, API_ENDPOINTS } from '@/core/config/constants.ts';
 import { withApiRetry } from './e2e-api-retry.ts';
 import { loadCachedE2eAuthHeaders } from './e2e-captcha.ts';
 import { uniqueE2eEmail } from './e2e-faker.ts';
+import { echoedVerificationCode } from './e2e-verification-code.ts';
 
 export { uniqueE2eEmail } from './e2e-faker.ts';
+export { echoedVerificationCode } from './e2e-verification-code.ts';
 
 const API = API_BASE_PATH;
 
@@ -128,7 +130,8 @@ export async function pollInvitationTokenFromMailOutbox(email: string): Promise<
 
 /**
  * Creates a session via passwordless email send-code + login against core-be on :3000.
- * Requires DATABASE_URL so the helper can read the code from auth.mail_outbox.
+ * Takes the code from the send-code echo when the backend provides one; otherwise
+ * reads it from auth.mail_outbox, which needs DATABASE_URL.
  */
 export async function createSessionViaEmailCode(
   api: APIRequestContext,
@@ -144,7 +147,9 @@ export async function createSessionViaEmailCode(
     throw new Error(`send-code failed: ${send.status()} ${await send.text()}`);
   }
 
-  const code = await pollVerificationCodeFromMailOutbox(email);
+  const code =
+    (await echoedVerificationCode(send)) ??
+    (await pollVerificationCodeFromMailOutbox(email));
 
   const login = await withApiRetry(() =>
     api.post(`${API}${API_ENDPOINTS.AUTH.EMAIL_CODE_LOGIN}`, {

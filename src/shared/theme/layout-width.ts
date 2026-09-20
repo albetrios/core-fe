@@ -17,7 +17,10 @@ export function resolveEffectiveLayoutWidth(
 export function layoutMainClassName(width: LayoutWidthId): string {
   return cn(
     'w-full',
-    width === 'contained' && 'mx-auto max-w-screen-2xl',
+    // Keeps growing past `2xl`: capped at 1536px, the column covered well under
+    // half of a 3440px ultrawide and no longer lined up with the header above it.
+    width === 'contained' &&
+      'mx-auto max-w-screen-2xl 3xl:max-w-[112rem] 4xl:max-w-[136rem]',
     width === 'reading' && 'mx-auto max-w-3xl',
   );
 }

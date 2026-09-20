@@ -103,6 +103,7 @@ export function ThemeShowcase() {
             {CHART_SWATCHES.map((swatch) => (
               <span
                 key={swatch}
+                data-slot="pill"
                 className={`ring-border size-4 rounded-full ring-1 ${swatch}`}
               />
             ))}

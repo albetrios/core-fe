@@ -89,6 +89,127 @@ test('logs in', async ({ page }) => {
 4. Run `pnpm test:e2e` or `pnpm exec playwright test tests/e2e/<file>.e2e.test.ts`.
 5. Visual baselines: `pnpm test:visual:update` when adding screenshot tests.
 
+## Patterns for things a unit test cannot see
+
+**Timers — use the virtual clock, and reload under it.** A five-minute idle timeout costs
+nothing with `page.clock`, but timers that already exist keep running on the real
+clock: install first, then reload so the app creates its timers under it.
+
+```ts
+await page.clock.install();
+await page.reload();
+await page.clock.fastForward('05:01'); // jumps; due timers fire at most once
+await page.clock.runFor(300); // lets time pass inside a gesture
+```
+
+`fastForward` _jumps_ — crossing two thresholds in one call lands on the later state.
+Do the arithmetic per step (`session-timeout.e2e.test.ts`).
+
+**Gestures — a real press, when the bug is in the gesture.** `locator.click()` is
+down+up with no time between them. If something listens for `mousedown` on `document`,
+reproduce the human version and assert in the middle of it:
+
+```ts
+await page.mouse.move(x, y);
+await page.mouse.down();
+await page.clock.runFor(300);
+await expect(dialog).toBeVisible(); // it used to be gone by now
+await page.mouse.up();
+```
+
+**Races that localhost hides — hold the response open.** On loopback the backend
+answers before the UI can get into the state you are guarding against, so the test
+passes against the bug. Delay the one request that matters, then `continue()` it:
+
+```ts
+await page.route('**/api/v1/auth/refresh', async (route) => {
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  await route.continue();
+});
+```
+
+**Invariants over stopwatches.** Wall-clock assertions flake and a dev server says
+nothing about production speed. Observe from the first byte with
+`page.addInitScript` + a `MutationObserver`, count what must never happen (a fade
+that is cancelled, a frame with no content), and assert the counts are zero
+(`boot-splash.e2e.test.ts`). Real numbers belong in a measured production build —
+`docs/reference/local-production-perf.md` → Cold-load timeline.
+
+**"Signed out" means a fresh load cannot undo it.** Landing on `/login` proves
+nothing — a local-only logout lands there too and the silent refresh signs straight
+back in. After the redirect, `page.goto('/')` again and assert it is _still_ the
+login form.
+
+**A spec that needs a first-time visitor overrides the storage state.** The suite's
+shared `storageState` pre-answers cookie consent so the card never sits on another
+spec's button. `test.use({ storageState: { cookies: [], origins: [] } })` starts
+undecided (`consent-card.e2e.test.ts`).
+
+**CSS contracts — sweep computed styles, and ship a control.** jsdom resolves neither
+`@theme` nor `calc()`, so a unit test can only pin the stylesheet's _text_. When the
+claim is "nothing on this screen still has X", ask the browser: one `page.evaluate` over
+`body *` that returns a description of every offender, asserted `toEqual([])` so the
+failure message **is** the to-do list (`theme-shape.e2e.test.ts` — it found three misses
+grep had not). Three rules keep such a sweep honest:
+
+- **Exempt by rule, never by selector** ("at most 10px", "blurred", "dev tooling") — a
+  selector list is an allowlist nobody reviews.
+- **Measure layout, not paint**, where an animation is involved: `offsetWidth` ignores the
+  `scale()` of a ping halo; `getBoundingClientRect()` does not.
+- **Add a control test** that runs the same sweep where offenders MUST exist. An
+  `evaluate` that silently matches nothing passes every other test in the file.
+
+Seed persisted state with `page.addInitScript` (it runs before the app boots, on every
+load) rather than clicking through a picker — the spec is about the result, not the UI
+that sets it. Never wait on `networkidle` in this app: polling keeps the network busy
+and the wait times out; wait for the thing itself (`[data-slot="skeleton"]` count 0).
+
+**A feature check that swallows errors is a silent skip.**
+`test.skip(!(await locator.isVisible().catch(() => false)), '…')` reads as "skip where the
+feature is off". But `isVisible()` on a locator that matches **two** elements throws a
+strict-mode violation, the `.catch` turns it into `false`, and the spec skips forever — on
+every machine, green. That is how the org switcher's own specs ran zero assertions: its
+test id is mounted twice (sidebar + mobile header; one is only CSS-hidden). Use
+`byTestId()` (`visible=true` + `.first()`) for anything that can be mounted per breakpoint.
+`isVisible()` already returns `false` for no match, so a trailing `.catch()` can ONLY hide a
+strict-mode violation — ESLint now rejects `.catch()` on `isVisible` / `isEnabled` / … in
+`tests/e2e` and `tests/utils` (a timed `waitFor(…).then(() => true).catch(() => false)` is
+fine: a timeout is the expected "no"). And **read the skipped count** — `--reporter=list` names each `-`; a skip you cannot
+explain is a finding. When a spec that never ran starts running, expect it to fail for
+reasons that have nothing to do with your change; prove which side they are on by serving
+`main` from a scratch worktree on the same port, and park a real product bug with
+`test.fixme(true, '<cause>')` plus a tracked follow-up — never by putting the skip back.
+
+**Simulate navigation the way it really happens.** The router owns location: a raw
+`history.replaceState` + synthetic `hashchange` opens a hash modal but leaves the router's
+cached location stale. A provider return (Stripe) is a full page **load** — `page.goto()`
+the URL. Setting `location.hash` repeatedly **pushes** entries, and closing the settings
+modal is `history.back()`, so one Escape only steps back a section; leave by loading the
+URL without the hash. And after `Escape` on a Radix menu, wait for it to be gone
+(`expect(option).toBeHidden()`) before clicking the trigger again — a click that lands
+mid-close is swallowed.
+
+**Take the sign-in code from the response, not from a second system.** core-be echoes the
+freshly issued code on `send-code` in its local/TEST mode (`debug_verification_code` — the
+field the sign-in form itself prefills from). `echoedVerificationCode(response)` in
+`tests/utils/e2e-session.ts` returns it, or `null` on a backend that does not echo;
+`createSessionViaEmailCode` prefers it and falls back to polling `auth.mail_outbox`. The
+outbox is a second system with its own lag: late in a long suite that lag was the MFA spec's
+entire 90 s budget, while the backend had answered every request. A spec that needs a
+_fresh_ code still loops (the backend has a per-email issue window) — it just reads the
+answer it already has.
+
+**The dev server is part of the test.** "Failed to fetch dynamically imported module"
+behind a `504 (Outdated Optimize Dep)` is Vite re-optimizing mid-session because a
+lazy-only dependency was missing from `optimizeDeps.include` (`vite.config.ts`); every lazy
+chunk that pulls a pre-bundled dep then dies until the server restarts. Add the dependency
+there and restart with `--force`. The watcher also reloads pages when `coverage/` is
+rewritten — do not run a coverage pass while a browser suite is using the same server.
+
+**Prove it bites.** Put the old behaviour back for one run and watch the spec fail.
+If it still passes, it is not testing what its title says — that is how the race
+above was found.
+
 ## Refactoring older specs
 
 Replace testid-only **visibility** checks on labeled controls with hybrid helpers:

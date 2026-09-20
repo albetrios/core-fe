@@ -248,6 +248,11 @@ Settings is **not a route space**. The global `SettingsModal` (`shared/component
 
 Route guards never see hashes: auth, organization-context, and permission gating live inside the modal (`settings-permissions.ts`, reusing `core/rbac` — never forked). Open/section state lives in the URL hash — never in `useUIStore` (the store is only for transient chrome: `sidebarOpen`, `commandPaletteOpen`). Hash changes are invisible to pageview analytics, so the modal emits an explicit PostHog event. Escape hatch: a section that becomes a heavy admin surface (members, billing, …) is promoted to a real page under `pages/organization/$organizationSlug/`, keeping a hash → path redirect shim.
 
+Two invariants follow from "the modal lives in the hash", and both have shipped as bugs:
+
+- **Same-route navigation must state the hash.** TanStack Router resolves an *omitted* `hash` to none, so `navigate({ to: '.', search, replace: true })` — "just patch the search" — also closes the modal. Write `hash: true` to keep it (or `hash: ''` to clear it on purpose); ESLint rejects a same-route `navigate()` that says neither. Clearing Stripe's return params goes through `stripeReturnCleanupNavigation()` (`lib/billing/stripe-return.ts`) — three hand-written copies of those options dropped a customer who had just finished 3DS onto a bare dashboard.
+- **The modal decides nothing until it has BOTH answers**: me/context (which sections exist) *and* the permission set (`useAccessResolved()`). Entering an organization clears the store's permissions a beat before the real set lands; an empty **unresolved** list is "not known yet", never "you may do nothing". Treating it as an answer rewrote an organization deep link to `account/profile` — permanently, because the fallback is written back to the URL. The one exception: when me/context settled **without data** there is nothing to derive permissions from, so the modal does not wait.
+
 `/` is the other folder-less URL: a pure resolver route (active organization's dashboard, else the `/organization` picker, else `/onboarding`) registered inline in `routeTree.tsx`.
 
 ## Dialog vs full page — decision tree

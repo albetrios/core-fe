@@ -179,7 +179,10 @@ Use the animation kit from `@/lib/animations/` (everything here respects
 `prefers-reduced-motion`):
 
 - `PageTransition` — route-level enter transition.
-- `Skeleton` / `SkeletonShimmer` — loading placeholders.
+- `Skeleton` / `SkeletonShimmer` — loading placeholders. Both carry
+  `data-slot="skeleton"` (like `ui/skeleton`), so the Shape axis squares them: a
+  placeholder must have the corners of the thing it stands in for. A new placeholder
+  component needs the same slot.
 - `useAnimeCountUp` — Anime.js number count-up (dashboard stats).
 - `prefersReducedMotion` — gate custom motion on the user's setting.
 

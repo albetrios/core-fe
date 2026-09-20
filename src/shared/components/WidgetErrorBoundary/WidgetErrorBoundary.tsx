@@ -102,7 +102,7 @@ function SectionErrorFallback({
           onClick={resetErrorBoundary}
           aria-label={t(ERRORS_KEYS.widget.controlRetry, { title })}
         >
-          <span className="bg-destructive/10 text-destructive flex size-6 shrink-0 items-center justify-center rounded">
+          <span className="bg-destructive/10 text-destructive flex size-6 shrink-0 items-center justify-center rounded-sm">
             <AlertTriangle className="size-3.5" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1 truncate text-start text-sm font-medium">

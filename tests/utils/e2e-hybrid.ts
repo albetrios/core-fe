@@ -68,10 +68,7 @@ export async function fillEmailVerificationCode(
 
   await Promise.race([leftLogin, page.waitForTimeout(800)]).catch(() => undefined);
 
-  if (
-    page.url().includes('/login') &&
-    (await verifyButton.isEnabled().catch(() => false))
-  ) {
+  if (page.url().includes('/login') && (await verifyButton.isEnabled())) {
     await verifyButton.click();
     await leftLogin.catch(() => undefined);
   }

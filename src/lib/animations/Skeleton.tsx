@@ -5,6 +5,11 @@ import { cn } from '@/lib/utils.ts';
 
 /**
  * Basic pulse skeleton — loading placeholder.
+ *
+ * @remarks
+ * Carries `data-slot="skeleton"` like the vendored `ui/skeleton` primitive, so
+ * the Shape axis reaches it: a placeholder must have the corners of the thing it
+ * stands in for, or a Sharp app loads round and then snaps square.
  */
 export function Skeleton({
   className,
@@ -13,6 +18,7 @@ export function Skeleton({
   const { t } = useTranslation(LOCALE_NS);
   return (
     <output
+      data-slot="skeleton"
       className={cn('bg-muted block animate-pulse rounded-md', className)}
       aria-label={t(LOCALE_KEYS.loading)}
       {...props}
@@ -33,6 +39,7 @@ export function SkeletonShimmer({
   const { t } = useTranslation(LOCALE_NS);
   return (
     <output
+      data-slot="skeleton"
       className={cn('animate-shimmer skeleton-shimmer-bg block rounded-md', className)}
       aria-label={t(LOCALE_KEYS.loading)}
       {...props}

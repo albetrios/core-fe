@@ -32,6 +32,7 @@ export function MinimalAuth({ children }: AuthLayoutShellProps) {
           <Card className="gap-0 py-0">
             <CardContent className="p-6 sm:p-8">
               <div
+                data-slot="pill"
                 className="bg-primary mx-auto mb-6 h-1 w-10 rounded-full"
                 aria-hidden="true"
               />

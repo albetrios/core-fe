@@ -186,5 +186,11 @@
   },
   "table": {
     "searchPlaceholder": "検索..."
+  },
+  "consent": {
+    "description": "{{productName}} の改善を目的とした製品分析に Cookie を使用します。基本機能とエラー監視は Cookie がなくても動作します。",
+    "privacyPolicy": "プライバシーポリシー",
+    "accept": "同意する",
+    "decline": "拒否する"
   }
 }

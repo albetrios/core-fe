@@ -119,7 +119,9 @@
       "title": "La sesión expira",
       "description": "Tu sesión expirará en {{countdown}} por inactividad. Haz clic en \"Permanecer conectado\" para continuar.",
       "signOut": "Cerrar sesión",
-      "staySignedIn": "Permanecer conectado"
+      "staySignedIn": "Permanecer conectado",
+      "signingOut": "Cerrando sesión…",
+      "signingOutDescription": "Estamos cerrando tu sesión de forma segura. Te llevaremos a la página de inicio de sesión."
     },
     "membersTable": {
       "actionsAria": "Acciones para {{name}}",

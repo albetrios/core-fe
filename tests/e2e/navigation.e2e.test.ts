@@ -31,9 +31,17 @@ test.describe('Navigation', () => {
     await expect(page.getByTestId('unauthorized-page')).toBeVisible();
   });
 
-  test('accept-invite route is reachable without auth', async ({ page }) => {
-    await page.goto('/accept-invite/inv_expired');
-    await expect(page.getByTestId('accept-invite-page')).toBeVisible();
+  test('accept-invite requires a session — a guest is redirected with the link intact', async ({
+    page,
+  }) => {
+    // Auth-required since INV-4 (`requireAuth` in `beforeLoad`). What must survive
+    // the detour is the invite itself: path AND single-use token.
+    await page.goto('/accept-invite/inv_expired?token=tok_e2e_guest');
+    await expect(page).toHaveURL(/\/login\?redirect=/, { timeout: 10000 });
+    const redirect = new URL(page.url()).searchParams.get('redirect') ?? '';
+    expect(redirect).toContain('/accept-invite/inv_expired');
+    expect(redirect).toContain('token=tok_e2e_guest');
+    await expectLoginFormReady(page);
   });
 
   test('protected route preserves the intended destination in the redirect param', async ({
