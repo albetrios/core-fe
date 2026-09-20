@@ -111,7 +111,7 @@ test.describe('Product journeys', () => {
   test('suspended page renders for authenticated team member', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
     const switcher = byTestId(page, 'organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden');
     const { slug } = await createTeamOrgViaSwitcher(page);
     await navigateAuthenticated(page, `/organization/${slug}/suspended`);
     await expect(page.getByTestId('suspended-page')).toBeVisible({ timeout: 10000 });
@@ -158,22 +158,15 @@ test.describe('Product journeys', () => {
     await expectAppHeaderReady(page);
 
     const switcher = byTestId(page, 'organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden');
     await createTeamOrgViaSwitcher(page);
 
-    // KNOWN PRODUCT ISSUE — the account half above is verified; the organization
-    // half is not yet. Nothing had ever run it: the switcher test id matches two
-    // elements, `isVisible()` threw, and `.catch(() => false)` made that a skip.
-    // Deep-linking to an organization section straight after creating the org
-    // lands on Account · Profile: the section appears to resolve before the new
-    // org's permissions arrive and the hash is then canonicalized to Profile for
-    // good. `settings.e2e` › "organization nav appears after creating a team org"
-    // covers the nav itself. Remove this line with the fix.
-    test.fixme(
-      true,
-      'org settings deep link right after org creation resolves to account/profile',
-    );
-
+    // Regression: deep-linking to an organization section the instant the org
+    // exists used to land on Account · Profile. Entering an org clears the store's
+    // permissions a beat before the real set arrives; the modal read that empty,
+    // UNRESOLVED list as an answer and rewrote the URL — 19 ms after the deep
+    // link, for good. me/context was correct the whole time. Nothing had ever run
+    // this half of the spec (it was skipping by accident), which is how it shipped.
     await openSettingsHash(page, 'organization', 'general');
     await expect(page.getByTestId('settings-section-org-general')).toBeVisible({
       timeout: 10000,

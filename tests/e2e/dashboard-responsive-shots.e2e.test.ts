@@ -23,9 +23,11 @@ async function closeSidebarOverlay(page: P) {
   // mobile sessions start closed. Tap the scrim (right of the 280px drawer)
   // exactly like a user would.
   const viewport = page.viewportSize();
-  if (!viewport || viewport.width >= 768) return;
+  // The sidebar is a drawer below `lg` (1024px) — it used to be `md` (768px),
+  // which left tablets out of this helper.
+  if (!viewport || viewport.width >= 1024) return;
   const sidebar = page.getByTestId('sidebar');
-  if (await sidebar.isVisible().catch(() => false)) {
+  if (await sidebar.isVisible()) {
     await page.mouse.click(viewport.width - 12, 200);
     await page.waitForTimeout(500);
   }

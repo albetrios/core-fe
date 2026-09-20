@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -313,6 +313,84 @@ describe('SettingsModal', () => {
     expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     // …and the hash is untouched, so the link still resolves once the context is in.
     expect(router.state.location.hash).toBe('settings/organization/members');
+  });
+
+  // ── The other half of "context ready": the permission set ─────────────────
+  // Entering an organization clears the store's permissions a beat before the
+  // real set lands (`ensurePermissionsFor` → `clearPermissions()`). For that beat
+  // `permissions` is `[]` and `permissionsResolved` is false: "not known yet".
+
+  it('never rewrites an organization deep link while permissions are unresolved', async () => {
+    // Regression, measured in a browser: me/context already said TEAM, but the
+    // store held 0 permissions for ~40 ms. The modal read that as an answer, hid
+    // the Organization group, resolved the link to the fallback and REWROTE THE
+    // URL to `account/profile` — 19 ms after the deep link, ~50 ms before the
+    // permissions arrived. Permanently: the nav then showed the Organization
+    // group, with the user parked on Profile.
+    useOrganizationStore.getState().setOrganization('org_team', 'acme');
+    useOrganizationStore.getState().clearPermissions();
+    useMeContextMock.mockReturnValue(meCtx('TEAM'));
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/organization/general'],
+    });
+
+    expect(await screen.findByTestId('settings-content-loading')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-section-profile')).not.toBeInTheDocument();
+    expect(router.state.location.hash).toBe('settings/organization/general');
+  });
+
+  it('opens that deep link once the permissions arrive', async () => {
+    useOrganizationStore.getState().setOrganization('org_team', 'acme');
+    useOrganizationStore.getState().clearPermissions();
+    useMeContextMock.mockReturnValue(meCtx('TEAM'));
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/organization/general'],
+    });
+    expect(await screen.findByTestId('settings-content-loading')).toBeInTheDocument();
+
+    act(() => useOrganizationStore.getState().setPermissions(ALL_PERMS));
+
+    expect(await screen.findByTestId('settings-section-org-general')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-nav-organization-members')).toBeInTheDocument();
+    expect(router.state.location.hash).toBe('settings/organization/general');
+  });
+
+  it('still falls back when the ANSWER is no — a resolved set without the grant', async () => {
+    // Waiting is not the same as allowing: once the set is resolved and the
+    // section is genuinely out of reach, the link is canonicalized as before.
+    useOrganizationStore.getState().setOrganization('org_team', 'acme');
+    useOrganizationStore.getState().clearPermissions();
+    useMeContextMock.mockReturnValue(meCtx('TEAM'));
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/organization/general'],
+    });
+    expect(await screen.findByTestId('settings-content-loading')).toBeInTheDocument();
+
+    act(() => useOrganizationStore.getState().setPermissions([]));
+
+    await waitFor(() =>
+      expect(router.state.location.hash).toBe('settings/account/profile'),
+    );
+    expect(await screen.findByTestId('settings-section-profile')).toBeInTheDocument();
+  });
+
+  it('does not wait for permissions that can never arrive (me/context has no data)', async () => {
+    // The set is derived FROM me/context. A fetch that settled without data will
+    // never produce one, and a modal stuck on its skeleton is worse than one
+    // gated on whatever the store holds.
+    useOrganizationStore.getState().clearPermissions();
+    useMeContextMock.mockReturnValue({
+      data: undefined,
+      isPending: false,
+      isLoading: false,
+      isError: true,
+    });
+    renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+
+    expect(await screen.findByTestId('settings-section-profile')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-content-loading')).not.toBeInTheDocument();
   });
 
   it('renders normally once the context resolves, with no organization group', async () => {

@@ -37,6 +37,7 @@ import {
 } from '@/shared/components/ui/select.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { useAccessResolved } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
@@ -117,9 +118,22 @@ function SettingsModalBody() {
   // for a fallback (SET-15).
   const meContext = useMeContext();
   const orgType = meContext.data?.activeOrganization?.type;
-  // A failed fetch is not a reason to hang on the skeleton forever: fall back to
-  // permission-only gating, which is what the modal did before.
-  const contextReady = !meContext.isPending;
+  // The OTHER half of "do we know the shape of this modal yet": which sections
+  // the user may open comes from the org store's permission set, and entering an
+  // organization clears that set (`ensurePermissionsFor` → `clearPermissions()`)
+  // a beat before the real one lands. For that beat `permissions` is `[]` —
+  // which means "not known yet", not "you may do nothing" (SET-23; it is what
+  // `useAccessResolved` exists to tell apart). Reading it as an answer hid the
+  // Organization group, resolved `#settings/organization/general` to the
+  // fallback, and let the effect below REWRITE THE URL to `account/profile` —
+  // permanently, 19 ms after the deep link and ~50 ms before the permissions
+  // arrived. me/context was already correct (`TEAM`) the whole time.
+  const accessResolved = useAccessResolved();
+  // …unless there is nothing to wait for. The permission set is DERIVED from
+  // me/context (`deriveOrgContext`), so when that settled without data — a failed
+  // fetch — no answer is ever coming: do not hang on the skeleton, fall back to
+  // permission-only gating with whatever the store holds, as the modal always has.
+  const contextReady = !meContext.isPending && (accessResolved || !meContext.data);
   const deploymentFlags = useDeploymentFlags();
   const navigate = useNavigate();
   const router = useRouter();

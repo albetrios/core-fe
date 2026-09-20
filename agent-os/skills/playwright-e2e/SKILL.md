@@ -170,8 +170,11 @@ feature is off". But `isVisible()` on a locator that matches **two** elements th
 strict-mode violation, the `.catch` turns it into `false`, and the spec skips forever — on
 every machine, green. That is how the org switcher's own specs ran zero assertions: its
 test id is mounted twice (sidebar + mobile header; one is only CSS-hidden). Use
-`byTestId()` (`visible=true` + `.first()`) for anything that can be mounted per breakpoint,
-and **read the skipped count** — `--reporter=list` names each `-`; a skip you cannot
+`byTestId()` (`visible=true` + `.first()`) for anything that can be mounted per breakpoint.
+`isVisible()` already returns `false` for no match, so a trailing `.catch()` can ONLY hide a
+strict-mode violation — ESLint now rejects `.catch()` on `isVisible` / `isEnabled` / … in
+`tests/e2e` and `tests/utils` (a timed `waitFor(…).then(() => true).catch(() => false)` is
+fine: a timeout is the expected "no"). And **read the skipped count** — `--reporter=list` names each `-`; a skip you cannot
 explain is a finding. When a spec that never ran starts running, expect it to fail for
 reasons that have nothing to do with your change; prove which side they are on by serving
 `main` from a scratch worktree on the same port, and park a real product bug with

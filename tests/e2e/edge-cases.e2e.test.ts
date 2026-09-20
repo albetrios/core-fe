@@ -159,10 +159,7 @@ test.describe('Edge cases — auth email flow', () => {
     const nativeMessage = await page
       .getByTestId('auth-email')
       .evaluate((el) => (el as HTMLInputElement).validationMessage);
-    const inlineErrorVisible = await page
-      .getByTestId('auth-email-error')
-      .isVisible()
-      .catch(() => false);
+    const inlineErrorVisible = await page.getByTestId('auth-email-error').isVisible();
 
     expect(nativeMessage.length > 0 || inlineErrorVisible).toBe(true);
     await expect(page.getByTestId('auth-email-verify-panel')).not.toBeVisible();
@@ -200,25 +197,15 @@ test.describe('Edge cases — billing Stripe return', () => {
   test('succeeded Stripe return params are stripped from the URL on billing panel', async ({
     page,
   }) => {
-    // KNOWN PRODUCT BUG — not a flaky spec. Until this spec stopped skipping by
-    // accident (the switcher test id matches two elements, `isVisible()` threw,
-    // and `.catch(() => false)` turned that into a skip) nothing had ever run
-    // it. It gets as far as the last line: the panel opens and the params are
-    // stripped, but `AccountBillingPanel` strips them with
-    // `navigate({ to: '.', search, replace: true })` and no `hash`, so the router
-    // drops `#settings/account/billing` and the modal closes under a customer who
-    // has just come back from 3DS. Remove this line with the fix.
-    test.fixme(
-      true,
-      'Stripe return drops the settings hash — AccountBillingPanel navigate() omits `hash`',
-    );
-
+    // Regression: clearing Stripe's params used `navigate({ to: '.', search,
+    // replace })` with no `hash`, and the router resolves an omitted hash to
+    // none — so it also cleared `#settings/account/billing` and the modal closed
+    // under a customer who had just come back from 3DS. Nothing had ever run this
+    // spec (it was skipping by accident), which is how that shipped. The last
+    // assertion is the one that matters: the billing panel is still there.
     await registerNewUserAndGoToDashboard(page);
     const switcher = byTestId(page, 'organization-switcher-trigger');
-    test.skip(
-      !(await switcher.isVisible().catch(() => false)),
-      'team billing requires switcher',
-    );
+    test.skip(!(await switcher.isVisible()), 'team billing requires switcher');
     await createTeamOrgViaSwitcher(page);
 
     // A Stripe return is a full page LOAD of `…?redirect_status=…#settings/…`,

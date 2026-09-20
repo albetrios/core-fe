@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  omitStripeReturnParams,
   readStripeBillingReturnParams,
+  stripeReturnCleanupNavigation,
 } from '@/lib/billing/stripe-return.ts';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
@@ -109,13 +109,9 @@ export function BillingPaymentMethods({
     const { setupIntentClientSecret, redirectStatus } = readStripeBillingReturnParams();
     if (setupIntentClientSecret && redirectStatus === 'succeeded') {
       // Clear the return params through the router so its cached location stays
-      // in sync (a raw replaceState would desync it).
-      void navigate({
-        to: '.',
-        search: ((prev: Record<string, unknown>) =>
-          omitStripeReturnParams(prev)) as never,
-        replace: true,
-      });
+      // in sync (a raw replaceState would desync it) — keeping the settings hash,
+      // or the modal this card lives in closes (`stripeReturnCleanupNavigation`).
+      void navigate(stripeReturnCleanupNavigation());
       queryClient
         .invalidateQueries({ queryKey: billingQueryKeys.paymentMethods(orgId) })
         .catch(() => {

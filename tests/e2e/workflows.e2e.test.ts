@@ -181,7 +181,7 @@ test.describe('Org switch workflow (UI)', () => {
   test('create team via switcher then switch back to personal', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
     const switcher = byTestId(page, 'organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    test.skip(!(await switcher.isVisible()), 'org switcher hidden');
 
     await switcher.click();
     await page.getByTestId('organization-switcher-create').click();
@@ -195,7 +195,7 @@ test.describe('Org switch workflow (UI)', () => {
 
     await byTestId(page, 'organization-switcher-trigger').click();
     const personal = page.getByTestId('organization-switcher-option-personal');
-    test.skip(!(await personal.isVisible().catch(() => false)), 'personal org disabled');
+    test.skip(!(await personal.isVisible()), 'personal org disabled');
     await page.keyboard.press('Escape');
     // Radix closes the menu with an exit animation. A trigger click that lands
     // mid-close is swallowed (the same trap `theme.e2e` documents), so wait for

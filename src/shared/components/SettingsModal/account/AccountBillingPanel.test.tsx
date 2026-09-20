@@ -40,9 +40,15 @@ vi.mock('@/shared/notify/index.ts', () => ({
 }));
 
 vi.mock('@/shared/components/StripePaymentForm/index.ts', () => ({
-  StripePaymentForm: () => {
+  StripePaymentForm: ({ onComplete }: { onComplete?: () => void }) => {
     if (stripe.crash) throw new Error('stripe elements exploded');
-    return <div data-testid="stripe-payment-form" />;
+    return (
+      <div data-testid="stripe-payment-form">
+        <button type="button" data-testid="stripe-payment-complete" onClick={onComplete}>
+          complete
+        </button>
+      </div>
+    );
   },
 }));
 
@@ -148,6 +154,11 @@ function setCanManage(value: boolean) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Here, not on a test's last line: three tests drive the panel through the URL,
+  // and a trailing reset never runs when its test FAILS — the next test then
+  // inherits `?payment_intent_client_secret=…` and fails for a reason that has
+  // nothing to do with it (seen while mutation-checking the hash tests).
+  window.history.replaceState({}, '', '/');
   stripe.enabled = false;
   stripe.crash = false;
   stripe.cancellationCrashes = false;
@@ -242,8 +253,12 @@ describe('AccountBillingPanel', () => {
 
     // Cleared via the router (not raw history.replaceState) so its location
     // stays in sync and a later navigation cannot reintroduce the params.
+    // `hash: true`: this panel lives in the settings HASH modal, and without it
+    // the router dropped `#settings/account/billing` — the modal closed under a
+    // customer who had just come back from 3DS. `{ to, replace }` alone is what
+    // this test used to assert, which is how that shipped.
     expect(navigateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ to: '.', replace: true }),
+      expect.objectContaining({ to: '.', replace: true, hash: true }),
     );
     const updater = navigateMock.mock.calls.at(-1)?.[0]?.search as (
       prev: Record<string, unknown>,
@@ -251,8 +266,35 @@ describe('AccountBillingPanel', () => {
     expect(
       updater({ payment_intent_client_secret: 'pi_secret', tab: 'billing' }),
     ).toEqual({ tab: 'billing' });
+  });
 
-    window.history.replaceState({}, '', '/');
+  it('keeps the settings hash when the in-page payment form completes', async () => {
+    // The second place the params are cleared: no redirect, the customer paid
+    // in the embedded form. Same navigation, same requirement — it must not
+    // close the modal it is rendered in.
+    stripe.enabled = true;
+    window.history.replaceState(
+      {},
+      '',
+      '/organization/acme/dashboard?payment_intent_client_secret=pi_secret#settings/account/billing',
+    );
+    useSubscriptionMock.mockReturnValue({
+      data: SUB,
+      isPending: false,
+      isLoading: false,
+      isError: false,
+    });
+    setCanManage(true);
+    const user = userEvent.setup();
+    renderPanel();
+    navigateMock.mockClear();
+
+    await user.click(await screen.findByTestId('stripe-payment-complete'));
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ to: '.', replace: true, hash: true }),
+    );
   });
 
   // ── SET-13: one plan at a time, and a payment step that speaks up ─────────
@@ -364,8 +406,6 @@ describe('AccountBillingPanel', () => {
     // The rest of the panel is untouched.
     expect(screen.getByTestId('billing-summary')).toBeInTheDocument();
     expect(screen.getByTestId('plan-options')).toBeInTheDocument();
-
-    window.history.replaceState({}, '', '/');
     consoleError.mockRestore();
   });
 

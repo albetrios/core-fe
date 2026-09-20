@@ -205,7 +205,18 @@ reproduces page + modal, refresh survives, back/Esc closes.
 `parseSettingsHash` resolves it to the default (`account/profile`). Appearance is not a
 settings section: it is the separate `AppearanceDialog` on the root route.)
 
-- Invalid hash → fall back to `#settings/account/profile` (or close).
+- Invalid hash → fall back to `#settings/account/profile` (or close). The fallback is
+  **written back to the URL**, so it is only decided once the modal has both answers:
+  me/context (which sections exist) **and** the permission set (`useAccessResolved()`).
+  Entering an organization clears the store's permissions a beat before the real set
+  lands, and an empty _unresolved_ list means "not known yet" — reading it as "not allowed"
+  rewrote a valid organization deep link to `account/profile` for good. If me/context settled
+  without data there is nothing to derive permissions from, and the modal does not wait.
+- **Same-route navigation must state the hash.** The router resolves an _omitted_ `hash` to
+  none, so `navigate({ to: '.', search, replace: true })` also closes this modal. Use
+  `hash: true` (keep) or `hash: ''` (clear on purpose) — ESLint rejects a same-route
+  `navigate()` with neither. Stripe's return params are cleared through
+  `stripeReturnCleanupNavigation()` (`lib/billing/stripe-return.ts`).
 - Organization scope requires organization context + permission (`settings-permissions.ts`,
   reusing `core/rbac` policies — never forked); outside an organization → "Select organization
   first" / redirect to `/organization`.

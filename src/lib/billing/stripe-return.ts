@@ -39,6 +39,32 @@ export function omitStripeReturnParams<T extends Record<string, unknown>>(search
   return next;
 }
 
+/**
+ * The `navigate()` options that clear Stripe's return params — and nothing else.
+ *
+ * @remarks
+ * `hash: true` is the point of this function. Billing lives inside the settings
+ * HASH modal (`#settings/account/billing`), and TanStack Router resolves an
+ * omitted `hash` to "none" (`buildLocation`: `dest.hash === true ? current :
+ * dest.hash ? … : undefined`). Three call sites each spelled these options out by
+ * hand without it, so clearing the params also cleared the hash: the modal closed
+ * under a customer who had just come back from 3DS. `true` keeps whatever hash the
+ * router currently holds, so the legacy `#settings/organization/billing` link
+ * survives its own canonicalization as well.
+ *
+ * `search` is cast because the router types it per route, and this works on
+ * whichever route the modal happens to be open over.
+ */
+export function stripeReturnCleanupNavigation() {
+  return {
+    to: '.',
+    search: ((previous: Record<string, unknown>) =>
+      omitStripeReturnParams(previous)) as never,
+    hash: true,
+    replace: true,
+  } as const;
+}
+
 export function stripeBillingReturnUrl(): string {
   if (typeof window === 'undefined') return '#settings/account/billing';
   return `${window.location.origin}${window.location.pathname}${window.location.search}#settings/account/billing`;

@@ -192,6 +192,62 @@ export default defineConfig([
     },
   },
 
+  // Same-route navigation must say what happens to the hash.
+  //
+  // Settings is a global HASH modal (`#settings/<scope>/<section>`) that can sit
+  // over any page, and TanStack Router resolves an OMITTED `hash` to "none"
+  // (`buildLocation`: `dest.hash === true ? current : dest.hash ? … : undefined`).
+  // So `navigate({ to: '.', search, replace: true })` — "just patch the search" —
+  // also closes the modal. Three call sites did exactly that after a Stripe
+  // return, dropping a customer who had just finished 3DS onto a bare dashboard,
+  // and the table URL-state hook would have done it on the first column sort.
+  // Write `hash: true` to keep it, or `hash: ''` to clear it on purpose.
+  // (`no-restricted-syntax` is set for no other `src` glob, so nothing is replaced.)
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['**/*.test.*'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression:matches([callee.name='navigate'], [callee.property.name='navigate']) > ObjectExpression:has(> Property[key.name='to'][value.value='.']):not(:has(> Property[key.name='hash']))",
+          message:
+            "Same-route navigate({ to: '.' }) must state the hash: the router drops an omitted hash, which closes the settings hash modal. Use `hash: true` to keep it (or `hash: ''` to clear it deliberately).",
+        },
+      ],
+    },
+  },
+
+  // Playwright specs + helpers: a feature check must not swallow its own error.
+  //
+  // `locator.isVisible()` (and its siblings) already return `false` when nothing
+  // matches. The ONLY thing a trailing `.catch(() => false)` can ever swallow is a
+  // strict-mode violation — the locator matched MORE THAN ONE element. That turned
+  // `test.skip(!(await switcher.isVisible().catch(() => false)), '…')` into an
+  // unconditional, silent skip: the org switcher's test id is mounted twice
+  // (sidebar + mobile header), so its own specs ran zero assertions on every
+  // machine, green, and two product bugs sat behind them. Narrow the locator
+  // (`byTestId()` = visible + first) and let an ambiguous one fail loudly.
+  // A timed `waitFor(…).then(() => true).catch(() => false)` is a different thing
+  // (a timeout IS the expected "no") and is not matched.
+  // `no-restricted-syntax` is set nowhere else in this config, so this block
+  // replaces nothing (flat config REPLACES rule options, it does not merge them).
+  {
+    files: ['tests/e2e/**/*.ts', 'tests/utils/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name='catch'][callee.object.type='CallExpression'][callee.object.callee.property.name=/^is(Visible|Hidden|Enabled|Disabled|Checked|Editable)$/]",
+          message:
+            'Do not .catch() an instantaneous locator check: it already returns false for no match, so the catch can only hide a strict-mode violation (more than one element) and turn a feature check into a silent skip. Narrow the locator with byTestId() instead.',
+        },
+      ],
+    },
+  },
+
   // Build plugins — non-security random, fs writes to known paths
   {
     files: ['plugins/**/*.ts'],

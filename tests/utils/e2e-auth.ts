@@ -104,13 +104,13 @@ export async function completeOnboardingWizard(page: Page): Promise<void> {
   await clickTestId(page, 'onboarding-next');
 
   const orgName = page.getByTestId('onboarding-organization-name');
-  if (await orgName.isVisible().catch(() => false)) {
+  if (await orgName.isVisible()) {
     await orgName.fill(e2eOrganizationName());
     await clickTestId(page, 'onboarding-next');
   }
 
   const inviteEmail = page.getByTestId('onboarding-invite-email');
-  if (await inviteEmail.isVisible().catch(() => false)) {
+  if (await inviteEmail.isVisible()) {
     await clickTestId(page, 'onboarding-next');
   }
 
