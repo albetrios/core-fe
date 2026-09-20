@@ -53,10 +53,33 @@ try {
 
   var mode = isDark ? 'dark' : 'light';
   var preset = state.preset || 'default';
+
+  // Fast path: the exact palette the app resolved last time it applied THIS
+  // theme, written by persistBootThemeVars() in shared/theme/presets.ts. Replay
+  // it verbatim. The approximation below cannot run the real contrast math
+  // (accentForeground lives in a bundle that has not loaded yet), so it guessed a
+  // white --color-primary-foreground; for most accents the real answer is the
+  // dark one, and the splash logo flipped colour the moment React caught up.
+  // Guarded on preset AND mode: a snapshot from a different look or a different
+  // light/dark state is worse than the fallback.
+  var applied = false;
+  var bootRaw = localStorage.getItem('theme-boot-vars');
+  var boot = bootRaw ? JSON.parse(bootRaw) : null;
+  if (boot && boot.preset === preset && boot.mode === mode && boot.vars) {
+    for (var name in boot.vars) {
+      if (Object.prototype.hasOwnProperty.call(boot.vars, name)) {
+        root.style.setProperty(name, boot.vars[name]);
+      }
+    }
+    applied = true;
+  }
+
   var primary;
   var fg;
 
-  if (preset === 'custom' && state.customTheme) {
+  if (applied) {
+    // Nothing to derive — the snapshot above already set every splash variable.
+  } else if (preset === 'custom' && state.customTheme) {
     var look = state.customTheme;
     var hue = ((Math.round(look.hue) % 360) + 360) % 360;
     var chroma = CHROMA[look.intensityId] || 0.16;

@@ -25,23 +25,51 @@ vi.mock('./MembersTable/index.ts', () => ({
 vi.mock('@/shared/components/ThemeShowcase/index.ts', () => ({
   ThemeShowcase: () => <div data-testid="theme-showcase-stub" />,
 }));
+vi.mock('./HighlightsCarousel/index.ts', () => ({
+  HighlightsCarousel: () => <div data-testid="highlights-stub" />,
+}));
+vi.mock('./SourceDonut/index.ts', () => ({
+  SourceDonut: () => <div data-testid="donut-stub" />,
+}));
+vi.mock('./UsageBars/index.ts', () => ({
+  UsageBars: () => <div data-testid="usage-stub" />,
+}));
 
 import {
   DeferredAnalyticsChart,
+  DeferredHighlightsCarousel,
   DeferredMembersTable,
   DeferredScheduleCalendar,
+  DeferredSourceDonut,
   DeferredThemeShowcase,
+  DeferredUsageBars,
 } from './Dashboard.deferred.tsx';
 
 describe('Dashboard.deferred', () => {
+  it.each([
+    [DeferredHighlightsCarousel, 'highlights-stub'],
+    [DeferredSourceDonut, 'donut-stub'],
+    [DeferredUsageBars, 'usage-stub'],
+  ] as const)(
+    'keeps a real widget heading while content loads (%s)',
+    async (Widget, id) => {
+      const { container } = render(<Widget />);
+      expect(container.querySelector('[data-slot="card-title"]')).toHaveTextContent(/\S/);
+      expect(screen.getAllByRole('status')).toHaveLength(1);
+      expect(await screen.findByTestId(id)).toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    },
+  );
+
   it('lazy-loads analytics chart', async () => {
     render(<DeferredAnalyticsChart />);
     expect(await screen.findByTestId('analytics-chart-stub')).toBeInTheDocument();
   });
 
-  it('lazy-loads theme showcase', async () => {
+  it('renders local theme controls immediately without a loading placeholder', () => {
     render(<DeferredThemeShowcase />);
-    expect(await screen.findByTestId('theme-showcase-stub')).toBeInTheDocument();
+    expect(screen.getByTestId('theme-showcase-stub')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   /*

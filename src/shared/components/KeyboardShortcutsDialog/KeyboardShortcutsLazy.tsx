@@ -1,12 +1,8 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
-const KeyboardShortcutsDialog = lazy(() =>
-  import('./KeyboardShortcutsDialog.tsx').then((m) => ({
-    default: m.KeyboardShortcutsDialog,
-  })),
-);
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog.tsx';
 
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -17,7 +13,8 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 /**
- * Lazy-loaded shortcuts dialog. Registers global `?` and Cmd/Ctrl+/ listeners.
+ * Static reference loaded with the deferred app layout, ready on the first keypress.
+ * Registers global `?` and Cmd/Ctrl+/ listeners.
  */
 export function KeyboardShortcutsLazy() {
   const open = useUIStore((s) => s.shortcutsOpen);
@@ -42,9 +39,5 @@ export function KeyboardShortcutsLazy() {
 
   if (!open) return null;
 
-  return (
-    <Suspense fallback={null}>
-      <KeyboardShortcutsDialog />
-    </Suspense>
-  );
+  return <KeyboardShortcutsDialog />;
 }

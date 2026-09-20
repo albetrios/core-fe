@@ -134,10 +134,9 @@ const rootRoute = createRootRoute({
           without blanking the page to a full-screen spinner. */}
       <RouteProgressBar />
       <div className="bg-background text-foreground min-h-screen">
-        <Outlet />
+        {/* Settings is ready alongside every authenticated app outlet. */}
+        <SettingsModalLazy />
       </div>
-      {/* Global hash-driven settings modal — overlays any page (#settings/…). */}
-      <SettingsModalLazy />
       {/* Right-edge handles: appearance (when unlocked) + language. Contains
           itself — see FloatingEdgeControls. */}
       <FloatingEdgeControls />

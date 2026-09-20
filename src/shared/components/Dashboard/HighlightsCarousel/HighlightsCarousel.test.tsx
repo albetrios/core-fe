@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 
 import { DASHBOARD_TEST_IDS } from '@/shared/components/Dashboard/dashboard.constants.ts';
+import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { HighlightsCarousel } from './HighlightsCarousel.tsx';
@@ -29,10 +30,14 @@ describe('HighlightsCarousel', () => {
     renderWithProviders(<HighlightsCarousel />);
 
     await screen.findByText('Make it yours');
-    expect(screen.getByTestId('dashboard-highlight-action-appearance')).toHaveAttribute(
-      'href',
-      '#settings/account/appearance',
-    );
+    const appearance = screen.getByTestId('dashboard-highlight-action-appearance');
+    expect(appearance.tagName).toBe('BUTTON');
+    expect(appearance).not.toHaveAttribute('href');
+    const user = userEvent.setup();
+    useUIStore.setState({ appearanceOpen: false });
+    await user.click(appearance);
+    expect(useUIStore.getState().appearanceOpen).toBe(true);
+    useUIStore.setState({ appearanceOpen: false });
     expect(screen.getByTestId('dashboard-highlight-action-appearance')).toHaveTextContent(
       'Open Appearance Settings',
     );

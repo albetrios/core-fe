@@ -153,6 +153,27 @@ Motion is **subtle, fast, and purposeful** — it orients, it doesn't perform.
   (restored app-wide after Tailwind v4 Preflight); hover/focus states are visible
   and never rely on colour alone.
 
+### Loading States
+
+- Render known interface structure immediately: dialog titles, navigation, search,
+  close controls, widget headings, and section labels are real UI, not skeletons.
+  Keep lazy boundaries inside that structure, around dynamic content only.
+- Warm the settings shell alongside authenticated route chunks under the bounded
+  boot splash. Keep it out of the anonymous entry bundle and keep the app outlet
+  outside settings loading/error boundaries. Failed preloads must not hide or
+  remount the page; opening settings can retry with a dismissible recovery surface.
+- Match skeletons to the pending content and reserve its final dimensions. Never
+  replace a whole dialog, navigation rail, or widget with a pulsing rectangle.
+- Keep navigation and dismissal usable during loading. Preserve entered search
+  text and focus when deferred content arrives; do not replay entrance animations.
+- Keep already-loaded content visible during background refresh. Local failures
+  get local retry controls without removing surrounding navigation or content.
+- Announce loading once per pending region, hide decorative skeletons from
+  assistive technology, and respect reduced motion. The startup splash must have
+  a bounded exit deadline that late loading holds cannot restart or cancel.
+- Verify first-open and repeat-open behavior with delayed chunks on desktop and
+  mobile. Test close, keyboard focus, switching sections, and retry after failure.
+
 ## 6. Iconography
 
 - **One swappable surface.** Every icon flows through `@/shared/icons` (lint-

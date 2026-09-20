@@ -879,6 +879,60 @@ function applyDataAxis(
   }
 }
 
+/**
+ * The exact custom properties `index.html`'s boot splash paints from.
+ * Keep in step with the `#app-splash` rules there.
+ */
+const BOOT_SPLASH_VARS = [
+  '--color-background',
+  '--color-foreground',
+  '--color-primary',
+  '--color-primary-foreground',
+  '--color-muted',
+  '--radius-lg',
+] as const;
+
+/** Where `public/theme-init.js` looks for the resolved boot palette. */
+export const BOOT_THEME_VARS_KEY = 'theme-boot-vars';
+
+/**
+ * Snapshot the RESOLVED splash palette so the pre-React boot script can replay it
+ * verbatim instead of recomputing an approximation of it.
+ *
+ * `theme-init.js` runs before any bundle and so cannot call
+ * {@link accentForeground}; it used to guess `oklch(0.985 0 0)` (white) for
+ * `--color-primary-foreground`. For most accents the real contrast math picks the
+ * DARK foreground instead, so the splash painted a white logo that flipped to
+ * black the moment React applied the theme — one loading screen in two colours,
+ * on every cold load. Writing the resolved values here keeps the maths in one
+ * place: boot replays, it does not re-derive.
+ *
+ * Tagged with the mode it was captured in, because the boot script picks light or
+ * dark from the OS before it applies anything; a snapshot from the other mode
+ * would be worse than the fallback.
+ */
+function persistBootThemeVars(root: HTMLElement): void {
+  try {
+    const computed = getComputedStyle(root);
+    const vars: Record<string, string> = {};
+    for (const name of BOOT_SPLASH_VARS) {
+      const value = computed.getPropertyValue(name).trim();
+      if (value) vars[name] = value;
+    }
+    localStorage.setItem(
+      BOOT_THEME_VARS_KEY,
+      JSON.stringify({
+        preset: GENERATED_PRESET,
+        mode: root.classList.contains('dark') ? 'dark' : 'light',
+        vars,
+      }),
+    );
+  } catch {
+    // Storage unavailable (private mode, quota). The boot script keeps its own
+    // fallback, so this is a lost optimisation, never a broken theme.
+  }
+}
+
 /** Accent colour + contrast-safe foreground (intensity → OKLCH chroma). */
 function applyAccent(root: HTMLElement, theme: GeneratedTheme): void {
   const hue = norm(theme.hue);
@@ -970,6 +1024,8 @@ export function applyGeneratedTheme(input: GeneratedTheme): void {
   applyDataAxis(root, 'shape', theme.shapeId, DEFAULT_SHAPE);
   applyDataAxis(root, 'focus', theme.focusId, DEFAULT_FOCUS);
   applyTypeScale(root, theme);
+
+  persistBootThemeVars(root);
 }
 
 /** Apply a neutral base colour via `data-base` (cleared for `neutral`/unknown). */

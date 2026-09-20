@@ -12,13 +12,13 @@ vi.mock('./AppearancePanel.tsx', () => ({
 }));
 
 describe('AppearanceDialog', () => {
-  afterEach(() => useUIStore.setState({ appearanceOpen: false }));
+  afterEach(() => act(() => useUIStore.setState({ appearanceOpen: false })));
 
-  it('renders the appearance panel when the store flag is open', () => {
+  it('renders the appearance panel when the store flag is open', async () => {
     useUIStore.setState({ appearanceOpen: true });
     render(<AppearanceDialog />);
     expect(screen.getByTestId('appearance-dialog')).toBeInTheDocument();
-    expect(screen.getByTestId('appearance-panel')).toBeInTheDocument();
+    expect(await screen.findByTestId('appearance-panel')).toBeInTheDocument();
     expect(screen.getByText('Appearance')).toBeInTheDocument();
   });
 

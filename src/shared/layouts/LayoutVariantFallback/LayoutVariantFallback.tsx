@@ -1,5 +1,7 @@
+import { useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { holdAppSplash } from '@/lib/app-splash.ts';
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 
 /**
@@ -13,6 +15,17 @@ import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
  */
 export function LayoutVariantFallback() {
   const { t } = useTranslation(LOCALE_NS);
+
+  // Hold the HTML boot splash for as long as this is up, exactly as
+  // FullPageSpinner does. On a cold load the splash used to ease out the moment
+  // the route rendered — which is when THIS mounts, not when the layout arrives —
+  // so the splash faded into an app-shell skeleton (nav rail, top bar) that the
+  // login page never has, and sat there for seconds before the auth screen
+  // replaced it. Measured on /login: fallback visible at 10.7s, splash gone by
+  // 11.3s, auth form not until 16.0s. Holding keeps it one continuous screen.
+  // A no-op once the splash is gone, so a runtime variant swap is unaffected.
+  useLayoutEffect(() => holdAppSplash(), []);
+
   return (
     <output
       data-testid="layout-variant-fallback"

@@ -1,5 +1,6 @@
 import { useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import {
+  Suspense,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -10,9 +11,12 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { ORGANIZATION } from '@/core/config/constants.ts';
+import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
+import { onceAsync, useRetryableLazy } from '@/lib/lazy-module.ts';
 import { cn } from '@/lib/utils.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
+import { useEnterAnimationProps } from '@/shared/components/LazyOverlay/index.ts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,16 +42,6 @@ import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
-import { AccountBillingPanel } from './account/AccountBillingPanel.tsx';
-import { AccountNotificationsPanel } from './account/AccountNotificationsPanel.tsx';
-import { AccountPanel } from './account/AccountPanel.tsx';
-import { AccountProfilePanel } from './account/AccountProfilePanel.tsx';
-import { AccountSecurityPanel } from './account/AccountSecurityPanel.tsx';
-import { AccountSessionsPanel } from './account/AccountSessionsPanel.tsx';
-import { OrganizationGeneralPanel } from './organization/OrganizationGeneralPanel.tsx';
-import { OrganizationIntegrationsPanel } from './organization/OrganizationIntegrationsPanel.tsx';
-import { OrganizationMembersPanel } from './organization/OrganizationMembersPanel.tsx';
-import { OrganizationRolesPanel } from './organization/OrganizationRolesPanel.tsx';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
@@ -70,7 +64,8 @@ import type {
   SettingsSection,
   SettingsSectionRef,
 } from './settings-sections.ts';
-import { SettingsNav, SettingsNavSkeleton } from './SettingsNav.tsx';
+import { SettingsNav } from './SettingsNav.tsx';
+import { SectionHeader } from './SettingsPanelShell.tsx';
 
 /**
  * Global settings modal — ONE modal for account + organization settings,
@@ -96,6 +91,8 @@ const SETTINGS_DIALOG_CLASS =
 
 function SettingsModalBody() {
   const { t } = useTranslation(SETTINGS_NS);
+  // The shell stays mounted while panels load or change sections.
+  const enterProps = useEnterAnimationProps();
   const dirtyCtx = useSettingsDirty();
   const hash = useRouterState({ select: (s) => s.location.hash });
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -142,6 +139,9 @@ function SettingsModalBody() {
     ],
   );
   const visibleGroups = useMemo(() => visibleSettingsNavGroups(navCtx), [navCtx]);
+  const readyGroups = contextReady
+    ? visibleGroups
+    : visibleGroups.filter((group) => group.scope === 'account');
   const fallbackSection = useMemo(
     () => firstVisibleSettingsSection(visibleGroups),
     [visibleGroups],
@@ -149,12 +149,12 @@ function SettingsModalBody() {
   const active =
     parsed && contextReady
       ? resolveSettingsSection(parsed, navCtx, fallbackSection)
-      : null;
+      : parsed;
   const scope = active?.scope;
   const section = active?.section;
 
   useLayoutEffect(() => {
-    if (!(active && isSettingsHash(hash))) return;
+    if (!(contextReady && active && isSettingsHash(hash))) return;
     if (isCanonicalSettingsHash(hash, active)) return;
     void navigate({
       to: '.',
@@ -162,7 +162,7 @@ function SettingsModalBody() {
       search: (prev) => prev,
       replace: true,
     });
-  }, [active, hash, navigate]);
+  }, [active, contextReady, hash, navigate]);
 
   // Hash changes are invisible to pageview analytics — emit explicitly.
   useEffect(() => {
@@ -191,35 +191,7 @@ function SettingsModalBody() {
     [dirtyCtx?.isDirty],
   );
 
-  if (!parsed) return null;
-
-  if (!active) {
-    // Open, sized, and honest: the rail holds its space while the session
-    // context lands. Nothing here can be dirty yet, so Esc closes directly.
-    return (
-      <Dialog open onOpenChange={(open) => !open && close()}>
-        <DialogContent
-          className={SETTINGS_DIALOG_CLASS}
-          data-testid="settings-modal"
-          aria-busy
-        >
-          <DialogTitle className="sr-only">{t(SETTINGS_KEYS.dialog.title)}</DialogTitle>
-          <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
-            <SettingsNavSkeleton />
-            <div
-              className="min-h-0 flex-1 space-y-4 px-4 pt-6 pb-6 sm:px-8"
-              data-testid="settings-content-loading"
-            >
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-72" />
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  if (!active) return null;
 
   const guardedClose = () => runOrConfirmDiscard(close);
 
@@ -249,6 +221,7 @@ function SettingsModalBody() {
         <DialogContent
           className={SETTINGS_DIALOG_CLASS}
           data-testid="settings-modal"
+          {...enterProps}
           onInteractOutside={(e) => {
             // Toasts render outside the dialog (sonner) — clicking one (e.g. its
             // close button) must dismiss the toast, not close Settings.
@@ -258,25 +231,31 @@ function SettingsModalBody() {
         >
           <DialogTitle className="sr-only">{t(SETTINGS_KEYS.dialog.title)}</DialogTitle>
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
-            <SettingsNav groups={visibleGroups} active={active} onSelect={goTo} />
+            <SettingsNav groups={readyGroups} active={active} onSelect={goTo} />
             <div className="flex min-h-0 flex-col">
               {/* Mobile section picker — the sidebar is hidden below sm */}
-              <div className="shrink-0 border-b p-3 sm:hidden">
+              <div className="shrink-0 border-b p-3 pe-12 sm:hidden">
                 <Select
                   value={`${active.scope}/${active.section}`}
-                  onValueChange={(v) => {
-                    const [scope, section] = v.split('/') as [
+                  onValueChange={(value) => {
+                    const [scope, section] = value.split('/') as [
                       SettingsScope,
                       SettingsSection,
                     ];
                     goTo({ scope, section });
                   }}
                 >
-                  <SelectTrigger className="w-full" data-testid="settings-mobile-section">
-                    <SelectValue />
+                  <SelectTrigger
+                    className="w-full"
+                    data-testid="settings-mobile-section"
+                    aria-label={t(SETTINGS_KEYS.nav.ariaSections)}
+                  >
+                    <SelectValue
+                      placeholder={t(SETTINGS_SECTION_LABEL_KEYS[active.section])}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {visibleGroups
+                    {readyGroups
                       .flatMap((group) => group.items)
                       .map((item) => (
                         <SelectItem
@@ -303,7 +282,14 @@ function SettingsModalBody() {
                 data-testid="settings-content"
                 onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
               >
-                <ActivePanel active={active} />
+                {contextReady ? (
+                  <ActivePanel
+                    key={`${active.scope}/${active.section}`}
+                    active={active}
+                  />
+                ) : (
+                  <SettingsContentLoading active={active} />
+                )}
               </div>
             </div>
           </div>
@@ -335,33 +321,79 @@ function SettingsModalBody() {
   );
 }
 
-function panelForSection(section: SettingsSection) {
-  switch (section) {
-    case 'profile':
-      return <AccountProfilePanel />;
-    case 'account':
-      return <AccountPanel />;
-    case 'security':
-      return <AccountSecurityPanel />;
-    case 'notifications':
-      return <AccountNotificationsPanel />;
-    case 'sessions':
-      return <AccountSessionsPanel />;
-    case 'billing':
-      return <AccountBillingPanel />;
-    case 'general':
-      return <OrganizationGeneralPanel />;
-    case 'members':
-      return <OrganizationMembersPanel />;
-    case 'roles':
-      return <OrganizationRolesPanel />;
-    case 'integrations':
-      return <OrganizationIntegrationsPanel />;
-  }
+const PANEL_LOADERS = {
+  profile: onceAsync(() =>
+    import('./account/AccountProfilePanel.tsx').then((m) => ({
+      default: m.AccountProfilePanel,
+    })),
+  ),
+  account: onceAsync(() =>
+    import('./account/AccountPanel.tsx').then((m) => ({ default: m.AccountPanel })),
+  ),
+  security: onceAsync(() =>
+    import('./account/AccountSecurityPanel.tsx').then((m) => ({
+      default: m.AccountSecurityPanel,
+    })),
+  ),
+  notifications: onceAsync(() =>
+    import('./account/AccountNotificationsPanel.tsx').then((m) => ({
+      default: m.AccountNotificationsPanel,
+    })),
+  ),
+  sessions: onceAsync(() =>
+    import('./account/AccountSessionsPanel.tsx').then((m) => ({
+      default: m.AccountSessionsPanel,
+    })),
+  ),
+  billing: onceAsync(() =>
+    import('./account/AccountBillingPanel.tsx').then((m) => ({
+      default: m.AccountBillingPanel,
+    })),
+  ),
+  general: onceAsync(() =>
+    import('./organization/OrganizationGeneralPanel.tsx').then((m) => ({
+      default: m.OrganizationGeneralPanel,
+    })),
+  ),
+  members: onceAsync(() =>
+    import('./organization/OrganizationMembersPanel.tsx').then((m) => ({
+      default: m.OrganizationMembersPanel,
+    })),
+  ),
+  roles: onceAsync(() =>
+    import('./organization/OrganizationRolesPanel.tsx').then((m) => ({
+      default: m.OrganizationRolesPanel,
+    })),
+  ),
+  integrations: onceAsync(() =>
+    import('./organization/OrganizationIntegrationsPanel.tsx').then((m) => ({
+      default: m.OrganizationIntegrationsPanel,
+    })),
+  ),
+};
+
+function SettingsContentLoading({ active }: { active: SettingsSectionRef }) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const { t: tLocale } = useTranslation(LOCALE_NS);
+  return (
+    <div className="flex flex-col gap-6" data-testid="settings-content-loading">
+      <SectionHeader title={t(SETTINGS_SECTION_LABEL_KEYS[active.section])} />
+      <output className="sr-only">{tLocale(LOCALE_KEYS.loading)}</output>
+      <div aria-hidden="true" className="flex max-w-xl flex-col gap-6">
+        {[0, 1, 2].map((field) => (
+          <div key={field} className="flex flex-col gap-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function ActivePanel({ active }: { active: SettingsSectionRef }) {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  const { Component: Panel, retry } = useRetryableLazy(PANEL_LOADERS[active.section]);
   const sectionLabel = tSettings(
     SETTINGS_SECTION_LABEL_KEYS[
       active.section as keyof typeof SETTINGS_SECTION_LABEL_KEYS
@@ -372,8 +404,11 @@ function ActivePanel({ active }: { active: SettingsSectionRef }) {
     <SectionErrorBoundary
       title={sectionLabel}
       testId={`settings-panel-error-${active.section}`}
+      onReset={retry}
     >
-      {panelForSection(active.section)}
+      <Suspense fallback={<SettingsContentLoading active={active} />}>
+        <Panel />
+      </Suspense>
     </SectionErrorBoundary>
   );
 }

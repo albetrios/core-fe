@@ -565,7 +565,21 @@ export function AccountSecurityPanel() {
         />
       ) : null}
       {overviewReady || overviewFailed ? null : (
-        <Skeleton className="h-36 w-full" data-testid="security-overview-loading" />
+        <Card data-testid="security-overview-loading" aria-busy="true">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">
+              {t(SETTINGS_KEYS.security.overview.title)}
+            </CardTitle>
+            <CardDescription>
+              {t(SETTINGS_KEYS.security.overview.description)}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2" aria-hidden="true">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-5 w-1/2" />
+          </CardContent>
+        </Card>
       )}
 
       {/* Two independent credential features in one panel: a throw in the

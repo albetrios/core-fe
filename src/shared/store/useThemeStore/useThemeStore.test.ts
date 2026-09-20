@@ -1,3 +1,11 @@
+import {
+  DEFAULT_ICON_COLOR,
+  DEFAULT_LAYOUT_WIDTH,
+  GENERATED_PRESET,
+  generateSeededTheme,
+  SHUFFLE_TEMP,
+} from '@/shared/theme/index.ts';
+
 import { useThemeStore } from './useThemeStore.ts';
 
 describe('useThemeStore', () => {
@@ -242,5 +250,160 @@ describe('useThemeStore', () => {
       expect(persistedKeys()).not.toContain('dashboardVariant');
       expect(persistedKeys()).toEqual(PERSISTED_KEYS);
     });
+  });
+});
+
+describe('useThemeStore — mode application', () => {
+  function stubMatchMedia(matches: boolean) {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: (query: string) => ({
+        matches,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+  }
+
+  it('dark mode adds the .dark class; light removes it', () => {
+    useThemeStore.getState().setTheme('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+
+    useThemeStore.getState().setTheme('light');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+  });
+
+  it('system mode follows the OS preference in both directions', () => {
+    stubMatchMedia(true);
+    useThemeStore.getState().setTheme('system');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+
+    stubMatchMedia(false);
+    useThemeStore.getState().setTheme('system');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+  });
+});
+
+describe('useThemeStore — persistence contract', () => {
+  it('migrate v1 seeds icon colour + layout width and drops the TEMP variants', () => {
+    const migrate = useThemeStore.persist.getOptions().migrate;
+    const migrated = migrate?.(
+      {
+        theme: 'dark',
+        authVariant: 2,
+        appVariant: 1,
+        publicVariant: 2,
+      },
+      1,
+    ) as Record<string, unknown>;
+
+    expect(migrated.iconColor).toBe(DEFAULT_ICON_COLOR);
+    expect(migrated.layoutWidth).toBe(DEFAULT_LAYOUT_WIDTH);
+    expect(migrated.theme).toBe('dark');
+    expect(migrated).not.toHaveProperty('authVariant');
+    expect(migrated).not.toHaveProperty('appVariant');
+    expect(migrated).not.toHaveProperty('publicVariant');
+  });
+
+  it('migrate v2 adds layout width but keeps a chosen icon colour', () => {
+    const migrate = useThemeStore.persist.getOptions().migrate;
+    const migrated = migrate?.({ theme: 'light', iconColor: 'accent' }, 2) as Record<
+      string,
+      unknown
+    >;
+
+    expect(migrated.iconColor).toBe('accent');
+    expect(migrated.layoutWidth).toBe(DEFAULT_LAYOUT_WIDTH);
+  });
+
+  it('migrate passes non-object persisted state through untouched', () => {
+    const migrate = useThemeStore.persist.getOptions().migrate;
+    expect(migrate?.(null, 1)).toBeNull();
+  });
+
+  it('partialize never persists the TEMP preview variants', () => {
+    const partialize = useThemeStore.persist.getOptions().partialize;
+    const persisted = partialize?.(useThemeStore.getState()) as Record<string, unknown>;
+
+    expect(persisted).toHaveProperty('theme');
+    expect(persisted).toHaveProperty('preset');
+    expect(persisted).not.toHaveProperty('authVariant');
+    expect(persisted).not.toHaveProperty('appVariant');
+    expect(persisted).not.toHaveProperty('publicVariant');
+    expect(persisted).not.toHaveProperty('dashboardVariant');
+  });
+
+  it('rehydrating a named preset re-applies it to the document', () => {
+    const onRehydrate = useThemeStore.persist.getOptions().onRehydrateStorage;
+    const apply = onRehydrate?.(useThemeStore.getState());
+
+    apply?.({
+      ...useThemeStore.getState(),
+      theme: 'light',
+      preset: 'violet',
+      customTheme: null,
+    });
+
+    expect(document.documentElement.dataset.theme).toBe('violet');
+  });
+
+  it('rehydrating a generated look re-applies the custom theme variables', () => {
+    const onRehydrate = useThemeStore.persist.getOptions().onRehydrateStorage;
+    const apply = onRehydrate?.(useThemeStore.getState());
+    const look = generateSeededTheme(1234);
+
+    apply?.({
+      ...useThemeStore.getState(),
+      theme: 'light',
+      preset: GENERATED_PRESET,
+      customTheme: look,
+    });
+
+    expect(document.documentElement.style.getPropertyValue('--color-primary')).not.toBe(
+      '',
+    );
+  });
+});
+
+describe('useThemeStore — shuffle gates', () => {
+  it('leaves every TEMP preview axis untouched when its gate is off', () => {
+    const saved = { ...SHUFFLE_TEMP };
+    Object.assign(SHUFFLE_TEMP, {
+      authLayout: false,
+      appLayout: false,
+      publicLayout: false,
+      dashboard: false,
+      toastVariant: false,
+      toastPosition: false,
+    });
+    try {
+      useThemeStore.setState({
+        authVariant: 1,
+        appVariant: 2,
+        publicVariant: 1,
+        dashboardVariant: 2,
+      });
+      const before = useThemeStore.getState();
+
+      useThemeStore.getState().shuffleTheme();
+
+      const after = useThemeStore.getState();
+      expect(after.authVariant).toBe(before.authVariant);
+      expect(after.appVariant).toBe(before.appVariant);
+      expect(after.publicVariant).toBe(before.publicVariant);
+      expect(after.dashboardVariant).toBe(before.dashboardVariant);
+      expect(after.toastVariant).toBe(before.toastVariant);
+      expect(after.toastPosition).toBe(before.toastPosition);
+      // The look itself still rolls — gates only pin the TEMP previews.
+      expect(after.preset).toBe(GENERATED_PRESET);
+      expect(after.seed).not.toBeNull();
+    } finally {
+      Object.assign(SHUFFLE_TEMP, saved);
+    }
   });
 });
