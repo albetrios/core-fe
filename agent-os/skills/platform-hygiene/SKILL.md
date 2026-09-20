@@ -133,7 +133,11 @@ A desynced lockfile produces `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` on `pnpm instal
    schemas that actually parse or validate values.
 4. When retaining removed source as a local archive, use a non-source extension
    outside application paths. Do not weaken lint configuration to accommodate an
-   archive. Regenerate `docs/reference/project-tree.txt` after removing a file.
+   archive. Stage approved new files before regenerating
+   `docs/reference/project-tree.txt`: its generator uses tracked-file enumeration,
+   so a pre-stage sync check cannot detect omitted new files. Regenerate after
+   additions or removals, stage the updated tree, and rerun `pnpm sync:check` after
+   commit against the same tracked snapshot CI receives.
 5. Run Knip, type-check, lint, relevant tests, and `pnpm sync:check`. A scanner pass
    alone does not establish that the cleanup preserved behavior.
 
