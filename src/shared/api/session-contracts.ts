@@ -9,15 +9,15 @@ import { isoDateString } from '@/core/types/wire.ts';
  * (geo-locate `ip_address` client-side if a region is ever needed). Revoking the
  * current session returns 409 — log out instead (handled in the panel).
  */
-export const sessionSchema = z.object({
-  id: z.string(),
-  device: z.string(),
-  browser: z.string(),
-  ipAddress: z.string().nullable(),
-  lastActiveAt: z.string(),
-  current: z.boolean(),
-});
-export type Session = z.infer<typeof sessionSchema>;
+
+export type Session = {
+  id: string;
+  device: string;
+  browser: string;
+  ipAddress: string | null;
+  lastActiveAt: string;
+  current: boolean;
+};
 
 export const sessionWireSchema = z.object({
   id: z.string().min(1),

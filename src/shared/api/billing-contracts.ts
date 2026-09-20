@@ -3,50 +3,54 @@ import { z } from 'zod';
 import { isoDateString, publicId } from '@/core/types/wire.ts';
 
 /** Subscription lifecycle status (normalized from core-be uppercase wire values). */
-export const billingSubscriptionStatusSchema = z.enum([
-  'active',
-  'trialing',
-  'past_due',
-  'canceled',
-  'paused',
-  'unpaid',
-  'incomplete',
-  'incomplete_expired',
-]);
-export type BillingSubscriptionStatus = z.infer<typeof billingSubscriptionStatusSchema>;
 
-export const billingCycleSchema = z.enum(['monthly', 'yearly']);
-export type BillingCycle = z.infer<typeof billingCycleSchema>;
+export type BillingSubscriptionStatus =
+  | 'active'
+  | 'trialing'
+  | 'past_due'
+  | 'canceled'
+  | 'paused'
+  | 'unpaid'
+  | 'incomplete'
+  | 'incomplete_expired';
 
-export const billingPlanSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  priceMonthly: z.number().int().nonnegative(),
-  priceYearly: z.number().int().nonnegative(),
-  currency: z.string(),
-  isActive: z.boolean(),
-  seatLimit: z.number().int().positive().nullable(),
-});
-export type BillingPlan = z.infer<typeof billingPlanSchema>;
+export type BillingCycle = 'monthly' | 'yearly';
 
-export const billingSubscriptionSchema = z.object({
-  id: z.string(),
-  planId: z.string().nullable(),
-  status: billingSubscriptionStatusSchema,
-  billingCycle: billingCycleSchema,
-  currentPeriodStart: z.string(),
-  currentPeriodEnd: z.string(),
-  trialEnd: z.string().nullable(),
-  cancelAtPeriodEnd: z.boolean(),
-  canceledAt: z.string().nullable(),
-  provider: z.string().nullable(),
-  seatsTotal: z.number().int().positive().nullable(),
-  seatsUsed: z.number().int().nonnegative(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-export type BillingSubscription = z.infer<typeof billingSubscriptionSchema>;
+export type BillingPlan = {
+  id: string;
+  name: string;
+  description: string | null;
+  priceMonthly: number;
+  priceYearly: number;
+  currency: string;
+  isActive: boolean;
+  seatLimit: number | null;
+};
+
+export type BillingSubscription = {
+  id: string;
+  planId: string | null;
+  status:
+    | 'active'
+    | 'trialing'
+    | 'past_due'
+    | 'canceled'
+    | 'paused'
+    | 'unpaid'
+    | 'incomplete'
+    | 'incomplete_expired';
+  billingCycle: BillingCycle;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  trialEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  canceledAt: string | null;
+  provider: string | null;
+  seatsTotal: number | null;
+  seatsUsed: number;
+  createdAt: string;
+  updatedAt: string;
+};
 
 /** Wire schemas — mirror core-be billing serializers. */
 export const billingPlanWireSchema = z.object({
@@ -86,38 +90,27 @@ export const billingPaymentSetupWireSchema = z.object({
   client_secret: z.string().nullable(),
 });
 
-export const billingInvoiceStatusSchema = z.enum([
-  'draft',
-  'open',
-  'paid',
-  'void',
-  'uncollectible',
-]);
-export type BillingInvoiceStatus = z.infer<typeof billingInvoiceStatusSchema>;
+export type BillingInvoice = {
+  id: string;
+  invoiceNumber: string | null;
+  status: 'void' | 'draft' | 'open' | 'paid' | 'uncollectible';
+  amountDue: number;
+  amountPaid: number;
+  currency: string;
+  createdAt: string;
+  dueDate: string | null;
+  hostedInvoiceUrl: string | null;
+  invoicePdfUrl: string | null;
+};
 
-export const billingInvoiceSchema = z.object({
-  id: z.string(),
-  invoiceNumber: z.string().nullable(),
-  status: billingInvoiceStatusSchema,
-  amountDue: z.number().int().nonnegative(),
-  amountPaid: z.number().int().nonnegative(),
-  currency: z.string(),
-  createdAt: z.string(),
-  dueDate: z.string().nullable(),
-  hostedInvoiceUrl: z.string().nullable(),
-  invoicePdfUrl: z.string().nullable(),
-});
-export type BillingInvoice = z.infer<typeof billingInvoiceSchema>;
-
-export const billingPaymentMethodSchema = z.object({
-  id: z.string(),
-  brand: z.string(),
-  last4: z.string(),
-  expMonth: z.number().int(),
-  expYear: z.number().int(),
-  isDefault: z.boolean(),
-});
-export type BillingPaymentMethod = z.infer<typeof billingPaymentMethodSchema>;
+export type BillingPaymentMethod = {
+  id: string;
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+  isDefault: boolean;
+};
 
 export const billingInvoiceWireSchema = z.object({
   id: z.string(),

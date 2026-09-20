@@ -11,8 +11,10 @@ import { I18N_NAMESPACES } from './namespaces.ts';
 
 /**
  * Bootstrap i18next.
- * - BUILD_I18N_MODE=single: all copy for the build locale is inlined in JS (no JSON fetch).
- * - BUILD_I18N_MODE=multi: English ships in the initial bundle; other locales lazy-load JSON.
+ * - BUILD_I18N_MODE=single: selected-language shells and route titles are inlined;
+ *   full page namespaces load before their owning surface renders.
+ * - BUILD_I18N_MODE=multi: English shells ship initially; route content and other
+ *   locales load on demand before the corresponding content is rendered.
  */
 i18n.use(initReactI18next).init({
   lng: I18N_BUILD_UI_LOCALE,

@@ -14,7 +14,6 @@ import { useDeploymentFlagsState } from '@/shared/hooks/useDeploymentFlags/index
 import { useOrgBrand } from '@/shared/hooks/useOrgBrand/index.ts';
 import { NAV_ITEMS, SkipLink } from '@/shared/layouts/AppLayout/AppLayout.shared.tsx';
 import {
-  APP_SHELL_VARIANT,
   type AppShellVariant,
   resolveAppShellVariant,
 } from '@/shared/layouts/AppLayout/resolve-app-shell.ts';
@@ -226,11 +225,5 @@ const preloadAppLayoutVariants = () =>
 
 /** Re-export for tests and direct imports that need the outlet shell without routing. */
 /* eslint-disable react-refresh/only-export-components -- test-facing re-exports beside the layout */
-export {
-  APP_SHELL_VARIANT,
-  AppLayoutShell,
-  preloadAppLayoutVariants,
-  preloadAppShellVariant,
-  resolveAppShellVariant,
-};
+export { preloadAppLayoutVariants };
 /* eslint-enable react-refresh/only-export-components */

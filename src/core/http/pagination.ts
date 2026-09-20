@@ -1,7 +1,7 @@
 import type { ResponseMeta } from '@/core/http/fetch-client.ts';
 
 /** Camel-cased, UI-friendly page descriptor derived from `meta.pagination`. */
-export interface PageInfo {
+interface PageInfo {
   perPage: number;
   /** Opaque cursor for the next page, or `null` when there are no more. */
   next: string | null;

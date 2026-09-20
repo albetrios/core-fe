@@ -6,7 +6,7 @@ import { readInjectedI18nMode } from './build-env.ts';
  * the Vite plugin (`vite.config.ts` at build, `vitest.config.ts` with `modeFlag:
  * 'multi'` under test so lazy JSON tests work) — no build-mode sniffing here.
  */
-export function resolveRuntimeI18nBuildMode(): I18nBuildMode {
+function resolveRuntimeI18nBuildMode(): I18nBuildMode {
   return readInjectedI18nMode();
 }
 

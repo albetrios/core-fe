@@ -16,22 +16,22 @@ import { APP_TITLE } from '@/lib/routes/page-head.ts';
  * `public/manifest.webmanifest` must stay in sync — guarded by
  * `app-manifest.test.ts`.
  */
-export const APP_MANIFEST_SHORT_NAME = PRODUCT_NAME;
+const APP_MANIFEST_SHORT_NAME = PRODUCT_NAME;
 
 /** Matches index.html `<meta name="description">` and manifest `description`. */
-export const APP_MANIFEST_DESCRIPTION = PRODUCT_DESCRIPTION;
+const APP_MANIFEST_DESCRIPTION = PRODUCT_DESCRIPTION;
 
 /** Light-mode `--color-background` (oklch(1 0 0)). */
-export const APP_MANIFEST_BACKGROUND_COLOR = PRODUCT_BACKGROUND_COLOR;
+const APP_MANIFEST_BACKGROUND_COLOR = PRODUCT_BACKGROUND_COLOR;
 
 /** Shell / browser chrome — matches index.html `theme-color` and brand tile. */
-export const APP_MANIFEST_THEME_COLOR = PRODUCT_THEME_COLOR;
+const APP_MANIFEST_THEME_COLOR = PRODUCT_THEME_COLOR;
 
 export const APP_MANIFEST_DISPLAY = 'standalone';
 export const APP_MANIFEST_ORIENTATION = 'portrait-primary';
 
 /** Lucide {@link Boxes} brand mark — same icon as AuthLayout / FullPageSpinner. */
-export const APP_ICON_PATHS = {
+const APP_ICON_PATHS = {
   svg: '/app-icon.svg',
   png192: '/pwa-192x192.png',
   png512: '/pwa-512x512.png',

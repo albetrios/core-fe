@@ -13,9 +13,6 @@ export const DEV_CAPTCHA_TOKEN = 'dev-captcha-token';
  */
 export const CAPTCHA_REMINT_STALL_MS = 6_000;
 
-/** Cloudflare Turnstile always-pass test site key (local dev + E2E). */
-export const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA';
-
 /**
  * Dummy token accepted by Cloudflare siteverify when paired with the always-pass test secret.
  * @see https://developers.cloudflare.com/turnstile/troubleshooting/testing/
@@ -24,11 +21,3 @@ export const TURNSTILE_DUMMY_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
 
 /** Default bypass header name — must match core-be `CAPTCHA_BYPASS_HEADER` in local/test. */
 export const DEFAULT_CAPTCHA_BYPASS_HEADER = 'X-Captcha-Bypass';
-
-export const CAPTCHA_TEST_IDS = {
-  dialog: 'auth-captcha-dialog',
-  widget: 'auth-captcha-widget',
-  verify: 'auth-captcha-verify',
-  confirm: 'auth-captcha-confirm',
-  cancel: 'auth-captcha-cancel',
-} as const;

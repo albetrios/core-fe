@@ -1,7 +1,6 @@
 import {
   CURRENCY_CODES,
   CURRENCY_DISPLAY_PREFERENCES,
-  type CurrencyCode,
   type CurrencyDisplayPreference,
   DATE_FORMAT_PREFERENCES,
   type DateFormatPreference,
@@ -185,8 +184,4 @@ export function timeZoneTestId(zone: TimeZonePreference): string {
 
 export function formatLocaleTestId(tag: FormatLocaleTag): string {
   return LOCALE_TEST_IDS.formatLocaleItem(tag);
-}
-
-export function currencyCodeTestId(code: CurrencyCode): string {
-  return LOCALE_TEST_IDS.currencyCodeItem(code);
 }

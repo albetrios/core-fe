@@ -10,7 +10,7 @@ import { stripeBillingReturnUrl } from '@/lib/billing/stripe-return.ts';
 import { getStripePromise } from '@/shared/billing/load-stripe.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 
-export type StripeBillingIntent = 'payment' | 'setup';
+type StripeBillingIntent = 'payment' | 'setup';
 
 interface StripePaymentFormInnerProps {
   intent: StripeBillingIntent;

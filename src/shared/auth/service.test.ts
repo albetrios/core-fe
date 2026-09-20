@@ -5,9 +5,20 @@ import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import type { MeContext } from '@/shared/tenancy/me-context.ts';
+import { hydrateSessionContext } from '@/shared/tenancy/session-context.ts';
 
 import { clearAccessToken, getAccessToken, setAccessToken } from './token.ts';
 import type { AuthUser } from './types.ts';
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
+  });
+  return { promise, resolve, reject };
+}
 
 // Mock global fetch
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -18,7 +29,7 @@ const { fetchMeContextMock, setQueryDataMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/core/http/queryClient.ts', () => ({
-  queryClient: { clear: vi.fn(), setQueryData: setQueryDataMock },
+  queryClient: { clear: vi.fn(), setQueryData: setQueryDataMock, removeQueries: vi.fn() },
 }));
 
 vi.mock('@/shared/tenancy/me-context.ts', () => ({
@@ -94,17 +105,21 @@ import type * as AuthServiceModule from './service.ts';
 describe('auth/service', () => {
   let silentRefresh: AuthServiceModule['silentRefresh'];
   let forceLogout: AuthServiceModule['forceLogout'];
+  let handleCrossTabLogout: AuthServiceModule['handleCrossTabLogout'];
   let logout: AuthServiceModule['logout'];
   let refreshAccessToken: AuthServiceModule['refreshAccessToken'];
   let establishSession: AuthServiceModule['establishSession'];
+  let startAuthBootstrap: AuthServiceModule['startAuthBootstrap'];
 
   beforeAll(async () => {
     const mod = await import('./service.ts');
     silentRefresh = mod.silentRefresh;
     forceLogout = mod.forceLogout;
+    handleCrossTabLogout = mod.handleCrossTabLogout;
     logout = mod.logout;
     refreshAccessToken = mod.refreshAccessToken;
     establishSession = mod.establishSession;
+    startAuthBootstrap = mod.startAuthBootstrap;
   });
 
   beforeEach(() => {
@@ -383,6 +398,199 @@ describe('auth/service', () => {
 
       await expect(establishSession(VALID_TOKEN)).rejects.toThrow('500');
       expect(getAccessToken()).toBeNull();
+    });
+  });
+  describe('auth completion ordering', () => {
+    const NEXT_TOKEN = makeJwt({ sub: 'next-user', exp: 9999999999 });
+    const NEXT_CTX: MeContext = {
+      ...SAMPLE_CTX,
+      user: { ...SAMPLE_CTX.user, id: 'next-user' },
+      activeOrganization: { ...SAMPLE_CTX.activeOrganization!, id: 'next-org' },
+    };
+
+    beforeEach(() => {
+      forceLogout();
+      fetchMeContextMock.mockReset().mockResolvedValue(SAMPLE_CTX);
+      setQueryDataMock.mockClear();
+      window.location.pathname = '/login';
+    });
+
+    it.each(['logout', 'new login'])(
+      'invalidates default context readers on %s',
+      async (change) => {
+        const context = deferred<MeContext>();
+        fetchMeContextMock
+          .mockReturnValueOnce(context.promise)
+          .mockResolvedValueOnce(NEXT_CTX);
+        const pending = hydrateSessionContext();
+        const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+        if (change === 'logout') handleCrossTabLogout();
+        else await establishSession(NEXT_TOKEN);
+        setQueryDataMock.mockClear();
+        context.resolve(SAMPLE_CTX);
+        await rejected;
+        expect(setQueryDataMock).not.toHaveBeenCalled();
+        expect(useOrganizationStore.getState().organizationId).toBe(
+          change === 'logout' ? null : 'next-org',
+        );
+        expect(getAccessToken()).toBe(change === 'logout' ? null : NEXT_TOKEN);
+      },
+    );
+
+    it('does not restore a token when refresh finishes after cross-tab logout', async () => {
+      const response = deferred<Response>();
+      fetchMock.mockReturnValueOnce(response.promise);
+      const refresh = refreshAccessToken();
+      handleCrossTabLogout();
+      response.resolve(mockFetchResponse({ data: { access_token: VALID_TOKEN } }));
+      await refresh;
+      expect(getAccessToken()).toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    it('does not restore user, organization, or cache after cross-tab logout during context loading', async () => {
+      const context = deferred<MeContext>();
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({ data: { access_token: VALID_TOKEN } }),
+      );
+      fetchMeContextMock.mockReturnValueOnce(context.promise);
+      const refresh = silentRefresh();
+      await vi.waitFor(() => expect(fetchMeContextMock).toHaveBeenCalledOnce());
+      handleCrossTabLogout();
+      context.resolve(SAMPLE_CTX);
+      await refresh;
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useOrganizationStore.getState().organizationId).toBeNull();
+      expect(setQueryDataMock).not.toHaveBeenCalled();
+      expect(getAccessToken()).toBeNull();
+    });
+
+    it('does not send refresh after logout while waiting for the cross-tab lock', async () => {
+      let grant!: () => Promise<void>;
+      const lock = deferred<void>();
+      Object.defineProperty(navigator, 'locks', {
+        configurable: true,
+        value: {
+          request: vi.fn((_name: string, callback: () => Promise<void>) => {
+            grant = callback;
+            return lock.promise;
+          }),
+        },
+      });
+      fetchMock.mockResolvedValue(
+        mockFetchResponse({ data: { access_token: VALID_TOKEN } }),
+      );
+      try {
+        const refresh = refreshAccessToken();
+        handleCrossTabLogout();
+        await grant();
+        lock.resolve();
+        await refresh;
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(getAccessToken()).toBeNull();
+      } finally {
+        delete (navigator as Navigator & { locks?: unknown }).locks;
+      }
+    });
+
+    it('preserves a newer login when an old refresh returns a token', async () => {
+      const response = deferred<Response>();
+      fetchMock.mockReturnValueOnce(response.promise);
+      const refresh = refreshAccessToken();
+      await establishSession(NEXT_TOKEN);
+      response.resolve(mockFetchResponse({ data: { access_token: VALID_TOKEN } }));
+      await refresh;
+      expect(getAccessToken()).toBe(NEXT_TOKEN);
+      expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    });
+
+    it('ignores a stale refresh rejection after newer login', async () => {
+      const response = deferred<Response>();
+      fetchMock.mockReturnValueOnce(response.promise);
+      const refresh = refreshAccessToken().then(
+        () => 'settled',
+        () => 'rejected',
+      );
+      await establishSession(NEXT_TOKEN);
+      response.reject(new Error('old transport failed'));
+      expect(await refresh).toBe('settled');
+      expect(getAccessToken()).toBe(NEXT_TOKEN);
+    });
+
+    it('does not clear a newer login when old context hydration fails', async () => {
+      const context = deferred<MeContext>();
+      fetchMeContextMock
+        .mockReturnValueOnce(context.promise)
+        .mockResolvedValueOnce(NEXT_CTX);
+      const older = establishSession(VALID_TOKEN).then(
+        () => 'settled',
+        () => 'rejected',
+      );
+      await establishSession(NEXT_TOKEN);
+      context.reject(new Error('old context failed'));
+      expect(await older).toBe('settled');
+      expect(getAccessToken()).toBe(NEXT_TOKEN);
+      expect(useAuthStore.getState().user?.id).toBe('next-user');
+    });
+
+    it('does not overwrite a newer login when old context hydration succeeds', async () => {
+      const context = deferred<MeContext>();
+      fetchMeContextMock
+        .mockReturnValueOnce(context.promise)
+        .mockResolvedValueOnce(NEXT_CTX);
+      const older = establishSession(VALID_TOKEN);
+      await establishSession(NEXT_TOKEN);
+      setQueryDataMock.mockClear();
+      context.resolve(SAMPLE_CTX);
+      await older;
+      expect(useAuthStore.getState().user?.id).toBe('next-user');
+      expect(useOrganizationStore.getState().organizationId).toBe('next-org');
+      expect(setQueryDataMock).not.toHaveBeenCalled();
+      expect(getAccessToken()).toBe(NEXT_TOKEN);
+    });
+
+    it('keeps the newer refresh single-flight when stale work settles', async () => {
+      const first = deferred<Response>();
+      const second = deferred<Response>();
+      fetchMock
+        .mockReturnValueOnce(first.promise)
+        .mockReturnValueOnce(second.promise)
+        .mockResolvedValue(mockFetchResponse({ data: { access_token: NEXT_TOKEN } }));
+      const older = refreshAccessToken();
+      handleCrossTabLogout();
+      await establishSession(NEXT_TOKEN);
+      const newer = refreshAccessToken();
+      first.resolve(mockFetchResponse({ data: { access_token: VALID_TOKEN } }));
+      await older;
+      const joined = refreshAccessToken();
+      second.resolve(mockFetchResponse({ data: { access_token: NEXT_TOKEN } }));
+      await Promise.all([newer, joined]);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(getAccessToken()).toBe(NEXT_TOKEN);
+    });
+
+    it('shares startup work and preserves newer login readiness after stale context rejection', async () => {
+      useAuthStore.getState().setLoading(true);
+      const initial = deferred<MeContext>();
+      const next = deferred<MeContext>();
+      fetchMock.mockResolvedValueOnce(
+        mockFetchResponse({ data: { access_token: VALID_TOKEN } }),
+      );
+      fetchMeContextMock
+        .mockReturnValueOnce(initial.promise)
+        .mockReturnValueOnce(next.promise);
+      const bootstrap = startAuthBootstrap();
+      expect(startAuthBootstrap()).toBe(bootstrap);
+      await vi.waitFor(() => expect(fetchMeContextMock).toHaveBeenCalledOnce());
+      const login = establishSession(NEXT_TOKEN);
+      initial.reject(new Error('superseded startup'));
+      await bootstrap;
+      expect(useAuthStore.getState().isLoading).toBe(true);
+      expect(getAccessToken()).toBe(NEXT_TOKEN);
+      next.resolve(NEXT_CTX);
+      await login;
+      expect(useAuthStore.getState().user?.id).toBe('next-user');
+      expect(fetchMock).toHaveBeenCalledOnce();
     });
   });
 });

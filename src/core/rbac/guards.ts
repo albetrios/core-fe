@@ -16,7 +16,7 @@ import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.
 export type DenyMode = 'unauthorized' | 'notFound';
 
 /** Throw the configured denial (FE-52). Never returns. */
-export function denyAccess(onDeny: DenyMode = 'unauthorized'): never {
+function denyAccess(onDeny: DenyMode = 'unauthorized'): never {
   if (onDeny === 'notFound') throw notFound();
   throw redirect({ to: AUTH_ROUTES.UNAUTHORIZED });
 }

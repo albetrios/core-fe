@@ -12,8 +12,3 @@ export function getStripePromise(): Promise<Stripe | null> {
   stripePromise ??= loadStripe(publishableKey);
   return stripePromise;
 }
-
-/** Test-only: reset the cached Stripe.js promise. */
-export function resetStripePromiseForTests(): void {
-  stripePromise = null;
-}

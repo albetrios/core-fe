@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils.ts';
 
 const THEMES = { light: '', dark: '.dark' } as const;
 
-export interface ChartConfigItem {
+interface ChartConfigItem {
   label?: React.ReactNode;
   icon?: React.ComponentType;
   color?: string;
@@ -175,6 +175,4 @@ function ChartTooltipContent({
   );
 }
 
-const ChartLegend = RechartsPrimitive.Legend;
-
-export { ChartContainer, ChartLegend, ChartStyle, ChartTooltip, ChartTooltipContent };
+export { ChartContainer, ChartTooltip, ChartTooltipContent };

@@ -796,6 +796,28 @@ if (query.isPending) return <Skeleton />;
 
 ## 22. A placeholder is the size and shape of what replaces it
 
+Translation readiness is shared across startup, routes, and overlays: hydrated
+preferences are not loaded copy. Cover a saved non-default language on cold boot,
+navigation during a slow language switch, superseded switches, and failed chunks.
+Keep route-title labels eager. Deferred notification handoff must retain remaining
+lifetime rather than restarting it; failed imports must not make finite toasts permanent.
+
+**Keep the ready shell.** Settings, appearance, and search surfaces should open
+with their available headings, navigation, close controls, and static settings.
+Put skeletons only where dynamic content is unavailable, using the same geometry
+as the resolved content. Do not replace the whole box because one section is
+fetching, or replace existing data with a skeleton during refetch.
+
+This does not authorize showing controls before authentication or permissions
+resolve. Keep unknown privileged state non-interactive and clearly distinct from
+a denied result. Likewise, await a visible section's translation namespace rather
+than briefly rendering raw keys. A chunk failure needs contained, actionable
+feedback while leaving the rest of the shell usable.
+
+Verify both delayed success and failure in a production browser, including mobile
+layout, keyboard focus, and the before/after content bounds. See the
+`bundle-performance` skill for measuring actual startup work.
+
 **Rule: build the loading state from the SAME shell as the loaded state, and hold the space of a
 control you are still deciding about.** A placeholder that guesses a height moves the page when
 the answer lands; a control rendered as nothing until permission resolves pops in a moment later.

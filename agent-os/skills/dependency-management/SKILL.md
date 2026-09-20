@@ -34,6 +34,20 @@ before-commit guard blocks it locally via `pnpm run validate:lockfile`.
 
 ## Verify
 
+### Compatibility regressions
+
+Reproduce the failing CI command before attributing a failure to an upgrade.
+Change one dependency resolution at a time in isolated diagnostics; record the
+versions, failing suites, and result. An older resolution passing is compatibility
+evidence, not proof of a defect in the upstream source.
+
+When an exact compatibility pin is approved, document the reason and the tests
+that must pass before removing it in `docs/reference/dependency-upgrades.md`.
+Regenerate the lockfile normally. Test the installed graph without test-only
+resolution hooks, then run both audits and the production bundle checks. Keep
+existing security floors, coverage thresholds, and bundle budgets intact; report
+any remaining blocker rather than treating the pin as completion.
+
 - `pnpm run validate:lockfile` — lockfile in sync with `package.json`.
 - `pnpm deps:audit` — no unaccepted high/critical vulnerabilities.
 - `pnpm knip` — no dead code left by a removal.

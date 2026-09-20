@@ -31,6 +31,20 @@ main.tsx
 Auth bootstrap (`shared/auth/service.ts`) calls `hydrateSessionContext()` after
 token refresh. Workspace guards and `/` resolver share the same helper.
 
+Logout and a newer login invalidate the auth generation and session-context
+generation before publishing new state. Delayed refresh results must not restore
+tokens or users; invalidated context reads reject with `AbortError` before seeding
+the query cache, deriving organization state, or returning stale context to a guard.
+`hydrateSessionContext(isCurrent?)` also accepts an owner-readiness predicate for
+auth hydration. Single-flight cleanup is identity-checked so an older request
+cannot clear the promise belonging to a newer session.
+
+These checks protect pending work, not context already delivered to a caller.
+Callers doing further asynchronous work must recheck their session before committing
+side effects. Keep regression tests for delayed responses, queued refresh locks,
+logout, and a newer successful login; do not substitute browser `fixme` or silent
+skips for verification.
+
 ---
 
 ## Configuration
@@ -206,6 +220,27 @@ Migrated panels: `OrganizationMembersPanel`, `OrganizationRolesPanel`,
 `AccountBillingPanel`, `OrganizationGeneralPanel`, dashboard widgets.
 
 ---
+
+## Loading Contract
+
+Settings, appearance, and search keep their ready shell and static controls
+visible. Skeletons belong only to unavailable dynamic content and reserve the
+space that content will occupy. Existing content stays visible during refetch;
+unknown authentication or permission state must not expose actionable controls.
+
+A section must have its translation namespace before its copy renders. Deferred
+chunks need contained failure handling without replacing the surrounding app.
+Notification loading must preserve message identity, updates, dismissal, Undo,
+promise settlement, and visible error feedback.
+
+These are acceptance requirements, not a claim that every surface already meets
+them. Validate each changed workflow with delayed and failed requests on desktop
+and mobile production builds, and record remaining gaps in the PR. Preserve the
+bundle budgets and measure actual startup work, including eager dynamic imports.
+
+For implementation guidance, see the
+[resilient-interactions skill](../../agent-os/skills/resilient-interactions/SKILL.md)
+and [bundle-performance skill](../../agent-os/skills/bundle-performance/SKILL.md).
 
 ## Resource registry (L7)
 

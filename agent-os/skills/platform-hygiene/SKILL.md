@@ -119,6 +119,24 @@ A desynced lockfile produces `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` on `pnpm instal
 
 ## Verify
 
+### Export cleanup
+
+1. Inventory consumers before removing an export or forwarding barrel. Include
+   tests, fixtures, tooling, computed imports, and source-reading validators, not
+   just application imports reported by Knip.
+2. Remove an unused forwarding export without changing a used owning API. Preserve
+   genuine public consumers with a precise reason; do not add blanket ignores or
+   label unused declarations public merely to silence the scanner.
+3. For a private runtime declaration used only to infer a type, prefer an
+   equivalent TypeScript type when no runtime validation consumes it. Preserve
+   optionality and public names; check assignability and the real callers. Keep
+   schemas that actually parse or validate values.
+4. When retaining removed source as a local archive, use a non-source extension
+   outside application paths. Do not weaken lint configuration to accommodate an
+   archive. Regenerate `docs/reference/project-tree.txt` after removing a file.
+5. Run Knip, type-check, lint, relevant tests, and `pnpm sync:check`. A scanner pass
+   alone does not establish that the cleanup preserved behavior.
+
 ```bash
 pnpm validate:vite-env
 pnpm validate:client-env --production
@@ -128,6 +146,23 @@ pnpm test -- --run src/core/config/ src/lib/i18n/build-env.test.ts
 ```
 
 ---
+
+## Browser verification
+
+- Use a dedicated E2E server with the intended local environment. Vite reserves
+  `--mode local`; `--mode e2e` loads `.env.local` without `.env.development` overrides.
+  Confirm the existing E2E hooks are enabled; never add a login bypass.
+- The backend must allow the exact frontend origin, including its port. A local
+  refresh `403` is not proof of a frontend race. Inspect sanitized response codes
+  and configuration; do not disable CSRF checks to make a test pass.
+- Finish anonymous bootstrap before an API-based login helper creates its refresh
+  cookie. Do not race startup refresh against installation of an earlier token.
+- Use the shared visible-element helper for responsive shell controls. Never turn
+  locator errors into a conditional skip. Assert scenario prerequisites explicitly.
+- Freeze source changes before browser runs; HMR during authentication invalidates
+  the result. Report skipped and `fixme` scenarios separately from passing tests.
+- Keep alternate build output outside the repository so generated files cannot
+  influence Tailwind discovery, lint, or project-tree checks.
 
 ## Related
 

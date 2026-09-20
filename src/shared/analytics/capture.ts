@@ -116,7 +116,7 @@ export function registerPostHogSuperProperties(ph: PostHogClient): void {
 }
 
 /** Identify the signed-in user (id only) and attach org group analytics. */
-export function syncPostHogIdentity(ph: PostHogClient): void {
+function syncPostHogIdentity(ph: PostHogClient): void {
   const user = useAuthStore.getState().user;
   const org = useOrganizationStore.getState();
 

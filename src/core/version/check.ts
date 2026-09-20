@@ -49,7 +49,7 @@ function getVersionUrl(): string {
 
 type VersionPayload = { buildId: string; builtAt: string };
 
-export interface VersionCheckUpdateContext {
+interface VersionCheckUpdateContext {
   buildId: string;
   /** Reload now (marks loop guard + clears pending state). */
   reloadNow: () => void;

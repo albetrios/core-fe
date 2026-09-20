@@ -81,7 +81,7 @@ export type NavItems = typeof NAV_ITEMS;
  * links to the root `/dashboard`. Styling is passed in so each shell can render
  * the nav its own way.
  */
-export function DashboardNavLink({
+function DashboardNavLink({
   organizationSlug,
   testId,
   activeClassName,

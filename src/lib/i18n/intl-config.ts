@@ -160,7 +160,7 @@ export const CURRENCY_CODES = [
 export type CurrencyCode = (typeof CURRENCY_CODES)[number]['id'];
 export const DEFAULT_CURRENCY_CODE: CurrencyCode = 'USD';
 
-export function isCurrencyCode(value: string): value is CurrencyCode {
+function isCurrencyCode(value: string): value is CurrencyCode {
   return CURRENCY_CODES.some((entry) => entry.id === value);
 }
 
@@ -276,7 +276,7 @@ export function normalizeDateFormatPreference(
   return DEFAULT_DATE_FORMAT;
 }
 
-export function isHourCyclePreference(value: string): value is HourCyclePreference {
+function isHourCyclePreference(value: string): value is HourCyclePreference {
   return (HOUR_CYCLE_PREFERENCES as readonly string[]).includes(value);
 }
 
@@ -287,7 +287,7 @@ export function normalizeHourCyclePreference(
   return DEFAULT_HOUR_CYCLE;
 }
 
-export function isNumberStylePreference(value: string): value is NumberStylePreference {
+function isNumberStylePreference(value: string): value is NumberStylePreference {
   return (NUMBER_STYLE_PREFERENCES as readonly string[]).includes(value);
 }
 
@@ -298,9 +298,7 @@ export function normalizeNumberStylePreference(
   return DEFAULT_NUMBER_STYLE;
 }
 
-export function isCurrencyDisplayPreference(
-  value: string,
-): value is CurrencyDisplayPreference {
+function isCurrencyDisplayPreference(value: string): value is CurrencyDisplayPreference {
   return (CURRENCY_DISPLAY_PREFERENCES as readonly string[]).includes(value);
 }
 
@@ -322,9 +320,7 @@ export type TextDirectionPreference = (typeof TEXT_DIRECTION_PREFERENCES)[number
 export const DEFAULT_TEXT_DIRECTION: TextDirectionPreference = 'auto';
 
 /** Type guard for {@link TextDirectionPreference}. */
-export function isTextDirectionPreference(
-  value: string,
-): value is TextDirectionPreference {
+function isTextDirectionPreference(value: string): value is TextDirectionPreference {
   return (TEXT_DIRECTION_PREFERENCES as readonly string[]).includes(value);
 }
 
@@ -405,7 +401,7 @@ export type TimeZonePreference = (typeof TIME_ZONE_TAGS)[number]['id'];
 export const DEFAULT_TIME_ZONE: TimeZonePreference = 'auto';
 
 /** Type guard for {@link TimeZonePreference}. */
-export function isTimeZonePreference(value: string): value is TimeZonePreference {
+function isTimeZonePreference(value: string): value is TimeZonePreference {
   return TIME_ZONE_TAGS.some((entry) => entry.id === value);
 }
 

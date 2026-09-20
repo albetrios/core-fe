@@ -140,7 +140,7 @@ export async function listBillingPlans(): Promise<BillingPlan[]> {
   );
 }
 
-export async function listSubscriptions(): Promise<BillingSubscription[]> {
+async function listSubscriptions(): Promise<BillingSubscription[]> {
   const res = await apiClient.get<unknown>(`${BILLING_API}/subscriptions`);
   return parseListTolerant(
     billingSubscriptionWireSchema,

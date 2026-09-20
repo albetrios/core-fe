@@ -38,19 +38,19 @@ export const resolveActiveOrg: Gate<OrgRouteCtx> = async (ctx) => {
  * **L4b — org status.** Block suspended / lapsed organizations (wraps
  * {@link requireActiveOrganization}); runs on org children except `suspended/`.
  */
-export const requireOrgStatus: Gate<OrgRouteCtx> = (ctx) => {
+export const requireOrgStatus = ((ctx) => {
   requireActiveOrganization(ctx.params.organizationSlug ?? '');
-};
+}) satisfies Gate<OrgRouteCtx>;
 
 /** Block team slug routes when this deployment is personal-only. */
-export const requireTeamDeployment: Gate<OrgRouteCtx> = () => {
+export const requireTeamDeployment = ((_ctx) => {
   requireTeamOrganizationsDeployment();
-};
+}) satisfies Gate<OrgRouteCtx>;
 
 /** Block root personal dashboard when this deployment is team-only. */
-export const requirePersonalDeployment: Gate<unknown> = () => {
+export const requirePersonalDeployment = ((_ctx) => {
   requirePersonalOrganizationsDeployment();
-};
+}) satisfies Gate<unknown>;
 
 /** `/dashboard` — session must have a personal active org (else onboarding / team URL). */
 export const requirePersonalDashboardWorkspace: Gate<{ redirectFrom?: string }> = async (

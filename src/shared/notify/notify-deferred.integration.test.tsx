@@ -64,6 +64,12 @@ describe('notifyDeferredCommit (real toast surface)', () => {
     await waitFor(() => expect(screen.getByTestId('toast-action')).toBeVisible(), {
       timeout: 5000,
     });
+    // These cases exercise Sonner's removal lifecycle, not the immediate host.
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('toast-action').closest('[data-sonner-toast]'),
+      ).not.toBeNull(),
+    );
     await user.click(screen.getByTestId('toast-action'));
   };
 

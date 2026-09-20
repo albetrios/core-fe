@@ -5,7 +5,6 @@ import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.
 import { type MeContext, meContextQueryKey } from './me-context.ts';
 import type { Organization } from './my-organizations.ts';
 import { listMyOrganizations, organizationSchema } from './my-organizations.ts';
-import { invalidateSessionContext } from './session-context.ts';
 
 function organizationFromMeContext(ctx: MeContext, slug: string): Organization | null {
   const summary = ctx.organizations.find((o) => o.slug === slug);
@@ -88,12 +87,6 @@ export async function ensurePermissionsFor(organizationId: string): Promise<void
   // the me-context read without changing this call site.
   store.setPermissions(await getMyPermissions());
   permissionsLoadedFor = organizationId;
-}
-
-/** Drop session + permission caches after a server-side context mutation. */
-export function invalidateMembershipContext(): void {
-  invalidateSessionContext();
-  permissionsLoadedFor = null;
 }
 
 /** Test-only: reset the per-organization permission cache. */

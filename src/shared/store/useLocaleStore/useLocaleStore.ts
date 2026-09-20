@@ -5,8 +5,11 @@ import {
   applyDocumentDirection,
   applyDocumentLocale,
 } from '@/lib/i18n/apply-document-locale.ts';
-import type { LocaleBuildProfile } from '@/lib/i18n/build-config.ts';
-import { getBuildLocaleProfile } from '@/lib/i18n/i18n-resources.ts';
+import i18n from '@/lib/i18n/i18n.ts';
+import {
+  getBuildLocaleProfile,
+  I18N_BUILD_UI_LOCALE,
+} from '@/lib/i18n/i18n-resources.ts';
 import {
   type CurrencyCode,
   type CurrencyDisplayPreference,
@@ -36,10 +39,12 @@ import {
   type TextDirectionPreference,
   type TimeZonePreference,
 } from '@/lib/i18n/intl-config.ts';
-import { preloadLocaleIdle } from '@/lib/i18n/load-namespace.ts';
+import { cancelLocaleTransition, preloadLocaleIdle } from '@/lib/i18n/load-namespace.ts';
 import { DEFAULT_LOCALE, type I18nLocale, isI18nLocale } from '@/lib/i18n/locales.ts';
 
 interface LocaleStore {
+  isLocaleReady: boolean;
+  recoverInitialLocale: () => Promise<void>;
   locale: I18nLocale;
   formatLocale: FormatLocaleTag;
   dateFormat: DateFormatPreference;
@@ -102,21 +107,52 @@ let localeApplyGeneration = 0;
 
 /** Claims the current apply generation; the returned predicate reports staleness. */
 function beginLocaleApply(): () => boolean {
+  cancelLocaleTransition();
   const generation = ++localeApplyGeneration;
   return () => generation !== localeApplyGeneration;
 }
 
-/** Single-locale builds lock UI language only — regional date/time prefs stay user-owned. */
-function applyBuildUiLocaleLock(profile: LocaleBuildProfile): void {
-  const textDirection = useLocaleStore.getState().textDirection;
-  useLocaleStore.setState({ locale: profile.locale });
-  void applyDocumentLocale(profile.locale, textDirection, beginLocaleApply());
+/** Initial readiness includes translations, not just persisted preferences. */
+async function applyInitialLocale(
+  state: LocaleStore | undefined,
+  isStale: () => boolean,
+) {
+  if (isStale()) {
+    const current = useLocaleStore.getState();
+    applyDocumentDirection(resolvedTextDirection(current.textDirection, current.locale));
+    return;
+  }
+  if (!state) {
+    await useLocaleStore.getState().recoverInitialLocale();
+    return;
+  }
+  const locale = getBuildLocaleProfile()?.locale ?? state.locale;
+  try {
+    await applyDocumentLocale(locale, state.textDirection, isStale);
+    if (!isStale()) useLocaleStore.setState({ locale, isLocaleReady: true });
+  } catch {
+    if (!isStale()) await useLocaleStore.getState().recoverInitialLocale();
+  }
 }
 
 export const useLocaleStore = create<LocaleStore>()(
   persist(
     (set, get) => ({
       ...initialLocaleState(),
+      isLocaleReady: false,
+      recoverInitialLocale: async () => {
+        if (get().isLocaleReady) return;
+        const isStale = beginLocaleApply();
+        // Recovery uses bundled resources, never another deferred namespace fetch.
+        await i18n.changeLanguage(I18N_BUILD_UI_LOCALE);
+        if (isStale()) return;
+        if (typeof document !== 'undefined')
+          document.documentElement.lang = I18N_BUILD_UI_LOCALE;
+        applyDocumentDirection(
+          resolvedTextDirection(get().textDirection, I18N_BUILD_UI_LOCALE),
+        );
+        set({ locale: I18N_BUILD_UI_LOCALE, isLocaleReady: true });
+      },
       setLocale: async (locale) => {
         const isStale = beginLocaleApply();
         await applyDocumentLocale(locale, get().textDirection, isStale);
@@ -127,6 +163,7 @@ export const useLocaleStore = create<LocaleStore>()(
         const formatLocale = defaultFormatLocaleForUi(locale);
         set({
           locale,
+          isLocaleReady: true,
           formatLocale,
           currencyCode: defaultCurrencyForFormatLocale(formatLocale),
         });
@@ -152,6 +189,14 @@ export const useLocaleStore = create<LocaleStore>()(
     {
       name: 'locale-preference',
       version: 7,
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<LocaleStore>),
+        // Late storage cannot undo timeout recovery or a newer language choice.
+        ...(current.isLocaleReady ? { locale: current.locale } : {}),
+        isLocaleReady: current.isLocaleReady,
+        recoverInitialLocale: current.recoverInitialLocale,
+      }),
       migrate: (persisted) => {
         const state = persisted as Partial<LocaleStore> | undefined;
         if (!state || typeof state !== 'object') {
@@ -191,28 +236,14 @@ export const useLocaleStore = create<LocaleStore>()(
         currencyDisplay: state.currencyDisplay,
         currencyCode: state.currencyCode,
       }),
-      onRehydrateStorage: () => (state) => {
-        const profile = getBuildLocaleProfile();
-        if (profile) {
-          // Keep persisted regional prefs (timezone, date locale, formats); only
-          // pin the UI language to the single-locale build. Deferred a microtask:
-          // this callback runs synchronously inside `create()`, and touching the
-          // `useLocaleStore` module binding here is a TDZ ReferenceError that
-          // zustand's hydration chain swallows — leaving `hasHydrated()` false
-          // forever and the app gated on a blank screen.
-          queueMicrotask(() => applyBuildUiLocaleLock(profile));
-          return;
-        }
-        if (state?.locale) {
-          // Gated like setLocale: on a slow boot the user can pick a different
-          // language before this resolves, and the stale apply must not win.
-          void applyDocumentLocale(
-            state.locale,
-            state.textDirection ?? DEFAULT_TEXT_DIRECTION,
-            beginLocaleApply(),
-          );
-          preloadLocaleIdle(state.locale);
-        }
+      onRehydrateStorage: () => {
+        const isStale = beginLocaleApply();
+        return (state) => {
+          // Synchronous hydration runs inside create(), before the store binding exists.
+          queueMicrotask(() => {
+            void applyInitialLocale(state, isStale);
+          });
+        };
       },
     },
   ),

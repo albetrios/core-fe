@@ -33,7 +33,7 @@ dev server — see `docs/reference/local-production-perf.md`.
 ## Module-scope `import()` is eager — it deletes the split
 
 ```ts
-const sidebarImport = import('./variants/AppLayoutSidebar.tsx');   // fetches NOW
+const sidebarImport = import('./variants/AppLayoutSidebar.tsx'); // fetches NOW
 const Shell = lazy(() => sidebarImport.then((m) => ({ default: m.SidebarShell })));
 ```
 
@@ -56,11 +56,32 @@ grep -rnE '^(const|let|var) [^=]*= *(await )?import\(' src --include='*.ts' --in
 
 ## Verify
 
+For dependency or loading changes, also follow these checks:
+
+- Compare production builds with the same source and environment when attributing
+  dependency growth. Keep experimental configs and output outside the checkout;
+  record the installed versions and measured bytes, not only an estimate.
+- Use `pnpm size` on the real entry and modulepreload graph. Preserve its budgets;
+  moving required work to an unconditional startup `import()` is not a saving.
+- Keep ready overlay shells and controls visible. Defer only the content or
+  library that is not yet needed; await required translations before showing it.
+- A deferred notification renderer must preserve message IDs, replacement,
+  dismissal, Undo, promise settlement, and visible feedback if its chunk fails.
+- Check a production build in desktop and mobile browsers with delayed and failed
+  requests. Measure layout stability and verify settings, appearance, search,
+  notifications, and locale changes affected by the patch.
+- Final verification uses the actual installed dependency graph and normal hooks,
+  not a temporary resolver, probe configuration, or disabled gate.
+
 - `pnpm size` — every budget within limit.
 - `pnpm build:check` — no heavy deferred module on the first-paint path.
 - The module-scope `import()` audit above — no matches outside tests.
 
 ## Related
+
+Check the production resource alias as well as the development loader. Single-locale
+builds keep immediate shell labels but defer selected-language page namespaces;
+policy tests must exercise the generated module and its emitted chunk boundaries.
 
 Skills: `platform-hygiene` (build env, knip, deploy validators),
 `react-best-practices` (re-render / code-split patterns),

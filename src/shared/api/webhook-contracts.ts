@@ -15,14 +15,13 @@ export const WEBHOOK_EVENTS = [
   'billing.updated',
 ] as const;
 
-export const webhookSchema = z.object({
-  id: z.string(),
-  url: z.string(),
-  events: z.array(z.string()),
-  active: z.boolean(),
-  createdAt: z.string(),
-});
-export type Webhook = z.infer<typeof webhookSchema>;
+export type Webhook = {
+  id: string;
+  url: string;
+  events: string[];
+  active: boolean;
+  createdAt: string;
+};
 
 export const webhookWireSchema = z.object({
   id: publicId('whk'),

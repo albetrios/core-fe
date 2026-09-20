@@ -26,7 +26,7 @@ import {
   TYPE_SCALES,
 } from './presets.ts';
 
-export interface DocAssertion {
+interface DocAssertion {
   label: string;
   mustInclude: readonly string[];
   mustExclude?: readonly string[];
@@ -65,6 +65,7 @@ export const CATALOG_OPTION_IDS = {
   toastPositions: [...TOAST_POSITIONS],
 } as const;
 
+/** @public Loaded by tooling/validate/theme-catalog.mjs through a computed import. */
 export const THEME_DOC_ASSERTIONS: Record<string, DocAssertion[]> = {
   'docs/reference/theming.md': [
     {

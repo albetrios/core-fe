@@ -31,7 +31,7 @@ export function parseOrganizationSlugParam(raw: string): string | null {
 /* ── Invitation ID param ─────────────────────────────────────────── */
 
 /** Invitation ID as it appears in URLs: `inv_` + random suffix. */
-export const invitationIdParamSchema = z
+const invitationIdParamSchema = z
   .string()
   .regex(/^inv_[A-Za-z0-9]{1,64}$/, 'invalid invitation id');
 
@@ -55,7 +55,7 @@ export const OAUTH_PROVIDER_SLUG_PATTERN = /^[a-z][a-z0-9-]{0,31}$/;
  * Format-only gate — whether the provider is actually wired is core-be's
  * decision (its callback route 501s on an unknown provider).
  */
-export const oauthProviderParamSchema = z
+const oauthProviderParamSchema = z
   .string()
   .regex(OAUTH_PROVIDER_SLUG_PATTERN, 'invalid oauth provider');
 

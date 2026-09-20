@@ -135,8 +135,5 @@ export const AUTH_KEYS = {
 } as const;
 
 export const AUTH_EMAIL_VERIFICATION_CODE_LENGTH = 6;
-export const AUTH_MFA_TOTP_LENGTH = 6;
 export const AUTH_MFA_RECOVERY_MAX_LENGTH = 32;
 export const ACCEPT_INVITE_REDIRECT_MS = 900;
-export const LOGIN_COOLDOWN_BASE_MS = 2000;
-export const LOGIN_COOLDOWN_MAX_MS = 30000;

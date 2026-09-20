@@ -47,7 +47,7 @@ export const DASHBOARD_HIGHLIGHT_SLIDES: readonly DashboardHighlightSlide[] = [
  * The members roster is real (`useMembers`); do not add fixture people here.
  */
 
-export type DashboardEvent = {
+type DashboardEvent = {
   id: string;
   labelKey: string;
   /** Day-of-month within the reference month. */
@@ -80,7 +80,7 @@ export function resolveDashboardEvents(
 }
 
 /** One seeded feed entry — an event type plus how many hours ago it happened. */
-export type DashboardActivityItem = {
+type DashboardActivityItem = {
   id: string;
   labelKey: string;
   icon: 'invite' | 'role' | 'billing' | 'workspace';

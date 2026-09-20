@@ -258,9 +258,6 @@ export const envSchemaKeys = Object.keys(envSchemaBase.shape) as (keyof z.infer<
   typeof envSchemaBase
 >)[];
 
-/** Keys with no default and not optional — must be set in deploy environments. */
-export const envSchemaRequiredKeys: readonly string[] = [];
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-environment (branch-wise) env contracts
 // ─────────────────────────────────────────────────────────────────────────────
@@ -302,7 +299,7 @@ export function environmentForBranch(
 type EnvGet = (key: string) => string | undefined;
 
 /** A key that must be set for an environment (optionally only under a condition). */
-export interface RequiredKeyRule {
+interface RequiredKeyRule {
   readonly key: string;
   /** Required only when this predicate is true. Omit = always required. */
   readonly when?: (get: EnvGet) => boolean;

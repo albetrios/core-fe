@@ -1,5 +1,5 @@
 /** OAuth provider ids exposed on `/login` (env-only — no backend config fetch). */
-export const OAUTH_PROVIDER_IDS = ['google', 'github', 'apple'] as const;
+const OAUTH_PROVIDER_IDS = ['google', 'github', 'apple'] as const;
 
 export type OAuthProviderId = (typeof OAUTH_PROVIDER_IDS)[number];
 

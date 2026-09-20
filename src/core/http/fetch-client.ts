@@ -16,7 +16,7 @@ function generateRequestId(): string {
 // ------------------------------------------------------------------
 // Config and client type
 // ------------------------------------------------------------------
-export interface HttpClientConfig {
+interface HttpClientConfig {
   baseURL: string;
   timeout: number;
   credentials: RequestCredentials;
@@ -32,7 +32,7 @@ const defaultConfig: HttpClientConfig = {
 // Response envelope — core-be wraps every success as { data, meta }
 // ------------------------------------------------------------------
 /** Cursor-pagination block carried on list responses (inside `meta.pagination`). */
-export interface PaginationMeta {
+interface PaginationMeta {
   per_page: number;
   next: string | null;
   has_more: boolean;
@@ -44,7 +44,7 @@ export interface ResponseMeta {
   pagination?: PaginationMeta;
 }
 /** What every apiClient method resolves to: the unwrapped payload + its meta. */
-export interface HttpResponse<T> {
+interface HttpResponse<T> {
   data: T;
   meta?: ResponseMeta;
 }

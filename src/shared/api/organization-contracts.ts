@@ -1,81 +1,65 @@
 import { z } from 'zod';
 
 /**
- * Organization domain contracts (Zod schemas + inferred types).
+ * Organization domain types and runtime form schemas.
  *
  * These mirror the core-be response shapes for memberships, invitations, roles,
  * and API keys. Wire shapes mirror core-be; see `@/shared/api/organization-api.ts`.
  */
 
 /** Role a member holds within an organization. */
-export const orgRoleSchema = z.enum(['owner', 'admin', 'member', 'viewer']);
-export type OrgRole = z.infer<typeof orgRoleSchema>;
 
-export const membershipStatusSchema = z.enum(['active', 'invited', 'suspended']);
-export type MembershipStatus = z.infer<typeof membershipStatusSchema>;
+export type OrgRole = 'owner' | 'admin' | 'member' | 'viewer';
 
-export const memberSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  name: z.string(),
-  email: z.email(),
-  /** Coarse built-in bucket (owner/admin/member/viewer) — lossy for custom roles. */
-  role: orgRoleSchema,
-  /** The member's actual assigned role — id + display name (custom roles keep
-   * their real name here, where `role` would flatten them to `member`). */
-  roleId: z.string(),
-  roleName: z.string(),
-  status: membershipStatusSchema,
-  avatarUrl: z.url().optional(),
-  joinedAt: z.string(),
-  lastActiveAt: z.string().optional(),
-});
-export type Member = z.infer<typeof memberSchema>;
+export type MembershipStatus = 'active' | 'invited' | 'suspended';
 
-export const invitationStatusSchema = z.enum([
-  'pending',
-  'accepted',
-  'expired',
-  'revoked',
-]);
+export type Member = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  /** Coarse built-in bucket; custom roles may map to this lossy category. */
+  role: OrgRole;
+  /** Actual assigned role id and display name, including custom roles. */
+  roleId: string;
+  roleName: string;
+  status: MembershipStatus;
+  joinedAt: string;
+  avatarUrl?: string;
+  lastActiveAt?: string;
+};
+
 // `InvitationStatus` still backs the accept-invite status badge
 // (OrganizationBadges); the full invitation resource/type was removed with the
 // dead /invitations subsystem — invites are INVITED memberships (see Member).
-export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
+export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked';
 
-export const roleSummarySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  permissions: z.array(z.string()),
-  memberCount: z.number().int().nonnegative(),
-  isSystem: z.boolean(),
-});
-export type RoleSummary = z.infer<typeof roleSummarySchema>;
+export type RoleSummary = {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+  memberCount: number;
+  isSystem: boolean;
+};
 
-export const apiKeySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  prefix: z.string(),
-  createdAt: z.string(),
-  lastUsedAt: z.string().optional(),
-  expiresAt: z.string().optional(),
-});
-export type ApiKey = z.infer<typeof apiKeySchema>;
+export type ApiKey = {
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: string;
+  lastUsedAt?: string;
+  expiresAt?: string;
+};
 
 /**
  * API key returned immediately after creation. The full `secret` is shown to the
  * user exactly once and is never retrievable again (mirrors the backend contract).
  */
-export const apiKeyWithSecretSchema = apiKeySchema.extend({ secret: z.string() });
-export type ApiKeyWithSecret = z.infer<typeof apiKeyWithSecretSchema>;
 
-/** Form input for creating a new API key. */
-export const createApiKeyInputSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(60),
-  expiresInDays: z.enum(['30', '90', '365', 'never']),
-});
-export type CreateApiKeyInput = z.infer<typeof createApiKeyInputSchema>;
+export type ApiKeyWithSecret = ApiKey & {
+  secret: string;
+};
 
 /** Assignable (non-system) permissions a custom role may grant. */
 export const ASSIGNABLE_ROLE_PERMISSIONS = [

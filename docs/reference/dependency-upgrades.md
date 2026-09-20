@@ -51,7 +51,50 @@ The approval is the manual gate — `main` requires 0 approvals (solo-maintained
 
 Revisit these when Dependabot or direct dependency upgrades remove the need.
 
+## Test DOM compatibility
+
+Keep `jsdom` pinned exactly to `30.0.1` until a replacement passes the ordinary
+interaction suites below and `pnpm test:ci`. During PR #290 verification on
+2026-09-20, `30.1.0` failed 14 tests across these suites; changing only jsdom to
+`30.0.1` passed all 27 tests and the full 2,336-test coverage run. The failures
+depend on repeated menu interactions: a test can pass alone and fail after a
+preceding menu opens and unmounts. This is a measured compatibility constraint,
+not a confirmed diagnosis of an upstream defect.
+
+```bash
+pnpm exec vitest run --project unit src/shared/components/OrganizationSwitcher/OrganizationSwitcher.test.tsx src/shared/components/MembersTable/MembersTable.test.tsx src/shared/components/DateTimePrefsCard/DateTimePrefsCard.test.tsx
+pnpm test:ci
+```
+
+Before removing the pin, run these commands on the actual regenerated lockfile,
+without a module-resolution hook or test-only dependency substitution. Preserve
+the user-event interactions and assertions; do not hide the regression with
+mocks, skipped tests, or lower coverage thresholds. Commit the manifest and
+lockfile together and re-run the normal push hooks.
+
 ## Pins and known constraints
+
+### Upgrade Verification Contract
+
+Treat compatibility, unused-export cleanup, and startup performance as separate
+checks. Reproduce failures on the actual installed graph and inventory all callers
+before removing an export, including fixtures and source-reading tooling. Keep a
+runtime schema when it validates values; a private declaration used only for type
+inference can become an equivalent TypeScript type after compatibility checks.
+
+For loading changes, keep available shell controls visible, wait for the required
+translation namespaces, and verify delayed or failed chunks without losing
+notification actions or errors. Measure production startup bytes and browser
+behavior; an eager dynamic import does not remove work from startup. Preserve
+budgets and coverage thresholds, regenerate affected docs, run normal hooks, and
+report any existing skipped test separately from verified fixes.
+
+The shared procedures are maintained in the
+[dependency-management](../../agent-os/skills/dependency-management/SKILL.md),
+[platform-hygiene](../../agent-os/skills/platform-hygiene/SKILL.md), and
+[bundle-performance](../../agent-os/skills/bundle-performance/SKILL.md) skills.
+
+### Dependency Constraints
 
 - **`@tanstack/react-router`** is pinned to the **1.170.x** line (`~1.170.17` in [`package.json`](../../package.json)). The earlier **1.169** minors that caused unhandled navigation rejections and maximum update depth in guard tests are resolved as of **1.170.17** — verified against the full guard + unit suite (96 guard tests, 1291 unit tests, build + `build:check` all green) in the 1.160→1.170 bump. Minor/major bumps on this fast-moving router still go through a **deliberate spike** (Dependabot `ignore` keeps them off auto-merge); patches within `~1.170.x` flow normally.
 - **React 19**, **Vite 8**, **ESLint 10**, **lucide-react 1.x**, and similar **majors** are intentionally **not** part of routine bumps — schedule separately with full `pnpm validate` and E2E. **`netlify-cli`** is kept current on the **v27** line (dev-only CLI; moved off v26 in the npm-major group bump — v27 drops Node 20 and requires 22.13+, which the repo's `engines.node >=24` already satisfies).
