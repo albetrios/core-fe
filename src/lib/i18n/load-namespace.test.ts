@@ -19,6 +19,33 @@ describe('load-namespace', () => {
     vi.restoreAllMocks();
   });
 
+  it('coalesces simultaneous requests for the same locale and namespace', async () => {
+    i18n.removeResourceBundle('it', I18N_NAMESPACES.dashboard);
+    const add = vi.spyOn(i18n, 'addResourceBundle');
+    await Promise.all([
+      ensureNamespace('it', I18N_NAMESPACES.dashboard),
+      ensureNamespace('it', I18N_NAMESPACES.dashboard),
+    ]);
+    expect(
+      add.mock.calls.filter(
+        ([locale, ns]) => locale === 'it' && ns === I18N_NAMESPACES.dashboard,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('retries a namespace after a failed resource installation', async () => {
+    i18n.removeResourceBundle('pt', I18N_NAMESPACES.auth);
+    const add = vi.spyOn(i18n, 'addResourceBundle').mockImplementationOnce(() => {
+      throw new Error('Resource installation failed');
+    });
+    await expect(ensureNamespace('pt', I18N_NAMESPACES.auth)).rejects.toThrow(
+      'Resource installation failed',
+    );
+    await ensureNamespace('pt', I18N_NAMESPACES.auth);
+    expect(add).toHaveBeenCalledTimes(2);
+    expect(i18n.hasResourceBundle('pt', I18N_NAMESPACES.auth)).toBe(true);
+  });
+
   it('runs the multi-locale loader under vitest', () => {
     expect(buildRuntime.isMultiLocaleBuild()).toBe(true);
   });
@@ -67,6 +94,21 @@ describe('load-namespace', () => {
     expect(i18n.hasResourceBundle('en', I18N_NAMESPACES.common)).toBe(true);
   });
 
+  it('awaits deferred namespaces using only the selected locale in single mode', async () => {
+    vi.spyOn(buildRuntime, 'isMultiLocaleBuild').mockReturnValue(false);
+    i18n.removeResourceBundle('en', I18N_NAMESPACES.dashboard);
+    const add = vi.spyOn(i18n, 'addResourceBundle');
+    await ensureNamespace('es', I18N_NAMESPACES.dashboard);
+    expect(add).toHaveBeenCalledWith(
+      'en',
+      I18N_NAMESPACES.dashboard,
+      expect.any(Object),
+      true,
+      true,
+    );
+    expect(i18n.hasResourceBundle('en', I18N_NAMESPACES.dashboard)).toBe(true);
+  });
+
   it('preloadLocaleIdle no-ops under Vitest', () => {
     const ric = vi.fn();
     vi.stubGlobal('requestIdleCallback', ric);
@@ -100,5 +142,263 @@ describe('load-namespace', () => {
     vi.stubGlobal('requestIdleCallback', ric);
     preloadLocaleIdle('en');
     expect(ric).not.toHaveBeenCalled();
+  });
+  it('keeps route content deferred and switches only the active namespaces', async () => {
+    vi.resetModules();
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const { default: freshI18n } = await import('@/lib/i18n/i18n.ts');
+    await fresh.ensureActiveLocale('en');
+    expect(
+      freshI18n.t('panels.appearance.title', { ns: I18N_NAMESPACES.settings, lng: 'en' }),
+    ).not.toBe('panels.appearance.title');
+    expect(freshI18n.getResourceBundle('en', I18N_NAMESPACES.auth)).toEqual({
+      manifest: expect.any(Object),
+    });
+    expect(
+      freshI18n.t('manifest.login.title', { ns: I18N_NAMESPACES.auth, lng: 'en' }),
+    ).toBe('Sign in');
+    expect(freshI18n.hasResourceBundle('en', I18N_NAMESPACES.dashboard)).toBe(false);
+    expect(freshI18n.getResourceBundle('en', I18N_NAMESPACES.onboarding)).toEqual({
+      manifest: expect.any(Object),
+    });
+
+    await fresh.ensureNamespace('en', I18N_NAMESPACES.auth);
+    await fresh.ensureActiveLocale('es');
+    expect(freshI18n.hasResourceBundle('es', I18N_NAMESPACES.auth)).toBe(true);
+    expect(freshI18n.hasResourceBundle('es', I18N_NAMESPACES.settings)).toBe(true);
+    expect(freshI18n.hasResourceBundle('es', I18N_NAMESPACES.dashboard)).toBe(false);
+    expect(freshI18n.hasResourceBundle('es', I18N_NAMESPACES.onboarding)).toBe(false);
+  });
+
+  it('includes a newly opened surface before committing a delayed locale switch', async () => {
+    vi.resetModules();
+    const resources = await import('@/lib/i18n/i18n-resources.ts');
+    const original = resources.loadLocaleNamespace;
+    let release!: () => void;
+    const delayed = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
+      if (locale === 'fr' && ns === I18N_NAMESPACES.layout) await delayed;
+      return original(locale, ns);
+    });
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const { default: instance } = await import('@/lib/i18n/i18n.ts');
+    const commit = vi.fn(async () => {
+      expect(instance.hasResourceBundle('fr', I18N_NAMESPACES.onboarding)).toBe(true);
+      await instance.changeLanguage('fr');
+    });
+    const switching = fresh.ensureActiveLocale('fr', commit);
+    await fresh.ensureNamespace('en', I18N_NAMESPACES.onboarding);
+    expect(commit).not.toHaveBeenCalled();
+    release();
+    await switching;
+    expect(commit).toHaveBeenCalledOnce();
+    expect(instance.language).toBe('fr');
+  });
+
+  it('keeps destination readiness registered until the language commit completes', async () => {
+    vi.resetModules();
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const { default: instance } = await import('@/lib/i18n/i18n.ts');
+    let release!: () => void;
+    let started!: () => void;
+    const committing = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const delayed = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const switching = fresh.ensureActiveLocale('de', async () => {
+      started();
+      await delayed;
+    });
+    await committing;
+    await fresh.ensureNamespace('en', I18N_NAMESPACES.dashboard);
+    expect(instance.hasResourceBundle('de', I18N_NAMESPACES.dashboard)).toBe(true);
+    release();
+    await switching;
+  });
+
+  it('clears a failed transition and allows a later retry', async () => {
+    vi.resetModules();
+    const resources = await import('@/lib/i18n/i18n-resources.ts');
+    const loader = vi
+      .spyOn(resources, 'loadLocaleNamespace')
+      .mockRejectedValueOnce(new Error('Offline'));
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const commit = vi.fn(async () => {});
+    await expect(fresh.ensureActiveLocale('es', commit)).rejects.toThrow('Offline');
+    expect(commit).not.toHaveBeenCalled();
+    loader.mockRestore();
+    await fresh.ensureActiveLocale('es', commit);
+    expect(commit).toHaveBeenCalledOnce();
+  });
+
+  it('releases navigation when recovery cancels a stalled destination', async () => {
+    vi.resetModules();
+    const resources = await import('@/lib/i18n/i18n-resources.ts');
+    const original = resources.loadLocaleNamespace;
+    let reached!: () => void;
+    const awaitingDestination = new Promise<void>((resolve) => {
+      reached = resolve;
+    });
+    let release!: () => void;
+    const delayed = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
+      if (locale === 'fr') {
+        if (ns === I18N_NAMESPACES.auth) reached();
+        await delayed;
+      }
+      return original(locale, ns);
+    });
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const commit = vi.fn(async () => {});
+    const switching = fresh.ensureActiveLocale('fr', commit);
+    const navigation = fresh.ensureNamespace('en', I18N_NAMESPACES.auth);
+    await awaitingDestination;
+    fresh.cancelLocaleTransition();
+    await Promise.all([switching, navigation]);
+    expect(commit).not.toHaveBeenCalled();
+    release();
+  });
+  it('releases destination waiters when another namespace fails the transition', async () => {
+    vi.resetModules();
+    const resources = await import('@/lib/i18n/i18n-resources.ts');
+    const original = resources.loadLocaleNamespace;
+    let failLayout!: (error: Error) => void;
+    let releaseDashboard!: () => void;
+    let reachedDashboard!: () => void;
+    const layout = new Promise<void>((_resolve, reject) => {
+      failLayout = reject;
+    });
+    const dashboard = new Promise<void>((resolve) => {
+      releaseDashboard = resolve;
+    });
+    const reached = new Promise<void>((resolve) => {
+      reachedDashboard = resolve;
+    });
+    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
+      if (locale === 'es' && ns === I18N_NAMESPACES.layout) await layout;
+      if (locale === 'es' && ns === I18N_NAMESPACES.dashboard) {
+        reachedDashboard();
+        await dashboard;
+      }
+      return original(locale, ns);
+    });
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const { default: instance } = await import('@/lib/i18n/i18n.ts');
+    const switching = fresh.ensureActiveLocale('es', async () => {
+      await instance.changeLanguage('es');
+    });
+    const failure = expect(switching).rejects.toThrow('layout failed');
+    let navigationSettled = false;
+    const navigation = fresh.ensureNamespace('en', I18N_NAMESPACES.dashboard).then(() => {
+      navigationSettled = true;
+    });
+    try {
+      await reached;
+      failLayout(new Error('layout failed'));
+      await failure;
+      await vi.waitFor(() => expect(navigationSettled).toBe(true), { timeout: 200 });
+      expect(instance.language).toBe('en');
+      expect(instance.hasResourceBundle('en', I18N_NAMESPACES.dashboard)).toBe(true);
+    } finally {
+      releaseDashboard();
+      await Promise.allSettled([switching, navigation]);
+    }
+  });
+
+  it('rechecks committed locale when original copy finishes after languageChanged', async () => {
+    vi.resetModules();
+    const resources = await import('@/lib/i18n/i18n-resources.ts');
+    const original = resources.loadLocaleNamespace;
+    let release!: () => void;
+    const englishAuth = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
+      if (locale === 'en' && ns === I18N_NAMESPACES.auth) await englishAuth;
+      return original(locale, ns);
+    });
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const { default: instance } = await import('@/lib/i18n/i18n.ts');
+    let navigation: Promise<void> | undefined;
+    const onLanguageChanged = () => {
+      navigation = fresh.ensureNamespace('en', I18N_NAMESPACES.auth);
+    };
+    instance.on('languageChanged', onLanguageChanged);
+    try {
+      await fresh.ensureActiveLocale('es', async () => {
+        await instance.changeLanguage('es-MX');
+      });
+      expect(navigation).toBeDefined();
+      expect(instance.language).toBe('es-MX');
+      release();
+      await navigation;
+      expect(instance.hasResourceBundle('es', I18N_NAMESPACES.auth)).toBe(true);
+      expect(
+        instance.t('organizationPicker.heading', { ns: I18N_NAMESPACES.auth }),
+      ).not.toBe('Select organization');
+    } finally {
+      instance.off('languageChanged', onLanguageChanged);
+      release();
+      await navigation;
+    }
+  });
+
+  it('keeps destination waiters pending after a successful async commit', async () => {
+    vi.resetModules();
+    const resources = await import('@/lib/i18n/i18n-resources.ts');
+    const original = resources.loadLocaleNamespace;
+    let releaseAuth!: () => void;
+    let reachedAuth!: () => void;
+    let releaseCommit!: () => void;
+    let startedCommit!: () => void;
+    const auth = new Promise<void>((resolve) => {
+      releaseAuth = resolve;
+    });
+    const reached = new Promise<void>((resolve) => {
+      reachedAuth = resolve;
+    });
+    const commit = new Promise<void>((resolve) => {
+      releaseCommit = resolve;
+    });
+    const started = new Promise<void>((resolve) => {
+      startedCommit = resolve;
+    });
+    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
+      if (locale === 'de' && ns === I18N_NAMESPACES.auth) {
+        reachedAuth();
+        await auth;
+      }
+      return original(locale, ns);
+    });
+    const fresh = await import('@/lib/i18n/load-namespace.ts');
+    const { default: instance } = await import('@/lib/i18n/i18n.ts');
+    const switching = fresh.ensureActiveLocale('de', async () => {
+      startedCommit();
+      await commit;
+    });
+    await started;
+    let settled = false;
+    const navigation = fresh.ensureNamespace('en', I18N_NAMESPACES.auth).then(() => {
+      settled = true;
+    });
+    try {
+      await reached;
+      releaseCommit();
+      await switching;
+      expect(settled).toBe(false);
+      releaseAuth();
+      await navigation;
+      expect(instance.hasResourceBundle('de', I18N_NAMESPACES.auth)).toBe(true);
+    } finally {
+      releaseCommit();
+      releaseAuth();
+      await Promise.allSettled([switching, navigation]);
+    }
   });
 });

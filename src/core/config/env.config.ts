@@ -10,7 +10,7 @@ import {
   clientEnvSchema,
 } from './env-schema.ts';
 
-export { type ClientEnv, clientEnvSchema };
+export type { ClientEnv };
 
 let _clientEnv: ClientEnv | null = null;
 

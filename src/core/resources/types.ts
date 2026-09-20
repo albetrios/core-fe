@@ -37,7 +37,7 @@ export interface ResourceUI {
  * Resource pages live in `src/pages/<resource>/` and export their manifest
  * from `<resource>.resource.ts`.
  */
-export interface Resource<TSchema extends z.ZodTypeAny = z.ZodTypeAny> {
+export interface Resource<TSchema extends z.ZodType = z.ZodType> {
   /** Resource name (`'organizations'`, `'members'`, ...). Used as the URL
    *  segment after `/api/v1/` and as the React Query key namespace. */
   name: string;

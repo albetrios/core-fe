@@ -55,6 +55,28 @@ describe('org gates — thin wrappers stay faithful to the underlying guards', (
     expect(requirePersonalOrganizationsDeployment).toHaveBeenCalledTimes(1);
   });
 
+  it('returns synchronously from passing organization gates', () => {
+    expect(requireOrgStatus({ params: {} })).toBeUndefined();
+    expect(requireTeamDeployment({ params: {} })).toBeUndefined();
+    expect(requirePersonalDeployment(undefined)).toBeUndefined();
+  });
+
+  it('synchronously propagates access denials from organization gates', () => {
+    const denial = new Error('redirect');
+    vi.mocked(requireActiveOrganization).mockImplementationOnce(() => {
+      throw denial;
+    });
+    expect(() => requireOrgStatus({ params: {} })).toThrow(denial);
+    vi.mocked(requireTeamOrganizationsDeployment).mockImplementationOnce(() => {
+      throw denial;
+    });
+    expect(() => requireTeamDeployment({ params: {} })).toThrow(denial);
+    vi.mocked(requirePersonalOrganizationsDeployment).mockImplementationOnce(() => {
+      throw denial;
+    });
+    expect(() => requirePersonalDeployment(undefined)).toThrow(denial);
+  });
+
   it('personal dashboard gate carries the deep link for the onboarding redirect', async () => {
     await requirePersonalDashboardWorkspace({ redirectFrom: '/dashboard?tab=usage' });
     expect(requireProvisionedPersonalDashboard).toHaveBeenCalledWith({

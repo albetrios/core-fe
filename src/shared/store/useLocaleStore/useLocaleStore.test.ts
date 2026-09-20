@@ -1,7 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import * as localeApplication from '@/lib/i18n/apply-document-locale.ts';
 import { applyDocumentLocale } from '@/lib/i18n/apply-document-locale.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import * as namespaceLoader from '@/lib/i18n/load-namespace.ts';
+import { ensureNamespace } from '@/lib/i18n/load-namespace.ts';
 import { I18N_NAMESPACES } from '@/lib/i18n/namespaces.ts';
 
 import { localeFormatPrefs, useLocaleStore } from './useLocaleStore.ts';
@@ -17,6 +20,7 @@ describe('useLocaleStore', () => {
   });
 
   it('persists and applies a new locale', async () => {
+    await ensureNamespace('en', I18N_NAMESPACES.auth);
     await useLocaleStore.getState().setLocale('zh');
     expect(useLocaleStore.getState().locale).toBe('zh');
     expect(i18n.language).toBe('zh');
@@ -204,5 +208,219 @@ describe('useLocaleStore — persistence contract', () => {
       currencyDisplay: 'symbol',
       currencyCode: 'GBP',
     });
+  });
+});
+
+function deferredLocale() {
+  let resolve!: () => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<void>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
+  });
+  return { promise, resolve, reject };
+}
+
+describe('initial locale readiness', () => {
+  beforeEach(async () => {
+    await vi.waitFor(() => expect(useLocaleStore.getState().isLocaleReady).toBe(true));
+    await i18n.changeLanguage('en');
+    useLocaleStore.setState({
+      locale: 'ar',
+      isLocaleReady: false,
+      formatLocale: 'ja-JP',
+      currencyCode: 'JPY',
+      timeZone: 'Asia/Kolkata',
+      dateFormat: 'iso',
+      textDirection: 'ltr',
+    });
+  });
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await useLocaleStore.getState().recoverInitialLocale();
+  });
+
+  function hydrate() {
+    const finish = useLocaleStore.persist
+      .getOptions()
+      .onRehydrateStorage?.(useLocaleStore.getState());
+    finish?.(useLocaleStore.getState());
+  }
+
+  it('does not mark synchronous storage hydration as translation readiness', async () => {
+    const pending = deferredLocale();
+    vi.spyOn(localeApplication, 'applyDocumentLocale').mockReturnValue(pending.promise);
+    hydrate();
+    await Promise.resolve();
+    expect(useLocaleStore.persist.hasHydrated()).toBe(true);
+    expect(useLocaleStore.getState().isLocaleReady).toBe(false);
+    pending.resolve();
+    await vi.waitFor(() => expect(useLocaleStore.getState().isLocaleReady).toBe(true));
+    expect(useLocaleStore.getState()).toMatchObject({
+      locale: 'ar',
+      formatLocale: 'ja-JP',
+      currencyCode: 'JPY',
+      timeZone: 'Asia/Kolkata',
+    });
+  });
+
+  it('recovers rejected startup copy without changing regional preferences', async () => {
+    vi.spyOn(localeApplication, 'applyDocumentLocale').mockRejectedValue(
+      new Error('chunk failed'),
+    );
+    hydrate();
+    await vi.waitFor(() => expect(useLocaleStore.getState().isLocaleReady).toBe(true));
+    expect(useLocaleStore.getState()).toMatchObject({
+      locale: 'en',
+      formatLocale: 'ja-JP',
+      currencyCode: 'JPY',
+      timeZone: 'Asia/Kolkata',
+      dateFormat: 'iso',
+      textDirection: 'ltr',
+    });
+    expect(i18n.language).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+    expect(document.documentElement.dir).toBe('ltr');
+  });
+
+  it('recovers storage failure before any locale application', async () => {
+    const apply = vi.spyOn(localeApplication, 'applyDocumentLocale');
+    const finish = useLocaleStore.persist
+      .getOptions()
+      .onRehydrateStorage?.(useLocaleStore.getState());
+    finish?.(undefined, new Error('storage unavailable'));
+    await vi.waitFor(() => expect(useLocaleStore.getState().isLocaleReady).toBe(true));
+    expect(apply).not.toHaveBeenCalled();
+    expect(useLocaleStore.getState().locale).toBe('en');
+  });
+
+  it('invalidates pending startup work when deadline recovery wins', async () => {
+    const pending = deferredLocale();
+    const original = localeApplication.applyDocumentLocale;
+    const apply = vi
+      .spyOn(localeApplication, 'applyDocumentLocale')
+      .mockImplementation(async (...args) => {
+        await pending.promise;
+        await original(...args);
+      });
+    hydrate();
+    await Promise.resolve();
+    await useLocaleStore.getState().recoverInitialLocale();
+    pending.resolve();
+    await apply.mock.results[0]?.value;
+    expect(useLocaleStore.getState()).toMatchObject({
+      locale: 'en',
+      isLocaleReady: true,
+    });
+    expect(i18n.language).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+  });
+
+  it('ignores a stale startup rejection after an interactive choice', async () => {
+    const pending = deferredLocale();
+    vi.spyOn(localeApplication, 'applyDocumentLocale')
+      .mockReturnValueOnce(pending.promise)
+      .mockResolvedValueOnce(undefined);
+    hydrate();
+    await Promise.resolve();
+    await useLocaleStore.getState().setLocale('fr');
+    pending.reject(new Error('old startup failed'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(useLocaleStore.getState()).toMatchObject({
+      locale: 'fr',
+      isLocaleReady: true,
+    });
+  });
+
+  it('keeps readiness true while switching and lets the latest choice win', async () => {
+    const first = deferredLocale();
+    const second = deferredLocale();
+    vi.spyOn(localeApplication, 'applyDocumentLocale')
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    useLocaleStore.setState({ isLocaleReady: true, locale: 'en' });
+    const older = useLocaleStore.getState().setLocale('ar');
+    const newer = useLocaleStore.getState().setLocale('fr');
+    expect(useLocaleStore.getState().isLocaleReady).toBe(true);
+    second.resolve();
+    await newer;
+    first.resolve();
+    await older;
+    expect(useLocaleStore.getState()).toMatchObject({
+      locale: 'fr',
+      isLocaleReady: true,
+    });
+  });
+
+  it('does not change an already-ready interactive locale during recovery', async () => {
+    useLocaleStore.setState({ locale: 'fr', isLocaleReady: true });
+    const change = vi.spyOn(i18n, 'changeLanguage');
+    await useLocaleStore.getState().recoverInitialLocale();
+    expect(change).not.toHaveBeenCalled();
+    expect(useLocaleStore.getState().locale).toBe('fr');
+  });
+
+  it('does not let late storage overwrite recovered language or readiness', async () => {
+    const previousStorage = useLocaleStore.persist.getOptions().storage;
+    const stored = {
+      state: {
+        ...useLocaleStore.getState(),
+        locale: 'ar' as const,
+        timeZone: 'UTC' as const,
+        textDirection: 'rtl' as const,
+      },
+      version: 7,
+    };
+    let release!: (value: typeof stored) => void;
+    useLocaleStore.persist.setOptions({
+      storage: {
+        getItem: () =>
+          new Promise<typeof stored>((resolve) => {
+            release = resolve;
+          }),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+    });
+    try {
+      const hydration = useLocaleStore.persist.rehydrate();
+      await useLocaleStore.getState().recoverInitialLocale();
+      release(stored);
+      await hydration;
+      await Promise.resolve();
+      expect(useLocaleStore.getState()).toMatchObject({
+        locale: 'en',
+        isLocaleReady: true,
+        timeZone: 'UTC',
+        formatLocale: 'ja-JP',
+      });
+      expect(i18n.language).toBe('en');
+      expect(document.documentElement.dir).toBe('rtl');
+    } finally {
+      useLocaleStore.persist.setOptions({ storage: previousStorage });
+    }
+  });
+
+  it('does not persist runtime readiness or recovery actions', () => {
+    const persisted = useLocaleStore.persist
+      .getOptions()
+      .partialize?.(useLocaleStore.getState());
+    expect(persisted).not.toHaveProperty('isLocaleReady');
+    expect(persisted).not.toHaveProperty('recoverInitialLocale');
+  });
+
+  it('cancels pending loader transitions on hydration, interactive choice, and recovery', async () => {
+    const cancel = vi.spyOn(namespaceLoader, 'cancelLocaleTransition');
+    vi.spyOn(localeApplication, 'applyDocumentLocale').mockResolvedValue(undefined);
+    hydrate();
+    await vi.waitFor(() => expect(useLocaleStore.getState().isLocaleReady).toBe(true));
+    expect(cancel).toHaveBeenCalledTimes(1);
+    await useLocaleStore.getState().setLocale('fr');
+    expect(cancel).toHaveBeenCalledTimes(2);
+    useLocaleStore.setState({ isLocaleReady: false });
+    await useLocaleStore.getState().recoverInitialLocale();
+    expect(cancel).toHaveBeenCalledTimes(3);
   });
 });

@@ -12,6 +12,7 @@ import { isoDateString, publicId } from '@/core/types/wire.ts';
  * this module owns the two-way mapping: wire `type` → UI `category` on read,
  * category → its member types on preference writes.
  */
+/** @public Shared with tests/fixtures/notification-fixtures.ts outside Knip's source project. */
 export const notificationCategorySchema = z.enum([
   'system',
   'member',
@@ -26,10 +27,7 @@ export type NotificationCategory = z.infer<typeof notificationCategorySchema>;
  * A preference toggle for a category fans out to ALL its types; keep in sync
  * when core-be grows the vocabulary.
  */
-export const NOTIFICATION_TYPES_BY_CATEGORY: Record<
-  NotificationCategory,
-  readonly string[]
-> = {
+const NOTIFICATION_TYPES_BY_CATEGORY: Record<NotificationCategory, readonly string[]> = {
   system: ['system.welcome', 'system.maintenance', 'webhook.delivery_failed'],
   member: ['membership.invite_accepted'],
   billing: [
@@ -46,7 +44,7 @@ export const NOTIFICATION_TYPES_BY_CATEGORY: Record<
  * prefix fallback so a NEW backend type (e.g. `billing.refund_issued`) lands in
  * a sensible bucket instead of vanishing from the bell.
  */
-export function categoryForNotificationType(type: string): NotificationCategory {
+function categoryForNotificationType(type: string): NotificationCategory {
   for (const [category, types] of Object.entries(NOTIFICATION_TYPES_BY_CATEGORY)) {
     if (types.includes(type)) return category as NotificationCategory;
   }
@@ -58,17 +56,17 @@ export function categoryForNotificationType(type: string): NotificationCategory 
 }
 
 /** Domain shape consumed by the UI. */
-export const notificationSchema = z.object({
-  id: z.string(),
-  category: notificationCategorySchema,
-  title: z.string(),
-  body: z.string(),
-  isRead: z.boolean(),
-  href: z.string().nullable(),
-  actionLabel: z.string().nullable(),
-  createdAt: z.string(),
-});
-export type Notification = z.infer<typeof notificationSchema>;
+
+export type Notification = {
+  id: string;
+  category: NotificationCategory;
+  title: string;
+  body: string;
+  isRead: boolean;
+  href: string | null;
+  actionLabel: string | null;
+  createdAt: string;
+};
 
 /**
  * core-be wire shape (snake_case). `type` is the canonical dotted vocabulary;
@@ -108,16 +106,16 @@ export const unreadCountWireSchema = z.object({
 });
 
 /** Delivery channels the UI models. "desktop" is web push (core-be `WEB_PUSH`). */
-export const notificationChannelSchema = z.enum(['email', 'inApp', 'desktop']);
-export type NotificationChannel = z.infer<typeof notificationChannelSchema>;
+
+export type NotificationChannel = 'email' | 'inApp' | 'desktop';
 
 /** A single category × channel delivery preference (domain shape). */
-export const notificationPreferenceSchema = z.object({
-  category: notificationCategorySchema,
-  channel: notificationChannelSchema,
-  enabled: z.boolean(),
-});
-export type NotificationPreference = z.infer<typeof notificationPreferenceSchema>;
+
+export type NotificationPreference = {
+  category: NotificationCategory;
+  channel: NotificationChannel;
+  enabled: boolean;
+};
 
 /**
  * Wire form — core-be `PUT/GET /users/me/notification-preferences`. A row is

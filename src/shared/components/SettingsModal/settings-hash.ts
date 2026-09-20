@@ -19,7 +19,6 @@ import { DEFAULT_SETTINGS, SECTIONS_BY_SCOPE } from './settings-sections.ts';
 export {
   isCanonicalSettingsHash,
   isSettingsHash,
-  normalizeSettingsHash,
   settingsHash,
   settingsHashPath,
 } from './settings-hash-grammar.ts';

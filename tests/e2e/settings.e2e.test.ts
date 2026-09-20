@@ -4,7 +4,7 @@ import {
   createTeamOrgViaSwitcher,
   registerNewUserAndGoToDashboard,
 } from '@/tests/utils/e2e-auth.ts';
-import { openSettingsHash } from '@/tests/utils/e2e-hybrid.ts';
+import { byTestId, openSettingsHash } from '@/tests/utils/e2e-hybrid.ts';
 
 test.describe('Settings modal (hash-driven)', () => {
   test.beforeEach(async ({ page }) => {
@@ -82,8 +82,7 @@ test.describe('Settings modal (hash-driven)', () => {
   });
 
   test('organization nav appears after creating a team org', async ({ page }) => {
-    const switcher = page.getByTestId('organization-switcher-trigger');
-    test.skip(!(await switcher.isVisible().catch(() => false)), 'org switcher hidden');
+    await expect(byTestId(page, 'organization-switcher-trigger')).toBeVisible();
     await createTeamOrgViaSwitcher(page);
 
     await openSettingsHash(page, 'account', 'profile');

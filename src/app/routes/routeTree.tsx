@@ -24,6 +24,8 @@ import { toGateContext } from '@/core/security/gate-context.ts';
 import { gatewayFromManifest } from '@/core/security/gateway.ts';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { ensureNamespace } from '@/lib/i18n/load-namespace.ts';
+import { I18N_NAMESPACES, type I18nNamespace } from '@/lib/i18n/namespaces.ts';
 import {
   APP_DESCRIPTION,
   APP_TITLE,
@@ -55,6 +57,7 @@ import { SettingsModalLazy } from '@/shared/components/SettingsModal/index.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { AppToaster } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
+import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 import { resolveRootRedirect } from '@/shared/tenancy/organization-resolver.ts';
 
 import { ErrorBoundary } from './ErrorBoundary.tsx';
@@ -64,28 +67,51 @@ import { ErrorBoundary } from './ErrorBoundary.tsx';
 // these, which is what makes `defaultPreload: 'intent'` actually fetch the
 // island's chunk on hover/touch. Suspension is handled by the router's
 // defaultPendingComponent.
+function localizedRoute<T>(namespaces: readonly I18nNamespace[], load: () => Promise<T>) {
+  return async () => {
+    const locale = useLocaleStore.getState().locale;
+    const [, module] = await Promise.all([
+      Promise.all(namespaces.map((ns) => ensureNamespace(locale, ns))),
+      load(),
+    ]);
+    return module;
+  };
+}
+
 const AuthLayout = lazyRouteComponent(
-  () => import('@/shared/layouts/AuthLayout/index.ts'),
+  localizedRoute(
+    [I18N_NAMESPACES.auth],
+    () => import('@/shared/layouts/AuthLayout/index.ts'),
+  ),
   'AuthLayout',
 );
 const LoginPage = lazyRouteComponent(
-  () => import('@/pages/login/login.route.tsx'),
+  localizedRoute([I18N_NAMESPACES.auth], () => import('@/pages/login/login.route.tsx')),
   'Component',
 );
 const MfaPage = lazyRouteComponent(
-  () => import('@/pages/mfa/mfa.route.tsx'),
+  localizedRoute([I18N_NAMESPACES.auth], () => import('@/pages/mfa/mfa.route.tsx')),
   'Component',
 );
 const CallbackPage = lazyRouteComponent(
-  () => import('@/pages/callback/callback.route.tsx'),
+  localizedRoute(
+    [I18N_NAMESPACES.auth],
+    () => import('@/pages/callback/callback.route.tsx'),
+  ),
   'Component',
 );
 const OnboardingPage = lazyRouteComponent(
-  () => import('@/pages/onboarding/onboarding.route.tsx'),
+  localizedRoute(
+    [I18N_NAMESPACES.onboarding, I18N_NAMESPACES.auth, I18N_NAMESPACES.settings],
+    () => import('@/pages/onboarding/onboarding.route.tsx'),
+  ),
   'Component',
 );
 const AcceptInvitePage = lazyRouteComponent(
-  () => import('@/pages/accept-invite/accept-invite.route.tsx'),
+  localizedRoute(
+    [I18N_NAMESPACES.auth],
+    () => import('@/pages/accept-invite/accept-invite.route.tsx'),
+  ),
   'Component',
 );
 const UnauthorizedPage = lazyRouteComponent(
@@ -93,7 +119,10 @@ const UnauthorizedPage = lazyRouteComponent(
   'Component',
 );
 const OrganizationPickerPage = lazyRouteComponent(
-  () => import('@/pages/organization/organization.route.tsx'),
+  localizedRoute(
+    [I18N_NAMESPACES.auth],
+    () => import('@/pages/organization/organization.route.tsx'),
+  ),
   'Component',
 );
 const OrganizationShell = lazyRouteComponent(
@@ -101,7 +130,10 @@ const OrganizationShell = lazyRouteComponent(
   'Component',
 );
 const DashboardPage = lazyRouteComponent(
-  () => import('@/pages/organization/$organizationSlug/dashboard/dashboard.route.tsx'),
+  localizedRoute(
+    [I18N_NAMESPACES.dashboard],
+    () => import('@/pages/organization/$organizationSlug/dashboard/dashboard.route.tsx'),
+  ),
   'Component',
 );
 // Personal-org space reuses the shared AppLayout directly (no org param in URL).
@@ -195,6 +227,8 @@ const authShellRoute = createRoute({
   beforeLoad: async () => {
     await redirectIfAuthenticated();
   },
+  // Nested layouts are invisible to the router's component preloader.
+  loader: () => AuthLayout.preload?.(),
   // Cold entry: nothing is on screen to keep, so the 3s default leaves the user
   // looking at 2px of progress bar. Show the spinner immediately here (X-6).
   ...COLD_ENTRY_PENDING,
@@ -236,6 +270,7 @@ const mfaRoute = createRoute({
 const publicShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'public-shell',
+  loader: () => PublicLayout.preload?.(),
   component: () => (
     <Suspense fallback={<FullPageSpinner />}>
       <PublicLayout />

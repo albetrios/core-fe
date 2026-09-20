@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~613 src files · ~347 tests in src/ · 47 E2E specs · 24 shadcn UI primitives
+Stats: ~613 src files · ~348 tests in src/ · 47 E2E specs · 23 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -1321,8 +1321,9 @@ core-fe/
 │   │   │   ├── CustomToast.tsx
 │   │   │   ├── index.ts
 │   │   │   ├── notify-deferred.ts
+│   │   │   ├── notify-runtime.tsx
 │   │   │   ├── notify.ts
-│   │   │   └── [7 test files]
+│   │   │   └── [8 test files]
 │   │   ├── store/
 │   │   │   ├── useAuthStore/
 │   │   │   │   ├── index.ts
@@ -1381,7 +1382,7 @@ core-fe/
 │   └── vite-env.d.ts
 ├── tests/
 │   ├── ci/
-│   │   └── [26 test files]
+│   │   └── [27 test files]
 │   ├── cross-browser/
 │   │   └── [2 test files]
 │   ├── e2e/

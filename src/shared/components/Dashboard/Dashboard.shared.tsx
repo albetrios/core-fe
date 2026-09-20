@@ -47,7 +47,7 @@ import { DASHBOARD_KEYS, DASHBOARD_NS } from './dashboard.constants.ts';
 import { buildDashboardQuickActions } from './dashboard-quick-actions.ts';
 
 /** Small heading + optional description used by every dashboard section. */
-export function SectionHeading({
+function SectionHeading({
   title,
   description,
   className,

@@ -22,7 +22,7 @@ describe('requireModuleGate (L6b)', () => {
   };
 
   it('passes when the module is enabled (not in the disabled set)', () => {
-    expect(() => requireModuleGate('billing')(ctx)).not.toThrow();
+    expect(requireModuleGate('billing')(ctx)).toBeUndefined();
     expect(isModuleEnabled('billing')).toBe(true);
   });
 
@@ -34,7 +34,7 @@ describe('requireModuleGate (L6b)', () => {
   });
 
   it('requireFeature delegates synchronously to requireModuleGate', () => {
-    expect(() => requireFeature('billing')).not.toThrow();
+    expect(requireFeature('billing')).toBeUndefined();
     disabledRef.value = new Set(['billing']);
     expect(() => requireFeature('billing')).toThrow();
   });

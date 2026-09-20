@@ -4,67 +4,65 @@
  * guarantees each library covers exactly the same icons. Kept in a leaf module
  * (no library imports) so the lazy alt-set chunks don't pull in the barrel.
  */
-export const ICON_NAMES = [
-  'AlertCircle',
-  'AlertTriangle',
-  'ArrowDown',
-  'ArrowUp',
-  'Bell',
-  'BellOff',
-  'Boxes',
-  'Building2',
-  'CalendarDays',
-  'Check',
-  'CheckCircle2',
-  'ChevronLeft',
-  'ChevronRight',
-  'ChevronsLeft',
-  'ChevronsRight',
-  'ChevronsUpDown',
-  'Copy',
-  'CreditCard',
-  'Download',
-  'Eye',
-  'EyeOff',
-  'Fingerprint',
-  'GitBranch',
-  'Github',
-  'Globe',
-  'Laptop',
-  'Languages',
-  'LayoutDashboard',
-  'Loader2',
-  'LogOut',
-  'Mail',
-  'Menu',
-  'Minus',
-  'Monitor',
-  'MonitorSmartphone',
-  'Moon',
-  'MoreHorizontal',
-  'Palette',
-  'Plus',
-  'Plug',
-  'Rocket',
-  'RotateCw',
-  'Search',
-  'Settings',
-  'ShieldAlert',
-  'Shield',
-  'ShieldCheck',
-  'SlidersHorizontal',
-  'Smartphone',
-  'Sparkles',
-  'Sun',
-  'Trash2',
-  'TriangleAlert',
-  'User',
-  'UserCog',
-  'UserPlus',
-  'Users',
-  'X',
-  'XCircle',
-  'Zap',
-] as const;
 
-export type IconName = (typeof ICON_NAMES)[number];
+export type IconName =
+  | 'AlertCircle'
+  | 'AlertTriangle'
+  | 'ArrowDown'
+  | 'ArrowUp'
+  | 'Bell'
+  | 'BellOff'
+  | 'Boxes'
+  | 'Building2'
+  | 'CalendarDays'
+  | 'Check'
+  | 'CheckCircle2'
+  | 'ChevronLeft'
+  | 'ChevronRight'
+  | 'ChevronsLeft'
+  | 'ChevronsRight'
+  | 'ChevronsUpDown'
+  | 'Copy'
+  | 'CreditCard'
+  | 'Download'
+  | 'Eye'
+  | 'EyeOff'
+  | 'Fingerprint'
+  | 'GitBranch'
+  | 'Github'
+  | 'Globe'
+  | 'Laptop'
+  | 'Languages'
+  | 'LayoutDashboard'
+  | 'Loader2'
+  | 'LogOut'
+  | 'Mail'
+  | 'Menu'
+  | 'Minus'
+  | 'Monitor'
+  | 'MonitorSmartphone'
+  | 'Moon'
+  | 'MoreHorizontal'
+  | 'Palette'
+  | 'Plus'
+  | 'Plug'
+  | 'Rocket'
+  | 'RotateCw'
+  | 'Search'
+  | 'Settings'
+  | 'ShieldAlert'
+  | 'Shield'
+  | 'ShieldCheck'
+  | 'SlidersHorizontal'
+  | 'Smartphone'
+  | 'Sparkles'
+  | 'Sun'
+  | 'Trash2'
+  | 'TriangleAlert'
+  | 'User'
+  | 'UserCog'
+  | 'UserPlus'
+  | 'Users'
+  | 'X'
+  | 'XCircle'
+  | 'Zap';

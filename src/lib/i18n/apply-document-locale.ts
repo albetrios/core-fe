@@ -4,7 +4,7 @@ import {
   resolvedTextDirection,
   type TextDirectionPreference,
 } from '@/lib/i18n/intl-config.ts';
-import { ensureLocale } from '@/lib/i18n/load-namespace.ts';
+import { ensureActiveLocale } from '@/lib/i18n/load-namespace.ts';
 import type { I18nLocale, TextDirection } from '@/lib/i18n/locales.ts';
 
 /** Set `<html dir>` immediately (used when only the direction preference changes). */
@@ -27,11 +27,12 @@ export async function applyDocumentLocale(
   textDirectionPreference: TextDirectionPreference = DEFAULT_TEXT_DIRECTION,
   isStale?: () => boolean,
 ): Promise<void> {
-  await ensureLocale(locale);
-  if (isStale?.()) return;
-  if (typeof document !== 'undefined') {
-    document.documentElement.lang = locale;
-    applyDocumentDirection(resolvedTextDirection(textDirectionPreference, locale));
-  }
-  await i18n.changeLanguage(locale);
+  await ensureActiveLocale(locale, async () => {
+    if (isStale?.()) return;
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = locale;
+      applyDocumentDirection(resolvedTextDirection(textDirectionPreference, locale));
+    }
+    await i18n.changeLanguage(locale);
+  });
 }

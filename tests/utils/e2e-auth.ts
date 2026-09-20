@@ -50,6 +50,9 @@ export async function navigateInApp(page: Page, path: string): Promise<void> {
  * Returns the email used. Requires core-be on :3000 and DATABASE_URL for code retrieval.
  */
 export async function authenticateViaEmailCode(page: Page): Promise<{ email: string }> {
+  // Finish anonymous bootstrap before the login request sets a refresh cookie.
+  await gotoApp(page, '/login');
+  await expectLoginFormReady(page);
   const email = uniqueE2eEmail('e2e');
   const send = await page.request.post('/api/v1/auth/email/send-code', {
     data: { email },
@@ -72,7 +75,6 @@ export async function authenticateViaEmailCode(page: Page): Promise<{ email: str
   ).toBeTruthy();
 
   const body = (await login.json()) as { data: { access_token: string } };
-  await page.goto('/login');
   await page.waitForFunction(() => globalThis.__coreFeEstablishSession != null, null, {
     timeout: 10_000,
   });

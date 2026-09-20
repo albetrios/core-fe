@@ -4,12 +4,15 @@ import { fetchMeContext, type MeContext, meContextQueryKey } from './me-context.
 import { deriveOrgContext } from './organization-context.ts';
 import { resetPermissionCacheForTests } from './organization-membership.ts';
 
+let contextGeneration = 0;
+
 /**
  * Drop cached `me/context` so the next read refetches from the API. Call after
  * logout, org switch side-effects that bypass the switch endpoint, or any
  * mutation that changes session context server-side.
  */
 export function invalidateSessionContext(): void {
+  contextGeneration += 1;
   queryClient.removeQueries({ queryKey: meContextQueryKey });
 }
 
@@ -18,8 +21,14 @@ export function invalidateSessionContext(): void {
  * derived org store — shared by `/` resolution, workspace guards, and auth
  * bootstrap.
  */
-export async function hydrateSessionContext(): Promise<MeContext> {
+export async function hydrateSessionContext(
+  isCurrent: () => boolean = () => true,
+): Promise<MeContext> {
+  const generation = contextGeneration;
   const ctx = await fetchMeContext();
+  if (generation !== contextGeneration || !isCurrent()) {
+    throw new DOMException('Session context superseded', 'AbortError');
+  }
   queryClient.setQueryData(meContextQueryKey, ctx);
   deriveOrgContext(ctx);
   return ctx;

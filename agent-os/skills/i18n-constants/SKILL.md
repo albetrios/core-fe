@@ -31,7 +31,7 @@ Find in `.tsx` / `.ts` (not tests):
 
 ### 2. Create files
 
-```
+```text
 pages/<page>/
 ├── <page>.constants.ts          ← keys, test ids, analytics
 ├── components/<Unit>/
@@ -39,7 +39,11 @@ pages/<page>/
 src/locales/en/<page>.json       ← English strings
 ```
 
-Register namespace in `src/lib/i18n/namespaces.ts` and `src/lib/i18n/i18n.ts`.
+Register the namespace in `src/lib/i18n/namespaces.ts` and add explicit loaders
+for every locale in `src/lib/i18n/i18n-resources.multi.ts`. The single-locale
+generator in `plugins/i18n-build.ts` derives its deferred loaders from the namespace
+catalog. Do not eagerly import full feature copy into `i18n.ts`; the owning
+surface must await `ensureNamespace` before rendering translated content.
 
 ### 3. Constants shape
 
@@ -55,7 +59,9 @@ export const ONBOARDING_KEYS = {
 export const ONBOARDING_TEST_IDS = { page: 'onboarding-page' } as const;
 ```
 
-Manifest imports test id (and title via `i18n.t`):
+Manifest imports test id (and title via `i18n.t`). These titles evaluate at module
+load, so include their small label subset in both the multi-locale bootstrap and
+single-locale generator; keep the rest of the feature namespace deferred:
 
 ```ts
 import i18n from '@/lib/i18n/i18n.ts';
@@ -108,7 +114,10 @@ Mirror key paths from `ONBOARDING_KEYS`. Use i18next plural suffixes (`_one`, `_
 
 ### 6. Tests
 
-- `tests/utils/setup.ts` already imports `@/lib/i18n/i18n.ts` — assertions can use English strings from JSON.
+- `tests/utils/setup.ts` imports the bootstrap and awaits `ensureLocale('en')` in
+  `beforeAll`, so ordinary assertions can use English strings from JSON. Importing
+  the bootstrap alone does not load full feature namespaces. Loading regressions
+  must explicitly control unavailable bundles rather than rely on this warm setup.
 - Import `*_TEST_IDS` in tests when querying by test id.
 - Do **not** move test-only fixtures into production constants.
 
@@ -171,7 +180,7 @@ declare the boundary in the PR body — a fully untranslated component reads as 
 known gap; a half-translated one reads as a bug.
 
 **Every new key lands in all 11 packs.** `validate:i18n-parity` compares each
-locale against English, so a *missing* key fails — but a key left **unused in
+locale against English, so a _missing_ key fails — but a key left **unused in
 code** survives in every pack. Deleting a surface means deleting its keys too.
 
 **Constants hold key paths, never prose.** `*.constants.ts` exports dotted paths

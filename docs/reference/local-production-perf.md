@@ -6,10 +6,10 @@ How to measure **real** bundle size and Lighthouse scores — not dev-server num
 
 ## Dev vs production build
 
-| Mode           | Command                         | Use for                                        |
-| -------------- | ------------------------------- | ---------------------------------------------- |
-| **Dev**        | `pnpm dev` (`:5173`)            | Feature work, HMR, E2E with mock API           |
-| **Production** | `pnpm build` then serve `dist/` | Bundle size, Lighthouse, PWA precache, TBT/CLS |
+| Mode           | Command                         | Use for                                                                       |
+| -------------- | ------------------------------- | ----------------------------------------------------------------------------- |
+| **Dev**        | `pnpm dev` (`:5173`)            | Feature work, HMR, E2E with the configured backend or explicit scenario mocks |
+| **Production** | `pnpm build` then serve `dist/` | Bundle size, Lighthouse, PWA precache, TBT/CLS                                |
 
 **Never** run Lighthouse against `pnpm dev`. Vite dev mode ships unminified code,
 extra HMR clients, and different chunking — scores are not representative.
@@ -74,9 +74,10 @@ Cross-browser smoke: `pnpm test:cross-browser` — see [cross-browser-support.md
 | PWA precache weight | Inspect `dist/sw.js` or build log                       | Trimmed in `vite.config.ts` / custom SW                        |
 | Unit + security     | `pnpm test`                                             | Regression guard after perf refactors                          |
 
-Typical auth-route targets (after Phase A–D optimizations): Lighthouse performance
-**~85+** on `/login`, TBT **&lt; 200ms**, initial critical JS **~208 kB** gzip —
-see PR notes / conversation baseline for before/after tables.
+Historical Phase A-D notes targeted Lighthouse performance **~85+** on `/login`,
+TBT **&lt; 200ms**, and initial critical JS **~208 kB** gzip. These are not current
+measurements or guarantees. Rerun the commands above on the exact revision and
+build environment; the enforced size limits remain the source of truth.
 
 ---
 
@@ -92,13 +93,18 @@ Skill: `agent-os/skills/project-health-check/SKILL.md`.
 
 ---
 
-## Known deferred optimizations
+## Deferred notification rendering
 
-Reclaims that are **not worth the risk while the budget has headroom** — revisit only if `pnpm size` approaches the Initial-JS limit:
+`AppToaster` provides immediate actionable feedback; `notify.ts` owns stable IDs
+and queues renderer work until `notify-runtime.tsx` and its Sonner host are ready.
+This split is implemented, not a deferred optimization proposal. The handoff must
+preserve replacement, dismissal, Undo, promise settlement, and remaining lifetime;
+failed chunk loads must leave usable feedback.
 
-| Optimization                 | Reclaim   | Why deferred                                                                                                                                                                                                                                                                                                                                                                                     |
-| ---------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Lazy-load `sonner` (toaster) | ~12 kB gz | `sonner` is entry-resident via the root-mounted `<Toaster>` (`shared/notify/AppToaster.tsx`) **and** the imperative `toast` API (`shared/notify/notify.ts`). Deferring it means re-architecting `notify` — `notify.loading()` returns an id used later for `dismiss`, so a lazy load needs an id-shim + queue. Not worth re-working a core UX primitive while Initial JS sits well under budget. |
+Keep direct Sonner imports inside the deferred notification implementation. Verify
+both the initial preload graph and runtime fetches, then exercise delayed and
+failed renderer loads with the notification regression suites. Re-measure bundle
+size after dependency changes instead of relying on earlier reclaim estimates.
 
 ---
 

@@ -155,19 +155,6 @@ export const LAYOUT_KEYS = {
   },
 } as const;
 
-export const LAYOUT_TEST_IDS = {
-  authLayout: 'auth-layout',
-  appLayout: 'app-layout',
-  publicLayout: 'public-layout',
-} as const;
-
-/** Auth marketing feature copy keys — pair with icons in AuthLayout. */
-export const AUTH_LAYOUT_FEATURE_KEYS = [
-  LAYOUT_KEYS.auth.features.multiOrg,
-  LAYOUT_KEYS.auth.features.secure,
-  LAYOUT_KEYS.auth.features.fast,
-] as const;
-
 export const AUTH_LAYOUT_STAT_KEYS = [
   { value: '10k+', labelKey: LAYOUT_KEYS.auth.stats.teams },
   { value: '99.99%', labelKey: LAYOUT_KEYS.auth.stats.uptime },

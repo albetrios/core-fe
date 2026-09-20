@@ -287,10 +287,9 @@ export const DASHBOARD_TEST_IDS = {
   highlightsTabs: 'dashboard-highlights-tabs',
 } as const;
 
-/** Analytics chart time-range options, in display order. */
-export const ANALYTICS_RANGES = ['7d', '30d', '90d'] as const;
+/** Supported analytics chart time ranges. */
 
-export type AnalyticsRange = (typeof ANALYTICS_RANGES)[number];
+export type AnalyticsRange = '7d' | '30d' | '90d';
 
 /** Number of daily data points per range. */
 export const ANALYTICS_RANGE_DAYS = new Map<AnalyticsRange, number>([

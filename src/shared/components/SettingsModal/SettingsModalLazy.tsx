@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { holdAppSplash } from '@/lib/app-splash.ts';
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
+import { ensureNamespace } from '@/lib/i18n/load-namespace.ts';
+import { I18N_NAMESPACES } from '@/lib/i18n/namespaces.ts';
 import { onceAsync } from '@/lib/lazy-module.ts';
 import {
   LazyOverlay,
@@ -11,13 +13,19 @@ import {
 } from '@/shared/components/LazyOverlay/index.ts';
 import { reportError } from '@/shared/errors/errorHandler.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
+import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 
 import { isSettingsHash } from './settings-hash-grammar.ts';
 import { isSettingsPathAllowed } from './settings-route-policy.ts';
 
-const loadSettingsSurface = onceAsync(() =>
-  import('./SettingsModal.tsx').then((m) => ({ default: m.SettingsModal })),
-);
+const loadSettingsSurface = onceAsync(async () => {
+  const [, , module] = await Promise.all([
+    ensureNamespace(useLocaleStore.getState().locale, I18N_NAMESPACES.auth),
+    ensureNamespace(useLocaleStore.getState().locale, I18N_NAMESPACES.settings),
+    import('./SettingsModal.tsx'),
+  ]);
+  return { default: module.SettingsModal };
+});
 
 /** Load settings with the authenticated outlet, before its controls become interactive. */
 export function SettingsModalLazy() {

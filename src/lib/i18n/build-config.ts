@@ -73,7 +73,7 @@ export function uiLocaleFromBcp47(bcp47: string): I18nLocale {
 }
 
 /** Resolve BUILD_I18N_LOCALE to a validated BCP 47 format tag. */
-export function resolveBuildFormatLocale(bcp47: string): FormatLocaleTag {
+function resolveBuildFormatLocale(bcp47: string): FormatLocaleTag {
   if (isFormatLocaleTag(bcp47)) return bcp47;
   const uiLocale = uiLocaleFromBcp47(bcp47);
   return defaultFormatLocaleForUi(uiLocale);

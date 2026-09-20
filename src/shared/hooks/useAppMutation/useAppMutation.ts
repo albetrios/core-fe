@@ -15,7 +15,7 @@ import { notify, type NotifyOptions } from '@/shared/notify/index.ts';
  * the UI reacts instantly, snapshot it for rollback on error, and let
  * `invalidateKeys` reconcile with server truth on success.
  */
-export interface OptimisticConfig<TVars, TCache> {
+interface OptimisticConfig<TVars, TCache> {
   /** List query key whose cached value is patched optimistically. */
   queryKey: QueryKey;
   /** Compute the next cached value from the previous snapshot and the vars. */
@@ -29,7 +29,7 @@ export interface OptimisticConfig<TVars, TCache> {
  * rows and is applied to every page of every match. Snapshots all matches for
  * rollback.
  */
-export interface OptimisticInfiniteConfig<TVars, TRow> {
+interface OptimisticInfiniteConfig<TVars, TRow> {
   /** Prefix key matching every cached param-variant of the infinite list. */
   queryKey: QueryKey;
   /** Patch one page's rows (applied to every page of every matched query). */

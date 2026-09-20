@@ -1,6 +1,6 @@
 import { AUTH_KEYS, AUTH_NS } from '@/shared/auth/auth-shell.constants.ts';
 
-export { AUTH_KEYS, AUTH_NS };
+export { AUTH_NS };
 
 export const LOGIN_TEST_IDS = {
   page: 'login-page',

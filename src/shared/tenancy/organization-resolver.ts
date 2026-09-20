@@ -4,8 +4,6 @@ import { type DeploymentFlags, resolveDeploymentMode } from './deployment-mode.t
 import { type MeContext, needsOnboarding } from './me-context.ts';
 import { ensureSessionContext } from './session-context.ts';
 
-export { hydrateSessionContext } from './session-context.ts';
-
 /**
  * Dual-URL root target (research/11 §3.3, D-02/D-10): the active org from
  * `me/context` decides where `/` lands — adjusted for deployment mode

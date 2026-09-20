@@ -30,8 +30,4 @@ export const authUserSchema = z.object({
 
 export type AuthUser = z.infer<typeof authUserSchema>;
 
-export const authTokenResponseSchema = z.object({
-  accessToken: z.string().min(1),
-});
-
-export type AuthTokenResponse = z.infer<typeof authTokenResponseSchema>;
+export type AuthTokenResponse = { accessToken: string };

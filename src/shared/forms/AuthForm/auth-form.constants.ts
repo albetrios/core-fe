@@ -1,7 +1,3 @@
-import { AUTH_KEYS, AUTH_NS } from '@/shared/auth/auth-shell.constants.ts';
-
-export { AUTH_KEYS, AUTH_NS };
-
 /** Unified auth entry — single screen for sign-in and sign-up. */
 export const AUTH_FORM_TEST_IDS = {
   form: 'auth-form',
@@ -38,14 +34,11 @@ export const AUTH_FORM_TEST_IDS = {
   continueProvider: (provider: string) => `auth-continue-${provider}`,
 } as const;
 
-export const AUTH_FORM_COOLDOWN_BASE_MS = 1_000;
-export const AUTH_FORM_COOLDOWN_MAX_MS = 30_000;
-
 /** Minimum wait before another email verification code can be sent from the verify step. */
 export const AUTH_EMAIL_VERIFICATION_CODE_RESEND_COOLDOWN_MS = 2 * 60 * 1000;
 
 /** Preferred OAuth button order on `/login` (unknown providers append after). */
-export const AUTH_OAUTH_PROVIDER_ORDER = ['google', 'github', 'apple'] as const;
+const AUTH_OAUTH_PROVIDER_ORDER = ['google', 'github', 'apple'] as const;
 
 export function sortOAuthProviders(providers: string[]): string[] {
   const rank = new Map<string, number>(

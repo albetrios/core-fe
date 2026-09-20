@@ -1,35 +1,34 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useTranslation } from 'react-i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { hasHydrated, onFinishHydration } = vi.hoisted(() => ({
-  hasHydrated: vi.fn(),
-  onFinishHydration: vi.fn(),
+const { recoverInitialLocale } = vi.hoisted(() => ({
+  recoverInitialLocale: vi.fn(),
 }));
 
-vi.mock('@/shared/store/useLocaleStore/index.ts', () => ({
-  useLocaleStore: { persist: { hasHydrated, onFinishHydration } },
-}));
+vi.mock('@/shared/store/useLocaleStore/index.ts', async () => {
+  const { create } = await import('zustand');
+  return {
+    useLocaleStore: create(() => ({ isLocaleReady: false, recoverInitialLocale })),
+  };
+});
+
+import { useLocaleStore } from '@/shared/store/useLocaleStore/index.ts';
 
 import { I18nProvider } from './I18nProvider.tsx';
 
-/** Reads from i18n, so it only renders if the provider is actually above it. */
 function Child() {
   const { t } = useTranslation();
-  return <p data-testid="child">{typeof t === 'function' ? 'child' : 'no-i18n'}</p>;
+  return (
+    <input aria-label="Draft" defaultValue={typeof t === 'function' ? 'draft' : ''} />
+  );
 }
-
-let finishHydration: (() => void) | null = null;
 
 beforeEach(() => {
   vi.useFakeTimers();
-  finishHydration = null;
-  hasHydrated.mockReturnValue(false);
-  onFinishHydration.mockImplementation((cb: () => void) => {
-    finishHydration = cb;
-    return () => {
-      finishHydration = null;
-    };
+  useLocaleStore.setState({ isLocaleReady: false });
+  recoverInitialLocale.mockImplementation(async () => {
+    useLocaleStore.setState({ isLocaleReady: true });
   });
 });
 
@@ -39,55 +38,98 @@ afterEach(() => {
 });
 
 describe('I18nProvider', () => {
-  it('renders children immediately when the store is already hydrated', () => {
-    hasHydrated.mockReturnValue(true);
+  it('renders immediately when translations are ready', () => {
+    useLocaleStore.setState({ isLocaleReady: true });
     render(
       <I18nProvider>
         <Child />
       </I18nProvider>,
     );
-    expect(screen.getByTestId('child')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Draft' })).toHaveValue('draft');
   });
 
-  it('renders children once hydration finishes', () => {
+  it('keeps a nonblank pending UI until translation readiness, not storage hydration', () => {
+    const { container } = render(
+      <I18nProvider>
+        <Child />
+      </I18nProvider>,
+    );
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(container).not.toBeEmptyDOMElement();
+    act(() => useLocaleStore.setState({ locale: 'es' }));
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    act(() => useLocaleStore.setState({ isLocaleReady: true }));
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('recovers at the deadline and waits for the bundled locale to be applied', async () => {
+    let finish!: () => void;
+    recoverInitialLocale.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = () => {
+            useLocaleStore.setState({ isLocaleReady: true });
+            resolve();
+          };
+        }),
+    );
     render(
       <I18nProvider>
         <Child />
       </I18nProvider>,
     );
-    expect(screen.queryByTestId('child')).not.toBeInTheDocument();
-
-    act(() => finishHydration?.());
-    expect(screen.getByTestId('child')).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1499);
+    });
+    expect(recoverInitialLocale).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(recoverInitialLocale).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    await act(async () => {
+      finish();
+    });
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  describe('when hydration never completes (X-8)', () => {
-    it('falls through to the default locale instead of holding forever', async () => {
-      // Synchronous localStorage means this never happens today — which is why
-      // it has to be handled. An async or blocked storage adapter would park
-      // `hasHydrated` at false, and the boot splash is dismissed after first
-      // paint regardless: a white screen with no spinner and no error.
-      render(
-        <I18nProvider>
-          <Child />
-        </I18nProvider>,
-      );
-      expect(screen.queryByTestId('child')).not.toBeInTheDocument();
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(1500);
-      });
-      expect(screen.getByTestId('child')).toBeInTheDocument();
+  it('cancels recovery after successful readiness', async () => {
+    render(
+      <I18nProvider>
+        <Child />
+      </I18nProvider>,
+    );
+    act(() => useLocaleStore.setState({ isLocaleReady: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
     });
+    expect(recoverInitialLocale).not.toHaveBeenCalled();
+  });
 
-    it('shows a loader rather than nothing while it waits', () => {
-      // `null` here is what turned a slow hydrate into a bare background.
-      const { container } = render(
-        <I18nProvider>
-          <Child />
-        </I18nProvider>,
-      );
-      expect(container).not.toBeEmptyDOMElement();
+  it('cleans up the startup deadline on unmount', async () => {
+    const { unmount } = render(
+      <I18nProvider>
+        <Child />
+      </I18nProvider>,
+    );
+    unmount();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
     });
+    expect(recoverInitialLocale).not.toHaveBeenCalled();
+  });
+
+  it('preserves the mounted UI and draft during interactive locale changes', () => {
+    useLocaleStore.setState({ isLocaleReady: true });
+    render(
+      <I18nProvider>
+        <Child />
+      </I18nProvider>,
+    );
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'unsaved work' } });
+    act(() => useLocaleStore.setState({ locale: 'fr' }));
+    expect(screen.getByRole('textbox')).toBe(input);
+    expect(input).toHaveValue('unsaved work');
   });
 });

@@ -1,11 +1,10 @@
 import {
   AUTH_KEYS,
   AUTH_MFA_RECOVERY_MAX_LENGTH,
-  AUTH_MFA_TOTP_LENGTH,
   AUTH_NS,
 } from '@/shared/auth/auth-shell.constants.ts';
 
-export { AUTH_KEYS, AUTH_MFA_RECOVERY_MAX_LENGTH, AUTH_MFA_TOTP_LENGTH, AUTH_NS };
+export { AUTH_KEYS, AUTH_MFA_RECOVERY_MAX_LENGTH, AUTH_NS };
 
 export const MFA_TEST_IDS = {
   page: 'mfa-page',

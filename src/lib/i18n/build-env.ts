@@ -9,7 +9,7 @@ export function readInjectedI18nMode() {
   return resolveBuildI18nMode(import.meta.env.VITE_I18N_BUILD_MODE as string | undefined);
 }
 
-export function readInjectedI18nBcp47() {
+function readInjectedI18nBcp47() {
   return resolveBuildI18nBcp47(
     import.meta.env.VITE_I18N_BUILD_BCP47 as string | undefined,
   );

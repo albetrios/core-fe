@@ -17,7 +17,10 @@ import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import type { MeContext } from '@/shared/tenancy/me-context.ts';
-import { hydrateSessionContext } from '@/shared/tenancy/session-context.ts';
+import {
+  hydrateSessionContext,
+  invalidateSessionContext,
+} from '@/shared/tenancy/session-context.ts';
 
 import type { AuthUser } from './types.ts';
 
@@ -44,7 +47,21 @@ async function authFetch(
   }
 }
 
+let authGeneration = 0;
+let refreshPromise: Promise<void> | null = null;
+let tokenRefreshPromise: Promise<void> | null = null;
+
+/** Logout and new login supersede all work from the previous session. */
+function beginAuthGeneration(): number {
+  authGeneration += 1;
+  invalidateSessionContext();
+  refreshPromise = null;
+  tokenRefreshPromise = null;
+  return authGeneration;
+}
+
 function clearLocalAuthState(): void {
+  beginAuthGeneration();
   try {
     cancelTokenRefresh();
     clearAccessToken();
@@ -88,23 +105,24 @@ export function handleCrossTabLogout(): void {
   }
 }
 
-let refreshPromise: Promise<void> | null = null;
-
 export async function silentRefresh(): Promise<void> {
   if (refreshPromise) return refreshPromise;
-  refreshPromise = doSilentRefresh().finally(() => {
-    refreshPromise = null;
+  const pending = doSilentRefresh(authGeneration).finally(() => {
+    if (refreshPromise === pending) refreshPromise = null;
   });
-  return refreshPromise;
+  refreshPromise = pending;
+  return pending;
 }
 
 let authBootstrapPromise: Promise<void> | null = null;
 
 export function startAuthBootstrap(): Promise<void> {
   authBootstrapPromise ??= (async () => {
+    const generation = authGeneration;
     try {
       await silentRefresh();
     } catch {
+      if (generation !== authGeneration) return;
       const { isAuthenticated } = useAuthStore.getState();
       if (!(isAuthenticated || getAccessToken())) {
         if (platformConfig.debugLogging) {
@@ -113,7 +131,7 @@ export function startAuthBootstrap(): Promise<void> {
         useAuthStore.getState().clearAuth();
       }
     } finally {
-      if (useAuthStore.getState().isLoading) {
+      if (generation === authGeneration && useAuthStore.getState().isLoading) {
         useAuthStore.getState().setLoading(false);
       }
     }
@@ -127,26 +145,35 @@ export async function awaitAuthBootstrap(): Promise<void> {
 
 const authBase = () => `${platformConfig.apiBaseUrl}${API_BASE_PATH}`;
 
-let tokenRefreshPromise: Promise<void> | null = null;
-
 export async function refreshAccessToken(): Promise<void> {
   if (tokenRefreshPromise) return tokenRefreshPromise;
-  tokenRefreshPromise = runExclusiveRefresh().finally(() => {
-    tokenRefreshPromise = null;
-  });
-  return tokenRefreshPromise;
+  const generation = authGeneration;
+  const pending = runExclusiveRefresh(generation)
+    .catch((error: unknown) => {
+      if (generation === authGeneration) throw error;
+    })
+    .finally(() => {
+      if (tokenRefreshPromise === pending) tokenRefreshPromise = null;
+    });
+  tokenRefreshPromise = pending;
+  return pending;
 }
 
-async function runExclusiveRefresh(): Promise<void> {
+async function runExclusiveRefresh(generation: number): Promise<void> {
+  const refresh = async () => {
+    if (generation !== authGeneration) return;
+    const token = await fetchRefreshToken();
+    if (generation !== authGeneration) return;
+    setAccessToken(token);
+    scheduleTokenRefresh();
+  };
   if (typeof navigator !== 'undefined' && navigator.locks) {
-    return navigator.locks.request(`${PRODUCT_NAMESPACE}-auth:refresh`, () =>
-      doTokenRefresh(),
-    );
+    return navigator.locks.request(`${PRODUCT_NAMESPACE}-auth:refresh`, refresh);
   }
-  return doTokenRefresh();
+  return refresh();
 }
 
-async function doTokenRefresh(): Promise<void> {
+async function fetchRefreshToken(): Promise<string> {
   const response = await authFetch(`${authBase()}${API_ENDPOINTS.AUTH.REFRESH}`, {
     method: 'POST',
     timeout: HTTP.REFRESH_TIMEOUT,
@@ -171,8 +198,7 @@ async function doTokenRefresh(): Promise<void> {
   if (typeof token !== 'string' || token.length === 0) {
     throw new Error(`Refresh failed (${response.status})`);
   }
-  setAccessToken(token);
-  scheduleTokenRefresh();
+  return token;
 }
 
 function meContextToAuthUser(ctx: MeContext): AuthUser {
@@ -188,28 +214,34 @@ function meContextToAuthUser(ctx: MeContext): AuthUser {
   };
 }
 
-async function hydrateSessionFromContext(): Promise<void> {
-  const ctx = await hydrateSessionContext();
-  useAuthStore.getState().setUser(meContextToAuthUser(ctx));
+async function hydrateSessionFromContext(generation: number): Promise<void> {
+  const ctx = await hydrateSessionContext(() => generation === authGeneration);
+  if (generation === authGeneration) {
+    useAuthStore.getState().setUser(meContextToAuthUser(ctx));
+  }
 }
 
-async function doSilentRefresh(): Promise<void> {
+async function doSilentRefresh(generation: number): Promise<void> {
   await refreshAccessToken();
+  if (generation !== authGeneration) return;
   try {
-    await hydrateSessionFromContext();
+    await hydrateSessionFromContext(generation);
   } catch (error) {
+    if (generation !== authGeneration) return;
     clearAccessToken();
     throw error;
   }
 }
 
 export async function establishSession(accessToken: string): Promise<void> {
+  const generation = beginAuthGeneration();
   setAccessToken(accessToken);
   markSessionStart();
   try {
-    await hydrateSessionFromContext();
-    scheduleTokenRefresh();
+    await hydrateSessionFromContext(generation);
+    if (generation === authGeneration) scheduleTokenRefresh();
   } catch (error) {
+    if (generation !== authGeneration) return;
     clearAccessToken();
     clearSessionStart();
     throw error;

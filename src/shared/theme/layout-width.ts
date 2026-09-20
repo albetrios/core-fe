@@ -1,9 +1,5 @@
 import { cn } from '@/lib/utils.ts';
-import {
-  DEFAULT_LAYOUT_WIDTH,
-  type LayoutWidthId,
-  normalizeLayoutWidthId,
-} from '@/shared/theme/presets.ts';
+import { type LayoutWidthId, normalizeLayoutWidthId } from '@/shared/theme/presets.ts';
 
 /**
  * Effective layout width: deploy env wins when `forced` is set; otherwise user
@@ -26,4 +22,4 @@ export function layoutMainClassName(width: LayoutWidthId): string {
   );
 }
 
-export { DEFAULT_LAYOUT_WIDTH, type LayoutWidthId, normalizeLayoutWidthId };
+export type { LayoutWidthId };

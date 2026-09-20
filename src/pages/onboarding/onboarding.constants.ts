@@ -123,10 +123,6 @@ export const ONBOARDING_TEST_IDS = {
   inviteList: 'onboarding-invite-list',
 } as const;
 
-export const ONBOARDING_ANALYTICS = {
-  completed: 'onboarding_completed',
-} as const;
-
 // ── API / non-copy defaults ──────────────────────────────────────────────────
 
 /**

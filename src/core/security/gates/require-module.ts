@@ -2,7 +2,7 @@ import { notFound } from '@tanstack/react-router';
 
 import { platformConfig } from '@/core/config/env.ts';
 import { isPlatformModuleEnabled } from '@/core/config/platform-config.ts';
-import type { Gate } from '@/core/security/gate.types.ts';
+import type { GateContext } from '@/core/security/gate.types.ts';
 
 const SYNC_MODULE_GATE_CTX = {
   location: { pathname: '/', search: '', hash: '', href: '/' },
@@ -21,7 +21,7 @@ export function isModuleEnabled(moduleKey: string): boolean {
  * "you can't"), and its nav/settings entries should be hidden via
  * {@link isModuleEnabled}.
  */
-export function requireModuleGate(moduleKey: string): Gate {
+export function requireModuleGate(moduleKey: string): (ctx: GateContext) => void {
   return (_ctx) => {
     if (!isModuleEnabled(moduleKey)) throw notFound();
   };

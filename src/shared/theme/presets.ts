@@ -145,7 +145,7 @@ export const DENSITY_SCALES: Record<string, { label: string; spacing: number }> 
   relaxed: { label: 'Relaxed', spacing: 0.265 },
   airy: { label: 'Airy', spacing: 0.285 },
 };
-export const DEFAULT_DENSITY = 'cozy';
+const DEFAULT_DENSITY = 'cozy';
 
 /** App main content width — orthogonal to theme; persisted in useThemeStore.
  *  Product rules: docs/reference/preset-product-design-rules.md § Layout */
@@ -180,7 +180,7 @@ export function normalizeLayoutWidthId(id: string | undefined): LayoutWidthId {
 }
 
 /** Validate a persisted density id, falling back to the default. */
-export function normalizeDensityId(id: string | undefined): string {
+function normalizeDensityId(id: string | undefined): string {
   if (id && id in DENSITY_SCALES) return id;
   return DEFAULT_DENSITY;
 }
@@ -197,7 +197,7 @@ export const MOTION_PRESETS: Record<
   smooth: { label: 'Smooth', duration: '150ms', ease: 'cubic-bezier(0.4, 0, 0.2, 1)' },
   snappy: { label: 'Snappy', duration: '80ms', ease: 'cubic-bezier(0.34, 1.1, 0.64, 1)' },
 };
-export const DEFAULT_MOTION = 'smooth';
+const DEFAULT_MOTION = 'smooth';
 
 /** Surface elevation → applied via `data-elevation`; flat (border-only) … lifted
  *  (deep shadow) on the shadcn `[data-slot]` surfaces. */
@@ -207,7 +207,7 @@ export const ELEVATION_LEVELS = [
   { id: 'lifted', label: 'Lifted' },
   { id: 'floating', label: 'Floating' },
 ] as const;
-export const DEFAULT_ELEVATION = 'soft';
+const DEFAULT_ELEVATION = 'soft';
 
 /** Surface contrast → applied via `data-contrast` (composes with `.dark`): soft
  *  (gentler) or crisp (sharper, higher-contrast). */
@@ -218,7 +218,7 @@ export const CONTRAST_MODES = [
   { id: 'dim', label: 'Dim' },
   { id: 'amoled', label: 'AMOLED' },
 ] as const;
-export const DEFAULT_CONTRAST = 'normal';
+const DEFAULT_CONTRAST = 'normal';
 
 /** Colour harmony — derives the 5 chart hues from the chart anchor instead of a
  *  fixed spread, so a palette reads as intentional (monochromatic varies lightness
@@ -233,7 +233,7 @@ export const HARMONY_RULES: Record<
   split: { label: 'Split', offsets: [0, 30, 150, 180, 210] },
   triadic: { label: 'Triadic', offsets: [0, 120, 240, 60, 180] },
 };
-export const DEFAULT_HARMONY = 'triadic';
+const DEFAULT_HARMONY = 'triadic';
 
 /** Accent intensity — how saturated the brand reads (OKLCH chroma). The readable
  *  foreground is computed per accent (contrast-safe), so any intensity stays legible. */
@@ -244,7 +244,7 @@ export const ACCENT_INTENSITIES: Record<string, { label: string; chroma: number 
   vibrant: { label: 'Vibrant', chroma: 0.22 },
   max: { label: 'Max', chroma: 0.28 },
 };
-export const DEFAULT_INTENSITY = 'balanced';
+const DEFAULT_INTENSITY = 'balanced';
 
 /** Surface separation — how cards divide from the page: border (default) or shadow
  *  (the border fades, composing with elevation). */
@@ -253,10 +253,10 @@ export const SEPARATION_STRATEGIES = [
   { id: 'hairline', label: 'Hairline' },
   { id: 'shadow', label: 'Shadow' },
 ] as const;
-export const DEFAULT_SEPARATION = 'border';
+const DEFAULT_SEPARATION = 'border';
 
 /** Maps retired separation ids (e.g. removed `tint`) to a supported strategy. */
-export function normalizeSeparationId(id: string | undefined): string {
+function normalizeSeparationId(id: string | undefined): string {
   if (id === 'tint') return DEFAULT_SEPARATION;
   if (id && (SEPARATION_IDS as readonly string[]).includes(id)) return id;
   return DEFAULT_SEPARATION;
@@ -270,7 +270,7 @@ export const SHAPE_LANGUAGES = [
   { id: 'pill', label: 'Pill' },
   { id: 'sharp', label: 'Sharp' },
 ] as const;
-export const DEFAULT_SHAPE = 'uniform';
+const DEFAULT_SHAPE = 'uniform';
 
 /** Modular type scale — ratio between adjacent --text-* sizes (default keeps
  *  Tailwind's stock scale untouched). Product floors: docs/reference/preset-product-design-rules.md § Type scale */
@@ -282,7 +282,7 @@ export const TYPE_SCALES: Record<string, { label: string; ratio: number }> = {
   // biome-ignore lint/suspicious/noApproximativeNumericConstant: 1.414 is the standard augmented-fourth type-scale ratio, not √2
   display: { label: 'Display', ratio: 1.414 },
 };
-export const DEFAULT_TYPE_SCALE = 'default';
+const DEFAULT_TYPE_SCALE = 'default';
 
 /** Focus-ring personality — ring (stock), glow (soft accent halo), or underline. */
 export const FOCUS_RINGS = [
@@ -292,7 +292,7 @@ export const FOCUS_RINGS = [
   { id: 'underline', label: 'Underline' },
   { id: 'inset', label: 'Inset' },
 ] as const;
-export const DEFAULT_FOCUS = 'ring';
+const DEFAULT_FOCUS = 'ring';
 
 /** --text-* steps for the modular type scale (anchor = --text-base = 1rem). */
 const TEXT_SCALE_STEPS: ReadonlyArray<readonly [string, number]> = [
@@ -308,7 +308,7 @@ const TEXT_SCALE_STEPS: ReadonlyArray<readonly [string, number]> = [
 
 /** Curated heading↔body font pairings — generation picks one so headings get a
  *  distinct-but-harmonious voice instead of a random clash. */
-export const FONT_PAIRINGS: ReadonlyArray<{ body: string; heading: string }> = [
+const FONT_PAIRINGS: ReadonlyArray<{ body: string; heading: string }> = [
   { body: 'inter', heading: 'inter' },
   { body: 'inter', heading: 'grotesk' },
   { body: 'humanist', heading: 'grotesk' },
@@ -705,7 +705,7 @@ export function shuffleIcons(current: {
 }
 
 /** How many AuthLayout preview designs exist (TEMP — see AuthLayout variants). */
-export const AUTH_VARIANT_COUNT = 3;
+const AUTH_VARIANT_COUNT = 3;
 
 /**
  * TEMP (auth-layout preview): a different design index in 0..N-1. Remove
@@ -718,7 +718,7 @@ export function nextAuthVariant(current: number): number {
 }
 
 /** How many AppLayout preview shells exist (TEMP — see AppLayout variants). */
-export const APP_VARIANT_COUNT = 3;
+const APP_VARIANT_COUNT = 3;
 
 /**
  * TEMP (app-layout preview): a different shell index in 0..N-1. Remove together
@@ -731,7 +731,7 @@ export function nextAppVariant(current: number): number {
 }
 
 /** How many PublicLayout preview shells exist (TEMP — see PublicLayout variants). */
-export const PUBLIC_VARIANT_COUNT = 3;
+const PUBLIC_VARIANT_COUNT = 3;
 
 /**
  * TEMP (public-layout preview): a different shell index in 0..N-1. Remove together

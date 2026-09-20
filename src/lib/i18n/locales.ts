@@ -41,6 +41,7 @@ export const LOCALE_NATIVE_LABELS: Record<I18nLocale, string> = {
  * English). Empty — every {@link I18N_LOCALES} language now ships full
  * namespace coverage.
  */
+/** @public Read from source by tooling/validate/i18n-locale-parity.mjs. */
 export const PARTIAL_UI_LOCALES: ReadonlySet<I18nLocale> = new Set([]);
 
 export type TextDirection = 'ltr' | 'rtl';

@@ -2,11 +2,8 @@ import { platformConfig } from '@/core/config/env.ts';
 import {
   enabledOAuthProviders,
   type OAuthProviderFlags,
-  type OAuthProviderId,
 } from '@/core/config/env-resolvers.ts';
 import { resolveAuthMethodsFromPlatform } from '@/core/config/platform-config.ts';
-
-export type { OAuthProviderFlags, OAuthProviderId };
 
 /** Which auth methods this deployment exposes on the unified auth screen. */
 export interface AuthMethods {

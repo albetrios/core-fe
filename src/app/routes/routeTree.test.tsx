@@ -9,6 +9,16 @@ const gatewayFromManifest = vi.hoisted(() =>
   vi.fn(() => gatewayExecutor as (context: unknown) => Promise<void>),
 );
 const requireAuth = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+const shellLoads = vi.hoisted(() => ({ auth: vi.fn(), public: vi.fn() }));
+
+vi.mock('@/shared/layouts/AuthLayout/index.ts', () => {
+  shellLoads.auth();
+  return { AuthLayout: () => null };
+});
+vi.mock('@/shared/layouts/PublicLayout/index.ts', () => {
+  shellLoads.public();
+  return { PublicLayout: () => null };
+});
 
 vi.mock('@/core/security/gateway.ts', () => ({ gatewayFromManifest }));
 vi.mock('@/core/security/gate-context.ts', () => ({
@@ -65,6 +75,21 @@ const gateArgs = (preload: boolean) => ({
  *   instead of being satisfied by a hover preload.
  */
 describe('router configuration', () => {
+  it.each([
+    ['auth-shell', 'auth'],
+    ['public-shell', 'public'],
+  ] as const)('preloads nested %s content through its route loader', async (id, key) => {
+    const route = Object.values(router.routesById).find((item) => item.id.endsWith(id));
+    const loader = route?.options.loader as (() => Promise<void> | undefined) | undefined;
+    expect(loader).toBeTypeOf('function');
+    expect(shellLoads[key]).not.toHaveBeenCalled();
+    await loader?.();
+    expect(shellLoads[key]).toHaveBeenCalledOnce();
+    // TanStack removes the preload method after the component is cached.
+    await loader?.();
+    expect(shellLoads[key]).toHaveBeenCalledOnce();
+  });
+
   it('preloads route chunks on intent', () => {
     expect(router.options.defaultPreload).toBe('intent');
   });

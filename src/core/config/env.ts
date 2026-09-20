@@ -13,23 +13,13 @@ import {
   validatePlatformInvariantsAtBoot,
 } from './env.config.ts';
 import {
-  resolveAuthMethodFlag,
-  resolveDisabledModules,
   resolveLayoutWidth,
   resolveLayoutWidthForced,
   resolveThemeLock,
 } from './env-resolvers.ts';
-import { type PlatformConfig, resolvePlatformConfig } from './platform-config.ts';
+import { resolvePlatformConfig } from './platform-config.ts';
 
-export {
-  resolveAuthMethodFlag,
-  resolveDisabledModules,
-  resolveLayoutWidth,
-  resolveLayoutWidthForced,
-  resolveThemeLock,
-};
-export type { PlatformConfig };
-
+export { resolveLayoutWidth, resolveLayoutWidthForced, resolveThemeLock };
 const clientEnv = getClientEnv();
 export const platformConfig = resolvePlatformConfig(getRuntimeConfigValue, clientEnv);
 

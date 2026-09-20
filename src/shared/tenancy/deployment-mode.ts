@@ -11,8 +11,6 @@
  */
 import { z } from 'zod';
 
-import { publicId } from '@/core/types/wire.ts';
-
 /** Deployment-wide toggles (camelCase domain shape). */
 export interface DeploymentFlags {
   personalOrganizations: boolean;
@@ -110,5 +108,3 @@ export function mergeDeploymentFlags(
     teamOrganizations: overrides.teamOrganizations ?? apiFlags.teamOrganizations,
   };
 }
-
-export const personalOrganizationIdWire = publicId('org').nullable().optional();
