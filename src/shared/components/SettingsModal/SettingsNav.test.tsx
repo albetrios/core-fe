@@ -74,7 +74,10 @@ describe('SettingsNav', () => {
     expect(
       screen.queryByTestId('settings-nav-account-appearance'),
     ).not.toBeInTheDocument();
-    expect(screen.queryByTestId('settings-nav-account-profile')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('settings-nav-account-sessions')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('settings-nav-organization-members'),
+    ).not.toBeInTheDocument();
   });
 
   it('shows an empty state when no items match', async () => {
@@ -82,6 +85,69 @@ describe('SettingsNav', () => {
     renderNav();
     await user.type(screen.getByTestId('settings-search'), 'zzznomatch');
     expect(screen.getByTestId('settings-nav-empty')).toBeInTheDocument();
+  });
+
+  /**
+   * QA-9: searching filters the rail but does not navigate, so the pane goes on
+   * showing whatever was open. When the filter dropped that section the modal
+   * contradicted itself — a Profile form filling the pane under a rail listing
+   * only Security, and `aria-current="page"` on nothing at all.
+   */
+  describe('the open section stays listed while searching', () => {
+    it('keeps it, and keeps it marked current, when it does not match', async () => {
+      const user = userEvent.setup();
+      renderNav(); // active: account/profile
+      await user.type(screen.getByTestId('settings-search'), 'passkey');
+
+      // Security matched; Profile did not, and is still there because it is open.
+      expect(screen.getByTestId('settings-nav-account-security')).toBeInTheDocument();
+      const profile = screen.getByTestId('settings-nav-account-profile');
+      expect(profile).toBeInTheDocument();
+      expect(profile).toHaveAttribute('aria-current', 'page');
+      // Kept, not appended somewhere new: Account still precedes Organization.
+      expect(screen.getByRole('navigation').textContent).toMatch(
+        /Profile[\s\S]*Security/,
+      );
+    });
+
+    it('keeps it even when the search matches nothing at all', async () => {
+      const user = userEvent.setup();
+      renderNav();
+      await user.type(screen.getByTestId('settings-search'), 'zzznomatch');
+
+      // "No matches" answers for the SEARCH; the open section answers for the
+      // PANE. Both are true and the screen says both.
+      expect(screen.getByTestId('settings-nav-empty')).toBeInTheDocument();
+      expect(screen.getByTestId('settings-nav-account-profile')).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    });
+
+    it('does not duplicate it when it matches on its own', async () => {
+      const user = userEvent.setup();
+      renderNav();
+      await user.type(screen.getByTestId('settings-search'), 'profile');
+
+      expect(screen.getAllByTestId('settings-nav-account-profile')).toHaveLength(1);
+      expect(screen.queryByTestId('settings-nav-empty')).not.toBeInTheDocument();
+    });
+
+    it('does not resurrect a section this user cannot open', async () => {
+      const user = userEvent.setup();
+      // The parent gates the rail; an active section outside what it hands over
+      // is not the rail's to put back.
+      renderNav({
+        groups: SETTINGS_NAV.filter((group) => group.scope === 'account'),
+        active: { scope: 'organization', section: 'members' },
+      });
+      await user.type(screen.getByTestId('settings-search'), 'passkey');
+
+      expect(
+        screen.queryByTestId('settings-nav-organization-members'),
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId('settings-nav-account-security')).toBeInTheDocument();
+    });
   });
 
   it('renders only the groups it is given (parent owns gating)', () => {
