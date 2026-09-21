@@ -42,6 +42,13 @@ Shipped **report-only** today via `Content-Security-Policy-Report-Only`:
 require-trusted-types-for 'script'
 ```
 
+**Precondition — finish [CSP report URI](#csp-report-uri) first.** This header
+ships on every deploy whether or not a collector exists, but it carries
+`report-uri`/`report-to` only when `VITE_CSP_REPORT_URI` is set. Unset, each
+violation goes to that one visitor's DevTools console and is never aggregated,
+so step 3 below has nothing to measure. `pnpm validate:client-env` warns (does
+not fail) on a deploy environment in that state.
+
 1. Monitor report-only violations through the same `VITE_CSP_REPORT_URI` stream.
 2. Triage third-party scripts (Sentry, PostHog) — upgrade or nonce-wrap if they
    emit violations.

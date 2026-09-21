@@ -36,7 +36,7 @@ build-time or local-only, never synced to a GitHub Environment.
 | `VITE_AUTH_OAUTH_GOOGLE` | build·local | `true` | — | — | Enable Google OAuth on /login (default true). |
 | `VITE_AUTH_PASSKEY` | build·local | `true` | — | — | Enable passkey/WebAuthn auth on /login (default true). |
 | `VITE_CAPTCHA_DISABLED` | variable | — | — | — | "true" disables the Turnstile CAPTCHA (local dev; pair with the core-be test secret). |
-| `VITE_CSP_REPORT_URI` | secret | — | — | — | CSP violation report collector URI (optional). |
+| `VITE_CSP_REPORT_URI` | secret | — | — | — | CSP violation report collector URI (e.g. a Sentry CSP ingest URL); empty = violations reach each visitor console only. Warned on in both deploy environments. |
 | `VITE_DEBUG_LOGGING` | variable | `false` | `true` | `false` | "true" emits [Module] diagnostic console logs (on locally and in the development deploy, off in production). |
 | `VITE_DEV_API_URL` | build·local | — | — | — | Dev server only: Vite proxy target for /api. |
 | `VITE_DEVTOOLS` | variable | `false` | `true` | `false` | "true" mounts React Query Devtools + the localhost debug panel + theme-shuffle shortcut. |

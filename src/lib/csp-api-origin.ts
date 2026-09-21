@@ -131,9 +131,17 @@ export function buildContentSecurityPolicy(
  * `script-src 'self'`. Delivered via a `Content-Security-Policy-Report-Only`
  * header (header-only — `http-equiv` can't carry report-only), so violations
  * are COLLECTED, not enforced: React 19 is Trusted-Types-aware, but Sentry /
- * PostHog may use sinks, so we observe first. Flip to the enforcing CSP once
- * the violation stream is clean. `trusted-types` policy names are intentionally
- * unconstrained while reporting — that is what we are here to discover.
+ * PostHog may use sinks, so we observe first. `trusted-types` policy names are
+ * intentionally unconstrained while reporting — that is what we are here to
+ * discover.
+ *
+ * Promotion to the enforcing policy needs a collector FIRST. Without
+ * `reportUri` this header carries no `report-uri`/`report-to`, so the browser
+ * reports violations to the visitor's own DevTools console and nowhere else —
+ * real-user violations are never aggregated, and "the stream is clean" cannot
+ * be established. `validate:client-env` warns on a deploy that leaves
+ * `VITE_CSP_REPORT_URI` unset for exactly this reason. Runbook:
+ * `docs/deployment/runbooks/csp-trusted-types-production.md`.
  *
  * @param reportUri - optional collector; adds report-uri + report-to.
  */

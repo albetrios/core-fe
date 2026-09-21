@@ -90,7 +90,11 @@ describe('envProfiles required keys', () => {
 
   it('derives the conditionally-required list from the production profile', () => {
     const keys = envSchemaConditionallyRequiredKeys.map((entry) => entry.key);
-    expect(keys).toEqual(['VITE_TURNSTILE_SITE_KEY', 'VITE_API_BASE_URL']);
+    expect(keys).toEqual([
+      'VITE_TURNSTILE_SITE_KEY',
+      'VITE_API_BASE_URL',
+      'VITE_CSP_REPORT_URI',
+    ]);
     for (const entry of envSchemaConditionallyRequiredKeys) {
       expect(entry.condition.length).toBeGreaterThan(0);
     }
@@ -107,6 +111,30 @@ describe('envProfiles required keys', () => {
       expect(rule?.condition).toBeUndefined();
     }
     expect(envProfiles.local.required.some((r) => r.key === 'VITE_APP_ENV')).toBe(false);
+  });
+
+  it('warns — never fails — when a deploy has no CSP violation collector', () => {
+    // Both deploy environments ship `Content-Security-Policy-Report-Only:
+    // require-trusted-types-for 'script'` unconditionally. With no collector the
+    // browser reports each violation to the visitor's own console and nowhere
+    // else, so the "promote to enforcing once the stream is clean" step has no
+    // stream. Surface that as a warning: missing collection is degraded, not broken.
+    const deployProfiles = [
+      ['development', envProfiles.development],
+      ['production', envProfiles.production],
+    ] as const;
+    for (const [env, profile] of deployProfiles) {
+      const rule = profile.required.find((r) => r.key === 'VITE_CSP_REPORT_URI');
+      expect(rule, `${env} must flag a missing CSP collector`).toBeDefined();
+      expect(rule?.level).toBe('warn');
+      expect(rule?.condition).toBeTruthy();
+      // Unconditional: `when` would let an unset collector pass silently.
+      expect(rule?.when).toBeUndefined();
+    }
+    // `local` never deploys, so it has no collector to miss.
+    expect(envProfiles.local.required.some((r) => r.key === 'VITE_CSP_REPORT_URI')).toBe(
+      false,
+    );
   });
 });
 

@@ -133,7 +133,8 @@ export const envFieldDescriptions: Readonly<Record<string, string>> = {
   VITE_THEME_LOCK: '"true" hides the runtime theme switcher + shuffle.',
   VITE_PRIVACY_POLICY_URL:
     'Privacy-policy URL shown in the consent banner/footer (optional).',
-  VITE_CSP_REPORT_URI: 'CSP violation report collector URI (optional).',
+  VITE_CSP_REPORT_URI:
+    'CSP violation report collector URI (e.g. a Sentry CSP ingest URL); empty = violations reach each visitor console only. Warned on in both deploy environments.',
   VITE_DISABLED_MODULES:
     'Comma-separated module keys to disable (e.g. billing,members); routes 404 via the module gate.',
   VITE_PERSONAL_ORGANIZATIONS:
@@ -364,6 +365,22 @@ const SONAR_LOCAL_ONLY: readonly ForbiddenKeyRule[] = [
  * (`.env.local`, dev-server proxy to localhost), `development` the deploy environment
  * (`.env.development`). `local` is validated at load but is never a deploy target.
  */
+/**
+ * Both deploy environments ship a `Content-Security-Policy-Report-Only` header
+ * carrying `require-trusted-types-for 'script'` — emitted unconditionally by
+ * `plugins/csp-api-origin.ts`. Without a collector the browser still surfaces
+ * each violation in the visitor's own DevTools console, but nothing aggregates
+ * them, so the promotion step documented in
+ * `docs/deployment/runbooks/csp-trusted-types-production.md` ("promote to the
+ * enforcing policy once the stream is clean") has no stream to read. `warn`,
+ * never `error`: a deploy without violation collection is degraded, not broken.
+ */
+const CSP_REPORT_URI_RULE: RequiredKeyRule = {
+  key: 'VITE_CSP_REPORT_URI',
+  condition: 'deploy that collects CSP + Trusted-Types violations',
+  level: 'warn',
+};
+
 const devLikeContract: Omit<EnvProfile, 'defaults'> = {
   required: [],
   forbidden: [
@@ -414,7 +431,7 @@ export const envProfiles: Readonly<Record<AppEnvironment, EnvProfile>> = {
     // Unlike `local`, development IS a deploy target: the deploy workflow must
     // inject VITE_APP_ENV so the shipped bundle self-reports its environment
     // (Sentry/PostHog tag) instead of falling back to the schema default `local`.
-    required: [{ key: 'VITE_APP_ENV', level: 'error' }],
+    required: [{ key: 'VITE_APP_ENV', level: 'error' }, CSP_REPORT_URI_RULE],
     allowed: { ...devLikeContract.allowed, VITE_APP_ENV: ['development'] },
     // Development deploy: diagnostics on for debugging, version-check on (a real
     // deploy), E2E hooks off (not a test runner).
@@ -443,6 +460,7 @@ export const envProfiles: Readonly<Record<AppEnvironment, EnvProfile>> = {
         condition: 'production deploy when API is not same-origin',
         level: 'warn',
       },
+      CSP_REPORT_URI_RULE,
     ],
     forbidden: [
       ...SONAR_LOCAL_ONLY,
