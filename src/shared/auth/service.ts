@@ -337,16 +337,29 @@ function isRevokePending(): boolean {
   }
 }
 
-/** POST `/auth/logout` for the token in memory. Resolves `true` once revoked. */
-async function revokeServerSession(): Promise<boolean> {
-  // core-be identifies the session to revoke BY the bearer token
-  // (revokeSessionByAccessToken) and 401s without one — expired is fine,
-  // absent is not. Without it the refresh cookie survives and the /login
-  // bootstrap silently signs the user straight back in.
-  const token = getAccessToken();
+/**
+ * POST `/auth/logout` for a session token. Resolves `true` once revoked.
+ *
+ * `keepalive` is what lets the caller redirect without waiting: {@link forceLogout} hands the tab
+ * to `/login` with `window.location.href`, and a plain in-flight fetch dies with the document.
+ * A keepalive request is the one kind the browser promises to finish across unload, so the revoke
+ * still reaches the server after the user is already looking at the login screen. The response
+ * usually arrives too late to observe — which is why the caller marks the revoke pending FIRST and
+ * treats this resolving as the bonus, not the guarantee.
+ *
+ * Takes the token explicitly because the instant path reads it before `clearLocalAuthState()` wipes
+ * it: core-be identifies the session to revoke BY the bearer token and 401s without one — expired
+ * is fine, absent is not. Without it the refresh cookie survives and the `/login` bootstrap signs
+ * the user straight back in.
+ */
+async function revokeServerSession(
+  token: string | null = getAccessToken(),
+  options: { keepalive?: boolean } = {},
+): Promise<boolean> {
   const res = await authFetch(`${authBase()}${API_ENDPOINTS.AUTH.LOGOUT}`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    ...(options.keepalive ? { keepalive: true } : {}),
   });
   if (!res.ok && platformConfig.debugLogging) {
     console.error('[Auth] Server-side session revoke failed', res.status);
@@ -405,16 +418,24 @@ export async function logout(
 }
 
 async function doLogout(reason: SessionEndReason): Promise<void> {
-  let revoked = false;
-  try {
-    revoked = await revokeServerSession();
-  } catch {
-    /* best-effort — local state is cleared regardless */
-  } finally {
-    // Decided BEFORE the redirect below: `forceLogout` hands the tab to /login,
-    // and that boot is what reads the marker.
-    if (revoked) clearRevokePending();
-    else markRevokePending();
-    forceLogout({ reason });
-  }
+  // Signing out does not wait for the network. This used to await the revoke before handing the
+  // tab to /login, so a slow or hanging `/auth/logout` left the user sitting on the app they had
+  // just asked to leave — the one moment where a spinner reads as "did that work?".
+  //
+  // Leaving instantly is only safe because of the two lines below. The refresh cookie is HttpOnly
+  // and survives `clearLocalAuthState()`, so a redirect with a live server session would let the
+  // /login bootstrap silently refresh and bounce the user back into the app. Marking the revoke
+  // pending BEFORE leaving is what stops that: the bootstrap sees the marker, refuses to restore
+  // the session, and finishes the revoke itself (`finishPendingRevoke`). Pessimistic on purpose —
+  // the marker is cleared only by a revoke we actually saw succeed.
+  const token = getAccessToken();
+  markRevokePending();
+  void revokeServerSession(token, { keepalive: true })
+    .then((revoked) => {
+      if (revoked) clearRevokePending();
+    })
+    .catch(() => {
+      /* best-effort — the pending marker and the next boot are the real guarantee */
+    });
+  forceLogout({ reason });
 }

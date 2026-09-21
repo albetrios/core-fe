@@ -12,7 +12,7 @@ import { mapApiError, reportError } from '@/shared/errors/errorHandler.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import {
-  Building2,
+  Building,
   LayoutDashboard,
   LogOut,
   Monitor,
@@ -153,7 +153,7 @@ export function CommandPaletteContent() {
                   }),
                 )
               }
-              icon={Building2}
+              icon={Building}
             >
               {t(cp.organizationSettings)}
             </CommandItem>

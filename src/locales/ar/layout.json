@@ -63,6 +63,11 @@
       "appearance": "المظهر",
       "shortcuts": "الاختصارات"
     },
+    "workspaceSwitch": {
+      "preparing": "جارٍ تحضير مساحة العمل الخاصة بك",
+      "loadingAccess": "جارٍ تحميل الأعضاء والأذونات",
+      "almostReady": "على وشك الانتهاء"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "اختر المؤسسة",
       "triggerLabel": "تبديل المؤسسة — الحالية: {{name}}",

@@ -3,13 +3,14 @@ import { z } from 'zod';
 /**
  * Global (platform-wide) role, as defined by core-be.
  *
- * - `super_admin` / `admin`: platform staff (admin console — out of scope for the
- *   non-admin organization app, but modelled for completeness).
+ * - `super_admin`: platform staff (admin console — out of scope for the non-admin organization
+ *   app, but modelled for completeness). The API issues this and `user`, and nothing else: an
+ *   `admin` tier existed in the enum for a while without any code that minted it.
  * - `user`: a normal end user; organization-level permissions are governed by
  *   org-scoped permission codes (see {@link OrganizationPermission} in `@/core/rbac/policies.ts`),
  *   not by this global role.
  */
-const roleSchema = z.enum(['super_admin', 'admin', 'user']);
+const roleSchema = z.enum(['super_admin', 'user']);
 export type Role = z.infer<typeof roleSchema>;
 
 /**

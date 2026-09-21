@@ -69,12 +69,17 @@ function mapOrganizationWire(raw: unknown): Organization {
 }
 
 export async function listMyOrganizations(): Promise<Organization[]> {
+  // `/users/me/organizations`, not `/tenancy/organizations`: the collection root is the admin
+  // "every organization" view, and the caller's own list hangs off `/users/me` — the same split as
+  // `GET /users` (admin) versus `GET /users/me`. This endpoint is always the caller's own,
+  // whatever their role.
+  //
   // Follow cursor pagination so a user in >25 orgs sees them all — the backend
   // defaults to 25/page, so a single un-paged fetch silently truncates the
   // org switcher / picker.
   return (
     await fetchAllPages(
-      `${BASE}/tenancy/organizations`,
+      `${BASE}/users/me/organizations`,
       organizationWireRow,
       'organizations',
     )

@@ -54,12 +54,25 @@ anybody out.
   back to the dashboard. It is right only when the server session is **already
   gone**: a dead session in the fetch client, a deleted account, or the tail of
   `logout()` itself.
-- **`logout({ reason })` is the ONE way to end a live session.** It revokes
-  server-side (`POST /auth/logout` with the bearer), then calls `forceLogout()`.
-  The user menu, the command palette, **the idle-timeout dialog (its button AND
-  its deadline) and the absolute session cap** all go through it. `reason`
-  (`logout` · `idle_timeout` · `session_expired`) only labels the `session_ended`
-  analytics event. It is single-flight: one gesture, one revoke.
+- **`logout({ reason })` is the ONE way to end a live session.** It dispatches
+  the revoke (`POST /auth/logout` with the bearer) and calls `forceLogout()`
+  **without waiting for it**. The user menu, the command palette, **the
+  idle-timeout dialog (its button AND its deadline) and the absolute session
+  cap** all go through it. `reason` (`logout` · `idle_timeout` ·
+  `session_expired`) only labels the `session_ended` analytics event. It is
+  single-flight: one gesture, one revoke.
+
+**Signing out does not wait for the network, and the marker is why that is
+safe.** Awaiting the revoke first left the user on the app they had just asked
+to leave whenever `/auth/logout` was slow. Three things make the instant
+redirect correct rather than merely faster: the bearer is read **before**
+`clearLocalAuthState()` wipes it; `core:logout-pending` is written **before**
+the redirect, so the `/login` bootstrap refuses to restore the session it would
+otherwise silently refresh back into; and the request goes out with
+`keepalive`, the one kind a browser finishes across the document unload that
+`forceLogout()`'s `window.location.href` causes. The marker is cleared only by
+a revoke actually observed to succeed — usually the next boot's, since the
+response rarely arrives before the page is gone.
 
 **A revoke that cannot reach the server is finished at the next boot.** The
 commonest moment for an idle sign-out is a laptop waking past its deadline with

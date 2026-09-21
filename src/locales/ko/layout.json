@@ -63,6 +63,11 @@
       "appearance": "모양",
       "shortcuts": "단축키"
     },
+    "workspaceSwitch": {
+      "preparing": "워크스페이스를 준비하는 중입니다",
+      "loadingAccess": "멤버와 권한을 불러오는 중입니다",
+      "almostReady": "거의 완료되었습니다"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "조직 선택",
       "triggerLabel": "조직 전환 — 현재: {{name}}",

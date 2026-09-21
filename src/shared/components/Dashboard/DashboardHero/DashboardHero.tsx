@@ -9,7 +9,7 @@ import {
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
-import { Building2 } from '@/shared/icons/index.ts';
+import { Building } from '@/shared/icons/index.ts';
 import type { OrganizationStatusValue } from '@/shared/tenancy/me-context.ts';
 
 function statusDotClass(status: OrganizationStatusValue): string {
@@ -91,7 +91,7 @@ export function DashboardHero({
 
           {showOrgContext ? (
             <div className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1.5 pt-1 text-sm">
-              <Building2 className="size-3.5 shrink-0" aria-hidden="true" />
+              <Building className="size-3.5 shrink-0" aria-hidden="true" />
               <span
                 className="text-foreground font-medium"
                 data-testid="dashboard-org-name"

@@ -63,6 +63,11 @@
       "appearance": "外観",
       "shortcuts": "ショートカット"
     },
+    "workspaceSwitch": {
+      "preparing": "ワークスペースを準備しています",
+      "loadingAccess": "メンバーと権限を読み込んでいます",
+      "almostReady": "まもなく完了します"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "組織を選択",
       "triggerLabel": "組織を切り替え — 現在: {{name}}",

@@ -40,7 +40,7 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
-import { Boxes, Building2, ShieldCheck, Zap } from '@/shared/icons/index.ts';
+import { Boxes, Building, ShieldCheck, Zap } from '@/shared/icons/index.ts';
 import type { MeContext, OrganizationSummary } from '@/shared/tenancy/me-context.ts';
 
 import { DASHBOARD_KEYS, DASHBOARD_NS } from './dashboard.constants.ts';
@@ -142,7 +142,7 @@ export function StatsSection({
     personalOnly
       ? null
       : {
-          icon: Building2,
+          icon: Building,
           label: t(DASHBOARD_KEYS.stats.type),
           value: isTeam
             ? t(DASHBOARD_KEYS.orgType.team)

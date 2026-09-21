@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~621 src files · ~359 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
+Stats: ~625 src files · ~361 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -174,6 +174,7 @@ core-fe/
 │   │   ├── env-schema-add-sync.mdc
 │   │   ├── file-structure.mdc
 │   │   ├── git-branch-naming.mdc
+│   │   ├── no-digits-in-names.mdc
 │   │   ├── platform-hygiene-sync.mdc
 │   │   ├── pr-review-prevention.mdc
 │   │   ├── preset-product-design.mdc
@@ -1069,9 +1070,13 @@ core-fe/
 │   │   │   │   ├── TotpCodeInput.tsx
 │   │   │   │   └── [1 test file]
 │   │   │   ├── ui/
-│   │   │   └── WidgetErrorBoundary/
+│   │   │   ├── WidgetErrorBoundary/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── WidgetErrorBoundary.tsx
+│   │   │   │   └── [1 test file]
+│   │   │   └── WorkspaceSwitchOverlay/
 │   │   │       ├── index.ts
-│   │   │       ├── WidgetErrorBoundary.tsx
+│   │   │       ├── WorkspaceSwitchOverlay.tsx
 │   │   │       └── [1 test file]
 │   │   ├── errors/
 │   │   │   ├── AppError.ts
@@ -1357,9 +1362,13 @@ core-fe/
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── useThemeStore.ts
 │   │   │   │   └── [1 test file]
-│   │   │   └── useUIStore/
+│   │   │   ├── useUIStore/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── useUIStore.ts
+│   │   │   │   └── [1 test file]
+│   │   │   └── useWorkspaceSwitchStore/
 │   │   │       ├── index.ts
-│   │   │       ├── useUIStore.ts
+│   │   │       ├── useWorkspaceSwitchStore.ts
 │   │   │       └── [1 test file]
 │   │   ├── tenancy/
 │   │   │   ├── deployment-mode.ts

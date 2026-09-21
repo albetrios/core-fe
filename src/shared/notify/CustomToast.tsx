@@ -8,8 +8,8 @@ import { Button } from '@/shared/components/ui/button.tsx';
 import {
   AlertCircle,
   AlertTriangle,
-  CheckCircle2,
-  Loader2,
+  CheckCircle,
+  Loader,
   type LucideIcon,
   X,
   XCircle,
@@ -31,7 +31,7 @@ interface ToastTone {
 
 const TONES: Record<ToastType, ToastTone> = {
   success: {
-    icon: CheckCircle2,
+    icon: CheckCircle,
     iconBadge: 'bg-success text-success-foreground',
     tintSurface: 'border-success/25 bg-success/10',
     solid: 'bg-success text-success-foreground',
@@ -63,7 +63,7 @@ const TONES: Record<ToastType, ToastTone> = {
     bar: 'bg-info',
   },
   loading: {
-    icon: Loader2,
+    icon: Loader,
     iconBadge: 'bg-muted text-muted-foreground',
     tintSurface: 'border-border bg-muted/40',
     solid: 'bg-muted text-foreground',

@@ -64,7 +64,7 @@ import {
   useUpdateMemberStatus,
 } from '@/shared/hooks/useMembers/index.ts';
 import { useHasPermission } from '@/shared/hooks/useRBAC/index.ts';
-import { Download, Loader2, MoreHorizontal } from '@/shared/icons/index.ts';
+import { Download, Loader, MoreHorizontal } from '@/shared/icons/index.ts';
 
 import { MEMBERS_TABLE_KEYS, MEMBERS_TABLE_NS } from './members-table.constants.ts';
 
@@ -117,7 +117,7 @@ function RowActions({ member, canManage }: { member: Member; canManage: boolean 
                 has to carry the busy state — a greyed-out item nobody can see
                 is not feedback. */}
             {isWriting ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              <Loader className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
               <MoreHorizontal className="h-4 w-4" />
             )}
