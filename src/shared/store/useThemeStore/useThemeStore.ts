@@ -31,6 +31,7 @@ import {
   normalizeLayoutWidthId,
   normalizeLook,
   randomSeed,
+  releaseBootThemeVars,
   SHUFFLE_TEMP,
   shuffleIcons,
 } from '@/shared/theme/index.ts';
@@ -103,6 +104,27 @@ function applyMode(theme: Mode) {
   } else {
     root.classList.remove('dark');
   }
+
+  // The class above is only half the switch. `theme-init.js` pinned the splash
+  // palette INLINE on <html> for the mode the document booted in, and an inline
+  // custom property outranks `.dark`, so --color-background / --color-foreground
+  // / --color-muted would stay on the old mode while every token the app owns
+  // flips — a half-dark page that only a reload repairs. This is the one place
+  // the mode is ever applied, so it is the one place that has to let them go.
+  releaseBootThemeVars();
+}
+
+/**
+ * Re-assert the active look on `<html>`. Boot and every mode change run the same
+ * path so the generated accent — and the boot snapshot `applyGeneratedTheme`
+ * leaves for the next cold load — always describes the mode now on screen.
+ */
+function applyActiveLook(preset: string, customTheme: GeneratedTheme | null): void {
+  if (preset === GENERATED_PRESET && customTheme != null) {
+    applyGeneratedTheme(customTheme);
+  } else {
+    applyThemePreset(preset);
+  }
 }
 
 export const useThemeStore = create<ThemeStore>()(
@@ -126,6 +148,11 @@ export const useThemeStore = create<ThemeStore>()(
       layoutWidth: DEFAULT_LAYOUT_WIDTH,
       setTheme: (theme) => {
         applyMode(theme);
+        // Re-taken for the new mode: the snapshot the boot script replays is
+        // tagged with the mode it was captured in, so without this the next cold
+        // load finds a stale tag, skips the fast path, and the splash paints the
+        // base palette until React catches up.
+        applyActiveLook(get().preset, get().customTheme);
         set({ theme });
       },
       setPreset: (preset) => {
@@ -257,11 +284,7 @@ export const useThemeStore = create<ThemeStore>()(
           applyMenuStyle(state.menu ?? DEFAULT_MENU);
           applyIconWeight(state.iconWeight ?? DEFAULT_ICON_WEIGHT);
           applyIconColor(state.iconColor ?? DEFAULT_ICON_COLOR);
-          if (state.preset === GENERATED_PRESET && state.customTheme != null) {
-            applyGeneratedTheme(state.customTheme);
-          } else {
-            applyThemePreset(state.preset);
-          }
+          applyActiveLook(state.preset, state.customTheme);
         }
       },
     },
@@ -274,8 +297,10 @@ const themeListenerController = new AbortController();
 if (typeof window !== 'undefined') {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   const handler = () => {
-    const { theme } = useThemeStore.getState();
-    if (theme === 'system') applyMode('system');
+    const { theme, preset, customTheme } = useThemeStore.getState();
+    if (theme !== 'system') return;
+    applyMode('system');
+    applyActiveLook(preset, customTheme);
   };
 
   mediaQuery.addEventListener('change', handler, {

@@ -88,6 +88,29 @@ independently:
 When `VITE_THEME_LOCK=true`, the switcher and shuffle are hidden and the app is
 pinned to the code-defined theme.
 
+### The boot palette is a loan, not a layer
+
+`public/theme-init.js` runs before any bundle and paints the HTML boot splash from
+the resolved palette it replays out of `theme-boot-vars` — written **inline on
+`<html>`**, and resolved for the mode the document loaded in. An inline custom
+property outranks both `:root` and `.dark`, so every one left behind pins its token
+to the boot mode for the life of the document: flipping mode afterwards moves only
+the tokens the app owns (`--color-card`, `--color-border`,
+`--color-muted-foreground`) and the page comes out half dark — black text on a black
+card, a light card on a black page — repaired only by a reload, the one thing that
+re-runs the boot script.
+
+So `applyMode()` calls `releaseBootThemeVars()` on every mode application (boot
+rehydrate, the Appearance/menu switch, an OS `prefers-color-scheme` flip), handing
+`--color-background` / `--color-foreground` / `--color-muted` back to the stylesheet.
+The accent and radius need no release: the caller re-asserts them in the same tick,
+so nothing paints in between. `setTheme` re-applies the active look right after, which
+re-takes the snapshot for the mode now on screen — one tagged with the old mode is
+skipped at the next cold load and costs the splash its flash-free palette.
+
+`src/shared/theme/boot-theme-vars.drift.test.ts` pins the contract: every property
+the boot script can write is either released or re-asserted.
+
 ## Icon library (swappable at runtime, lazy-loaded)
 
 Every app icon flows through the `@/shared/icons` barrel (eslint-enforced — see
