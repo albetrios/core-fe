@@ -61,7 +61,11 @@ export function cspApiOrigin(apiBaseUrl: string | undefined, reportUri?: string)
         : '';
       // Trusted Types ships report-only alongside the enforcing CSP — a staged
       // rollout that collects DOM-script-sink violations without breaking React
-      // / Sentry / PostHog (see buildTrustedTypesReportOnlyPolicy).
+      // / Sentry / PostHog (see buildTrustedTypesReportOnlyPolicy). Unlike
+      // `reportingHeader` above this is NOT conditional on `reportUri`: the
+      // header ships either way, and without a collector the browser reports to
+      // the visitor's own console only. `validate:client-env` warns on a deploy
+      // in that state — see the CSP_REPORT_URI_RULE in core/config/env-schema.ts.
       const reportOnlyHeader = `\n  Content-Security-Policy-Report-Only: ${trustedTypesReportOnly}`;
       writeFileSync(
         headersPath,

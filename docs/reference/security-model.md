@@ -81,10 +81,18 @@ violations — including blocked XSS attempts — are collected instead of silen
 ([`buildTrustedTypesReportOnlyPolicy`](../../src/lib/csp-api-origin.ts)). This is
 a structural DOM-XSS defense — it flags any script sink (`innerHTML`, `eval`, …)
 that receives a plain string instead of a Trusted Type — shipped **report-only**
-because React 19 is Trusted-Types-aware but Sentry/PostHog may use sinks. Once
-the violation stream (collected via `VITE_CSP_REPORT_URI`) is clean, promote
-`require-trusted-types-for 'script'` into the enforcing policy. Report-only is
-header-only — `http-equiv` can't carry it — so there is no meta fallback.
+because React 19 is Trusted-Types-aware but Sentry/PostHog may use sinks.
+Report-only is header-only — `http-equiv` can't carry it — so there is no meta
+fallback.
+
+The header ships on **every** deploy, but `VITE_CSP_REPORT_URI` decides whether
+anyone sees the result. Unset, the policy carries no `report-uri`/`report-to`:
+each violation lands in that one visitor's DevTools console and is never
+aggregated, so promoting `require-trusted-types-for 'script'` into the enforcing
+policy — the goal of shipping it report-only — has no evidence to act on. Set
+the collector before starting that clock; `pnpm validate:client-env` warns (does
+not fail) on a deploy environment that leaves it unset. Steps:
+[the Trusted Types runbook](../deployment/runbooks/csp-trusted-types-production.md).
 
 ## Accepted risks (intentional — do not "fix" without re-reading this)
 
