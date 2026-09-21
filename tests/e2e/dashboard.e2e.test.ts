@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { registerNewUserAndGoToDashboard } from '@/tests/utils/e2e-auth.ts';
+import {
+  createTeamOrgViaSwitcher,
+  registerNewUserAndGoToDashboard,
+} from '@/tests/utils/e2e-auth.ts';
 import { expectAppHeaderReady } from '@/tests/utils/e2e-hybrid.ts';
 
 // The dashboard module is a placeholder until it is rebuilt after auth
@@ -37,6 +40,43 @@ test.describe('Dashboard', () => {
     await expect(page).not.toHaveURL(/#settings/);
   });
 
+  /**
+   * DASH-5: every "Ask your workspace" chip called the same blank `open()`, so
+   * a user who pressed a chip naming something specific got an empty palette
+   * and had to type the words back in. Each chip now seeds the search with a
+   * locale-independent cmdk keyword, and the palette opens already filtered.
+   */
+  test('a suggestion chip opens the command palette already filtered', async ({
+    page,
+  }) => {
+    await page.getByTestId('dashboard-ai-chip-appearance').click();
+
+    const search = page.getByRole('combobox', { name: 'Type a command or search...' });
+    await expect(search).toHaveValue('theme');
+    await expect(page.getByRole('option', { name: 'Light mode' })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'System theme' })).toBeVisible();
+    // Filtered, not merely pre-typed: unrelated commands are gone.
+    await expect(page.getByRole('option', { name: 'Dashboard' })).toBeHidden();
+
+    // A closed palette forgets the seed: the prompt box promises nothing
+    // specific, so it must not reopen on what a chip asked for a moment ago.
+    await page.keyboard.press('Escape');
+    await expect(search).toBeHidden();
+    await page.getByTestId('dashboard-ai-prompt').click();
+    await expect(
+      page.getByRole('combobox', { name: 'Type a command or search...' }),
+    ).toHaveValue('');
+  });
+
+  test('a suggestion this workspace cannot honor is not offered', async ({ page }) => {
+    // A fresh registration lands on a personal workspace, which has nobody to
+    // invite and no Members section — "Invite members" would open the palette
+    // on "No results found", a louder version of the bug the seeds fixed.
+    await expect(page.getByTestId('dashboard-ai-chip-members')).toBeHidden();
+    await expect(page.getByTestId('dashboard-ai-chip-usage')).toBeVisible();
+    await expect(page.getByTestId('dashboard-ai-chip-appearance')).toBeVisible();
+  });
+
   test('the user menu exposes Settings and Logout actions', async ({ page }) => {
     await page.getByTestId('user-menu-trigger').click();
     await expect(page.getByRole('menu')).toBeVisible();
@@ -45,6 +85,20 @@ test.describe('Dashboard', () => {
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toBeHidden();
+  });
+});
+
+test.describe('Dashboard suggestions on a team workspace', () => {
+  test('"Invite members" reaches the Members section', async ({ page }) => {
+    await registerNewUserAndGoToDashboard(page);
+    await createTeamOrgViaSwitcher(page);
+
+    await page.getByTestId('dashboard-ai-chip-members').click();
+
+    await expect(
+      page.getByRole('combobox', { name: 'Type a command or search...' }),
+    ).toHaveValue('invitations');
+    await expect(page.getByRole('option', { name: 'Members' })).toBeVisible();
   });
 });
 

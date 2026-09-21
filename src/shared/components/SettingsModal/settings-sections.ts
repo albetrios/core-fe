@@ -61,7 +61,8 @@ export function sectionsForOrgType(
   return type === 'TEAM' ? ['general', 'members', 'roles', 'integrations'] : [];
 }
 
-interface SettingsNavItem {
+/** One openable destination in the Settings nav (and in the command palette). */
+export interface SettingsNavItem {
   scope: SettingsScope;
   section: SettingsSection;
   labelKey: string;
@@ -121,7 +122,15 @@ export const SETTINGS_NAV: readonly SettingsNavGroup[] = [
         section: 'billing',
         labelKey: SETTINGS_SECTION_LABEL_KEYS.billing,
         icon: CreditCard,
-        keywords: ['billing', 'plan', 'subscription', 'invoices', 'payment'],
+        keywords: [
+          'billing',
+          'plan',
+          'subscription',
+          'invoices',
+          'payment',
+          'usage',
+          'seats',
+        ],
       },
     ],
   },
