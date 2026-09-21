@@ -92,6 +92,36 @@ describe('WorkspaceSwitchOverlay', () => {
     );
   });
 
+  it('clears on completion and starts the next switch from the first line', async () => {
+    // The overlay lives in the app shell and never unmounts, so "the next switch starts over" is
+    // not something a remount gives for free — it is the reset this component does when the target
+    // changes. A second switch inheriting "Almost ready" from the first would be a lie.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    useWorkspaceSwitchStore.setState({ switchingTo: 'Acme Corp' });
+    renderWithProviders(<WorkspaceSwitchOverlay />);
+    await screen.findByTestId('workspace-switch-message');
+
+    act(() => {
+      vi.advanceTimersByTime(1_600 * 3);
+    });
+    expect(screen.getByTestId('workspace-switch-message')).toHaveTextContent(
+      'Almost ready',
+    );
+
+    act(() => {
+      useWorkspaceSwitchStore.getState().endSwitch();
+    });
+    expect(screen.queryByTestId('workspace-switch-overlay')).not.toBeInTheDocument();
+
+    act(() => {
+      useWorkspaceSwitchStore.getState().beginSwitch('Other Workspace');
+    });
+    expect(screen.getByText('Other Workspace')).toBeInTheDocument();
+    expect(screen.getByTestId('workspace-switch-message')).toHaveTextContent(
+      'Preparing your workspace',
+    );
+  });
+
   it('announces politely rather than interrupting', async () => {
     useWorkspaceSwitchStore.setState({ switchingTo: 'Acme Corp' });
     const { container } = renderWithProviders(<WorkspaceSwitchOverlay />);
