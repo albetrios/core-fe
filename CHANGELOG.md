@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.8.0](https://github.com/albetrios/core-fe/compare/v1.7.0...v1.8.0) (2026-09-21)
+
+
+### Added
+
+* **captcha:** surface the Turnstile challenge inline in the auth form ([#265](https://github.com/albetrios/core-fe/issues/265)) ([548449e](https://github.com/albetrios/core-fe/commit/548449ed8d7b081f0480a023566b7255cb650e8f))
+* **dashboard:** shuffle-driven arrangement variants with premium widget set ([#267](https://github.com/albetrios/core-fe/issues/267)) ([34df0a4](https://github.com/albetrios/core-fe/commit/34df0a42c7ae00b276975ce673cb188d114c9b69))
+
+
+### Fixed
+
+* **auth,onboarding,dashboard,settings:** make loading, error and success states tell the truth ([#273](https://github.com/albetrios/core-fe/issues/273)) ([ac4c8a3](https://github.com/albetrios/core-fe/commit/ac4c8a3dd3e76c006071fbd4ed983221d0b272b6))
+* **auth,shell,theme,settings:** idle sign-out, cold load, theme-true UI and three hidden bugs ([#293](https://github.com/albetrios/core-fe/issues/293)) ([e484998](https://github.com/albetrios/core-fe/commit/e484998aaa0a7d81cd4925cd2c8a383718677dfa))
+* **auth,shell:** sign out instantly, and show the workspace switch happening ([#299](https://github.com/albetrios/core-fe/issues/299)) ([d8440de](https://github.com/albetrios/core-fe/commit/d8440de5e663f8887f3c589cb64bd8963cc38fce))
+* **auth:** stop the sign-in screen rewinding during the post-login hand-off ([#294](https://github.com/albetrios/core-fe/issues/294)) ([35a9725](https://github.com/albetrios/core-fe/commit/35a9725d0e99a46981b0c50ce8220c6820f89320))
+* **loading:** keep app controls ready while content loads ([#274](https://github.com/albetrios/core-fe/issues/274)) ([8e47ef4](https://github.com/albetrios/core-fe/commit/8e47ef4e457894366b98db5c1d42c9986fdd2393))
+* **version:** recover from stale lazy chunks after a deploy ([#300](https://github.com/albetrios/core-fe/issues/300)) ([b242159](https://github.com/albetrios/core-fe/commit/b242159c3a62dc7a1085e6284995081f7df54321))
+
+
+### Changed
+
+* **tenancy:** follow the organization list to /users/me/organizations ([#295](https://github.com/albetrios/core-fe/issues/295)) ([9aabe97](https://github.com/albetrios/core-fe/commit/9aabe97781b20587baf670fd7dbdb82ed3abb730))
+
+
+### Documentation
+
+* fix branch-name examples in staleness checks ([#289](https://github.com/albetrios/core-fe/issues/289)) ([b3c5c34](https://github.com/albetrios/core-fe/commit/b3c5c34486c7e1f0cc19b55120ec7c8456c6f523)), closes [#250](https://github.com/albetrios/core-fe/issues/250)
+
 ## [1.7.0](https://github.com/nikunjmavani/core-fe/compare/v1.6.2...v1.7.0) (2026-08-27)
 
 
