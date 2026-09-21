@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { buildContentSecurityPolicy } from '@/lib/csp-api-origin.ts';
 
 import indexHtml from '../../index.html?raw';
+import netlifyToml from '../../netlify.toml?raw';
 import pkg from '../../package.json';
 import headers from '../../public/_headers?raw';
 import viteConfig from '../../vite.config.ts?raw';
@@ -270,5 +271,102 @@ describe('supply-chain dependency floors (no downgrade past a known CVE)', () =>
 
   it('floors postcss >=8.5.18 via pnpm override (sourceMappingURL path traversal — GHSA-r28c-9q8g-f849)', () => {
     expect(atLeast(pkg.pnpm.overrides.postcss, [8, 5, 18])).toBe(true);
+  });
+});
+
+/**
+ * Netlify reads security headers from BOTH `netlify.toml` and `public/_headers`,
+ * and merges them. Two sources for one header is fine while they agree and a
+ * silent contradiction when they do not: `X-Frame-Options` was `DENY` in
+ * `_headers` and `SAMEORIGIN` in `netlify.toml`, so which one a browser received
+ * depended on Netlify's merge precedence rather than on anything stated here.
+ * Whichever way that resolves, one of the two files was lying to whoever read it.
+ *
+ * This pins agreement rather than precedence — the property that makes the
+ * precedence question stop mattering.
+ */
+describe('security headers agree across both sources (netlify.toml ↔ public/_headers)', () => {
+  const EVERY_ROUTE = '/*';
+
+  /** `/*` block of `public/_headers`: indented `Name: value` lines until a blank line. */
+  function parseHeadersFile(): Map<string, string> {
+    const parsed = new Map<string, string>();
+    let insideBlock = false;
+    for (const line of headers.split('\n')) {
+      if (line.trim() === EVERY_ROUTE) {
+        insideBlock = true;
+        continue;
+      }
+      if (!insideBlock) continue;
+      if (line.trim() === '') break;
+      const separator = line.indexOf(':');
+      if (separator === -1) continue;
+      parsed.set(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
+    }
+    return parsed;
+  }
+
+  /**
+   * One `[[headers]]` block's `Name = "value"` lines. Parsed line by line rather
+   * than by regex: the obvious patterns here stack adjacent unbounded
+   * quantifiers, which `sonarjs/super-linear-regex` rejects for backtracking,
+   * and a split on `=` is both linear and easier to read.
+   */
+  function parseTomlPairs(block: string): [string, string][] {
+    const pairs: [string, string][] = [];
+
+    for (const rawLine of block.split('\n')) {
+      const line = rawLine.trim();
+      // The final block runs to end of file, so stop at the next TOML section
+      // rather than reading `[build]` keys as if they were headers.
+      if (line.startsWith('[') && line !== '[headers.values]') break;
+      if (line.startsWith('#')) continue;
+
+      const separator = line.indexOf('=');
+      if (separator === -1) continue;
+
+      const value = line.slice(separator + 1).trim();
+      pairs.push([
+        line.slice(0, separator).trim(),
+        value.startsWith('"') ? value.slice(1, -1) : value,
+      ]);
+    }
+
+    return pairs;
+  }
+
+  /** The `[[headers]]` block whose `for` is `/*`, as a name → value map. */
+  function parseNetlifyToml(): Map<string, string> {
+    const parsed = new Map<string, string>();
+
+    for (const block of netlifyToml.split('[[headers]]').slice(1)) {
+      const pairs = parseTomlPairs(block);
+      if (pairs.find(([name]) => name === 'for')?.[1] !== EVERY_ROUTE) continue;
+      for (const [name, value] of pairs) {
+        if (name !== 'for') parsed.set(name, value);
+      }
+    }
+
+    return parsed;
+  }
+
+  it('finds a populated /* block in each file (guards the parsers above)', () => {
+    expect(parseHeadersFile().size).toBeGreaterThan(0);
+    expect(parseNetlifyToml().size).toBeGreaterThan(0);
+    expect(parseHeadersFile().get('X-Frame-Options')).toBe('DENY');
+    expect(parseNetlifyToml().get('X-Frame-Options')).toBe('DENY');
+  });
+
+  it('never gives the same header two different values', () => {
+    const fromHeadersFile = parseHeadersFile();
+    const conflicts = [...parseNetlifyToml()]
+      .filter(([name]) => fromHeadersFile.has(name))
+      .filter(([name, value]) => fromHeadersFile.get(name) !== value)
+      .map(
+        ([name, value]) =>
+          `${name}: _headers=${fromHeadersFile.get(name)} netlify.toml=${value}`,
+      );
+
+    expect(conflicts).toEqual([]);
   });
 });
