@@ -37,8 +37,11 @@ export function useApiKeys(params: ApiKeysListParams = {}): CursorListResult<Api
 export function useCreateApiKey() {
   const orgId = useOrganizationStore((s) => s.organizationId);
   return useAppMutation({
-    mutationFn: (input: { name: string; scopes: string[]; expiresInDays: number | null }) =>
-      orgApi.createApiKey(input),
+    mutationFn: (input: {
+      name: string;
+      scopes: string[];
+      expiresInDays: number | null;
+    }) => orgApi.createApiKey(input),
     invalidateKeys: [orgQueryKeys.apiKeys(orgId)],
     successMessage: i18n.t(ERRORS_KEYS.frontend.hooks.apiKeys.createSuccess, {
       ns: ERRORS_NS,
