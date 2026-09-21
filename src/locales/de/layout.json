@@ -63,6 +63,11 @@
       "appearance": "Darstellung",
       "shortcuts": "Tastenkürzel"
     },
+    "workspaceSwitch": {
+      "preparing": "Arbeitsbereich wird vorbereitet",
+      "loadingAccess": "Mitglieder und Berechtigungen werden geladen",
+      "almostReady": "Fast fertig"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "Organisation auswählen",
       "triggerLabel": "Organisation wechseln — aktuell: {{name}}",

@@ -63,6 +63,11 @@
       "appearance": "Apariencia",
       "shortcuts": "Atajos"
     },
+    "workspaceSwitch": {
+      "preparing": "Preparando tu espacio de trabajo",
+      "loadingAccess": "Cargando miembros y permisos",
+      "almostReady": "Casi listo"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "Seleccionar organización",
       "triggerLabel": "Cambiar de organización — actual: {{name}}",

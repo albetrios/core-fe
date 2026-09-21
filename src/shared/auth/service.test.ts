@@ -368,6 +368,48 @@ describe('auth/service', () => {
       expect(window.location.href).toBe('/login');
     });
 
+    it('lands on /login without waiting for the revoke to answer', async () => {
+      // The point of the change: signing out used to await `/auth/logout` before handing the tab
+      // to /login, so a slow endpoint held the user on the app they had just asked to leave. The
+      // request still goes out — it must, or the session lives on — but the redirect no longer
+      // depends on the answer. A revoke that never settles proves it.
+      let releaseRevoke: (value: unknown) => void = () => {};
+      (fetchMock as Mock).mockReturnValueOnce(
+        new Promise((resolve) => {
+          releaseRevoke = resolve;
+        }),
+      );
+      setAccessToken(VALID_TOKEN);
+
+      await logout();
+
+      expect(window.location.href).toBe('/login');
+      expect(getAccessToken()).toBeNull();
+      // ...and the revoke was genuinely dispatched, with the token captured before local state
+      // was cleared, and `keepalive` so the browser finishes it across the redirect.
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/auth/logout'),
+        expect.objectContaining({
+          keepalive: true,
+          headers: expect.objectContaining({ Authorization: `Bearer ${VALID_TOKEN}` }),
+        }),
+      );
+      releaseRevoke(mockFetchResponse({}));
+    });
+
+    it('marks the revoke pending before leaving, so /login cannot silently restore the session', async () => {
+      // The refresh cookie is HttpOnly and outlives clearLocalAuthState(), so leaving before the
+      // revoke lands would let the /login bootstrap refresh straight back into the app. The marker
+      // is what makes the instant redirect safe — it must be written BEFORE the redirect, not
+      // after the network answers.
+      (fetchMock as Mock).mockReturnValueOnce(new Promise(() => {}));
+      setAccessToken(VALID_TOKEN);
+
+      await logout();
+
+      expect(localStorage.getItem(`${PRODUCT_NAMESPACE}:logout-pending`)).toBe('1');
+    });
+
     it('still clears state even if logout endpoint fails', async () => {
       (fetchMock as Mock).mockRejectedValueOnce(new Error('Network down'));
       setAccessToken(VALID_TOKEN);

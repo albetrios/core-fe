@@ -63,6 +63,11 @@
       "appearance": "Appearance",
       "shortcuts": "Shortcuts"
     },
+    "workspaceSwitch": {
+      "preparing": "Preparing your workspace",
+      "loadingAccess": "Loading members and permissions",
+      "almostReady": "Almost ready"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "Select organization",
       "triggerLabel": "Switch organization — current: {{name}}",

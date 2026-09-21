@@ -21,6 +21,7 @@ import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { Check, ChevronsUpDown, Loader2, Plus } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { notify } from '@/shared/notify/index.ts';
+import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
 import {
   resolveDeploymentMode,
   shouldAllowCreateTeam,
@@ -180,6 +181,8 @@ export function OrganizationSwitcher({
    */
   const switchingRef = useRef(false);
   const navigate = useNavigate();
+  const beginSwitch = useWorkspaceSwitchStore((state) => state.beginSwitch);
+  const endSwitch = useWorkspaceSwitchStore((state) => state.endSwitch);
   // A failed me/context used to pass in silence: the trigger just read "Select
   // organization" over an empty list, indistinguishable from a real empty
   // account (X-1). It now raises one toast carrying a Retry that refetches.
@@ -225,6 +228,11 @@ export function OrganizationSwitcher({
     if (switchingRef.current) return;
     switchingRef.current = true;
     setSwitchingId(org.id);
+    // Foreground feedback for the whole hop. The pressed row already shows a spinner, but the menu
+    // closes over a screen still showing the OLD workspace's data while the guards, token re-mint
+    // and queries land — so the answer to "did my click register?" was a row the user could no
+    // longer see. Cleared in `finally`, on both outcomes.
+    beginSwitch(org.name);
 
     applySelect(org)
       .then(() => {
@@ -251,6 +259,7 @@ export function OrganizationSwitcher({
         notify.error(mapApiError(error), { id: ORG_SWITCH_TOAST_ID });
       })
       .finally(() => {
+        endSwitch();
         /*
          * Released on BOTH outcomes, not just failure.
          *

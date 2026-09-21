@@ -63,6 +63,11 @@
       "appearance": "外观",
       "shortcuts": "快捷键"
     },
+    "workspaceSwitch": {
+      "preparing": "正在准备您的工作区",
+      "loadingAccess": "正在加载成员和权限",
+      "almostReady": "即将完成"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "选择组织",
       "triggerLabel": "切换组织 — 当前：{{name}}",
