@@ -57,7 +57,7 @@ vi.mock('@/shared/icons/index.ts', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {
     ...actual,
-    CheckCircle2: (props: Record<string, unknown>) => checkIconMock(props) as unknown,
+    CheckCircle: (props: Record<string, unknown>) => checkIconMock(props) as unknown,
   };
 });
 

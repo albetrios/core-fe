@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { prefersReducedMotion } from '@/lib/animations/index.ts';
-import { Loader2 } from '@/shared/icons/index.ts';
+import { Loader } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
 
@@ -79,7 +79,7 @@ export function WorkspaceSwitchOverlay() {
       data-testid="workspace-switch-overlay"
       className="bg-background/95 fixed inset-0 z-[70] flex flex-col items-center justify-center gap-4 backdrop-blur-sm"
     >
-      <Loader2 className="text-primary size-8 animate-spin" aria-hidden="true" />
+      <Loader className="text-primary size-8 animate-spin" aria-hidden="true" />
       <p className="text-foreground text-lg font-semibold tracking-tight">
         {switchingTo}
       </p>

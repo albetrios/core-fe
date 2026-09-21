@@ -3,7 +3,7 @@ import { Command } from 'cmdk';
 import { useRef, useState } from 'react';
 
 import { mapApiError, reportError } from '@/shared/errors/errorHandler.ts';
-import { Building2, Check, User } from '@/shared/icons/index.ts';
+import { Building, Check, User } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import type { MeContext, OrganizationSummary } from '@/shared/tenancy/me-context.ts';
 import { switchToPersonal } from '@/shared/tenancy/switch.ts';
@@ -106,7 +106,7 @@ export function CommandPaletteOrgGroup({
         className="text-muted-foreground px-1 py-1.5 text-xs font-medium"
       >
         {entries.map((org) => {
-          let icon = Building2;
+          let icon = Building;
           if (org.isActive) icon = Check;
           else if (org.type === 'PERSONAL') icon = User;
           return (

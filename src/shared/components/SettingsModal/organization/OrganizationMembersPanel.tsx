@@ -45,7 +45,7 @@ import {
   useUpdateMemberStatus,
 } from '@/shared/hooks/useMembers/index.ts';
 import { useRoles } from '@/shared/hooks/useRoles/index.ts';
-import { Loader2, MoreHorizontal, UserPlus, Users } from '@/shared/icons/index.ts';
+import { Loader, MoreHorizontal, UserPlus, Users } from '@/shared/icons/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
@@ -137,7 +137,7 @@ function MemberRowActions({
           {/* Radix closes the menu on select, so the disabled items are out of
               sight while the write runs. The row keeps the busy state visible. */}
           {isWriting ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <Loader className="size-4 animate-spin" aria-hidden />
           ) : (
             <MoreHorizontal className="size-4" />
           )}

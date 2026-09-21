@@ -1,7 +1,7 @@
 import type { LucideIcon } from '@/shared/icons/index.ts';
 import {
   Bell,
-  Building2,
+  Building,
   CreditCard,
   MonitorSmartphone,
   Plug,
@@ -133,7 +133,7 @@ export const SETTINGS_NAV: readonly SettingsNavGroup[] = [
         scope: 'organization',
         section: 'general',
         labelKey: SETTINGS_SECTION_LABEL_KEYS.general,
-        icon: Building2,
+        icon: Building,
         keywords: ['organization', 'name', 'slug', 'general'],
       },
       {

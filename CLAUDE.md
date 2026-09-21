@@ -302,6 +302,7 @@ import { User } from './contracts';
 - Strict mode: `strict: true`, `noUncheckedIndexedAccess: true`, `noUnusedLocals: true`
 - Define data shapes as **Zod schemas** in `contracts.ts`; infer TS types from them.
 - Never use `any` — use `unknown` and narrow with type guards.
+- **No digits in names we own** — components, variables, functions, hooks, stores, types, files, test ids, translation keys. A digit is a version, a duplicate, or a shrug; state the distinction in words (`InlineLoader`, not `Loader2`). A third-party export name is the one exemption and stays **on the import side**, renamed immediately: `import { Loader2 as LuLoader } from 'lucide-react'` so app code only ever writes `Loader`. Values keep their numbers (`size-8`, `z-[70]`, `401`). Rule: `agent-os/rules/no-digits-in-names.mdc`.
 
 ## State Management
 

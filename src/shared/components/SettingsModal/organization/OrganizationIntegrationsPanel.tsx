@@ -43,7 +43,7 @@ import {
   useDeleteWebhook,
   useWebhooks,
 } from '@/shared/hooks/useWebhooks/index.ts';
-import { Boxes, Plus, Trash2 } from '@/shared/icons/index.ts';
+import { Boxes, Plus, Trash } from '@/shared/icons/index.ts';
 
 import {
   DEFAULT_ORG_LIST_SORT,
@@ -140,7 +140,7 @@ function ApiKeysSection() {
                     onClick={() => setToRevoke(key)}
                     data-testid={`apikey-revoke-${key.id}`}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash className="size-4" />
                   </Button>
                 ) : null}
               </li>
@@ -285,7 +285,7 @@ function WebhooksSection() {
                     onClick={() => setToDelete(hook)}
                     data-testid={`webhook-delete-${hook.id}`}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash className="size-4" />
                   </Button>
                 ) : null}
               </li>

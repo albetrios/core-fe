@@ -33,7 +33,7 @@ import {
   CardTitle,
 } from '@/shared/components/ui/card.tsx';
 import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
-import { Copy, ShieldCheck, Trash2, TriangleAlert } from '@/shared/icons/index.ts';
+import { Copy, ShieldCheck, Trash, TriangleAlert } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 
@@ -156,7 +156,7 @@ export function AccountPanel() {
               onClick={() => setConfirmDelete(true)}
               data-testid="account-delete"
             >
-              <Trash2 className="me-2 h-4 w-4" /> {t(accountPanels.deleteAction)}
+              <Trash className="me-2 h-4 w-4" /> {t(accountPanels.deleteAction)}
             </Button>
           </div>
         </CardContent>
