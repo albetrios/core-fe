@@ -20,6 +20,7 @@ interface WorkspaceSwitchState {
   endSwitch: () => void;
 }
 
+/** Whether a workspace switch is in flight, and which workspace it is heading for. */
 export const useWorkspaceSwitchStore = create<WorkspaceSwitchState>((set) => ({
   switchingTo: null,
   beginSwitch: (workspaceName) => set({ switchingTo: workspaceName }),
