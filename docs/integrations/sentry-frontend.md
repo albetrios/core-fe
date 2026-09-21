@@ -120,6 +120,15 @@ Use this table when configuring Sentry dashboards, alerts, and sampling.
 | `httpClientIntegration`                   | `fetch` / XHR spans to `/api/*` and configured API hosts |
 | `browserProfilingIntegration` (prod)      | CPU profiles attached to sampled transactions            |
 
+> **Profiling needs a response header.** `browserProfilingIntegration` drives the
+> browser's JS self-profiler, which refuses to start unless the document is served
+> with `Document-Policy: js-profiling` — the SDK then logs a document-policy
+> violation on every page load and drops every profile. The header ships on `/*`
+> from [`public/_headers`](../../public/_headers); Netlify matches header rules
+> against the request path, so under the SPA rewrite a narrower `/index.html` rule
+> would miss `/dashboard` and friends. Pinned by
+> `tests/security/static-security-config.security.test.ts`.
+
 **Sampling (production defaults in `sentry.ts`):**
 
 | Setting                   | Value                                 | Sentry UI                                              |

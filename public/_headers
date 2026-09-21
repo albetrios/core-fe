@@ -6,6 +6,7 @@
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Document-Policy: js-profiling
 
 /index.html
   Cache-Control: no-store, must-revalidate
