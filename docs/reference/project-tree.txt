@@ -1458,7 +1458,8 @@ core-fe/
 │   │   ├── doc-staleness-allowlist.json
 │   │   ├── lint-changed-markdown.sh
 │   │   ├── run-size-limit.mjs
-│   │   └── [2 test files]
+│   │   ├── strip-sourcemaps.mjs
+│   │   └── [3 test files]
 │   ├── dev/
 │   │   ├── chrome-devtools-mcp.mjs
 │   │   ├── mcp-config.ts

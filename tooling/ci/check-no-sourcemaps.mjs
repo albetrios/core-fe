@@ -7,14 +7,16 @@
  * original TypeScript — component names, comments, internal route and API
  * shapes — for the whole app.
  *
- * Today nothing emits them: `build.sourcemap` is `'hidden'` in production, and
- * under Vite 8 / rolldown that generates maps for the Sentry upload plugin
- * without writing them to disk. That is a property of the bundler, not of this
- * repo — a Vite upgrade, a switch back to `sourcemap: true`, or a plugin that
- * emits its own maps would start publishing 14 MB of readable source with no
- * other signal. `filesToDeleteAfterUpload` is not that signal either: it only
- * runs when `SENTRY_AUTH_TOKEN` is present, so a deploy environment without the
- * secret would silently ship them.
+ * The build DOES emit them — `build.sourcemap` is `'hidden'` in production so
+ * Sentry can symbolicate, and under Vite 8 / rolldown that writes one `.map` per
+ * chunk (145 of them, measured) with `sourcesContent` populated. They are removed
+ * by the `strip-sourcemaps` step at the end of `pnpm build`; this guard is the
+ * independent check that the removal actually happened.
+ *
+ * Do not assume the Sentry plugin covers it. `filesToDeleteAfterUpload` is added
+ * ONLY when `SENTRY_AUTH_TOKEN` is present, and it is scoped to `dist/assets`, so
+ * before the strip step a deploy without that secret published every map and a
+ * deploy with it still published `dist/sw.js.map`.
  *
  * Scans the WHOLE of `dist`, not just `dist/assets`: the service worker is built
  * in its own Vite pass that writes `dist/sw.js.map` at the output root, which an
@@ -71,9 +73,10 @@ if (offenders.length > 0) {
   for (const path of offenders) console.error(`  ${path}`);
   console.error(
     "\ndist/ is served as-is, so these are public URLs handing out the app's original\n" +
-      "source. Keep `build.sourcemap` at 'hidden' in vite.config.ts and delete any map\n" +
-      'the build emits before deploy — never rely on the Sentry plugin to do it (it only\n' +
-      'runs when SENTRY_AUTH_TOKEN is set).',
+      'source. `pnpm build` ends with `node tooling/ci/strip-sourcemaps.mjs`, which\n' +
+      'deletes them after the Sentry plugin has uploaded what it needs — check that the\n' +
+      'step still runs. Never rely on the Sentry plugin alone: it is added only when\n' +
+      'SENTRY_AUTH_TOKEN is set, and it only cleans dist/assets.',
   );
   process.exit(1);
 }
