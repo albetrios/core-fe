@@ -17,10 +17,15 @@ export type OrganizationStatus = z.infer<typeof organizationSchema>['status'];
 
 export const createOrganizationSchema = z.object({
   name: z.string().trim().min(1, 'Organization name is required').max(100),
+  // Length and charset are separate rules on purpose: one regex covering both
+  // answered a 60-character all-lowercase slug with "Lowercase letters,
+  // numbers, and hyphens only", which is not what was wrong with it. That
+  // misdirection was invisible while the field rendered no message at all.
   slug: z
     .string()
     .trim()
-    .regex(/^[a-z0-9-]{0,50}$/, 'Lowercase letters, numbers, and hyphens only')
+    .max(50, 'Workspace URL cannot be longer than 50 characters')
+    .regex(/^[a-z0-9-]*$/, 'Lowercase letters, numbers, and hyphens only')
     .optional(),
 });
 

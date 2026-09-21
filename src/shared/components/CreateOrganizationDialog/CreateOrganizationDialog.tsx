@@ -178,6 +178,7 @@ export function CreateOrganizationDialog({
                 id="new-org-name-error"
                 className="text-destructive text-xs"
                 role="alert"
+                data-testid="create-organization-dialog-name-error"
               >
                 {errors.name.message}
               </p>
@@ -187,12 +188,34 @@ export function CreateOrganizationDialog({
             <Label htmlFor="new-org-slug">
               {tLayout(LAYOUT_KEYS.app.orgCreate.slugLabel)}
             </Label>
+            {/*
+              Optional, but not unvalidated: the schema rejects anything outside
+              `[a-z0-9-]`. This field used to render no error at all — no
+              `aria-invalid`, no message — so a user who typed their
+              organization's NAME here (the natural thing to do under a label
+              reading "Workspace URL") pressed Create and watched nothing
+              happen: the dialog stayed open, the page did not move, and not one
+              `role="alert"` existed anywhere on it. The name field beside it has
+              always said why it refused; this one now does too.
+            */}
             <Input
               id="new-org-slug"
               placeholder={tLayout(LAYOUT_KEYS.app.orgCreate.slugPlaceholder)}
+              aria-invalid={!!errors.slug}
+              aria-describedby={errors.slug ? 'new-org-slug-error' : undefined}
               data-testid="create-organization-dialog-slug"
               {...register('slug')}
             />
+            {errors.slug && (
+              <p
+                id="new-org-slug-error"
+                className="text-destructive text-xs"
+                role="alert"
+                data-testid="create-organization-dialog-slug-error"
+              >
+                {errors.slug.message}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button
