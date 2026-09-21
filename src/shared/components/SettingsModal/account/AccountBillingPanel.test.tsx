@@ -201,6 +201,53 @@ describe('AccountBillingPanel', () => {
     expect(screen.getByTestId('plan-pln_pro')).toBeInTheDocument();
   });
 
+  /**
+   * QA-8: the panel must agree with itself about whether there IS a current
+   * plan. The summary and the plan cards are driven by the same `sub`, and one
+   * of them used a check (`sub !== null`) that the others did not, so an
+   * `undefined` — which is what a query hands over before its data is a value —
+   * put "Switch to Free" on every card of a workspace whose heading said "No
+   * plan. No active subscription yet. Choose a plan below."
+   */
+  describe('with no subscription, every part of the panel agrees', () => {
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+    ])('reads "Choose", not "Switch to", when sub is %s', (_label, value) => {
+      useSubscriptionMock.mockReturnValue({
+        data: value,
+        isPending: false,
+        isLoading: false,
+        isError: false,
+      });
+      setCanManage(true);
+      renderPanel();
+
+      expect(screen.getByText('No plan')).toBeInTheDocument();
+      expect(screen.getByTestId('plan-pln_free')).toHaveTextContent('Choose Free');
+      expect(screen.getByTestId('plan-pln_pro')).toHaveTextContent('Choose Pro');
+      expect(screen.queryByText('Current plan')).not.toBeInTheDocument();
+    });
+  });
+
+  it('marks the subscribed plan as current and offers a switch off it', () => {
+    useSubscriptionMock.mockReturnValue({
+      data: SUB,
+      isPending: false,
+      isLoading: false,
+      isError: false,
+    });
+    setCanManage(true);
+    renderPanel();
+
+    // The plan the subscription names is identified in two places at once: the
+    // summary heading and a badge on its own card, which has no button.
+    expect(screen.getByText('Free plan')).toBeInTheDocument();
+    expect(screen.getByText('Current plan')).toBeInTheDocument();
+    expect(screen.queryByTestId('plan-pln_free')).not.toBeInTheDocument();
+    expect(screen.getByTestId('plan-pln_pro')).toHaveTextContent('Switch to Pro');
+  });
+
   it('switches plan when allowed', async () => {
     useSubscriptionMock.mockReturnValue({
       data: SUB,
