@@ -174,6 +174,7 @@ core-fe/
 │   │   ├── env-schema-add-sync.mdc
 │   │   ├── file-structure.mdc
 │   │   ├── git-branch-naming.mdc
+│   │   ├── no-digits-in-names.mdc
 │   │   ├── platform-hygiene-sync.mdc
 │   │   ├── pr-review-prevention.mdc
 │   │   ├── preset-product-design.mdc
