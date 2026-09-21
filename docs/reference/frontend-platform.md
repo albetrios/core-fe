@@ -169,6 +169,16 @@ Production only (`startVersionCheck()` in `main.tsx`):
   (`version-update-snooze.ts`); idle / hidden-tab reload still applies as backstop.
 - Reload is **deferred** until safe: not mid-edit; **immediately when the tab is
   hidden**; otherwise after ~60s idle.
+- A **stale lazy chunk** is the second trigger, and it does not wait for the poll:
+  a tab open across a deploy still `import()`s the old content-hashed files, which
+  now 404 (`netlify.toml` answers a missing `/assets/*` with a real 404 instead of
+  rewriting it to `index.html`). `vite:preloadError` →
+  `src/core/version/stale-chunk-recovery.ts`, which confirms a different `buildId`
+  via `isNewBuildAdvertised()` before running the same `reloadOntoLatestBuild()` —
+  offline, a flaky CDN and the cosmetic icon/route prefetches raise the same event
+  and must not trigger a reload. Once per `buildId` under its own marker key, never
+  over a focused field, and never `preventDefault()`ed (that would make the failed
+  import resolve with `undefined`).
 - The reload is **handed through the service worker** (`reloadOntoLatestBuild()`:
   `SKIP_WAITING` → `controllerchange` → reload, 10s deadline fallback) so it lands on
   the NEW precached shell — a bare `location.reload()` under the old controlling

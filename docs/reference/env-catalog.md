@@ -52,7 +52,7 @@ build-time or local-only, never synced to a GitHub Environment.
 | `VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE` | variable | — | — | — | Sentry on-error replay sample rate 0..1 (default 1.0). |
 | `VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE` | variable | — | — | — | Sentry session-replay sample rate 0..1 (prod-safe default 0.1). |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | variable | — | — | — | Sentry traces sample rate 0..1 (prod-safe default 0.1). |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | build·local | — | — | — | Stripe publishable key (pk_test_ in dev, pk_live_ in prod); public, safe to expose. |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | secret | — | — | — | Stripe publishable key (pk_test_ in dev, pk_live_ in prod); public, safe to expose. |
 | `VITE_TEAM_ORGANIZATIONS` | build·local | — | — | — | Tri-state override for team-org deployment mode (true/false/unset). |
 | `VITE_THEME_LOCK` | build·local | — | — | — | "true" hides the runtime theme switcher + shuffle. |
 | `VITE_TURNSTILE_SITE_KEY` | secret | — | — | — | Cloudflare Turnstile site key; required in production unless VITE_CAPTCHA_DISABLED is true. |
@@ -71,6 +71,7 @@ build-time or local-only, never synced to a GitHub Environment.
 - `VITE_POSTHOG_KEY`
 - `VITE_PRIVACY_POLICY_URL`
 - `VITE_SENTRY_DSN`
+- `VITE_STRIPE_PUBLISHABLE_KEY`
 - `VITE_TURNSTILE_SITE_KEY`
 
 ## Deploy variables (`vars.*`)

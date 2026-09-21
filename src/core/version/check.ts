@@ -16,8 +16,13 @@
  */
 
 import { platformConfig } from '@/core/config/env.ts';
+import { isEditableElementFocused } from '@/lib/editable-focus.ts';
 import { readInjectedAppBuildId } from '@/lib/i18n/build-env.ts';
 
+import {
+  alreadyReloadedFor as hasReloadedFor,
+  markReloadedFor as recordReloadFor,
+} from './reload-marker.ts';
 import {
   VERSION_CHECK_INITIAL_DELAY_MS,
   VERSION_CHECK_RELOADED_FOR_KEY,
@@ -92,41 +97,37 @@ function shouldReload(
   return latest.buildId !== current;
 }
 
-/** True when focus is in an editable field — reloading would lose what they're typing. */
-function isEditableElementFocused(): boolean {
-  const el = document.activeElement as HTMLElement | null;
-  if (!el) return false;
-  const tag = el.tagName;
-  return (
-    tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable
-  );
-}
-
 /**
  * Reload-loop guard: remember (per tab) which buildId we already reloaded
  * for. If the mismatch survives a reload — the SW handoff hit its deadline
  * and the plain-reload fallback was served by a still-old worker, a CDN edge
  * serving index.html stale, or a half-propagated deploy — reloading again
  * would loop forever, so we stand down until version.json advertises a NEWER
- * buildId. sessionStorage access can throw (privacy modes); failing open
- * means at worst one extra reload, never a loop.
+ * buildId. The marker itself lives in `reload-marker.ts`, shared with
+ * stale-chunk recovery (each path owns its own key).
  */
-const RELOADED_FOR_KEY = VERSION_CHECK_RELOADED_FOR_KEY;
+const alreadyReloadedFor = (buildId: string) =>
+  hasReloadedFor(VERSION_CHECK_RELOADED_FOR_KEY, buildId);
 
-function alreadyReloadedFor(buildId: string): boolean {
-  try {
-    return sessionStorage.getItem(RELOADED_FOR_KEY) === buildId;
-  } catch {
-    return false;
-  }
-}
+const markReloadedFor = (buildId: string) =>
+  recordReloadFor(VERSION_CHECK_RELOADED_FOR_KEY, buildId);
 
-function markReloadedFor(buildId: string): void {
-  try {
-    sessionStorage.setItem(RELOADED_FOR_KEY, buildId);
-  } catch {
-    // Best effort — without the marker we may reload twice, never loop-free worse.
-  }
+/**
+ * Whether the server is advertising a build DIFFERENT from the one this bundle
+ * was built as. Resolves `false` when the answer is unknown.
+ *
+ * @remarks
+ * The same comparison the poller makes, exposed for stale-chunk recovery: a
+ * failed lazy chunk only warrants a reload if a newer deploy actually replaced
+ * it. Offline, a flaky CDN and a genuinely missing chunk all surface as the same
+ * `vite:preloadError`, and only this call separates them. Every failure mode —
+ * no injected build id, an unreachable or malformed `version.json` — resolves
+ * `false`, so an unanswerable question never triggers a reload.
+ */
+export async function isNewBuildAdvertised(): Promise<boolean> {
+  const current = getCurrentBuildId();
+  if (!current) return false;
+  return shouldReload(await fetchVersion(), current);
 }
 
 /**

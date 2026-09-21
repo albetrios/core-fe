@@ -16,6 +16,18 @@ export const VERSION_UPDATE_SNOOZE_MS = 15 * 60 * 1_000;
  */
 export const VERSION_CHECK_RELOADED_FOR_KEY = `${PRODUCT_NAMESPACE}:version-check:reloaded-for`;
 
+/**
+ * Marks the buildId this tab has already reloaded for after a lazy chunk went
+ * missing, so stale-chunk recovery reloads at most once per advertised build.
+ *
+ * @remarks
+ * Deliberately a DIFFERENT key from {@link VERSION_CHECK_RELOADED_FOR_KEY}: the
+ * two reload paths detect different failures (a newer deploy vs. a 404'd chunk
+ * from the deploy we are already on), so one standing down must never spend the
+ * other's single attempt. Same `PRODUCT_NAMESPACE` derivation as its sibling.
+ */
+export const STALE_CHUNK_RELOADED_FOR_KEY = `${PRODUCT_NAMESPACE}:stale-chunk:reloaded-for`;
+
 export function versionUpdateSnoozeKey(buildId: string): string {
   return `${PRODUCT_NAMESPACE}:version-check:snooze:${buildId}`;
 }

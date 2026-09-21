@@ -69,6 +69,14 @@ export default defineConfig(({ mode }) => {
         manifest: false, // Use public/manifest.webmanifest directly
         disable: mode !== 'production',
         injectManifest: {
+          // The SW gets no map at all: it is the one bundle Sentry never
+          // symbolicates, so there is nothing to trade for the 228 kB of
+          // `sourcesContent` it would otherwise write to dist/sw.js.map.
+          // The CLIENT maps are a different case — `build.sourcemap: 'hidden'`
+          // keeps writing them so the Sentry plugin can upload them, and the
+          // `strip-sourcemaps` step at the end of `pnpm build` deletes them
+          // afterwards. `pnpm build:check` fails if any survives.
+          sourcemap: false,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
           globIgnores: [
             '**/sentry-*.js',

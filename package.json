@@ -10,8 +10,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:check": "node tooling/ci/check-preload-graph.mjs && node tooling/ci/check-css-sources.mjs",
+    "build": "tsc -b && vite build && node tooling/ci/strip-sourcemaps.mjs",
+    "build:check": "node tooling/ci/check-preload-graph.mjs && node tooling/ci/check-css-sources.mjs && node tooling/ci/check-no-sourcemaps.mjs",
     "preview": "vite preview",
     "preview:https": "vite preview --https",
     "lint": "eslint .",
