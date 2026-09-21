@@ -7,6 +7,7 @@ describe('useUIStore', () => {
     useUIStore.setState({
       sidebarOpen: true,
       commandPaletteOpen: false,
+      commandPaletteSeed: '',
       shortcutsOpen: false,
     });
   });
@@ -19,6 +20,7 @@ describe('useUIStore', () => {
     const initial = useUIStore.getInitialState();
     expect(initial.sidebarOpen).toBe(false);
     expect(initial.commandPaletteOpen).toBe(false);
+    expect(initial.commandPaletteSeed).toBe('');
     expect(initial.shortcutsOpen).toBe(false);
     expect(initial.appearanceOpen).toBe(false);
   });
@@ -74,5 +76,30 @@ describe('useUIStore', () => {
     expect(useUIStore.getState().shortcutsOpen).toBe(true);
     useUIStore.getState().setShortcutsOpen(false);
     expect(useUIStore.getState().shortcutsOpen).toBe(false);
+  });
+
+  describe('command-palette seed', () => {
+    it('openCommandPaletteWith opens the palette carrying the seed', () => {
+      useUIStore.getState().openCommandPaletteWith('invitations');
+      expect(useUIStore.getState().commandPaletteOpen).toBe(true);
+      expect(useUIStore.getState().commandPaletteSeed).toBe('invitations');
+    });
+
+    it('closing drops the seed, so the next plain open starts blank', () => {
+      // Without this the palette reopens on whatever a suggestion chip asked
+      // for three screens ago, and the user has to clear it by hand.
+      useUIStore.getState().openCommandPaletteWith('theme');
+      useUIStore.getState().setCommandPaletteOpen(false);
+      expect(useUIStore.getState().commandPaletteSeed).toBe('');
+    });
+
+    it('⌘K is the blank entry point even straight after a seeded opening', () => {
+      useUIStore.getState().openCommandPaletteWith('theme');
+      const { toggleCommandPalette } = useUIStore.getState();
+      toggleCommandPalette(); // closes
+      toggleCommandPalette(); // reopens
+      expect(useUIStore.getState().commandPaletteOpen).toBe(true);
+      expect(useUIStore.getState().commandPaletteSeed).toBe('');
+    });
   });
 });

@@ -170,6 +170,91 @@ describe('CommandPalette', () => {
     expect(screen.queryByText('Organization settings')).not.toBeInTheDocument();
   });
 
+  /**
+   * DASH-5: the dashboard's suggestion chips seed the palette with a cmdk
+   * KEYWORD, and a keyword that matches nothing would reopen the same blank
+   * palette the chips were meant to replace. These pin the contract from the
+   * chip's side of it — `AiAssistantCard` owns which seed each chip sends.
+   */
+  describe('opens on the seed a caller left in the store', () => {
+    beforeEach(() => {
+      useOrganizationStore.setState({
+        // Organization sections need a real organization in context, not just
+        // the permission — `visibleSettingsNavGroups` gates on both.
+        organizationId: 'org_acme',
+        permissions: ['organization:read', 'membership:read'],
+      });
+      // A seed left over from an earlier opening must never decide this one.
+      useUIStore.setState({ commandPaletteSeed: 'stale' });
+    });
+
+    it('"usage" (Track usage) reaches Billing, and nothing else', async () => {
+      useUIStore.getState().openCommandPaletteWith('usage');
+      renderWithProviders(<CommandPalette />);
+
+      expect(await screen.findByText('Billing')).toBeInTheDocument();
+      expect(screen.queryByText('Profile')).not.toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Type a command or search...')).toHaveValue(
+        'usage',
+      );
+    });
+
+    it('"invitations" (Invite members) reaches Members', async () => {
+      useUIStore.getState().openCommandPaletteWith('invitations');
+      renderWithProviders(<CommandPalette />);
+
+      expect(await screen.findByText('Members')).toBeInTheDocument();
+      expect(screen.queryByText('Billing')).not.toBeInTheDocument();
+    });
+
+    it('"theme" (Change theme) reaches the theme commands in any language', async () => {
+      // The labels are translated, so cmdk could only ever have matched them in
+      // English; the theme rows carry `THEME_KEYWORDS` for exactly this.
+      useUIStore.getState().openCommandPaletteWith('theme');
+      renderWithProviders(<CommandPalette />);
+
+      expect(await screen.findByText('Light mode')).toBeInTheDocument();
+      expect(screen.getByText('Dark mode')).toBeInTheDocument();
+      expect(screen.getByText('System theme')).toBeInTheDocument();
+      expect(screen.queryByText('Profile')).not.toBeInTheDocument();
+    });
+
+    it('typing over a seed does not write back to the store', async () => {
+      // The seed is a starting value, not a bound field: a palette that echoed
+      // every keystroke into global state would reopen mid-word next time.
+      const user = userEvent.setup();
+      useUIStore.getState().openCommandPaletteWith('usage');
+      renderWithProviders(<CommandPalette />);
+
+      const input = await screen.findByPlaceholderText('Type a command or search...');
+      await user.clear(input);
+      await user.type(input, 'roles');
+
+      expect(input).toHaveValue('roles');
+      expect(useUIStore.getState().commandPaletteSeed).toBe('usage');
+    });
+
+    it('drops the caret after the seed so typing extends it', async () => {
+      const user = userEvent.setup();
+      useUIStore.getState().openCommandPaletteWith('role');
+      renderWithProviders(<CommandPalette />);
+
+      const input = await screen.findByPlaceholderText('Type a command or search...');
+      expect(input).toHaveFocus();
+      await user.keyboard('s');
+
+      expect(input).toHaveValue('roles');
+    });
+
+    it('a plain ⌘K open carries no seed', async () => {
+      useUIStore.getState().setCommandPaletteOpen(true);
+      renderWithProviders(<CommandPalette />);
+
+      expect(await screen.findByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Type a command or search...')).toHaveValue('');
+    });
+  });
+
   it('renders nothing when closed', () => {
     useUIStore.setState({ commandPaletteOpen: false });
     renderWithProviders(<CommandPalette />);
