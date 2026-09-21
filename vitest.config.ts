@@ -15,11 +15,15 @@ export default defineConfig({
     i18nBuild({ modeFlag: 'multi', localeFlag: 'en-US' }),
     coreFeTestEnv(),
   ],
-  // Hermetic env: point Vite/Vitest env loading at an empty dir so NO .env files load — not
-  // even `.env.local` (which Vite loads in every mode). The runner keeps Vitest's default Vite
-  // mode; the reported environment is `local` (the VITE_APP_ENV default, since no env files
-  // load), and a Vitest run is marked by `VITE_TEST_MODE` (plugins/test-env.ts). Keeps the
-  // suite on schema defaults on every machine + CI. See tooling/test/empty-env/.
+  // Hermetic env, half one: point Vite/Vitest env loading at an empty dir so NO .env files
+  // load — not even `.env.local` (which Vite loads in every mode). The runner keeps Vitest's
+  // default Vite mode; the reported environment is `local` (the VITE_APP_ENV default, since no
+  // env files load), and a Vitest run is marked by `VITE_TEST_MODE` (plugins/test-env.ts).
+  // See tooling/test/empty-env/.
+  // Half two lives in plugins/test-env.ts: `envDir` does not cover ambient `VITE_*` in
+  // `process.env`, which Vite's loadEnv copies in regardless, so the plugin strips those
+  // first. Both halves together are what keeps the suite on schema defaults on every
+  // machine + CI. Pinned by tests/ci/env-hermetic.policy.test.ts.
   envDir: path.resolve(__dirname, 'tooling/test/empty-env'),
   resolve: {
     alias: {
@@ -41,7 +45,8 @@ export default defineConfig({
     css: true,
     // Hermetic by construction — no env pinning here. The top-level `envDir` above
     // points Vite/Vitest env loading at an empty dir, so the runner loads NO .env files
-    // (not even `.env.local`, which Vite otherwise loads in every mode), and the suite
+    // (not even `.env.local`, which Vite otherwise loads in every mode), and
+    // plugins/test-env.ts strips ambient `VITE_*` out of `process.env` — so the suite
     // runs on schema defaults on every machine and on CI. i18n build vars
     // are injected by the i18n-build plugin's `test.env` (see plugins/i18n-build.ts).
     // Projects (core-be pattern): `unit` = colocated src suites; `security` =

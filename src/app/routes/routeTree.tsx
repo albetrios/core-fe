@@ -15,6 +15,7 @@ import {
   requirePersonalDashboardWorkspace,
   requirePersonalDeployment,
   requireProvisionedWorkspace,
+  requireSuspendedOrgStatus,
   requireTeamDeployment,
   resolveActiveOrg,
 } from '@/app/guards/org-gates.ts';
@@ -437,9 +438,13 @@ const organizationDashboardRoute = createRoute({
   errorComponent: RouteErrorBoundary,
 });
 
-// Runs the standard leaf gateway (session → module → permission) but stays
-// OUTSIDE `requireOrgStatus` on purpose: a suspended organization must still
-// be able to render its blocked state without redirect-looping.
+// Runs the standard leaf gateway (session → module → permission), then the
+// INVERSE of `requireOrgStatus`. It stays outside `requireOrgStatus` on purpose
+// — a suspended organization must render its blocked state without
+// redirect-looping — but "outside" used to mean unguarded in both directions,
+// so an active organization could be told it was suspended just by typing the
+// URL. `requireSuspendedOrgStatus` closes the other half: the two guards
+// partition the status space, so neither can bounce into the other.
 const organizationSuspendedRoute = createRoute({
   getParentRoute: () => organizationShellRoute,
   path: 'suspended',
@@ -447,6 +452,7 @@ const organizationSuspendedRoute = createRoute({
   beforeLoad: async ({ params, preload, location }) => {
     if (preload) return;
     await gatewayFromManifest(suspendedManifest)(toGateContext(location, params));
+    requireSuspendedOrgStatus({ params });
   },
   component: SuspendedPage,
   errorComponent: RouteErrorBoundary,

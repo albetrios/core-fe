@@ -410,12 +410,19 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
   production: safe). `pnpm setup:local` writes `envProfiles.local.defaults` into `.env.local`
   (via `injectEnvDefaults`); every default must be ⊆ that key's `allowed` (test-enforced). NOT
   applied by the runtime — defaults reach the app through the env layer, never a mode branch.
-- **Tests are hermetic by construction:** the Vitest `envDir` points at an empty dir
-  (`tooling/test/empty-env/`), so the runner (in `local` mode) loads no env files — not even
-  `.env.local`, which Vite otherwise loads in every mode — and the suite runs on schema
-  defaults on every machine and on CI. Genuine test-runner env needs are injected by plugins,
-  not app code or a manual pin: `plugins/i18n-build.ts` (multi-locale) and `plugins/test-env.ts`
-  (`VITE_TEST_MODE` on, captcha off).
+- **Tests are hermetic by construction — two halves, both required.** (1) The Vitest `envDir`
+  points at an empty dir (`tooling/test/empty-env/`), so the runner (in `local` mode) loads no
+  env **files** — not even `.env.local`, which Vite otherwise loads in every mode. (2)
+  `plugins/test-env.ts` **strips ambient `VITE_*` from `process.env`** in its `config()` hook,
+  because Vite's `loadEnv` copies every prefix-matching key out of `process.env` on a path
+  `envDir` does not touch — so an exported shell variable (a cloud dev container, a developer's
+  `export`) would otherwise re-point `import.meta.env` and the suite would silently stop testing
+  schema defaults. It is unconditional and has no opt-out: `VITE_X=y pnpm test` is ignored (and
+  logged), so change the schema default or the test, not the shell. Together they keep the suite
+  on schema defaults on every machine and on CI; pinned by `tests/ci/env-hermetic.policy.test.ts`.
+  Genuine test-runner env needs are injected by plugins, not app code or a manual pin:
+  `plugins/i18n-build.ts` (multi-locale) and `plugins/test-env.ts` (`VITE_TEST_MODE` on,
+  captcha off).
 - **Where to get credentials and optional env:** docs/integrations/credentials-and-env.md
 
 ## Auth & Security

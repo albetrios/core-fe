@@ -6,13 +6,37 @@ import {
   DASHBOARD_NS,
 } from '@/shared/components/Dashboard/dashboard.constants.ts';
 import { Card, CardContent } from '@/shared/components/ui/card.tsx';
+import {
+  includesSettingsSection,
+  useVisibleSettingsSections,
+} from '@/shared/hooks/useSettingsNav/index.ts';
 import { Search, Sparkles } from '@/shared/icons/index.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
-const CHIP_KEYS = [
-  DASHBOARD_KEYS.ai.chips.usage,
-  DASHBOARD_KEYS.ai.chips.members,
-  DASHBOARD_KEYS.ai.chips.appearance,
+/**
+ * Each suggestion names something specific, so each one opens the palette
+ * already filtered to it. The seed is a cmdk KEYWORD, not a label: keywords are
+ * locale-independent constants (`settings-sections.ts`, and the theme group's
+ * own list), so "Change theme" finds the theme commands in Japanese too — a
+ * seed of the translated label would only have worked in English.
+ *
+ * Every chip used to call the same `open()`, so all three produced one blank
+ * palette. The user read "Invite members", pressed it, and had to type the
+ * words back in.
+ */
+const CHIPS = [
+  {
+    labelKey: DASHBOARD_KEYS.ai.chips.usage,
+    seed: 'usage',
+    needs: { scope: 'account', section: 'billing' },
+  },
+  {
+    labelKey: DASHBOARD_KEYS.ai.chips.members,
+    seed: 'invitations',
+    needs: { scope: 'organization', section: 'members' },
+  },
+  // The theme commands are unconditional — no settings section behind them.
+  { labelKey: DASHBOARD_KEYS.ai.chips.appearance, seed: 'theme', needs: null },
 ] as const;
 
 /**
@@ -23,7 +47,16 @@ const CHIP_KEYS = [
 export function AiAssistantCard() {
   const { t } = useTranslation(DASHBOARD_NS);
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
+  const openWith = useUIStore((s) => s.openCommandPaletteWith);
+  // The prompt box makes no promise beyond "ask anything", so it opens blank.
   const open = () => setCommandPaletteOpen(true);
+  // A suggestion for a screen this user cannot open is worse than no
+  // suggestion: "Invite members" on a personal workspace pointed at a section
+  // that does not exist there, and would now open the palette on "No results".
+  const sections = useVisibleSettingsSections();
+  const chips = CHIPS.filter(
+    (chip) => !chip.needs || includesSettingsSection(sections, chip.needs),
+  );
 
   return (
     <Card
@@ -49,16 +82,16 @@ export function AiAssistantCard() {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-1.5">
-          {CHIP_KEYS.map((chipKey) => (
+          {chips.map((chip) => (
             <button
-              key={chipKey}
+              key={chip.labelKey}
               type="button"
               data-slot="button"
-              onClick={open}
-              data-testid={`dashboard-ai-chip-${chipKey.split('.').pop() ?? 'chip'}`}
+              onClick={() => openWith(chip.seed)}
+              data-testid={`dashboard-ai-chip-${chip.labelKey.split('.').pop() ?? 'chip'}`}
               className="border-border/70 bg-card/80 text-foreground hover:border-primary/40 hover:bg-primary/10 rounded-full border px-3 py-1 text-xs font-medium transition-colors"
             >
-              {t(chipKey)}
+              {t(chip.labelKey)}
             </button>
           ))}
         </div>

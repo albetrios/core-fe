@@ -5,6 +5,7 @@ import {
   requirePersonalDashboardWorkspace,
   requirePersonalDeployment,
   requireProvisionedWorkspace,
+  requireSuspendedOrgStatus,
   requireTeamDeployment,
   resolveActiveOrg,
 } from './org-gates.ts';
@@ -14,6 +15,7 @@ import {
   requirePersonalOrganizationsDeployment,
   requireProvisionedPersonalDashboard,
   requireProvisionedTeamWorkspace,
+  requireSuspendedOrganization,
   requireTeamOrganizationsDeployment,
 } from './route-guards.ts';
 
@@ -23,6 +25,7 @@ vi.mock('./route-guards.ts', () => ({
   requirePersonalOrganizationsDeployment: vi.fn(),
   requireProvisionedPersonalDashboard: vi.fn(),
   requireProvisionedTeamWorkspace: vi.fn(),
+  requireSuspendedOrganization: vi.fn(),
   requireTeamOrganizationsDeployment: vi.fn(),
 }));
 
@@ -45,6 +48,14 @@ describe('org gates — thin wrappers stay faithful to the underlying guards', (
 
     await requireOrgStatus({ params: {} });
     expect(requireActiveOrganization).toHaveBeenLastCalledWith('');
+  });
+
+  it('requireSuspendedOrgStatus forwards the slug param (empty string when absent)', async () => {
+    await requireSuspendedOrgStatus({ params: { organizationSlug: 'acme' } });
+    expect(requireSuspendedOrganization).toHaveBeenCalledWith('acme');
+
+    await requireSuspendedOrgStatus({ params: {} });
+    expect(requireSuspendedOrganization).toHaveBeenLastCalledWith('');
   });
 
   it('deployment gates call their mode guards with no context', async () => {

@@ -58,6 +58,33 @@ test.describe('Organization lifecycle — rename, role change, removal', () => {
     ).toContainText(renamed, { timeout: 15_000 });
   });
 
+  test('an active organization cannot be talked into its own suspended page', async ({
+    page,
+  }) => {
+    // Regression: `…/suspended` sits outside `requireOrgStatus` so a suspended
+    // organization can render its blocked state without redirect-looping. That
+    // exemption used to mean unguarded in BOTH directions — typing the URL told
+    // the owner of a demonstrably active organization that it was suspended,
+    // while the dashboard one click away still showed it as Active.
+    test.setTimeout(150_000);
+    await registerNewUserAndGoToDashboard(page);
+    const switcher = page.getByTestId('organization-switcher-trigger').first();
+    const switcherShown = await switcher
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    test.skip(!switcherShown, 'org switcher hidden (team orgs disabled)');
+    const { slug } = await createTeamOrgViaSwitcher(page);
+
+    await page.goto(`/organization/${slug}/suspended`);
+
+    await expect(page).toHaveURL(new RegExp(`/organization/${slug}/dashboard`), {
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId('dashboard-page')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('suspended-page')).toHaveCount(0);
+  });
+
   test('an invited member can be promoted and then removed by the owner', async ({
     page,
     playwright,

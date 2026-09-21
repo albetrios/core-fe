@@ -2,6 +2,7 @@ import { notFound, redirect } from '@tanstack/react-router';
 
 import { platformConfig } from '@/core/config/env.ts';
 import { queryClient } from '@/core/http/queryClient.ts';
+import { organizationDashboard } from '@/lib/routes/index.ts';
 import { parseOrganizationSlugParam } from '@/lib/routes/params.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -99,6 +100,38 @@ export function requireActiveOrganization(organizationSlug: string): void {
       to: '/organization/$organizationSlug/suspended',
       params: { organizationSlug },
     });
+  }
+}
+
+/**
+ * The mirror of {@link requireActiveOrganization}, and the ONLY guard on
+ * `suspended/`: send an organization that is not suspended back to its
+ * dashboard.
+ *
+ * `suspended/` sits outside `requireOrgStatus` so a blocked organization can
+ * render its blocked state without redirect-looping. That left the route with
+ * no status guard in EITHER direction, so typing the URL told the owner of a
+ * demonstrably active organization that it was suspended — the dashboard one
+ * click away still showed it as Active. A screen that contradicts the rest of
+ * the app is worse than a missing screen.
+ *
+ * The two guards partition the status space, so no organization can satisfy
+ * both and the pair cannot loop: active goes to `dashboard` (where
+ * `requireOrgStatus` passes it), anything else goes to `suspended` (where this
+ * passes it). The unknown-status default matches its twin — `active` — so a
+ * status that never resolved lands on the dashboard rather than on a blocked
+ * screen it cannot justify.
+ */
+export function requireSuspendedOrganization(organizationSlug: string): void {
+  const store = useOrganizationStore.getState();
+  // Same fail-closed slug check as its twin: without a synced context the
+  // status belongs to some other organization (FE-52).
+  if (store.organizationSlug !== organizationSlug) {
+    throw notFound();
+  }
+  const status = store.organizationStatus ?? 'active';
+  if (status === 'active') {
+    throw redirect(organizationDashboard(organizationSlug));
   }
 }
 
