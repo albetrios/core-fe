@@ -430,10 +430,7 @@ export const envProfiles: Readonly<Record<AppEnvironment, EnvProfile>> = {
     // Unlike `local`, development IS a deploy target: the deploy workflow must
     // inject VITE_APP_ENV so the shipped bundle self-reports its environment
     // (Sentry/PostHog tag) instead of falling back to the schema default `local`.
-    required: [
-      { key: 'VITE_APP_ENV', level: 'error' },
-      CSP_REPORT_URI_RULE,
-    ],
+    required: [{ key: 'VITE_APP_ENV', level: 'error' }, CSP_REPORT_URI_RULE],
     allowed: { ...devLikeContract.allowed, VITE_APP_ENV: ['development'] },
     // Development deploy: diagnostics on for debugging, version-check on (a real
     // deploy), E2E hooks off (not a test runner).

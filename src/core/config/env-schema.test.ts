@@ -132,9 +132,9 @@ describe('envProfiles required keys', () => {
       expect(rule?.when).toBeUndefined();
     }
     // `local` never deploys, so it has no collector to miss.
-    expect(
-      envProfiles.local.required.some((r) => r.key === 'VITE_CSP_REPORT_URI'),
-    ).toBe(false);
+    expect(envProfiles.local.required.some((r) => r.key === 'VITE_CSP_REPORT_URI')).toBe(
+      false,
+    );
   });
 });
 
