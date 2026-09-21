@@ -1,7 +1,8 @@
 import { expect, type Page, type PlaywrightWorkerArgs, test } from '@playwright/test';
 
 import { navigateInApp } from '@/tests/utils/e2e-auth.ts';
-import { gotoApp, openSettingsHash } from '@/tests/utils/e2e-hybrid.ts';
+import { uniqueE2eEmail } from '@/tests/utils/e2e-faker.ts';
+import { byTestId, gotoApp, openSettingsHash } from '@/tests/utils/e2e-hybrid.ts';
 import {
   createSessionViaEmailCode,
   verifyDatabaseConnection,
@@ -83,6 +84,56 @@ test.describe('Organization settings', () => {
     // The creating owner is the sole member row.
     await expect(page.getByTestId('members-list')).toBeVisible();
     await expect(page.getByTestId('members-list').getByRole('listitem')).toHaveCount(1);
+  });
+
+  /**
+   * A QA sweep reported the invite dialog's Email field as unusable: the
+   * recipient "is not retained" and an invite "cannot be prepared reliably".
+   * The field was sound — the report read the `value` ATTRIBUTE (and
+   * `defaultValue`), which stay empty for text a user types, while the `value`
+   * PROPERTY carried the address all along.
+   *
+   * So the guard is the round trip, driven the way a person drives it:
+   * key-by-key typing (not `fill()`, which sets the property in one shot and
+   * would hide a per-keystroke reset), the property read the report should have
+   * taken, and then the request core-be actually receives. Asserting on the
+   * REQUEST rather than on the resulting roster keeps this about the field: a
+   * fresh team org sits on a one-seat plan, so the invite itself is answered
+   * 409 `seat_limit_reached` here — a plan verdict, not a lost recipient.
+   */
+  test('the invite dialog sends the recipient a user typed', async ({
+    page,
+    playwright,
+  }) => {
+    const ctx = await landOnTeamDashboard(page, playwright);
+    test.skip(ctx === null, 'team org could not be provisioned in this environment');
+
+    await openSettingsHash(page, 'organization', 'members');
+    await expect(page.getByTestId('settings-organization-members')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await byTestId(page, 'invite-member-open').click();
+    await expect(page.getByTestId('invite-member-form')).toBeVisible({ timeout: 15000 });
+
+    const recipient = uniqueE2eEmail('invite-retained');
+    const emailField = byTestId(page, 'invite-member-email');
+    await emailField.click();
+    await page.keyboard.type(recipient, { delay: 20 });
+
+    // The property — what the form submits, and what the report read past.
+    await expect(emailField).toHaveValue(recipient);
+    // a11y guard: a retained, valid address leaves the field un-flagged.
+    await expect(emailField).toHaveAttribute('aria-invalid', /false|^$/);
+
+    const invite = page.waitForRequest(
+      (request) =>
+        request.method() === 'POST' &&
+        request.url().includes('/tenancy/organization/memberships'),
+      { timeout: 15000 },
+    );
+    await byTestId(page, 'invite-member-submit').click();
+    expect((await invite).postDataJSON()).toMatchObject({ email: recipient });
   });
 
   test('roles section lists the seeded organization roles', async ({
