@@ -41,7 +41,11 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
+    # DENY, not SAMEORIGIN: public/_headers has said DENY all along, and the CSP
+    # it ships carries `frame-ancestors 'none'`, which supersedes this header in
+    # every browser that supports it. SAMEORIGIN here was the odd one out —
+    # claiming same-origin framing is allowed when the CSP forbids all of it.
+    X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
