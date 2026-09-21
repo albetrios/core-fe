@@ -6,6 +6,7 @@ import {
   requirePersonalOrganizationsDeployment,
   requireProvisionedPersonalDashboard,
   requireProvisionedTeamWorkspace,
+  requireSuspendedOrganization,
   requireTeamOrganizationsDeployment,
 } from './route-guards.ts';
 
@@ -40,6 +41,15 @@ export const resolveActiveOrg: Gate<OrgRouteCtx> = async (ctx) => {
  */
 export const requireOrgStatus = ((ctx) => {
   requireActiveOrganization(ctx.params.organizationSlug ?? '');
+}) satisfies Gate<OrgRouteCtx>;
+
+/**
+ * **L4b — org status, inverted.** The only status guard on `suspended/`: send an
+ * organization that is NOT suspended back to its dashboard (wraps
+ * {@link requireSuspendedOrganization}).
+ */
+export const requireSuspendedOrgStatus = ((ctx) => {
+  requireSuspendedOrganization(ctx.params.organizationSlug ?? '');
 }) satisfies Gate<OrgRouteCtx>;
 
 /** Block team slug routes when this deployment is personal-only. */

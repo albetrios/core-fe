@@ -14,7 +14,7 @@ Platform overview: [`docs/reference/frontend-platform.md`](../../../docs/referen
 | 1   | `requireAuth`                                   | `core/rbac/guards.ts`      | redirect `/login`                                                                                                                                |
 | 2   | `requireProvisionedWorkspace`                   | `route-guards.ts`          | not onboarded → `/onboarding`; personal active org → `/dashboard`; no team workspace → `/organization` picker                                    |
 | 3   | `requireOrganizationContext($organizationSlug)` | `route-guards.ts`          | malformed param / unknown org / non-member → **404** (existence never leaked)                                                                    |
-| 4   | `requireActiveOrganization`                     | `route-guards.ts`          | slug not synced for URL → **404** (fail closed); suspended → `…/suspended` (which itself skips this guard to avoid redirect loops)               |
+| 4   | `requireActiveOrganization`                     | `route-guards.ts`          | slug not synced for URL → **404** (fail closed); suspended → `…/suspended` (which runs the INVERSE guard, not this one, so neither can loop)     |
 | 5   | `gatewayFromManifest(manifest)`                 | `core/security/gateway.ts` | L1 session + L5 `manifest.permission` + L6b `manifest.module` → `/unauthorized` or `notFound` per `onDeny`                                       |
 | 6   | Resource scope                                  | route **loader** fetch     | NOT a guard: the API returns the resource scoped to the organization; 404/403 map to the NotFound/Unauthorized islands. One fetch, no waterfall. |
 
@@ -74,9 +74,15 @@ an already-signed-in user.
   `requireAuth`). All three manifests declare `permission: null` — their access rule is
   session + workspace state, or for accept-invite the single-use invitation token plus the
   session's email, not a permission, so the gateway would be a no-op.
-- **Suspended leaf:** `…/suspended` runs `gatewayFromManifest(manifest)` but intentionally
-  **skips `requireOrgStatus`** — the blocked state must render for a suspended organization
-  without redirect-looping into itself.
+- **Suspended leaf:** `…/suspended` runs `gatewayFromManifest(manifest)` and then
+  `requireSuspendedOrgStatus` — the **inverse** of `requireOrgStatus`, not that guard.
+  It intentionally skips `requireOrgStatus` (the blocked state must render for a
+  suspended organization without redirect-looping into itself) but is NOT unguarded:
+  an organization that is not suspended is sent back to its dashboard. The two guards
+  partition the status space, so no organization satisfies both and the pair cannot
+  loop. Before the inverse existed, "outside `requireOrgStatus`" meant unguarded in
+  both directions, and typing the URL told the owner of a demonstrably active
+  organization that it was suspended.
 
 ## Files
 
