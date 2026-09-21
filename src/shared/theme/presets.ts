@@ -883,7 +883,7 @@ function applyDataAxis(
  * The exact custom properties `index.html`'s boot splash paints from.
  * Keep in step with the `#app-splash` rules there.
  */
-const BOOT_SPLASH_VARS = [
+export const BOOT_SPLASH_VARS = [
   '--color-background',
   '--color-foreground',
   '--color-primary',
@@ -931,6 +931,50 @@ function persistBootThemeVars(root: HTMLElement): void {
     // Storage unavailable (private mode, quota). The boot script keeps its own
     // fallback, so this is a lost optimisation, never a broken theme.
   }
+}
+
+/**
+ * The splash vars the bundle writes for itself on every boot, so whatever
+ * `theme-init.js` guessed for them is overwritten inside the same tick: the
+ * accent pair from {@link applyAccent}, the radius from the shape axis — and on
+ * a named preset both are cleared outright by {@link applyThemePreset}.
+ */
+const APP_REASSERTED_SPLASH_VARS: readonly string[] = [
+  ...ACCENT_VARS,
+  ...ACCENT_FG_VARS,
+  ...SHAPE_VARS,
+];
+
+/** The rest of {@link BOOT_SPLASH_VARS}: written pre-paint, never by the bundle. */
+const BOOT_ONLY_SPLASH_VARS = BOOT_SPLASH_VARS.filter(
+  (name) => !APP_REASSERTED_SPLASH_VARS.includes(name),
+);
+
+/**
+ * Hand the palette back to the stylesheet once the bundle's theme layer runs.
+ *
+ * `theme-init.js` paints the splash by writing the resolved palette INLINE on
+ * `<html>`, and that palette is light or dark — whichever mode the document
+ * booted in. An inline custom property outranks both `:root` and `.dark`, so
+ * every one left behind pins its token to the boot mode for the life of the
+ * document: {@link applyMode} adds the `.dark` class, the tokens the app does own
+ * (`--color-card`, `--color-border`, `--color-muted-foreground`, …) flip, and
+ * `--color-background` / `--color-foreground` / `--color-muted` do not. Half the
+ * UI switches and half does not — black text on a black card, a light card on a
+ * black page — and only a reload clears it, because that is the only thing that
+ * re-runs the boot script.
+ *
+ * Only {@link BOOT_ONLY_SPLASH_VARS} are released: everything in
+ * {@link APP_REASSERTED_SPLASH_VARS} is re-applied by the caller in the same
+ * tick, so dropping those here would only flicker the accent.
+ *
+ * Safe at boot too — the values removed are exactly the ones
+ * {@link persistBootThemeVars} read back OFF the stylesheet, so the splash keeps
+ * painting the same colours it was painting a frame earlier.
+ */
+export function releaseBootThemeVars(): void {
+  const root = document.documentElement;
+  for (const name of BOOT_ONLY_SPLASH_VARS) root.style.removeProperty(name);
 }
 
 /** Accent colour + contrast-safe foreground (intensity → OKLCH chroma). */

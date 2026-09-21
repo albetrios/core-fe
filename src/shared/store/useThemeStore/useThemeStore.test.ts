@@ -1,4 +1,5 @@
 import {
+  BOOT_THEME_VARS_KEY,
   DEFAULT_ICON_COLOR,
   DEFAULT_LAYOUT_WIDTH,
   GENERATED_PRESET,
@@ -45,9 +46,14 @@ describe('useThemeStore', () => {
       '--color-chart-3',
       '--color-chart-4',
       '--color-chart-5',
+      '--color-background',
+      '--color-foreground',
+      '--color-muted',
     ]) {
       root.style.removeProperty(v);
     }
+    root.classList.remove('dark');
+    localStorage.removeItem(BOOT_THEME_VARS_KEY);
   });
 
   it('initial state is system', () => {
@@ -254,6 +260,27 @@ describe('useThemeStore', () => {
 });
 
 describe('useThemeStore — mode application', () => {
+  afterEach(() => {
+    const root = document.documentElement;
+    for (const name of [
+      '--color-background',
+      '--color-foreground',
+      '--color-muted',
+      '--color-primary',
+      '--color-primary-foreground',
+    ]) {
+      root.style.removeProperty(name);
+    }
+    root.classList.remove('dark');
+    localStorage.removeItem(BOOT_THEME_VARS_KEY);
+    useThemeStore.setState({
+      theme: 'system',
+      preset: 'default',
+      customTheme: null,
+      seed: null,
+    });
+  });
+
   function stubMatchMedia(matches: boolean) {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -286,6 +313,56 @@ describe('useThemeStore — mode application', () => {
     stubMatchMedia(false);
     useThemeStore.getState().setTheme('system');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
+  });
+
+  // Regression (mode switch left the page half dark): public/theme-init.js paints
+  // the boot splash by writing the resolved palette INLINE on <html>, and an
+  // inline custom property outranks `.dark`. Left in place it pinned
+  // --color-background / --color-foreground / --color-muted to the mode the
+  // document booted in, so picking the other mode moved every token the app owns
+  // (card, border, muted-foreground) and none of these — black text on a black
+  // card, a light card on a black page — until a reload re-ran the boot script.
+  it('setTheme releases the palette the boot script pinned inline', () => {
+    const root = document.documentElement;
+    root.style.setProperty('--color-background', 'oklch(1 0 0)');
+    root.style.setProperty('--color-foreground', 'oklch(0.145 0 0)');
+    root.style.setProperty('--color-muted', 'oklch(0.97 0 0)');
+
+    useThemeStore.getState().setTheme('dark');
+
+    expect(root.classList.contains('dark')).toBe(true);
+    expect(root.style.getPropertyValue('--color-background')).toBe('');
+    expect(root.style.getPropertyValue('--color-foreground')).toBe('');
+    expect(root.style.getPropertyValue('--color-muted')).toBe('');
+  });
+
+  it('setTheme keeps the generated accent — only the boot palette is released', () => {
+    useThemeStore.getState().applyThemeSeed(4242);
+    const root = document.documentElement;
+    const accent = root.style.getPropertyValue('--color-primary');
+    expect(accent).not.toBe('');
+
+    useThemeStore.getState().setTheme('dark');
+
+    expect(root.style.getPropertyValue('--color-primary')).toBe(accent);
+    expect(useThemeStore.getState().customTheme).toEqual(generateSeededTheme(4242));
+  });
+
+  // The snapshot the boot script replays is tagged with the mode it was taken in,
+  // and a mismatched tag is skipped — so a mode switch that did not re-take it
+  // cost the NEXT cold load its flash-free splash.
+  it('setTheme re-takes the boot snapshot for the mode now on screen', () => {
+    useThemeStore.getState().applyThemeSeed(4242);
+
+    useThemeStore.getState().setTheme('dark');
+    expect(JSON.parse(localStorage.getItem(BOOT_THEME_VARS_KEY) ?? '{}').mode).toBe(
+      'dark',
+    );
+
+    useThemeStore.getState().setTheme('light');
+    expect(JSON.parse(localStorage.getItem(BOOT_THEME_VARS_KEY) ?? '{}').mode).toBe(
+      'light',
+    );
   });
 });
 
