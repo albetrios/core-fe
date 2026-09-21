@@ -49,6 +49,13 @@ describe('security response headers (public/_headers)', () => {
       'Cross-Origin-Opener-Policy',
       /Cross-Origin-Opener-Policy:\s*same-origin-allow-popups/,
     ],
+    // Sentry's browserProfilingIntegration is inert without this header: the
+    // browser refuses to start the JS self-profiler and logs a document-policy
+    // violation on every page load, so every profile is silently dropped. It
+    // has to reach the DOCUMENT, and Netlify matches header rules against the
+    // REQUEST path — under the SPA rewrite `/dashboard` never matches an
+    // `/index.html` rule — so it belongs on `/*` and nowhere narrower.
+    ['Document-Policy', /Document-Policy:\s*js-profiling/],
   ])('serves %s on every route', (_name, pattern) => {
     expect(headers).toMatch(pattern);
   });
