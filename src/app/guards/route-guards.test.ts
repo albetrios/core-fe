@@ -15,6 +15,7 @@ import {
   requirePersonalOrganizationsDeployment,
   requireProvisionedPersonalDashboard,
   requireProvisionedTeamWorkspace,
+  requireSuspendedOrganization,
   requireTeamOrganizationsDeployment,
 } from './route-guards.ts';
 
@@ -149,6 +150,57 @@ describe('requireActiveOrganization', () => {
         params: { organizationSlug: 'acme' },
       },
     });
+  });
+});
+
+describe('requireSuspendedOrganization', () => {
+  beforeEach(() => {
+    useOrganizationStore.getState().clearOrganization();
+  });
+
+  it('passes for a suspended organization — the blocked state must render', () => {
+    useOrganizationStore.getState().setOrganization('org_acme', 'acme', 'suspended');
+    expect(() => requireSuspendedOrganization('acme')).not.toThrow();
+  });
+
+  it('sends an ACTIVE organization back to its dashboard', () => {
+    // Regression: `suspended/` sat outside `requireOrgStatus` so it could
+    // render its blocked state without looping — which also left it unguarded
+    // in the other direction. Typing the URL told the owner of a demonstrably
+    // active organization that it was suspended.
+    useOrganizationStore.getState().setOrganization('org_acme', 'acme', 'active');
+    const thrown = thrownBy(() => requireSuspendedOrganization('acme'));
+    expect(isRedirect(thrown)).toBe(true);
+    expect(thrown).toMatchObject({
+      options: {
+        to: '/organization/$organizationSlug/dashboard',
+        params: { organizationSlug: 'acme' },
+      },
+    });
+  });
+
+  it('treats an unresolved status as active, exactly as its twin does', () => {
+    useOrganizationStore.getState().setOrganization('org_acme', 'acme', undefined);
+    const thrown = thrownBy(() => requireSuspendedOrganization('acme'));
+    expect(isRedirect(thrown)).toBe(true);
+  });
+
+  it('throws notFound when org context is not synced for the URL slug', () => {
+    useOrganizationStore.getState().setOrganization('org_acme', 'other', 'suspended');
+    const thrown = thrownBy(() => requireSuspendedOrganization('acme'));
+    expect(isNotFound(thrown)).toBe(true);
+  });
+
+  it('partitions the status space with its twin, so neither can loop', () => {
+    // active  -> suspended passes it on to dashboard, dashboard accepts it
+    // suspended -> dashboard passes it on to suspended, suspended accepts it
+    useOrganizationStore.getState().setOrganization('org_acme', 'acme', 'active');
+    expect(() => requireActiveOrganization('acme')).not.toThrow();
+    expect(() => requireSuspendedOrganization('acme')).toThrow();
+
+    useOrganizationStore.getState().setOrganization('org_acme', 'acme', 'suspended');
+    expect(() => requireActiveOrganization('acme')).toThrow();
+    expect(() => requireSuspendedOrganization('acme')).not.toThrow();
   });
 });
 

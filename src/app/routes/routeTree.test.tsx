@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { requireOrgStatus, requireSuspendedOrgStatus } from '@/app/guards/org-gates.ts';
 import { manifest as suspendedManifest } from '@/pages/organization/$organizationSlug/suspended/suspended.manifest.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
@@ -51,6 +52,7 @@ vi.mock('@/app/guards/org-gates.ts', () => ({
   requirePersonalDashboardWorkspace: vi.fn().mockResolvedValue(undefined),
   requirePersonalDeployment: vi.fn(),
   requireProvisionedWorkspace: vi.fn().mockResolvedValue(undefined),
+  requireSuspendedOrgStatus: vi.fn(),
   requireTeamDeployment: vi.fn(),
   resolveActiveOrg: vi.fn().mockResolvedValue(undefined),
 }));
@@ -303,6 +305,8 @@ describe('guard wiring in beforeLoad', () => {
     gatewayExecutor.mockClear();
     gatewayFromManifest.mockClear();
     requireAuth.mockClear();
+    vi.mocked(requireOrgStatus).mockClear();
+    vi.mocked(requireSuspendedOrgStatus).mockClear();
   });
 
   it('suspended leaf runs the standard gateway on navigation', async () => {
@@ -311,9 +315,25 @@ describe('guard wiring in beforeLoad', () => {
     expect(gatewayExecutor).toHaveBeenCalledWith({ kind: 'gate-context-sentinel' });
   });
 
+  it('suspended leaf runs the INVERSE status guard, never requireOrgStatus', async () => {
+    // The leaf is exempt from `requireOrgStatus` so a suspended organization can
+    // render without looping — but exempt is not unguarded: the inverse guard
+    // sends an organization that is NOT suspended back to its dashboard.
+    await beforeLoadOf('/organization/$organizationSlug/suspended')(gateArgs(false));
+    expect(requireSuspendedOrgStatus).toHaveBeenCalledTimes(1);
+    expect(requireOrgStatus).not.toHaveBeenCalled();
+  });
+
+  it('dashboard runs requireOrgStatus, never the inverse', async () => {
+    await beforeLoadOf('/organization/$organizationSlug/dashboard')(gateArgs(false));
+    expect(requireOrgStatus).toHaveBeenCalledTimes(1);
+    expect(requireSuspendedOrgStatus).not.toHaveBeenCalled();
+  });
+
   it('suspended leaf short-circuits on preload (no gateway side effects)', async () => {
     await beforeLoadOf('/organization/$organizationSlug/suspended')(gateArgs(true));
     expect(gatewayFromManifest).not.toHaveBeenCalled();
+    expect(requireSuspendedOrgStatus).not.toHaveBeenCalled();
   });
 
   it('picker and org shell bail out before requireAuth on preload', async () => {
