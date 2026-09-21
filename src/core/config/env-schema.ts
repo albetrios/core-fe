@@ -424,13 +424,6 @@ export const envProfiles: Readonly<Record<AppEnvironment, EnvProfile>> = {
       VITE_DEVTOOLS: 'true',
       VITE_E2E_HOOKS: 'false',
       VITE_VERSION_CHECK: 'true',
-      // Sentry quota: this alias redeploys on every merge to main and is clicked
-      // through all day, so the schema's 1.0 profile / on-error-replay defaults
-      // burn the org's quota and Sentry starts answering 429 — dropping the
-      // envelopes that actually mattered. Sample the two expensive signals down
-      // HERE only; production keeps the schema defaults.
-      VITE_SENTRY_PROFILES_SAMPLE_RATE: '0.1',
-      VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE: '0.25',
     },
   },
   production: {

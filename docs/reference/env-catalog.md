@@ -48,8 +48,8 @@ build-time or local-only, never synced to a GitHub Environment.
 | `VITE_POSTHOG_KEY` | secret | — | — | — | PostHog project key (optional); analytics is gated behind consent. |
 | `VITE_PRIVACY_POLICY_URL` | secret | — | — | — | Privacy-policy URL shown in the consent banner/footer (optional). |
 | `VITE_SENTRY_DSN` | secret | — | — | — | Sentry DSN (public client key); empty disables Sentry. |
-| `VITE_SENTRY_PROFILES_SAMPLE_RATE` | variable | — | `0.1` | — | Sentry profiles sample rate 0..1 (default 1.0). |
-| `VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE` | variable | — | `0.25` | — | Sentry on-error replay sample rate 0..1 (default 1.0). |
+| `VITE_SENTRY_PROFILES_SAMPLE_RATE` | variable | — | — | — | Sentry profiles sample rate 0..1 (default 1.0). |
+| `VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE` | variable | — | — | — | Sentry on-error replay sample rate 0..1 (default 1.0). |
 | `VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE` | variable | — | — | — | Sentry session-replay sample rate 0..1 (prod-safe default 0.1). |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | variable | — | — | — | Sentry traces sample rate 0..1 (prod-safe default 0.1). |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | secret | — | — | — | Stripe publishable key (pk_test_ in dev, pk_live_ in prod); public, safe to expose. |

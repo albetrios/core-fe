@@ -59,6 +59,19 @@ test('fails on a published .map file', () => {
   assert.match(output, /index-abc123\.js\.map/);
 });
 
+test('fails on a .map outside dist/assets (the service worker)', () => {
+  // The regression this guard was widened for: the SW's own Vite pass writes
+  // dist/sw.js.map at the output ROOT, which an assets-only scan walks past.
+  const { status, output } = run({
+    'dist/assets/index-abc123.js': 'export const a = 1;\n',
+    'dist/sw.js': 'self.addEventListener("fetch", () => {});\n',
+    'dist/sw.js.map': '{"version":3,"sourcesContent":["export {}"]}\n',
+  });
+  assert.equal(status, 1, output);
+  assert.match(output, /build:check FAILED/);
+  assert.match(output, /dist\/sw\.js\.map/);
+});
+
 test('fails on a sourceMappingURL comment in shipped JS', () => {
   const { status, output } = run({
     'dist/assets/index-abc123.js': `export const a = 1;\n${MAPPING_COMMENT}\n`,

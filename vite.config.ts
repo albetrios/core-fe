@@ -69,6 +69,12 @@ export default defineConfig(({ mode }) => {
         manifest: false, // Use public/manifest.webmanifest directly
         disable: mode !== 'production',
         injectManifest: {
+          // The SW is built in its own Vite pass, which honours `build.sourcemap`
+          // literally and WRITES dist/sw.js.map — 228 kB with full `sourcesContent`,
+          // published verbatim by `netlify deploy --dir=dist`. The client build's
+          // 'hidden' maps never reach disk under rolldown, so this pass was the one
+          // real source leak. Off here; `pnpm build:check` tripwires a regression.
+          sourcemap: false,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
           globIgnores: [
             '**/sentry-*.js',

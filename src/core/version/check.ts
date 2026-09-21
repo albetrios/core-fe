@@ -113,6 +113,24 @@ const markReloadedFor = (buildId: string) =>
   recordReloadFor(VERSION_CHECK_RELOADED_FOR_KEY, buildId);
 
 /**
+ * Whether the server is advertising a build DIFFERENT from the one this bundle
+ * was built as. Resolves `false` when the answer is unknown.
+ *
+ * @remarks
+ * The same comparison the poller makes, exposed for stale-chunk recovery: a
+ * failed lazy chunk only warrants a reload if a newer deploy actually replaced
+ * it. Offline, a flaky CDN and a genuinely missing chunk all surface as the same
+ * `vite:preloadError`, and only this call separates them. Every failure mode —
+ * no injected build id, an unreachable or malformed `version.json` — resolves
+ * `false`, so an unanswerable question never triggers a reload.
+ */
+export async function isNewBuildAdvertised(): Promise<boolean> {
+  const current = getCurrentBuildId();
+  if (!current) return false;
+  return shouldReload(await fetchVersion(), current);
+}
+
+/**
  * Fire-and-forget: ask the browser to fetch + install the latest sw.js NOW, so
  * the new build's worker is already `waiting` by the time the deferred reload
  * fires and the SKIP_WAITING handoff is instant (called at detection time).

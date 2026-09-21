@@ -16,21 +16,26 @@
  * runs when `SENTRY_AUTH_TOKEN` is present, so a deploy environment without the
  * secret would silently ship them.
  *
+ * Scans the WHOLE of `dist`, not just `dist/assets`: the service worker is built
+ * in its own Vite pass that writes `dist/sw.js.map` at the output root, which an
+ * assets-only scan (and the Sentry plugin's `filesToDeleteAfterUpload`, scoped the
+ * same way) both walk straight past.
+ *
  * Also rejects a `sourceMappingURL` comment in shipped JS/CSS, which is how a
  * browser is TOLD to go fetch one.
  *
- * NO_SOURCEMAPS_ROOT — check a different tree (it must contain `dist/assets`).
+ * NO_SOURCEMAPS_ROOT — check a different tree (it must contain `dist`).
  * For `check-no-sourcemaps.test.mjs` only.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const root = process.env.NO_SOURCEMAPS_ROOT ?? process.cwd();
-const assets = join(root, 'dist/assets');
+const outDir = join(root, 'dist');
 
-if (!existsSync(assets)) {
+if (!existsSync(join(outDir, 'assets'))) {
   console.error(
-    `build:check FAILED — no ${relative(root, assets)} directory. Run \`pnpm build\` first.`,
+    `build:check FAILED — no ${relative(root, join(outDir, 'assets'))} directory. Run \`pnpm build\` first.`,
   );
   process.exit(1);
 }
@@ -45,7 +50,7 @@ function filesUnder(dir) {
   return found;
 }
 
-const shipped = filesUnder(assets);
+const shipped = filesUnder(outDir);
 const mapFiles = shipped.filter((path) => path.endsWith('.map'));
 
 // `//# sourceMappingURL=` / `/*# sourceMappingURL= */`, split so this file's own
@@ -74,5 +79,5 @@ if (offenders.length > 0) {
 }
 
 console.log(
-  `build:check OK — no source maps in the published bundle (${shipped.length} asset files checked).`,
+  `build:check OK — no source maps in the published bundle (${shipped.length} files under dist/ checked).`,
 );

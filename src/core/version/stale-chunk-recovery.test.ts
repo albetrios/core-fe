@@ -3,10 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { STALE_CHUNK_RELOADED_FOR_KEY } from './version-check.constants.ts';
 
 const reloadOntoLatestBuild = vi.fn();
+const isNewBuildAdvertised = vi.fn<() => Promise<boolean>>();
 const readInjectedAppBuildId = vi.fn<() => string | undefined>();
 
 vi.mock('./check.ts', () => ({
   reloadOntoLatestBuild: () => reloadOntoLatestBuild(),
+  isNewBuildAdvertised: () => isNewBuildAdvertised(),
 }));
 
 vi.mock('@/lib/i18n/build-env.ts', () => ({
@@ -25,12 +27,21 @@ function firePreloadError(): boolean {
   return event.defaultPrevented;
 }
 
+/** Let the probe promise and its `.finally` settle. */
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+function focusAnInput() {
+  document.body.innerHTML = '<input />';
+  (document.body.firstElementChild as HTMLInputElement).focus();
+}
+
 describe('startStaleChunkRecovery', () => {
   let teardown: (() => void) | undefined;
 
   beforeEach(() => {
     vi.resetModules();
     reloadOntoLatestBuild.mockClear();
+    isNewBuildAdvertised.mockResolvedValue(true);
     readInjectedAppBuildId.mockReturnValue('build-1');
     sessionStorage.clear();
     document.body.innerHTML = '';
@@ -43,34 +54,86 @@ describe('startStaleChunkRecovery', () => {
     document.body.innerHTML = '';
   });
 
-  it('reloads onto the latest build when a lazy chunk fails', async () => {
+  it('reloads when a newer build is advertised', async () => {
     teardown = await start();
 
-    expect(firePreloadError()).toBe(true);
+    firePreloadError();
+    await settle();
+
     expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
     expect(sessionStorage.getItem(STALE_CHUNK_RELOADED_FOR_KEY)).toBe('build-1');
   });
 
-  it('reloads at most once per build — a second failure stands down', async () => {
+  it('stands down when the deploy has not changed (offline, flaky CDN, cosmetic prefetch)', async () => {
+    isNewBuildAdvertised.mockResolvedValue(false);
     teardown = await start();
 
     firePreloadError();
-    expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
+    await settle();
 
-    expect(firePreloadError()).toBe(false); // left for Vite to throw → Sentry
+    expect(reloadOntoLatestBuild).not.toHaveBeenCalled();
+    // The attempt is NOT spent — a later, genuine stale chunk still recovers.
+    expect(sessionStorage.getItem(STALE_CHUNK_RELOADED_FOR_KEY)).toBeNull();
+  });
+
+  it('never prevents the event, so Vite still throws the real error', async () => {
+    teardown = await start();
+
+    expect(firePreloadError()).toBe(false);
+    await settle();
+    expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloads at most once per build', async () => {
+    teardown = await start();
+
+    firePreloadError();
+    await settle();
+    firePreloadError();
+    await settle();
+
+    expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
+  });
+
+  it('probes once however many chunks fail at the same time', async () => {
+    teardown = await start();
+
+    firePreloadError();
+    firePreloadError();
+    firePreloadError();
+    await settle();
+
+    expect(isNewBuildAdvertised).toHaveBeenCalledTimes(1);
     expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
   });
 
   it('does not reload while the user is typing', async () => {
     teardown = await start();
+    focusAnInput();
 
-    document.body.innerHTML = '<input />';
-    (document.body.firstElementChild as HTMLInputElement).focus();
+    firePreloadError();
+    await settle();
 
-    expect(firePreloadError()).toBe(false);
+    expect(isNewBuildAdvertised).not.toHaveBeenCalled();
     expect(reloadOntoLatestBuild).not.toHaveBeenCalled();
-    // The attempt is NOT spent — the version-check poller still reloads later.
     expect(sessionStorage.getItem(STALE_CHUNK_RELOADED_FOR_KEY)).toBeNull();
+  });
+
+  it('does not reload when focus moves into a field while the probe is open', async () => {
+    let release!: (value: boolean) => void;
+    isNewBuildAdvertised.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        release = resolve;
+      }),
+    );
+    teardown = await start();
+
+    firePreloadError();
+    focusAnInput();
+    release(true);
+    await settle();
+
+    expect(reloadOntoLatestBuild).not.toHaveBeenCalled();
   });
 
   it('is not installed without an injected build id', async () => {
@@ -79,7 +142,8 @@ describe('startStaleChunkRecovery', () => {
     teardown = await start();
 
     expect(teardown).toBeUndefined();
-    expect(firePreloadError()).toBe(false);
+    firePreloadError();
+    await settle();
     expect(reloadOntoLatestBuild).not.toHaveBeenCalled();
   });
 
@@ -90,6 +154,7 @@ describe('startStaleChunkRecovery', () => {
     expect(startStaleChunkRecovery()).toBeUndefined();
 
     firePreloadError();
+    await settle();
     expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
   });
 
@@ -98,7 +163,10 @@ describe('startStaleChunkRecovery', () => {
     stop?.();
     teardown = undefined;
 
-    expect(firePreloadError()).toBe(false);
+    firePreloadError();
+    await settle();
+
+    expect(isNewBuildAdvertised).not.toHaveBeenCalled();
     expect(reloadOntoLatestBuild).not.toHaveBeenCalled();
   });
 
@@ -106,7 +174,9 @@ describe('startStaleChunkRecovery', () => {
     sessionStorage.setItem(STALE_CHUNK_RELOADED_FOR_KEY, 'build-0');
     teardown = await start();
 
-    expect(firePreloadError()).toBe(true);
+    firePreloadError();
+    await settle();
+
     expect(reloadOntoLatestBuild).toHaveBeenCalledTimes(1);
   });
 });
