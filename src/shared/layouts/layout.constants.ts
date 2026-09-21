@@ -72,6 +72,11 @@ export const LAYOUT_KEYS = {
       submit: 'app.orgCreate.submit',
       submitting: 'app.orgCreate.submitting',
     },
+    workspaceSwitch: {
+      preparing: 'app.workspaceSwitch.preparing',
+      loadingAccess: 'app.workspaceSwitch.loadingAccess',
+      almostReady: 'app.workspaceSwitch.almostReady',
+    },
     orgSwitcher: {
       selectPlaceholder: 'app.orgSwitcher.selectPlaceholder',
       triggerLabel: 'app.orgSwitcher.triggerLabel',

@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/shared/components/ui/card.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
-import { AlertCircle, Building2, ChevronRight, Plus } from '@/shared/icons/index.ts';
+import { AlertCircle, Building, ChevronRight, Plus } from '@/shared/icons/index.ts';
 import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
 import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
 
@@ -115,7 +115,7 @@ function OrganizationList() {
                   data-slot="icon-chip"
                   className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center"
                 >
-                  <Building2 className="h-5 w-5" />
+                  <Building className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1 text-start">
                   <p className="truncate text-sm font-medium">{organization.name}</p>

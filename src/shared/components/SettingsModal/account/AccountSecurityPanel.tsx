@@ -47,7 +47,7 @@ import {
   useRegisterPasskey,
   useRemovePasskey,
 } from '@/shared/hooks/usePasskeys/index.ts';
-import { Copy, Fingerprint, ShieldCheck, Trash2 } from '@/shared/icons/index.ts';
+import { Copy, Fingerprint, ShieldCheck, Trash } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 
 /** Two-factor card: QR enroll → 6-digit OTP → recovery codes + disable. */
@@ -404,7 +404,7 @@ function PasskeyRow({
         data-testid="passkey-remove"
         data-passkey-id={passkey.id}
       >
-        {remove.isPending ? null : <Trash2 />}
+        {remove.isPending ? null : <Trash />}
       </Button>
     </div>
   );

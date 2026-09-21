@@ -1,0 +1,51 @@
+---
+description: Identifiers we own carry no digits — components, variables, functions, hooks, stores, types, files and translation keys. Third-party names keep theirs, quarantined at the import boundary.
+globs:
+alwaysApply: true
+---
+
+# No digits in names we own
+
+A digit in a name is almost always a version, a duplicate, or a shrug. `Loader2` does not say what it is — it says someone already had a `Loader`. Names we own describe the thing; if two things need distinguishing, the difference has a word for it.
+
+Applies to **every identifier this codebase declares**: components, variables, constants, functions, hooks, stores, types, CSS/data-slot names, file and folder names, test ids, and translation keys.
+
+## The rule
+
+```ts
+// ✗ the digit is doing the work a word should do
+const Loader2 = …
+function handleSubmit2() {}
+const config2 = …
+export const Building2 = makeIcon('Building2');
+
+// ✓ the distinction, stated
+const InlineLoader = …
+function handleResubmit() {}
+const fallbackConfig = …
+export const Building = makeIcon('Building');
+```
+
+## The one exemption: third-party names, at the boundary only
+
+A library's exported name is not ours to rename, and misquoting it breaks the import. Keep it **on the import side** and give it a clean name immediately:
+
+```ts
+// ✓ lucide's name survives exactly as far as the import, and no further
+import { Loader2 as LuLoader, Building2 as LuBuilding } from 'lucide-react';
+
+// ✓ so app code only ever sees the clean name
+export const Loader = makeIcon('Loader');
+```
+
+The same applies to `@tabler/icons-react` (`IconLoader2`), any SDK, and any wire field a third party defines. Vendored code (`src/shared/components/ui/**`, shadcn primitives) imports its library directly and keeps that library's names — it is not code we author.
+
+**A digit is never allowed to cross the boundary.** The icon barrel is the worked example: `src/shared/icons/index.ts` is the single icon surface (enforced by `no-restricted-imports`), so lucide's `Loader2` stops there and every consumer writes `Loader`.
+
+## Numbers that are not names
+
+Digits in **values** are fine and often required — `z-[70]`, `size-8`, `MESSAGE_INTERVAL_MS = 1_600`, `h1`…`h6`, `S3`, `OAuth2` where it is the protocol's actual name, HTTP `401`. The rule is about what a thing is *called*, not what it *contains*.
+
+## Why this is a rule and not a preference
+
+The rename that produced it was not cosmetic. `export const Building2 = makeIcon('Building2')` and a lookup table keyed `Building` are impossible to hold in your head at once — the digit is exactly the kind of detail that survives a careless find-and-replace and produces an `undefined` component at runtime, which is how it was caught. A naming scheme that cannot be renamed safely is a naming scheme that will not be renamed.

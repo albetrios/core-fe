@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card.tsx';
-import { CheckCircle2, ShieldAlert, ShieldCheck } from '@/shared/icons/index.ts';
+import { CheckCircle, ShieldAlert, ShieldCheck } from '@/shared/icons/index.ts';
 
 export interface SecurityOverviewCardProps {
   mfaEnabled: boolean;
@@ -83,7 +83,7 @@ export function SecurityOverviewCard({
               className="flex items-center gap-2 text-sm"
               data-testid={`security-overview-${item.id}`}
             >
-              <CheckCircle2
+              <CheckCircle
                 className={item.ok ? 'text-success' : 'text-muted-foreground'}
                 aria-hidden
               />

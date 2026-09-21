@@ -63,6 +63,11 @@
       "appearance": "दिखावट",
       "shortcuts": "शॉर्टकट"
     },
+    "workspaceSwitch": {
+      "preparing": "आपका कार्यक्षेत्र तैयार किया जा रहा है",
+      "loadingAccess": "सदस्य और अनुमतियाँ लोड हो रही हैं",
+      "almostReady": "लगभग तैयार"
+    },
     "orgSwitcher": {
       "selectPlaceholder": "संगठन चुनें",
       "triggerLabel": "संगठन बदलें — वर्तमान: {{name}}",

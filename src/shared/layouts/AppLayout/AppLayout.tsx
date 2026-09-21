@@ -7,6 +7,7 @@ import { CommandPaletteLazy } from '@/shared/components/CommandPalette/index.ts'
 import { KeyboardShortcutsLazy } from '@/shared/components/KeyboardShortcutsDialog/KeyboardShortcutsLazy.tsx';
 import { SessionTimeoutDialog } from '@/shared/components/SessionTimeoutDialog/index.ts';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
+import { WorkspaceSwitchOverlay } from '@/shared/components/WorkspaceSwitchOverlay/index.ts';
 import { reportError } from '@/shared/errors/errorHandler.ts';
 import { useVisibleNav } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlagsState } from '@/shared/hooks/useDeploymentFlags/index.ts';
@@ -180,6 +181,7 @@ export function Component() {
   return (
     <div className="bg-background flex h-screen overflow-hidden" data-testid="app-layout">
       <SkipLink />
+      <WorkspaceSwitchOverlay />
       {/* House rule 2. The variants render nav, brand, quick links and the user
           menu; without this, a throw in any of them escalates to the route
           boundary and replaces the whole authenticated application. Contained

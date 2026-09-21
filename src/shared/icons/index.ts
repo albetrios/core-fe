@@ -14,10 +14,10 @@ import {
   Bell as LuBell,
   BellOff as LuBellOff,
   Boxes as LuBoxes,
-  Building2 as LuBuilding2,
+  Building2 as LuBuilding,
   CalendarDays as LuCalendarDays,
   Check as LuCheck,
-  CheckCircle2 as LuCheckCircle2,
+  CheckCircle2 as LuCheckCircle,
   ChevronLeft as LuChevronLeft,
   ChevronRight as LuChevronRight,
   ChevronsLeft as LuChevronsLeft,
@@ -34,7 +34,7 @@ import {
   Languages as LuLanguages,
   Laptop as LuLaptop,
   LayoutDashboard as LuLayoutDashboard,
-  Loader2 as LuLoader2,
+  Loader2 as LuLoader,
   LogOut as LuLogOut,
   Mail as LuMail,
   Menu as LuMenu,
@@ -57,7 +57,7 @@ import {
   Smartphone as LuSmartphone,
   Sparkles as LuSparkles,
   Sun as LuSun,
-  Trash2 as LuTrash2,
+  Trash2 as LuTrash,
   TriangleAlert as LuTriangleAlert,
   User as LuUser,
   UserCog as LuUserCog,
@@ -86,10 +86,10 @@ const lucideIcons = {
   Bell: LuBell,
   BellOff: LuBellOff,
   Boxes: LuBoxes,
-  Building2: LuBuilding2,
+  Building: LuBuilding,
   CalendarDays: LuCalendarDays,
   Check: LuCheck,
-  CheckCircle2: LuCheckCircle2,
+  CheckCircle: LuCheckCircle,
   ChevronLeft: LuChevronLeft,
   ChevronRight: LuChevronRight,
   ChevronsLeft: LuChevronsLeft,
@@ -107,7 +107,7 @@ const lucideIcons = {
   Laptop: LuLaptop,
   Languages: LuLanguages,
   LayoutDashboard: LuLayoutDashboard,
-  Loader2: LuLoader2,
+  Loader: LuLoader,
   LogOut: LuLogOut,
   Mail: LuMail,
   Menu: LuMenu,
@@ -130,7 +130,7 @@ const lucideIcons = {
   Smartphone: LuSmartphone,
   Sparkles: LuSparkles,
   Sun: LuSun,
-  Trash2: LuTrash2,
+  Trash: LuTrash,
   TriangleAlert: LuTriangleAlert,
   User: LuUser,
   UserCog: LuUserCog,
@@ -165,10 +165,10 @@ export const ArrowUp = makeIcon('ArrowUp');
 export const Bell = makeIcon('Bell');
 export const BellOff = makeIcon('BellOff');
 export const Boxes = makeIcon('Boxes');
-export const Building2 = makeIcon('Building2');
+export const Building = makeIcon('Building');
 export const CalendarDays = makeIcon('CalendarDays');
 export const Check = makeIcon('Check');
-export const CheckCircle2 = makeIcon('CheckCircle2');
+export const CheckCircle = makeIcon('CheckCircle');
 export const ChevronLeft = makeIcon('ChevronLeft');
 export const ChevronRight = makeIcon('ChevronRight');
 export const ChevronsLeft = makeIcon('ChevronsLeft');
@@ -186,7 +186,7 @@ export const Globe = makeIcon('Globe');
 export const Laptop = makeIcon('Laptop');
 export const Languages = makeIcon('Languages');
 export const LayoutDashboard = makeIcon('LayoutDashboard');
-export const Loader2 = makeIcon('Loader2');
+export const Loader = makeIcon('Loader');
 export const LogOut = makeIcon('LogOut');
 export const Mail = makeIcon('Mail');
 export const Menu = makeIcon('Menu');
@@ -209,7 +209,7 @@ export const SlidersHorizontal = makeIcon('SlidersHorizontal');
 export const Smartphone = makeIcon('Smartphone');
 export const Sparkles = makeIcon('Sparkles');
 export const Sun = makeIcon('Sun');
-export const Trash2 = makeIcon('Trash2');
+export const Trash = makeIcon('Trash');
 export const TriangleAlert = makeIcon('TriangleAlert');
 export const User = makeIcon('User');
 export const UserCog = makeIcon('UserCog');

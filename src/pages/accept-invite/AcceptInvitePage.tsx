@@ -21,7 +21,7 @@ import { reportError } from '@/shared/errors/errorHandler.ts';
 import { HttpError } from '@/shared/errors/HttpError.ts';
 import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
 import { useConsumedSearchToken } from '@/shared/hooks/useConsumedSearchToken/index.ts';
-import { CheckCircle2, Loader2, XCircle } from '@/shared/icons/index.ts';
+import { CheckCircle, Loader, XCircle } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { switchToOrganization } from '@/shared/tenancy/switch.ts';
 
@@ -74,13 +74,13 @@ function InviteStatusCard({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         {status === 'accepting' && (
-          <Loader2
+          <Loader
             className="text-muted-foreground h-10 w-10 animate-spin"
             data-testid={ACCEPT_INVITE_TEST_IDS.loading}
           />
         )}
         {(status === 'success' || status === 'partial') && (
-          <CheckCircle2
+          <CheckCircle
             className="text-success h-10 w-10"
             data-testid={ACCEPT_INVITE_TEST_IDS.success}
           />
