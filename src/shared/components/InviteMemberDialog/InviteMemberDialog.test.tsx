@@ -133,6 +133,59 @@ describe('InviteMemberDialog', () => {
     expect(screen.queryByTestId('invite-member-roles-error')).not.toBeInTheDocument();
   });
 
+  // ── Least-privilege default ───────────────────────────────────────────────
+
+  it('opens on Member, not on whatever the roster sorts first', async () => {
+    // Regression: the field defaulted to `invitableRoles[0]`, and every
+    // organization this app provisions sorts `Admin` first — so the quiet path
+    // through the dialog handed a new teammate admin rights.
+    useRolesMock.mockReturnValue(
+      rolesResult([
+        role('rol_admin', 'Admin'),
+        role('rol_mem', 'Member'),
+        role('rol_view', 'Viewer'),
+      ]),
+    );
+    render(<InviteMemberDialog />);
+    await open();
+
+    expect(await screen.findByTestId('invite-member-role')).toHaveTextContent('Member');
+  });
+
+  it('falls back to Viewer when the organization has no Member role', async () => {
+    useRolesMock.mockReturnValue(
+      rolesResult([role('rol_admin', 'Admin'), role('rol_view', 'Viewer')]),
+    );
+    render(<InviteMemberDialog />);
+    await open();
+
+    expect(await screen.findByTestId('invite-member-role')).toHaveTextContent('Viewer');
+  });
+
+  it('preselects nothing — and says so — when only custom roles exist', async () => {
+    // A custom role carries no permission set here to rank it by, so guessing
+    // one would be a blind privilege grant. The inviter chooses instead, and a
+    // send with nothing chosen has to SAY that rather than silently do nothing.
+    const user = userEvent.setup();
+    useRolesMock.mockReturnValue(
+      rolesResult([role('rol_a', 'Support'), role('rol_b', 'Editor')]),
+    );
+    render(<InviteMemberDialog />);
+    await user.click(screen.getByTestId('invite-member-open'));
+    await screen.findByTestId('invite-member-form');
+
+    const roleTrigger = screen.getByTestId('invite-member-role');
+    expect(roleTrigger).not.toHaveTextContent('Support');
+    expect(roleTrigger).not.toHaveTextContent('Editor');
+
+    await user.type(screen.getByTestId('invite-member-email'), 'new@x.test');
+    await user.click(screen.getByTestId('invite-member-submit'));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Select a role');
+    expect(roleTrigger).toHaveAttribute('aria-invalid', 'true');
+    expect(inviteMutate).not.toHaveBeenCalled();
+  });
+
   it('never overwrites a role the user already picked', async () => {
     // The default effect re-runs whenever the first role id changes; a refetch
     // that reorders the list used to reset the field under the user.
