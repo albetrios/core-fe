@@ -56,7 +56,7 @@ export const meContextWire = z.object({
   // Permission codes are kept as plain strings — forward-compatible with new
   // codes the FE enum may not yet know (RBAC matches by string membership).
   my_permissions: z.array(z.string()),
-  global_role: z.enum(['super_admin', 'admin', 'user']).nullable(),
+  global_role: z.enum(['super_admin', 'user']).nullable(),
   organizations: z.array(organizationWire.extend({ is_active: z.boolean() })),
 });
 export type MeContextWire = z.infer<typeof meContextWire>;
@@ -64,7 +64,7 @@ export type MeContextWire = z.infer<typeof meContextWire>;
 // ── Camel-cased domain types (what the app consumes) ────────────────────────
 export type OrganizationType = 'PERSONAL' | 'TEAM';
 export type OrganizationStatusValue = 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
-export type GlobalRole = 'super_admin' | 'admin' | 'user';
+export type GlobalRole = 'super_admin' | 'user';
 
 export interface OrganizationSummary {
   id: string;
