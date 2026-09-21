@@ -127,7 +127,10 @@ describe('WorkspaceSwitchOverlay', () => {
     const { container } = renderWithProviders(<WorkspaceSwitchOverlay />);
 
     const overlay = await screen.findByTestId('workspace-switch-overlay');
-    expect(overlay).toHaveAttribute('role', 'status');
+    // `<output>` carries the status role implicitly and is better supported than a div wearing
+    // `role="status"`, so assert the role as assistive tech resolves it rather than the attribute.
+    expect(overlay.tagName).toBe('OUTPUT');
+    expect(screen.getByRole('status')).toBe(overlay);
     expect(overlay).toHaveAttribute('aria-live', 'polite');
     expect(overlay).toHaveAttribute('aria-busy', 'true');
 

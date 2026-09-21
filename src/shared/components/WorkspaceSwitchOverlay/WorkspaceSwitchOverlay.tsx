@@ -69,10 +69,10 @@ export function WorkspaceSwitchOverlay() {
   const messageKey = SWITCH_MESSAGE_KEYS[messageIndex] ?? SWITCH_MESSAGE_KEYS[0];
 
   return (
-    <div
-      // `status` + `polite`, not `alert`: this is progress, and an assertive live region would
-      // interrupt whatever a screen reader was in the middle of saying.
-      role="status"
+    <output
+      // `<output>` rather than a div with `role="status"`: the implicit role is the same and it is
+      // the better-supported route across devices. Polite, not assertive — this is progress, and
+      // an alert would interrupt whatever a screen reader was in the middle of saying.
       aria-live="polite"
       aria-busy="true"
       data-testid="workspace-switch-overlay"
@@ -94,6 +94,6 @@ export function WorkspaceSwitchOverlay() {
       >
         {t(messageKey)}
       </p>
-    </div>
+    </output>
   );
 }
