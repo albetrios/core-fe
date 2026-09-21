@@ -14,6 +14,7 @@ import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.
 const copy = (key: string, lng = 'en') => i18n.t(key, { ns: SETTINGS_NS, lng });
 
 const {
+  createApiKeyMutate,
   useApiKeysMock,
   revokeMutateAsync,
   useWebhooksMock,
@@ -21,6 +22,7 @@ const {
   deleteWebhookMutateAsync,
   webhookCtl,
 } = vi.hoisted(() => ({
+  createApiKeyMutate: vi.fn(),
   useApiKeysMock: vi.fn(),
   revokeMutateAsync: vi.fn(),
   useWebhooksMock: vi.fn(),
@@ -32,6 +34,10 @@ const {
 vi.mock('@/shared/hooks/useApiKeys/index.ts', () => ({
   useApiKeys: useApiKeysMock,
   useRevokeApiKey: () => ({ mutateAsync: revokeMutateAsync }),
+  // The panel now mounts ApiKeyCreateDialog, which reaches for this hook. Its
+  // own behaviour is covered in ApiKeyCreateDialog.test.tsx; here it only has
+  // to exist so the section renders.
+  useCreateApiKey: () => ({ mutate: createApiKeyMutate, isPending: false }),
 }));
 vi.mock('@/shared/hooks/useWebhooks/index.ts', async () => {
   const { useState } = await import('react');

@@ -270,10 +270,17 @@ describe('organization-api roles (live)', () => {
   });
 });
 
+/**
+ * One API-key row exactly as core-be's `organization-api-key.serializer.ts`
+ * emits it. The masked prefix is `key_prefix` — this fixture used to say
+ * `prefix`, which matched the frontend schema rather than the server, so the
+ * pair agreed with each other and with nothing else. An organization with no
+ * keys parsed fine either way, which is why it went unnoticed.
+ */
 const KEY_WIRE = {
   id: 'key_1',
   name: 'CI token',
-  prefix: 'core_live_abcd',
+  key_prefix: 'core_live_abcd',
   created_at: TS,
   last_used_at: null,
   expires_at: null,
@@ -292,15 +299,41 @@ describe('organization-api api-keys (live)', () => {
     expect(key?.expiresAt).toBeUndefined();
   });
 
-  it('createApiKey posts expires_in_days and returns the secret once', async () => {
+  it('createApiKey sends scopes and a NUMBER of days, and unwraps raw_key', async () => {
+    // Three corrections in one call, all of which the old shape got wrong:
+    // `scopes` is REQUIRED and the body is `.strict()` server-side;
+    // `expires_in_days` is a number of days, not a string; and the response is
+    // `{ api_key, raw_key }`, not a flat row carrying a `secret`.
     postMock.mockResolvedValue({
-      data: { ...KEY_WIRE, secret: 'core_live_abcd_secret' },
+      data: { api_key: KEY_WIRE, raw_key: 'core_live_abcd_secret' },
     });
-    const created = await createApiKey({ name: 'CI token', expiresInDays: '30' });
+    const created = await createApiKey({
+      name: 'CI token',
+      scopes: ['organization:read'],
+      expiresInDays: 30,
+    });
     expect(created.secret).toBe('core_live_abcd_secret');
+    expect(created.prefix).toBe('core_live_abcd');
     expect(postMock).toHaveBeenCalledWith(expect.stringContaining('/api-keys'), {
       name: 'CI token',
-      expires_in_days: '30',
+      scopes: ['organization:read'],
+      expires_in_days: 30,
+    });
+  });
+
+  it('createApiKey OMITS expires_in_days for a key that never expires', async () => {
+    // core-be caps the field at 365, so "never" cannot be a larger number.
+    postMock.mockResolvedValue({
+      data: { api_key: KEY_WIRE, raw_key: 'core_live_abcd_secret' },
+    });
+    await createApiKey({
+      name: 'Forever',
+      scopes: ['organization:read'],
+      expiresInDays: null,
+    });
+    expect(postMock).toHaveBeenCalledWith(expect.stringContaining('/api-keys'), {
+      name: 'Forever',
+      scopes: ['organization:read'],
     });
   });
 
