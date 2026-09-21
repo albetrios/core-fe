@@ -47,6 +47,38 @@ function isInvitableRole(role: RoleSummary): boolean {
 }
 
 /**
+ * Preselection order for the Role field, least privilege first. Every TEAM
+ * organization is provisioned with Admin / Member / Viewer, so one of these two
+ * is present unless someone has deleted it.
+ */
+const LEAST_PRIVILEGE_ROLE_NAMES = ['member', 'viewer'] as const;
+
+/**
+ * The role an invite should OPEN on: the least-privileged well-known role the
+ * organization still has, or nothing.
+ *
+ * The field used to open on `invitableRoles[0]`, which is whatever the roster
+ * sorts first — `Admin`, alphabetically, in every organization this app
+ * provisions. So the quiet path through the dialog (type an address, press
+ * send) handed a new teammate the second-most-powerful role in the
+ * organization, and the only thing standing between that and a real invite was
+ * the inviter noticing a select they never had to touch.
+ *
+ * A custom role is never preselected. The list carries no permission set to
+ * rank it by (`useRoles` omits permissions), so preselecting one would be a
+ * guess at how powerful it is — and a wrong guess here is a privilege grant.
+ * Returning `undefined` leaves the placeholder showing and makes the inviter
+ * choose, which the Role error below now says out loud.
+ */
+function leastPrivilegeRoleId(invitableRoles: RoleSummary[]): string | undefined {
+  for (const name of LEAST_PRIVILEGE_ROLE_NAMES) {
+    const match = invitableRoles.find((role) => role.name.toLowerCase() === name);
+    if (match) return match.id;
+  }
+  return undefined;
+}
+
+/**
  * Dialog + form for inviting a new member to the active organization. Roles come
  * from the org's real role set (`role_id` is required by core-be's add-member
  * endpoint), so a freshly-created org — which only has the system Owner role —
@@ -60,6 +92,7 @@ export function InviteMemberDialog() {
   const roles = useRoles();
   const invitableRoles = (roles.rows ?? []).filter(isInvitableRole);
   const hasRoles = invitableRoles.length > 0;
+  const defaultRoleId = leastPrivilegeRoleId(invitableRoles);
 
   const {
     register,
@@ -74,20 +107,19 @@ export function InviteMemberDialog() {
     defaultValues: { email: '', roleId: '' },
   });
 
-  // Default the role once the list loads (react-hook-form keeps the field
-  // otherwise empty, which would fail validation on an all-valid-looking form).
-  // Only while the field is UNTOUCHED: this effect re-runs whenever the first
-  // role id changes, and a refetch that reorders the list used to overwrite a
-  // role the user had already picked, mid-session (SET-11).
+  // Preselect the least-privileged well-known role once the list loads. Only
+  // while the field is UNTOUCHED: this effect re-runs whenever that id changes,
+  // and a refetch that reorders the list used to overwrite a role the user had
+  // already picked, mid-session (SET-11). When the organization has no Member
+  // and no Viewer the field stays empty on purpose — see leastPrivilegeRoleId.
   useEffect(() => {
-    if (!hasRoles || getValues('roleId')) return;
-    setValue('roleId', invitableRoles[0]?.id ?? '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- key off the first id, not the array identity
-  }, [invitableRoles[0]?.id, hasRoles, getValues, setValue]);
+    if (!defaultRoleId || getValues('roleId')) return;
+    setValue('roleId', defaultRoleId);
+  }, [defaultRoleId, getValues, setValue]);
 
   const onSubmit = async (data: InviteInput) => {
     await invite.mutateAsync(data);
-    reset({ email: '', roleId: invitableRoles[0]?.id ?? '' });
+    reset({ email: '', roleId: defaultRoleId ?? '' });
     setOpen(false);
   };
 
@@ -134,6 +166,8 @@ export function InviteMemberDialog() {
                 <SelectTrigger
                   id="invite-role"
                   className="w-full"
+                  aria-invalid={!!errors.roleId}
+                  aria-describedby={errors.roleId ? 'invite-role-error' : undefined}
                   data-testid="invite-member-role"
                 >
                   <SelectValue
@@ -150,6 +184,16 @@ export function InviteMemberDialog() {
               </Select>
             )}
           />
+          {/* An organization with no Member and no Viewer opens with no role
+              chosen, and `handleSubmit` then blocks the send. Without this the
+              press did nothing, said nothing, and left the inviter staring at a
+              filled-in form — the Email field one div up has always shown its
+              error; this one never did. */}
+          {errors.roleId && (
+            <p id="invite-role-error" className="text-destructive text-xs" role="alert">
+              {translateFormMessage(errors.roleId.message)}
+            </p>
+          )}
         </div>
 
         <DialogFooter>
