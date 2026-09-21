@@ -1,16 +1,15 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Command } from 'cmdk';
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ORGANIZATION } from '@/core/config/constants.ts';
 import { logout } from '@/shared/auth/service.ts';
 import { SETTINGS_NS } from '@/shared/components/SettingsModal/settings.constants.ts';
 import { settingsHash } from '@/shared/components/SettingsModal/settings-hash-grammar.ts';
-import { visibleSettingsNavGroups } from '@/shared/components/SettingsModal/settings-nav-visibility.ts';
 import { mapApiError, reportError } from '@/shared/errors/errorHandler.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
+import { useVisibleSettingsSections } from '@/shared/hooks/useSettingsNav/index.ts';
 import {
   Building,
   LayoutDashboard,
@@ -23,8 +22,6 @@ import {
 } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { notify } from '@/shared/notify/index.ts';
-import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
-import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 
@@ -42,6 +39,14 @@ import { CommandPaletteShell } from './CommandPaletteShell.tsx';
  * message rather than stack another copy of it.
  */
 export const PALETTE_LOGOUT_TOAST_ID = 'command-palette-logout-failed';
+
+/**
+ * cmdk matches a row against its rendered label, and these three labels are
+ * translated — so a search for "theme" reached them in English and nowhere
+ * else. Keywords are locale-independent, which is what the dashboard's
+ * "Change theme" suggestion seeds the palette with.
+ */
+const THEME_KEYWORDS = ['theme', 'appearance', 'light', 'dark', 'system'] as const;
 
 /**
  * Global command palette powered by cmdk.
@@ -72,27 +77,7 @@ export function CommandPaletteContent() {
   // org type + deployment) so ⌘K can jump straight to e.g. Billing or Members.
   const { t: tSettings } = useTranslation(SETTINGS_NS);
   const deploymentFlags = useDeploymentFlags();
-  const organizationId = useOrganizationStore((s) => s.organizationId);
-  const permissions = useOrganizationStore((s) => s.permissions);
-  const user = useAuthStore((s) => s.user);
-  const settingsItems = useMemo(
-    () =>
-      visibleSettingsNavGroups({
-        hasOrganizationContext:
-          !!organizationId && organizationId !== ORGANIZATION.LOCALHOST_FALLBACK,
-        orgType: meContext?.activeOrganization?.type,
-        teamOrganizations: deploymentFlags.teamOrganizations,
-        role: user?.role ?? 'user',
-        permissions,
-      }).flatMap((group) => group.items),
-    [
-      deploymentFlags.teamOrganizations,
-      meContext?.activeOrganization?.type,
-      organizationId,
-      permissions,
-      user?.role,
-    ],
-  );
+  const settingsItems = useVisibleSettingsSections();
   const setShortcutsOpen = useUIStore((s) => s.setShortcutsOpen);
   const closePalette = useCallback(() => {
     setOpen(false);
@@ -217,15 +202,24 @@ export function CommandPaletteContent() {
           heading={t(cp.groups.theme)}
           className="text-muted-foreground px-1 py-1.5 text-xs font-medium"
         >
-          <CommandItem onSelect={() => runCommand(() => setTheme('light'))} icon={Sun}>
+          <CommandItem
+            onSelect={() => runCommand(() => setTheme('light'))}
+            icon={Sun}
+            keywords={THEME_KEYWORDS}
+          >
             {t(cp.lightMode)}
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => setTheme('dark'))} icon={Moon}>
+          <CommandItem
+            onSelect={() => runCommand(() => setTheme('dark'))}
+            icon={Moon}
+            keywords={THEME_KEYWORDS}
+          >
             {t(cp.darkMode)}
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => setTheme('system'))}
             icon={Monitor}
+            keywords={THEME_KEYWORDS}
           >
             {t(cp.systemTheme)}
           </CommandItem>

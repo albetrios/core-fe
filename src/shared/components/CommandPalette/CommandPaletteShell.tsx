@@ -10,8 +10,22 @@ import { CommandPaletteContext, type SearchFocus } from './command-palette-conte
 export function CommandPaletteShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation(LAYOUT_NS);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [query, setQuery] = useState('');
-  const searchFocus = useRef<SearchFocus>({ focused: true, start: null, end: null });
+  /**
+   * Seeded ONCE, from whatever asked for this opening — a dashboard suggestion
+   * chip names something specific ("Invite members"), and a palette that opens
+   * blank makes the user restate it. Read through the initializer rather than
+   * an effect so the first paint already shows the filtered list, and never
+   * read again: typing here must not write back to the store.
+   */
+  const [query, setQuery] = useState(() => useUIStore.getState().commandPaletteSeed);
+  // A seeded palette puts the caret AFTER the seed, so the first keystroke
+  // extends the suggestion instead of landing in front of it.
+  const seedCaret = query.length === 0 ? null : query.length;
+  const searchFocus = useRef<SearchFocus>({
+    focused: true,
+    start: seedCaret,
+    end: seedCaret,
+  });
   const [previousFocus] = useState(() => document.activeElement as HTMLElement | null);
   const setOpen = useUIStore((s) => s.setCommandPaletteOpen);
   const rememberFocus = useCallback((focused: boolean) => {
