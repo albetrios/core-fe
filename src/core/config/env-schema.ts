@@ -133,7 +133,8 @@ export const envFieldDescriptions: Readonly<Record<string, string>> = {
   VITE_THEME_LOCK: '"true" hides the runtime theme switcher + shuffle.',
   VITE_PRIVACY_POLICY_URL:
     'Privacy-policy URL shown in the consent banner/footer (optional).',
-  VITE_CSP_REPORT_URI: 'CSP violation report collector URI (optional).',
+  VITE_CSP_REPORT_URI:
+    'CSP violation report collector URI (e.g. a Sentry CSP ingest URL); empty = violations reach each visitor console only. Warned on in both deploy environments.',
   VITE_DISABLED_MODULES:
     'Comma-separated module keys to disable (e.g. billing,members); routes 404 via the module gate.',
   VITE_PERSONAL_ORGANIZATIONS:

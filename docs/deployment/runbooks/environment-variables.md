@@ -173,6 +173,7 @@ Follow **`agent-os/skills/env-schema-add/SKILL.md`** end-to-end:
 | OAuth click fails                | core-be may lack provider credentials — fix both sides              |
 | Module route 404                 | Key in `VITE_DISABLED_MODULES` or manifest `module` mismatch        |
 | Production boot error on CAPTCHA | Set `VITE_TURNSTILE_SITE_KEY` or `VITE_CAPTCHA_DISABLED=true`       |
+| `validate:client-env` warns on `VITE_CSP_REPORT_URI` | Expected with no CSP collector. Set it to start the violation stream the [Trusted Types runbook](./csp-trusted-types-production.md) needs, or leave it — `warn` never fails the gate |
 | `validate:env-example` fails     | Run `pnpm tool:sync-env-example --fix`                              |
 | MCP servers missing in Cursor    | Run `pnpm setup:local --no-start` or `pnpm mcp:setup`               |
 | Context7 MCP fails               | Set `CONTEXT7_API_KEY` in `.env.local` and reload Cursor            |
