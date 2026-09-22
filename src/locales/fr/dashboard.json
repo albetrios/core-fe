@@ -28,10 +28,11 @@
     "typeHintTeam": "Partagé avec votre équipe",
     "typeHintPersonal": "Privé pour vous",
     "billing": "Facturation",
-    "billingManaged": "Gérée",
     "billingNone": "—",
-    "billingHintTeam": "Plan équipe",
-    "billingHintPersonal": "Personnel — aucun"
+    "billingNoPlan": "Aucun forfait",
+    "billingHintPlan": "Facturation {{cycle}}",
+    "billingCycleMonthly": "mensuelle",
+    "billingCycleYearly": "annuelle"
   },
   "nextSteps": {
     "ariaLabel": "Prochaines étapes suggérées",
@@ -186,7 +187,10 @@
     "description": "Forfait, renouvellement et paiement",
     "plan": "Forfait",
     "nextInvoice": "Prochaine facture",
-    "payment": "Paiement"
+    "payment": "Paiement",
+    "noPlan": "Aucun forfait",
+    "choosePlan": "Choisir un forfait",
+    "manage": "Gérer la facturation"
   },
   "ai": {
     "heading": "Interrogez votre espace",

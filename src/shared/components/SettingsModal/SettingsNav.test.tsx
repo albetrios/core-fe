@@ -150,6 +150,56 @@ describe('SettingsNav', () => {
     });
   });
 
+  it('reports how many sections the query matched', async () => {
+    const user = userEvent.setup();
+    renderNav();
+    expect(screen.queryByTestId('settings-search-count')).not.toBeInTheDocument();
+    await user.type(screen.getByTestId('settings-search'), 'passkey');
+    // One MATCH, even though the rail also still lists the open section.
+    expect(screen.getByTestId('settings-search-count')).toHaveTextContent(/\b1\b/);
+  });
+
+  // Regression (QA-V3-4): this aside never unmounts, so a query typed on one
+  // section stayed up over every section opened afterwards. Keeping the open
+  // section listed answers a different half of that report — the rail no longer
+  // contradicts the pane — but the query still outlived the visit that typed it.
+  it('drops the query when the active section changes', async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderNav();
+    await user.type(screen.getByTestId('settings-search'), 'passkey');
+    expect(screen.queryByTestId('settings-nav-account-account')).not.toBeInTheDocument();
+
+    rerender(
+      <SettingsNav
+        groups={SETTINGS_NAV}
+        active={{ scope: 'organization', section: 'roles' }}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('settings-search')).toHaveValue('');
+    expect(screen.getByTestId('settings-nav-account-account')).toBeInTheDocument();
+  });
+
+  it('drops the query when a result is picked', async () => {
+    const user = userEvent.setup();
+    renderNav();
+    await user.type(screen.getByTestId('settings-search'), 'passkey');
+    await user.click(screen.getByTestId('settings-nav-account-security'));
+    expect(screen.getByTestId('settings-search')).toHaveValue('');
+    expect(screen.getByTestId('settings-nav-account-account')).toBeInTheDocument();
+  });
+
+  it('offers a way out of a no-match search', async () => {
+    const user = userEvent.setup();
+    renderNav();
+    await user.type(screen.getByTestId('settings-search'), 'zzznomatch');
+    await user.click(screen.getByTestId('settings-search-clear'));
+    expect(screen.getByTestId('settings-search')).toHaveValue('');
+    expect(screen.queryByTestId('settings-nav-empty')).not.toBeInTheDocument();
+    expect(screen.getByTestId('settings-nav-account-account')).toBeInTheDocument();
+  });
+
   it('renders only the groups it is given (parent owns gating)', () => {
     renderNav({ groups: SETTINGS_NAV.filter((g) => g.scope === 'account') });
     expect(screen.getByTestId('settings-nav-account-profile')).toBeInTheDocument();

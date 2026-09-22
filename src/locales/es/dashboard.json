@@ -28,10 +28,11 @@
     "typeHintTeam": "Compartido con tu equipo",
     "typeHintPersonal": "Privado para ti",
     "billing": "Facturación",
-    "billingManaged": "Gestionada",
     "billingNone": "—",
-    "billingHintTeam": "Plan de equipo",
-    "billingHintPersonal": "Personal — ninguno"
+    "billingNoPlan": "Sin plan todavía",
+    "billingHintPlan": "Facturación {{cycle}}",
+    "billingCycleMonthly": "mensual",
+    "billingCycleYearly": "anual"
   },
   "nextSteps": {
     "ariaLabel": "Próximos pasos sugeridos",
@@ -186,7 +187,10 @@
     "description": "Plan, renovación y pago",
     "plan": "Plan",
     "nextInvoice": "Próxima factura",
-    "payment": "Pago"
+    "payment": "Pago",
+    "noPlan": "Sin plan",
+    "choosePlan": "Elegir un plan",
+    "manage": "Gestionar facturación"
   },
   "ai": {
     "heading": "Pregunta a tu espacio",

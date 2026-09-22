@@ -5,6 +5,11 @@
     "searchPlaceholder": "Rechercher",
     "searchAria": "Rechercher dans les paramètres",
     "empty": "Aucune correspondance",
+    "emptyHint": "Aucun paramètre ne correspond à « {{query}} ». La section ouverte reste affichée ci-dessous.",
+    "matches_one": "{{count}} résultat",
+    "matches_many": "{{count}} résultats",
+    "matches_other": "{{count}} résultats",
+    "clearSearch": "Effacer la recherche",
     "groups": {
       "account": "Compte",
       "organization": "Organisation"
@@ -174,6 +179,10 @@
     "profile": {
       "title": "Profil",
       "description": "Comment vous apparaissez dans l'application. Visible par les personnes de votre organisation.",
+      "nameLabel": "Nom",
+      "jobTitleLabel": "Intitulé du poste",
+      "emailLabel": "E-mail",
+      "emailHint": "L'e-mail ne peut pas être modifié ici.",
       "completeness": "Profil complété à {{percent}} %",
       "confirmTitle": "Enregistrer les modifications du profil ?",
       "confirmDescription": "Voulez-vous vraiment mettre à jour vos informations de profil ?",

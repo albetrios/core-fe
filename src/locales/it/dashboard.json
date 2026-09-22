@@ -28,10 +28,11 @@
     "typeHintTeam": "Condiviso con il tuo team",
     "typeHintPersonal": "Privato per te",
     "billing": "Fatturazione",
-    "billingManaged": "Gestita",
     "billingNone": "—",
-    "billingHintTeam": "Piano team",
-    "billingHintPersonal": "Personale — nessuno"
+    "billingNoPlan": "Nessun piano",
+    "billingHintPlan": "Fatturazione {{cycle}}",
+    "billingCycleMonthly": "mensile",
+    "billingCycleYearly": "annuale"
   },
   "nextSteps": {
     "ariaLabel": "Prossimi passi suggeriti",
@@ -186,7 +187,10 @@
     "description": "Piano, rinnovo e pagamento",
     "plan": "Piano",
     "nextInvoice": "Prossima fattura",
-    "payment": "Pagamento"
+    "payment": "Pagamento",
+    "noPlan": "Nessun piano",
+    "choosePlan": "Scegli un piano",
+    "manage": "Gestisci la fatturazione"
   },
   "ai": {
     "heading": "Chiedi al tuo spazio",

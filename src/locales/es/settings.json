@@ -5,6 +5,11 @@
     "searchPlaceholder": "Buscar",
     "searchAria": "Buscar en configuración",
     "empty": "Sin coincidencias",
+    "emptyHint": "Ningún ajuste coincide con «{{query}}». La sección que tienes abierta sigue en la lista.",
+    "matches_one": "{{count}} coincidencia",
+    "matches_many": "{{count}} coincidencias",
+    "matches_other": "{{count}} coincidencias",
+    "clearSearch": "Borrar búsqueda",
     "groups": {
       "account": "Cuenta",
       "organization": "Organización"
@@ -174,6 +179,10 @@
     "profile": {
       "title": "Perfil",
       "description": "Cómo apareces en la aplicación. Visible para las personas de tu organización.",
+      "nameLabel": "Nombre",
+      "jobTitleLabel": "Puesto",
+      "emailLabel": "Correo electrónico",
+      "emailHint": "El correo electrónico no se puede cambiar aquí.",
       "completeness": "Perfil {{percent}}% completo",
       "confirmTitle": "¿Guardar los cambios del perfil?",
       "confirmDescription": "¿Seguro que quieres actualizar la información de tu perfil?",

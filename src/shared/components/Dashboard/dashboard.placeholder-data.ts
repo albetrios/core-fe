@@ -293,14 +293,6 @@ export const DASHBOARD_PLAN_METERS: readonly DashboardPlanMeter[] = [
   },
 ] as const;
 
-/** Placeholder billing summary (sample-badged; the next-invoice date derives
- *  from the schedule's `invoiceDue` event so both cards agree). */
-export const DASHBOARD_BILLING_SAMPLE = {
-  amount: 49,
-  currency: 'USD',
-  cardLast4: '4242',
-} as const;
-
 /** One mini-gantt row — a schedule event stretched to a duration in days. */
 export type DashboardGanttItem = DashboardScheduledEvent & { durationDays: number };
 

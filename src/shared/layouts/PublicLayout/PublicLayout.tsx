@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 
 import { onceAsync } from '@/lib/lazy-module.ts';
+import { WorkspaceSwitchOverlay } from '@/shared/components/WorkspaceSwitchOverlay/index.ts';
 import { LayoutVariantFallback } from '@/shared/layouts/LayoutVariantFallback/index.ts';
 import { useThemeStore } from '@/shared/store/useThemeStore/index.ts';
 
@@ -30,6 +31,21 @@ export function PublicLayout() {
 
   return (
     <Suspense fallback={<LayoutVariantFallback />}>
+      {/*
+        The workspace-switch cover, mounted HERE as well as in `AppLayout`.
+        Finishing onboarding activates a workspace and then hands the user over
+        to it, and that whole hop happens on THIS layout — so a cover that only
+        the app shell mounts could not appear until the destination had already
+        arrived, which is the one moment it has nothing left to say.
+
+        Mounted in the two layouts rather than once at the route root on
+        purpose: the root component is entry-resident, and putting it there cost
+        the initial JS bundle ~15 kB gzipped against a budget with under half a
+        kilobyte of headroom. Both layouts are lazy route components, so here it
+        costs nothing before it can possibly be needed. It renders `null` unless
+        a switch is in flight, so the two mounts never collide.
+      */}
+      <WorkspaceSwitchOverlay />
       <Shell />
     </Suspense>
   );

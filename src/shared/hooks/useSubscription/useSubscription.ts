@@ -24,6 +24,44 @@ export function useSubscription() {
   });
 }
 
+/**
+ * The one answer to "what plan is this workspace on?".
+ *
+ * @remarks
+ * The dashboard used to answer it from a hardcoded `isTeam ? 'Managed' : '—'`
+ * and a fabricated sample card, while Settings → Billing answered it from the
+ * API — so a workspace with no subscription at all read "Managed · Team plan"
+ * on one screen and "No plan · choose one below" on the next (QA-V3-3). Both
+ * surfaces now derive from here.
+ *
+ * `price` is the amount for the cycle the subscription is actually on, so the
+ * headline figure matches the invoice rather than an arbitrary monthly rate. A
+ * context without billing access (a personal workspace) resolves to no
+ * subscription rather than an error — see {@link billingApi.getActiveSubscription}.
+ */
+export function useCurrentPlan() {
+  const subscriptionQuery = useSubscription();
+  const plansQuery = useBillingPlans();
+  const subscription = subscriptionQuery.data ?? null;
+  const plan =
+    subscription?.planId && plansQuery.data
+      ? (plansQuery.data.find((candidate) => candidate.id === subscription.planId) ??
+        null)
+      : null;
+  const cyclePrice =
+    subscription?.billingCycle === 'yearly' ? plan?.priceYearly : plan?.priceMonthly;
+
+  return {
+    subscription,
+    plan,
+    /** Amount in cents for the subscription's own cycle, or null without one. */
+    priceCents: cyclePrice ?? null,
+    currency: plan?.currency ?? null,
+    /** Still resolving — surfaces should show a placeholder, never a guess. */
+    isPending: subscriptionQuery.isPending || plansQuery.isPending,
+  };
+}
+
 export function useBillingPlans() {
   return useAppQuery({
     queryKey: billingQueryKeys.plans(),

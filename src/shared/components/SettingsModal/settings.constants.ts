@@ -9,6 +9,9 @@ export const SETTINGS_KEYS = {
     searchPlaceholder: 'nav.searchPlaceholder',
     searchAria: 'nav.searchAria',
     empty: 'nav.empty',
+    emptyHint: 'nav.emptyHint',
+    matches: 'nav.matches',
+    clearSearch: 'nav.clearSearch',
     groups: {
       account: 'nav.groups.account',
       organization: 'nav.groups.organization',
@@ -274,6 +277,10 @@ export const SETTINGS_KEYS = {
     profile: {
       title: 'panels.profile.title',
       description: 'panels.profile.description',
+      nameLabel: 'panels.profile.nameLabel',
+      jobTitleLabel: 'panels.profile.jobTitleLabel',
+      emailLabel: 'panels.profile.emailLabel',
+      emailHint: 'panels.profile.emailHint',
       namePlaceholder: 'panels.profile.namePlaceholder',
       jobTitlePlaceholder: 'panels.profile.jobTitlePlaceholder',
       completeness: 'panels.profile.completeness',

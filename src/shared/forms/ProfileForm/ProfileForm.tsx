@@ -151,7 +151,7 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
       >
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="profile-name">Name</Label>
+            <Label htmlFor="profile-name">{t(panels.nameLabel)}</Label>
             <Input
               id="profile-name"
               {...register('name')}
@@ -172,7 +172,7 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="profile-job-title">Job title</Label>
+            <Label htmlFor="profile-job-title">{t(panels.jobTitleLabel)}</Label>
             <Input
               id="profile-job-title"
               {...register('jobTitle')}
@@ -183,7 +183,7 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profile-email">Email</Label>
+          <Label htmlFor="profile-email">{t(panels.emailLabel)}</Label>
           <Input
             id="profile-email"
             type="email"
@@ -195,7 +195,7 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
             data-testid="profile-email"
           />
           <p id="profile-email-desc" className="text-muted-foreground text-xs">
-            Email cannot be changed here.
+            {t(panels.emailHint)}
           </p>
         </div>
 

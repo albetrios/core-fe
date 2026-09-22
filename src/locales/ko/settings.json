@@ -5,6 +5,9 @@
     "searchPlaceholder": "검색",
     "searchAria": "설정 검색",
     "empty": "일치 항목 없음",
+    "emptyHint": "“{{query}}”과(와) 일치하는 설정이 없습니다. 열려 있는 섹션은 아래에 계속 표시됩니다.",
+    "matches_other": "{{count}}개 일치",
+    "clearSearch": "검색 지우기",
     "groups": {
       "account": "계정",
       "organization": "조직"
@@ -172,6 +175,10 @@
     "profile": {
       "title": "프로필",
       "description": "앱에서 보이는 모습. 조직의 사람들에게 표시됩니다.",
+      "nameLabel": "이름",
+      "jobTitleLabel": "직책",
+      "emailLabel": "이메일",
+      "emailHint": "이메일은 여기에서 변경할 수 없습니다.",
       "completeness": "프로필 {{percent}}% 완료",
       "confirmTitle": "프로필 변경을 저장하시겠습니까?",
       "confirmDescription": "프로필 정보를 업데이트하시겠습니까?",

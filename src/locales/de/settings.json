@@ -5,6 +5,10 @@
     "searchPlaceholder": "Suchen",
     "searchAria": "Einstellungen durchsuchen",
     "empty": "Keine Treffer",
+    "emptyHint": "Keine Einstellung passt zu „{{query}}“. Der geöffnete Bereich wird weiterhin unten aufgeführt.",
+    "matches_one": "{{count}} Treffer",
+    "matches_other": "{{count}} Treffer",
+    "clearSearch": "Suche löschen",
     "groups": {
       "account": "Konto",
       "organization": "Organisation"
@@ -172,6 +176,10 @@
     "profile": {
       "title": "Profil",
       "description": "Wie Sie in der App erscheinen. Sichtbar für Personen in Ihrer Organisation.",
+      "nameLabel": "Name",
+      "jobTitleLabel": "Berufsbezeichnung",
+      "emailLabel": "E-Mail",
+      "emailHint": "Die E-Mail-Adresse kann hier nicht geändert werden.",
       "completeness": "Profil zu {{percent}} % vollständig",
       "confirmTitle": "Profiländerungen speichern?",
       "confirmDescription": "Möchten Sie Ihre Profilinformationen wirklich aktualisieren?",

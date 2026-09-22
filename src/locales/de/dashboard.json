@@ -28,10 +28,11 @@
     "typeHintTeam": "Mit Ihrem Team geteilt",
     "typeHintPersonal": "Privat für Sie",
     "billing": "Abrechnung",
-    "billingManaged": "Verwaltet",
     "billingNone": "—",
-    "billingHintTeam": "Team-Plan",
-    "billingHintPersonal": "Persönlich — keiner"
+    "billingNoPlan": "Noch kein Tarif",
+    "billingHintPlan": "Abrechnung {{cycle}}",
+    "billingCycleMonthly": "monatlich",
+    "billingCycleYearly": "jährlich"
   },
   "nextSteps": {
     "ariaLabel": "Vorgeschlagene nächste Schritte",
@@ -185,7 +186,10 @@
     "description": "Plan, Verlängerung und Zahlung",
     "plan": "Plan",
     "nextInvoice": "Nächste Rechnung",
-    "payment": "Zahlung"
+    "payment": "Zahlung",
+    "noPlan": "Kein Tarif",
+    "choosePlan": "Tarif wählen",
+    "manage": "Abrechnung verwalten"
   },
   "ai": {
     "heading": "Frag deinen Workspace",

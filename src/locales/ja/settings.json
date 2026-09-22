@@ -5,6 +5,9 @@
     "searchPlaceholder": "検索",
     "searchAria": "設定を検索",
     "empty": "一致なし",
+    "emptyHint": "「{{query}}」に一致する設定はありません。開いているセクションは下に表示されたままです。",
+    "matches_other": "{{count}} 件",
+    "clearSearch": "検索をクリア",
     "groups": {
       "account": "アカウント",
       "organization": "組織"
@@ -172,6 +175,10 @@
     "profile": {
       "title": "プロフィール",
       "description": "アプリでの表示方法。組織のメンバーに見えます。",
+      "nameLabel": "名前",
+      "jobTitleLabel": "役職",
+      "emailLabel": "メールアドレス",
+      "emailHint": "メールアドレスはここでは変更できません。",
       "completeness": "プロフィール完成度 {{percent}}%",
       "confirmTitle": "プロフィールの変更を保存しますか？",
       "confirmDescription": "プロフィール情報を更新してよろしいですか？",

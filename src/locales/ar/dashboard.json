@@ -28,10 +28,11 @@
     "typeHintTeam": "مشتركة مع فريقك",
     "typeHintPersonal": "خاصة بك",
     "billing": "الفوترة",
-    "billingManaged": "مُدارة",
     "billingNone": "—",
-    "billingHintTeam": "خطة الفريق",
-    "billingHintPersonal": "شخصي — لا يوجد"
+    "billingNoPlan": "لا توجد خطة بعد",
+    "billingHintPlan": "الفوترة {{cycle}}",
+    "billingCycleMonthly": "شهريًا",
+    "billingCycleYearly": "سنويًا"
   },
   "nextSteps": {
     "ariaLabel": "الخطوات التالية المقترحة",
@@ -189,7 +190,10 @@
     "description": "الخطة والتجديد والدفع",
     "plan": "الخطة",
     "nextInvoice": "الفاتورة التالية",
-    "payment": "الدفع"
+    "payment": "الدفع",
+    "noPlan": "لا توجد خطة",
+    "choosePlan": "اختر خطة",
+    "manage": "إدارة الفوترة"
   },
   "ai": {
     "heading": "اسأل مساحة عملك",

@@ -28,10 +28,11 @@
     "typeHintTeam": "팀과 공유",
     "typeHintPersonal": "나에게만 비공개",
     "billing": "결제",
-    "billingManaged": "관리됨",
     "billingNone": "—",
-    "billingHintTeam": "팀 플랜",
-    "billingHintPersonal": "개인 — 없음"
+    "billingNoPlan": "아직 플랜 없음",
+    "billingHintPlan": "{{cycle}} 청구",
+    "billingCycleMonthly": "매월",
+    "billingCycleYearly": "매년"
   },
   "nextSteps": {
     "ariaLabel": "추천 다음 단계",
@@ -184,7 +185,10 @@
     "description": "플랜, 갱신, 결제",
     "plan": "플랜",
     "nextInvoice": "다음 청구서",
-    "payment": "결제 수단"
+    "payment": "결제 수단",
+    "noPlan": "플랜 없음",
+    "choosePlan": "플랜 선택",
+    "manage": "결제 관리"
   },
   "ai": {
     "heading": "워크스페이스에 물어보기",

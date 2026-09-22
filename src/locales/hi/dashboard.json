@@ -28,10 +28,11 @@
     "typeHintTeam": "आपकी टीम के साथ साझा",
     "typeHintPersonal": "केवल आपके लिए निजी",
     "billing": "बिलिंग",
-    "billingManaged": "प्रबंधित",
     "billingNone": "—",
-    "billingHintTeam": "टीम प्लान",
-    "billingHintPersonal": "व्यक्तिगत — कोई नहीं"
+    "billingNoPlan": "अभी कोई प्लान नहीं",
+    "billingHintPlan": "{{cycle}} बिलिंग",
+    "billingCycleMonthly": "मासिक",
+    "billingCycleYearly": "वार्षिक"
   },
   "nextSteps": {
     "ariaLabel": "सुझाए गए अगले चरण",
@@ -185,7 +186,10 @@
     "description": "प्लान, नवीनीकरण और भुगतान",
     "plan": "प्लान",
     "nextInvoice": "अगला चालान",
-    "payment": "भुगतान"
+    "payment": "भुगतान",
+    "noPlan": "कोई प्लान नहीं",
+    "choosePlan": "प्लान चुनें",
+    "manage": "बिलिंग प्रबंधित करें"
   },
   "ai": {
     "heading": "अपने वर्कस्पेस से पूछें",

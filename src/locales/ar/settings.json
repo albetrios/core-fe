@@ -5,6 +5,14 @@
     "searchPlaceholder": "بحث",
     "searchAria": "البحث في الإعدادات",
     "empty": "لا نتائج",
+    "emptyHint": "لا توجد إعدادات تطابق «{{query}}». القسم المفتوح لا يزال مدرجًا أدناه.",
+    "matches_zero": "لا توجد نتائج",
+    "matches_one": "نتيجة واحدة",
+    "matches_two": "نتيجتان",
+    "matches_few": "{{count}} نتائج",
+    "matches_many": "{{count}} نتيجة",
+    "matches_other": "{{count}} نتيجة",
+    "clearSearch": "مسح البحث",
     "groups": {
       "account": "الحساب",
       "organization": "المؤسسة"
@@ -180,6 +188,10 @@
     "profile": {
       "title": "الملف الشخصي",
       "description": "كيف تظهر في التطبيق. مرئي لأشخاص مؤسستك.",
+      "nameLabel": "الاسم",
+      "jobTitleLabel": "المسمى الوظيفي",
+      "emailLabel": "البريد الإلكتروني",
+      "emailHint": "لا يمكن تغيير البريد الإلكتروني من هنا.",
       "completeness": "الملف الشخصي مكتمل بنسبة {{percent}}%",
       "confirmTitle": "حفظ تغييرات الملف الشخصي؟",
       "confirmDescription": "هل أنت متأكد من تحديث معلومات ملفك الشخصي؟",

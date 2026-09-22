@@ -28,10 +28,11 @@
     "typeHintTeam": "与团队共享",
     "typeHintPersonal": "仅您可见",
     "billing": "账单",
-    "billingManaged": "已管理",
     "billingNone": "—",
-    "billingHintTeam": "团队套餐",
-    "billingHintPersonal": "个人 — 无"
+    "billingNoPlan": "尚无方案",
+    "billingHintPlan": "{{cycle}}结算",
+    "billingCycleMonthly": "按月",
+    "billingCycleYearly": "按年"
   },
   "nextSteps": {
     "ariaLabel": "建议的后续步骤",
@@ -184,7 +185,10 @@
     "description": "套餐、续订与支付",
     "plan": "套餐",
     "nextInvoice": "下次账单",
-    "payment": "支付方式"
+    "payment": "支付方式",
+    "noPlan": "无方案",
+    "choosePlan": "选择方案",
+    "manage": "管理账单"
   },
   "ai": {
     "heading": "询问你的工作区",

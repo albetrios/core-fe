@@ -32,6 +32,7 @@ import { Loader } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
+import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
 import type { MeContext } from '@/shared/tenancy/me-context.ts';
 import {
   createOrganization,
@@ -382,21 +383,36 @@ function navigateAfterOnboarding(
   navigate: ReturnType<typeof useNavigate>,
   ctx: MeContext,
   redirectPath?: string,
-): void {
+): Promise<void> {
   if (redirectPath && isSafeRedirectPath(redirectPath)) {
-    void navigate({ to: redirectPath, replace: true });
-    return;
+    return navigate({ to: redirectPath, replace: true });
   }
   const target = resolveRootTarget(ctx);
   if (target.to === '/organization/$organizationSlug/dashboard') {
-    void navigate({ to: target.to, params: target.params, replace: true });
-    return;
+    return navigate({ to: target.to, params: target.params, replace: true });
   }
   if (target.to === '/dashboard' || target.to === '/organization') {
-    void navigate({ to: target.to, replace: true });
-    return;
+    return navigate({ to: target.to, replace: true });
   }
-  void navigate({ to: '/', replace: true });
+  return navigate({ to: '/', replace: true });
+}
+
+/**
+ * The name to put on the hand-off cover — the workspace the user is about to
+ * land in. Prefers what the just-activated context says is active over what the
+ * wizard typed, because an invited user who created nothing still lands
+ * somewhere and deserves to be told where.
+ */
+function resolveHandoffWorkspaceName(
+  ctx: MeContext | null,
+  typedOrganizationName: string,
+): string {
+  // Not `a || b`: an active organization whose name is blank (or whitespace)
+  // should fall through to what the user typed, and `??` would keep the empty
+  // string. Spelled out rather than fought with an operator.
+  const activeName = ctx?.activeOrganization?.name?.trim();
+  if (activeName) return activeName;
+  return typedOrganizationName.trim();
 }
 
 /** This wizard's own pathname — where a destination guard bounces the user back to. */
@@ -626,6 +642,8 @@ export function OnboardingPage() {
     : EMPTY_STEPS;
   const [submitting, setSubmitting] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
+  const beginSwitch = useWorkspaceSwitchStore((s) => s.beginSwitch);
+  const endSwitch = useWorkspaceSwitchStore((s) => s.endSwitch);
   // Synchronous twin of `submitting` — see finish().
   const finishingRef = useRef(false);
   /*
@@ -732,6 +750,37 @@ export function OnboardingPage() {
     (step !== 'workspace' || (organizationName.trim().length > 0 && slugValid)) &&
     (step !== 'profile' || firstName.trim().length > 0);
 
+  /**
+   * Hand the user over to their workspace, with the screen saying so.
+   *
+   * The writes are done by the time this runs; what is left is the destination's
+   * own guard chain (session, org context, permissions) and its data — several
+   * hundred milliseconds of network on a good connection, and the router keeps
+   * the CURRENT screen up for up to 3s while it runs (IN_APP_PENDING_POLICY).
+   * That screen is this wizard. Clearing `submitting` the moment `navigate()`
+   * was *called* then put the Continue/Enter button back to its idle label, so
+   * the finished wizard sat there looking untouched, a success toast beside it
+   * and the URL already reading `/dashboard` — indistinguishable from a click
+   * that did nothing, and reliably "fixed" by a manual reload (QA-V3-1).
+   *
+   * Covering it with the same overlay the organization switcher uses says what
+   * is actually happening, and awaiting the navigation keeps `submitting` true
+   * for the whole hop so the button cannot look idle underneath.
+   */
+  const handOffToWorkspace = async (context: MeContext) => {
+    beginSwitch(
+      resolveHandoffWorkspaceName(
+        context,
+        useOnboardingStore.getState().data.organizationName,
+      ),
+    );
+    try {
+      await navigateAfterOnboarding(navigate, context, redirectSearch);
+    } finally {
+      endSwitch();
+    }
+  };
+
   const finish = async () => {
     // `submitting` only disables the button after React re-renders, so the
     // control stays live for the frame after the first click: a double-click or
@@ -751,7 +800,7 @@ export function OnboardingPage() {
      * button is never left stuck disabled either.
      */
     if (finishedContextRef.current) {
-      navigateAfterOnboarding(navigate, finishedContextRef.current, redirectSearch);
+      await handOffToWorkspace(finishedContextRef.current);
       return;
     }
     // The button is disabled without a context, but the guard belongs here too:
@@ -862,7 +911,7 @@ export function OnboardingPage() {
       // Armed BEFORE control passes to the router: every write above has
       // landed, so from this point a repeat click must navigate, not re-submit.
       finishedContextRef.current = activatedContext ?? refreshedContext;
-      navigateAfterOnboarding(navigate, finishedContextRef.current, redirectSearch);
+      await handOffToWorkspace(finishedContextRef.current);
     } catch (error) {
       /*
        * The error object used to be discarded entirely: a generic toast that
