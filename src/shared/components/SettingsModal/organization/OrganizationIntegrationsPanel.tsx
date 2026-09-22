@@ -45,6 +45,7 @@ import {
 } from '@/shared/hooks/useWebhooks/index.ts';
 import { Boxes, Plus, Trash } from '@/shared/icons/index.ts';
 
+import { ApiKeyCreateDialog } from './ApiKeyCreateDialog.tsx';
 import {
   DEFAULT_ORG_LIST_SORT,
   type OrgListSortPreset,
@@ -57,6 +58,24 @@ function useCanManageIntegrations(): boolean {
 }
 
 /** API keys — windowed list (masked) + search + cap-gated revoke. */
+/**
+ * The API-keys heading and its create action. Split out of `ApiKeysSection`
+ * only to keep that function's branch count under the complexity ceiling —
+ * the section already carries loading, error, empty, searching and list
+ * branches, and the permission check would have been one too many.
+ */
+function ApiKeysHeader({ canManage }: { canManage: boolean }) {
+  const { t: tSettings } = useTranslation(SETTINGS_NS);
+  return (
+    <div className="flex items-center justify-between">
+      <h3 className="text-sm font-medium">
+        {tSettings(SETTINGS_KEYS.panels.integrations.apiKeysTitle)}
+      </h3>
+      {canManage ? <ApiKeyCreateDialog /> : null}
+    </div>
+  );
+}
+
 function ApiKeysSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
   const integrations = SETTINGS_KEYS.panels.integrations;
@@ -77,7 +96,7 @@ function ApiKeysSection() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium">{tSettings(integrations.apiKeysTitle)}</h3>
+      <ApiKeysHeader canManage={canManage} />
       <OrgListControls
         search={search}
         onSearchChange={setSearch}
@@ -388,9 +407,8 @@ function WebhooksSection() {
 }
 
 /**
- * Integrations panel — API keys (revoke) + outbound webhooks (create/delete),
- * both gated on the role:manage permission (team orgs only). API-key creation
- * with one-time-secret reveal remains a follow-up.
+ * Integrations panel — API keys (create/revoke) + outbound webhooks
+ * (create/delete), both gated on the role:manage permission (team orgs only).
  */
 export function OrganizationIntegrationsPanel() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
