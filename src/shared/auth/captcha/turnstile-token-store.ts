@@ -77,3 +77,34 @@ export function consumeTurnstileToken(): string | undefined {
   }
   return token;
 }
+
+/**
+ * Resolve once a token exists, or `false` when `timeoutMs` elapses first.
+ *
+ * @remarks
+ * The gated buttons no longer sit disabled waiting for a token — they take the
+ * click and resolve the wait themselves, which is what this is for. Two waits
+ * use it, with very different budgets: a short one that lets a background solve
+ * finish before anything is shown, and a long one that spans a human completing
+ * an interactive challenge.
+ *
+ * Returns `true` immediately when a token is already stored, so the common path
+ * costs nothing. The listener is always detached, on every exit.
+ */
+export function waitForTurnstileToken(timeoutMs: number): Promise<boolean> {
+  if (currentToken) return Promise.resolve(true);
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      unsubscribe();
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    const unsubscribe = subscribeTurnstileToken(() => {
+      if (currentToken) finish(true);
+    });
+  });
+}

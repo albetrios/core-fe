@@ -48,16 +48,14 @@ describe('AuthMethodButton', () => {
     expect(btn.querySelector('.animate-spin')).toBeNull();
   });
 
-  // LOGIN-4: waiting on a captcha token is not this method loading. It used to
-  // spin here, which read as "your click is being processed" while nothing was in
-  // flight — after send-code consumed the single-use token, "Verify and continue"
-  // sat spinning and greyed out and typing the code did not clear it. The button
-  // still disables (it genuinely cannot post without a token); CaptchaGateNotice
-  // explains why in words.
-  it('disables a captcha-gated button WITHOUT spinning while a token mints', () => {
-    renderButton({ captchaGated: true, turnstileReady: false });
+  // A captcha the user never started must never take the control away from them:
+  // disabled + `pointer-events: none` is a button they cannot press, cannot hover
+  // for a reason, and cannot reach by keyboard. The wait now happens inside the
+  // click instead (see useCaptchaIntent).
+  it('is NOT disabled while a captcha token is still minting', () => {
+    renderButton({});
     const btn = screen.getByTestId('btn-google');
-    expect(btn).toBeDisabled();
+    expect(btn).toBeEnabled();
     expect(btn).toHaveAttribute('aria-busy', 'false');
     expect(btn.querySelector('.animate-spin')).toBeNull();
   });
@@ -68,10 +66,10 @@ describe('AuthMethodButton', () => {
     expect(btn).toHaveAttribute('aria-busy', 'true');
   });
 
-  it('does NOT spin a captcha-gated idle button once another method is pending', () => {
-    // Single-use token consumed by the pending method → turnstileReady false —
-    // but this idle button must stay disabled without a spinner.
-    renderButton({ captchaGated: true, turnstileReady: false, pending: github });
+  it('does NOT spin an idle button once another method is pending', () => {
+    // The pending method owns the spinner; every other button is disabled by the
+    // in-flight guard (not by the captcha) and stays still.
+    renderButton({ pending: github });
     const btn = screen.getByTestId('btn-google');
     expect(btn).toBeDisabled();
     expect(btn).toHaveAttribute('aria-busy', 'false');

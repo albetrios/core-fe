@@ -17,7 +17,7 @@ import {
   AUTH_NS,
 } from '@/shared/auth/auth-shell.constants.ts';
 import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
-import { useCaptchaGate } from '@/shared/auth/captcha/useCaptchaGate/index.ts';
+import { useCaptchaIntent } from '@/shared/auth/captcha/useCaptchaIntent/index.ts';
 import { stashMfaHandoff } from '@/shared/auth/mfa-handoff.ts';
 import { isSafeRedirectPath } from '@/shared/auth/redirect-safety.ts';
 import { establishSession } from '@/shared/auth/service.ts';
@@ -33,6 +33,7 @@ import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.t
 import { resolveRootTarget } from '@/shared/tenancy/organization-resolver.ts';
 
 import {
+  AUTH_CHALLENGE_KEYS,
   AUTH_EMAIL_VERIFICATION_CODE_RESEND_COOLDOWN_MS,
   AUTH_FORM_TEST_IDS,
 } from './auth-form.constants.ts';
@@ -42,7 +43,6 @@ import {
   authMethodIsLoading,
 } from './auth-form-pending.ts';
 import { AuthMethodButton } from './components/AuthMethodButton/index.ts';
-import { CaptchaGateNotice } from './components/CaptchaGateNotice/index.ts';
 
 function formatResendCooldown(remainingMs: number): string {
   const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
@@ -151,8 +151,7 @@ export function AuthEmailPanel({
   const [formError, setFormError] = useState<string | null>(null);
   const [resendCooldownUntil, setResendCooldownUntil] = useState<number | null>(null);
   const resendCooldownNow = useCooldownClock(resendCooldownUntil);
-  const captchaGate = useCaptchaGate();
-  const turnstileReady = captchaGate.ready;
+  const { challengeFor, ensureToken } = useCaptchaIntent();
   const emailBlocked = authEmailPanelIsBlocked(pending);
   const emailSendLoading = authMethodIsLoading(pending, { method: 'email-send' });
   const emailVerifyLoading = authMethodIsLoading(pending, { method: 'email-verify' });
@@ -227,6 +226,10 @@ export function AuthEmailPanel({
     setFormError(null);
     onPendingChange?.({ method: 'email-send' });
     try {
+      // Blocked until the captcha is satisfied — but blocked HERE, with the
+      // challenge on screen beside the button, rather than by a disabled control
+      // the user cannot press and cannot interrogate.
+      if (!(await ensureToken(AUTH_CHALLENGE_KEYS.emailSend))) return;
       const { debug_verification_code } = await authApi.emailVerificationCodeSend(value);
       captureAnalyticsEvent(ANALYTICS_EVENTS.authEmailCodeSent, { step: 'verify' });
       setSubmittedEmail(value);
@@ -281,6 +284,14 @@ export function AuthEmailPanel({
     };
 
     try {
+      // Same contract as the send step: the click carries the captcha wait, and a
+      // challenge — if Cloudflare demands one — appears above this button rather
+      // than the button greying out with nothing to act on. `handBack` releases
+      // the screen when the user does not complete it.
+      if (!(await ensureToken(AUTH_CHALLENGE_KEYS.emailVerify))) {
+        handBack();
+        return;
+      }
       const { accessToken } = await authApi.emailLogin({ email, code: value });
       await establishSession(accessToken);
       captureAnalyticsEvent(ANALYTICS_EVENTS.authEmailCodeVerified);
@@ -370,18 +381,19 @@ export function AuthEmailPanel({
               ) : null}
             </div>
 
-            {/* Escalated Turnstile challenge renders here — between the last field and the
-                submit button, the conventional captcha position — so the user meets the check
-                before the gated action. */}
-            <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+            {/* Between the email field and its button: the challenge belongs to the
+                action below it, and appearing here keeps it in the reading order the
+                user is already following. Active only while THIS step raised it. */}
+            <CaptchaSlot
+              active={challengeFor === AUTH_CHALLENGE_KEYS.emailSend}
+              testId={AUTH_FORM_TEST_IDS.captchaSlot}
+            />
 
             <AuthMethodButton
               type="submit"
               variant="default"
               target={{ method: 'email-send' }}
               pending={pending}
-              captchaGated
-              turnstileReady={turnstileReady}
               label={t(AUTH_KEYS.auth.emailContinue)}
               extraDisabled={isSubmitting}
               testId={AUTH_FORM_TEST_IDS.emailSubmit}
@@ -416,7 +428,7 @@ export function AuthEmailPanel({
         type="button"
         variant="link"
         className={inlineLinkClassName}
-        disabled={emailBlocked || emailSendLoading || resendOnCooldown || !turnstileReady}
+        disabled={emailBlocked || emailSendLoading || resendOnCooldown}
         onClick={() => void sendCode(submittedEmail)}
         data-testid={AUTH_FORM_TEST_IDS.emailResend}
       >
@@ -437,13 +449,12 @@ export function AuthEmailPanel({
           value={verificationCode}
           onChange={setVerificationCode}
           onComplete={(value) => {
-            // Auto-submit must honour the SAME captcha gate as the verify button below.
-            // Turnstile tokens are single-use: `send-code` consumed the previous one and the
-            // widget re-mints asynchronously, so a fast typist completes the code before the
-            // replacement token exists and the request posts with no `x-captcha-token` —
-            // core-be then rejects it with `captchaRequired`. The button was already gated
-            // (`captchaGated`); this path was not, which is why only auto-submit failed.
-            if (!turnstileReady) return;
+            // Auto-submit takes the same route as the button below. Turnstile tokens
+            // are single-use: `send-code` consumed the previous one and the widget
+            // re-mints asynchronously, so a fast typist finishes the code before the
+            // replacement exists. Dropping the completion silently (the old `return`)
+            // left a filled-in code that simply never submitted; `verifyCode` now
+            // resolves the token itself, showing a challenge only if one is demanded.
             void verifyCode(value);
           }}
           disabled={emailBlocked || emailVerifyLoading}
@@ -455,22 +466,16 @@ export function AuthEmailPanel({
         />
       </div>
 
-      {/* Same conventional position on the verify step: challenge above the gated
-          button — an escalated Turnstile renders here when one is demanded. */}
-      <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />
-
-      {/* And, below it, WHY the button is disabled when no challenge is showing:
-          the captcha token was consumed by send-code and the widget is minting
-          another; if that stalls, this turns into a retry rather than an
-          unexplained dead end (LOGIN-4). */}
-      <CaptchaGateNotice gate={captchaGate} />
+      {/* Same position on the verify step: above the gated button. */}
+      <CaptchaSlot
+        active={challengeFor === AUTH_CHALLENGE_KEYS.emailVerify}
+        testId={AUTH_FORM_TEST_IDS.captchaSlot}
+      />
 
       <AuthMethodButton
         variant="default"
         target={{ method: 'email-verify' }}
         pending={pending}
-        captchaGated
-        turnstileReady={turnstileReady}
         label={t(AUTH_KEYS.auth.email.verifyAndContinue)}
         extraDisabled={
           verificationCode.trim().length !== AUTH_EMAIL_VERIFICATION_CODE_LENGTH
