@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.9.0](https://github.com/albetrios/core-fe/compare/v1.8.0...v1.9.0) (2026-09-22)
+
+
+### Added
+
+* **settings:** let an organization create its own API key ([#309](https://github.com/albetrios/core-fe/issues/309)) ([ef0ce6e](https://github.com/albetrios/core-fe/commit/ef0ce6e7a2ed43628f0a5716b471c9727c1aaea7))
+
+
+### Fixed
+
+* **billing:** stop the plan cards claiming a plan the summary denies ([#315](https://github.com/albetrios/core-fe/issues/315)) ([c427857](https://github.com/albetrios/core-fe/commit/c42785749f8f3b3554c1d1aeb244e6f746007659))
+* **dashboard:** make each workspace suggestion open what it names ([#311](https://github.com/albetrios/core-fe/issues/311)) ([078b66b](https://github.com/albetrios/core-fe/commit/078b66bc924d9e45abf107540de28480e68bfe68))
+* **observability:** serve Document-Policy so Sentry profiling can run ([#304](https://github.com/albetrios/core-fe/issues/304)) ([bbd10fa](https://github.com/albetrios/core-fe/commit/bbd10fa24c06618801f78cc88955eece236b9df0))
+* **organization:** say why an invalid Workspace URL was refused ([#314](https://github.com/albetrios/core-fe/issues/314)) ([fb296c1](https://github.com/albetrios/core-fe/commit/fb296c1896896e8fef2fc75cc911cc9bac8fa5c8))
+* **routing:** stop an active organization being shown as suspended ([#308](https://github.com/albetrios/core-fe/issues/308)) ([ceebc37](https://github.com/albetrios/core-fe/commit/ceebc37f1cbb6fc7faba978469c69d75fabf5b80))
+* **security:** stop the two header sources disagreeing on X-Frame-Options ([#306](https://github.com/albetrios/core-fe/issues/306)) ([3979b67](https://github.com/albetrios/core-fe/commit/3979b67946a09d2b7a51ae7e00bd9d3ea4d74ae2))
+* **security:** warn when a deploy has no CSP violation collector ([#310](https://github.com/albetrios/core-fe/issues/310)) ([e0d51b1](https://github.com/albetrios/core-fe/commit/e0d51b1461218a37196945b4a372967b70e62640))
+* **settings:** keep the open section in the rail while searching ([#316](https://github.com/albetrios/core-fe/issues/316)) ([1e7b604](https://github.com/albetrios/core-fe/commit/1e7b604bd4f0e5397c2c9af2f1cdff6fbded8fc3))
+* **settings:** open the invite on the least-privileged role ([#307](https://github.com/albetrios/core-fe/issues/307)) ([9ce2201](https://github.com/albetrios/core-fe/commit/9ce220113136ab514392bd8ae645d64058b867c2))
+* **theme:** apply a light/dark switch to the whole page ([#302](https://github.com/albetrios/core-fe/issues/302)) ([832983b](https://github.com/albetrios/core-fe/commit/832983b3120dc352aa569eb082e730dccd1a023a))
+
 ## [1.8.0](https://github.com/albetrios/core-fe/compare/v1.7.0...v1.8.0) (2026-09-21)
 
 
