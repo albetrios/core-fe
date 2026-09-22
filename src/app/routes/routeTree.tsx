@@ -223,7 +223,11 @@ export function preloadBootRoutes(hint: { likelySignedIn: boolean }): void {
  *   where an error boundary and a Retry exist.
  */
 export function preloadSignedInShell(): Promise<void> {
-  return Promise.all([
+  // `allSettled`, not `all`: one destination failing to warm says nothing about
+  // the others, and there is no failure here worth reporting — the router
+  // re-requests every chunk through the normal path, where an error boundary and
+  // a Retry exist. It also means this can never reject, so callers need no catch.
+  return Promise.allSettled([
     PersonalShell.preload?.(),
     OrganizationShell.preload?.(),
     DashboardPage.preload?.(),
@@ -231,9 +235,7 @@ export function preloadSignedInShell(): Promise<void> {
     // still arriving after the navigation once the shells were warm. 11 kB is a
     // cheap wrong guess for anyone who has already onboarded.
     OnboardingPage.preload?.(),
-  ])
-    .then(() => undefined)
-    .catch(() => undefined);
+  ]).then(() => undefined);
 }
 
 // ── Root ──

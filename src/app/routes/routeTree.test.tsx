@@ -9,6 +9,7 @@ import {
   createAppRouter,
   IN_APP_PENDING_POLICY,
   preloadBootRoutes,
+  preloadSignedInShell,
   router,
 } from './routeTree.tsx';
 
@@ -262,6 +263,16 @@ describe('router configuration', () => {
       // deployment flags, so the shell route's loader fetches it once me/context
       // is in the store.
       expect(preloadSessionAppShell).not.toHaveBeenCalled();
+    });
+
+    // Called on INTENT (an email submitted, an OAuth redirect started), not only
+    // at boot — so it has to settle cleanly on its own rather than only as a
+    // fire-and-forget branch of `preloadBootRoutes`.
+    it('resolves when the signed-in shell is warmed directly', async () => {
+      await expect(preloadSignedInShell()).resolves.toBeUndefined();
+
+      // Same side as the signed-in boot hint: never the sign-in variant loaders.
+      expect(preloadAuthLayoutVariant).not.toHaveBeenCalled();
     });
 
     it('never imports the variant loaders statically — the route tree IS the entry chunk', async () => {
