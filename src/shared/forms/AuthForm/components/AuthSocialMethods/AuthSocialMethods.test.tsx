@@ -13,7 +13,8 @@ function renderMethods(overrides: Partial<Parameters<typeof AuthSocialMethods>[0
       providers={['google', 'github']}
       showPasskey
       pending={null}
-      turnstileReady
+      challengeFor={null}
+      providerChallengeKey={(p) => `oauth:${p}`}
       onProvider={onProvider}
       onPasskey={onPasskey}
       providerTestId={(p) => `auth-continue-${p}`}

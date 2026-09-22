@@ -5,13 +5,15 @@ export const CAPTCHA_TOKEN_HEADER = 'X-Captcha-Token';
 export const DEV_CAPTCHA_TOKEN = 'dev-captcha-token';
 
 /**
- * How long a captcha-gated action may sit blocked before the UI calls it stalled.
+ * How long a click may wait for an escalated challenge to be completed.
  *
- * A mint normally lands in a few hundred ms, so this is long enough never to flash
- * during the routine re-mint after a token is consumed, and short enough that a
- * widget which never calls back does not strand the user silently.
+ * Budgeted for a HUMAN, not for the network: once Cloudflare decides this visitor
+ * must tick a checkbox, the wait is however long it takes them to notice it, read
+ * it and click. A short budget here would abandon the action while the user is
+ * still working on the very challenge it asked for — which is what the previous
+ * 6s timer did, and why a healthy widget reported itself as failed.
  */
-export const CAPTCHA_REMINT_STALL_MS = 6_000;
+export const CAPTCHA_CHALLENGE_WAIT_MS = 120_000;
 
 /**
  * Dummy token accepted by Cloudflare siteverify when paired with the always-pass test secret.

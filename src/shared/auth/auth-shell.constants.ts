@@ -47,10 +47,6 @@ export const AUTH_KEYS = {
       oauthFailed: 'auth.errors.oauthFailed',
     },
     autoGoogleSigningIn: 'auth.autoGoogleSigningIn',
-    captcha: {
-      failed: 'auth.captcha.failed',
-      retry: 'auth.captcha.retry',
-    },
     useEmailInstead: 'auth.useEmailInstead',
     verify: {
       heading: 'auth.verify.heading',

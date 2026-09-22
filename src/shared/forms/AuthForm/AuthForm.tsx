@@ -12,7 +12,8 @@ import {
   skipAutoGoogleSignIn,
 } from '@/shared/auth/auto-google-sign-in.ts';
 import { CaptchaSlot } from '@/shared/auth/captcha/CaptchaSlot.tsx';
-import { useCaptchaGate } from '@/shared/auth/captcha/useCaptchaGate/index.ts';
+import { useCaptchaIntent } from '@/shared/auth/captcha/useCaptchaIntent/index.ts';
+import { useTurnstileReady } from '@/shared/auth/captcha/useTurnstileReady/index.ts';
 import type { LoginErrorCode } from '@/shared/auth/login-search.ts';
 import {
   isPasskeySignInAvailable,
@@ -25,14 +26,17 @@ import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useAuthMethods } from '@/shared/hooks/useAuthMethods/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 
-import { AUTH_FORM_TEST_IDS, sortOAuthProviders } from './auth-form.constants.ts';
+import {
+  AUTH_FORM_TEST_IDS,
+  oauthChallengeKey,
+  sortOAuthProviders,
+} from './auth-form.constants.ts';
 import type { AuthContinuePending } from './auth-form-pending.ts';
 import { AuthEmailPanel } from './AuthEmailPanel.tsx';
 import { AuthAutoGooglePending } from './components/AuthAutoGooglePending/index.ts';
 import { AuthMethodDivider } from './components/AuthMethodDivider/index.ts';
 import { AuthSocialMethods } from './components/AuthSocialMethods/index.ts';
 import { AuthWelcomeHeader } from './components/AuthWelcomeHeader/index.ts';
-import { CaptchaGateNotice } from './components/CaptchaGateNotice/index.ts';
 
 /** Brief pause so users can cancel auto Google and use email instead. */
 const AUTO_GOOGLE_DELAY_MS = 800;
@@ -85,8 +89,11 @@ export function AuthForm() {
   const authMethods = useAuthMethods();
   const navigate = useNavigate();
   const location = useLocation();
-  const captchaGate = useCaptchaGate();
-  const turnstileReady = captchaGate.ready;
+  // Only the AUTO-Google start still needs readiness up front: it fires without a
+  // click, so there is no gesture to carry the wait and no button to anchor a
+  // challenge to. Every clicked method resolves its own captcha in the handler.
+  const turnstileReady = useTurnstileReady();
+  const { challengeFor, ensureToken } = useCaptchaIntent();
   // GitHub OAuth is not provisioned for this deployment yet, so its button is
   // hidden here instead of deleted: the icon, test id, provider order and the
   // shared /callback route all stay wired up. Delete the `.filter(...)` line to
@@ -184,6 +191,17 @@ export function AuthForm() {
     setPending({ method: 'oauth', provider });
     stashReturnTo((location.search as { redirect?: unknown }).redirect);
     try {
+      /*
+       * The captcha is resolved here, inside the click, rather than by leaving
+       * this button disabled until a token exists. An auto-start has no click to
+       * absorb and no button to anchor a challenge to, so it keeps its own
+       * `captchaReady` precondition below and never reaches this branch without
+       * a token.
+       */
+      if (!options?.auto && !(await ensureToken(oauthChallengeKey(provider)))) {
+        setPending(null);
+        return;
+      }
       captureAnalyticsEvent(ANALYTICS_EVENTS.authOauthStarted, { provider });
       const url = await authApi.oauthStart(provider);
       // Defense-in-depth: never navigate to an unvalidated backend-supplied URL.
@@ -388,15 +406,13 @@ export function AuthForm() {
         />
       ) : null}
 
-      {/* One notice for the whole picker — the verify step renders its own. */}
-      {showMethodPicker ? <CaptchaGateNotice gate={captchaGate} /> : null}
-
       {showMethodPicker && hasSocialMethods ? (
         <AuthSocialMethods
           providers={visibleProviders}
           showPasskey={showPasskey}
           pending={pending}
-          turnstileReady={turnstileReady}
+          challengeFor={challengeFor}
+          providerChallengeKey={oauthChallengeKey}
           onProvider={(provider) => void startOAuth(provider)}
           onPasskey={() => void handlePasskey()}
           providerTestId={providerTestId}
