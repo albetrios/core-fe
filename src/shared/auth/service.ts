@@ -12,7 +12,11 @@ import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { broadcastLogout } from '@/shared/auth/auth-channel.ts';
 import { skipAutoGoogleSignIn } from '@/shared/auth/auto-google-sign-in.ts';
 import { cancelTokenRefresh, scheduleTokenRefresh } from '@/shared/auth/refresh-timer.ts';
-import { clearSessionStart, markSessionStart } from '@/shared/auth/session-lifetime.ts';
+import {
+  clearSessionStart,
+  hasSessionHint,
+  markSessionStart,
+} from '@/shared/auth/session-lifetime.ts';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/shared/auth/token.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
@@ -160,6 +164,26 @@ export function startAuthBootstrap(): Promise<void> {
         await finishPendingRevoke(generation);
         throw new Error('Signed out');
       }
+      /*
+       * No session hint: this browser has never signed in, or it signed out.
+       * Either way there is nothing on the server to restore, and asking is a
+       * round trip on the critical path of the login screen that can only ever
+       * answer 401 — measured on a fresh visit, `/auth/refresh` was the single
+       * backend call the login page made, and in production it is cross-origin
+       * and over TLS.
+       *
+       * This is NOT authorizing on the hint, which the hint may never be used
+       * for: it grants nothing and trusts nothing. It declines to ASK when the
+       * answer is already known, and every interactive sign-in writes the hint
+       * (`establishSession` → `markSessionStart`, reached by the email, OAuth
+       * callback and MFA paths alike) while logout clears it.
+       *
+       * The one false negative is a browser whose localStorage was cleared
+       * while its HttpOnly cookie survived — a selective wipe, not a normal
+       * one. That visitor sees the login screen and signs in again, which is
+       * the same outcome the old code produced whenever the refresh failed.
+       */
+      if (!hasSessionHint()) throw new Error('No session hint');
       await silentRefresh();
     } catch {
       if (generation !== authGeneration) return;

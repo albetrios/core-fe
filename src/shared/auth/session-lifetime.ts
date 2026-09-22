@@ -56,9 +56,20 @@ export function getSessionAge(): number | null {
  *
  * The start stamp is written on interactive sign-in and removed on logout, so
  * its presence is a good guess at which side of the login wall a cold load will
- * land on. It exists only to let the boot warm the right chunks while
- * `/auth/refresh` is still in flight; nothing may AUTHORIZE on it — the refresh
- * cookie is HttpOnly and the server alone knows whether the session is alive.
+ * land on.
+ *
+ * @remarks
+ * Two callers, both of which only ever gate *work*, never *access*:
+ * - the boot warms the right chunks while `/auth/refresh` is still in flight;
+ * - `startAuthBootstrap` skips that refresh entirely when the hint is absent,
+ *   because a browser that has never signed in (or has signed out) has nothing
+ *   for the server to restore and the call can only answer 401.
+ *
+ * Nothing may AUTHORIZE on it — the refresh cookie is HttpOnly and the server
+ * alone knows whether the session is alive. A present hint still proves
+ * nothing: the refresh runs and its answer decides. An absent one costs a
+ * visitor whose localStorage was wiped while the cookie survived one extra
+ * sign-in, which is what they already got whenever a refresh failed.
  */
 export function hasSessionHint(): boolean {
   return getSessionAge() !== null;

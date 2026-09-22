@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.9.2](https://github.com/albetrios/core-fe/compare/v1.9.1...v1.9.2) (2026-09-22)
+
+
+### Performance
+
+* **auth:** stop asking the server to restore a session that was never there ([#323](https://github.com/albetrios/core-fe/issues/323)) ([14b3c33](https://github.com/albetrios/core-fe/commit/14b3c33933a2d77aa746233b8d5b2d270390dcd8))
+* **budgets:** measure what a visit actually downloads, signed out and signed in ([#325](https://github.com/albetrios/core-fe/issues/325)) ([9031902](https://github.com/albetrios/core-fe/commit/9031902ccea4828dc2eea56443e0e0aef045a6a2))
+
+## [1.9.1](https://github.com/albetrios/core-fe/compare/v1.9.0...v1.9.1) (2026-09-22)
+
+
+### Fixed
+
+* **dashboard,settings,onboarding:** stop showing users screens that have moved on ([#320](https://github.com/albetrios/core-fe/issues/320)) ([24bf9b1](https://github.com/albetrios/core-fe/commit/24bf9b1063289d841a52bae285949b8b172b37e3))
+* **settings,a11y:** stop the chrome getting in the way of the content ([#321](https://github.com/albetrios/core-fe/issues/321)) ([e876dc3](https://github.com/albetrios/core-fe/commit/e876dc340479d968d6bd07cc15bacd921d4c57ac))
+
+
+### Documentation
+
+* **settings:** correct the stale claim about webhook:read grants ([#318](https://github.com/albetrios/core-fe/issues/318)) ([a855ac1](https://github.com/albetrios/core-fe/commit/a855ac1eb65c7d142d8d94dc7198921f84607fd8))
+
 ## [1.9.0](https://github.com/albetrios/core-fe/compare/v1.8.0...v1.9.0) (2026-09-22)
 
 

@@ -30,6 +30,28 @@ jobs:
 
       - run: pnpm build
 
+      # Per-route transfer budgets for every route a signed-OUT visitor can
+      # reach, each measured in a cold browser context. Lives here rather than
+      # in the PR gate for the same reason Lighthouse does — it builds and
+      # drives a real browser — and it belongs with Lighthouse specifically
+      # because they answer the same question at different resolutions: the
+      # assertions in .lighthouserc.cjs are a coarse per-page ceiling, this
+      # names the individual chunks. Public routes need no backend, which is
+      # what lets either of them run in CI at all.
+      #
+      # `--update` is never passed here: re-pinning a budget is a decision, not
+      # something a scheduled job does on its own.
+      - run: pnpm exec playwright install --with-deps chromium
+      # Off 5173 deliberately: `lhci autorun` below starts `pnpm preview` on that
+      # port with --strictPort, so it fails hard rather than falling back if the
+      # port is still held. The two steps are sequential and this one exits
+      # first, but the default exists for the LOCAL `--authed` run, where 5173 is
+      # the origin core-be's CSRF check allows. CI measures public routes only,
+      # where the origin does not matter — so there is nothing to trade here.
+      - run: pnpm perf:routes
+        env:
+          PERF_PORT: '4183'
+
       # @lhci/cli is installed ad-hoc (heavy, only needed here);
       # configuration lives in .lighthouserc.cjs.
       - run: pnpm dlx @lhci/cli@0.15.x autorun

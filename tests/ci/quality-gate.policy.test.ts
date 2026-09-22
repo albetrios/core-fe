@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -150,4 +150,88 @@ describe('quality-gate aggregate policy', () => {
       expect(result.status, result.stdout + result.stderr).toBe(expected);
     },
   );
+});
+
+// A required status check resolves to the NEWEST check suite carrying its name.
+// Most PR workflows fire at most once per head sha, so a concurrency
+// cancellation can only land on a superseded commit — harmless, and worth the
+// saved runner minutes. A workflow that ALSO listens to a non-push activity
+// type (`edited`, `labeled`, …) can get two runs for ONE head sha:
+// release-please force-pushes the branch and rewrites the PR body in the same
+// instant, firing `synchronize` + `edited` together. Cancel between those and
+// the live commit keeps a `cancelled` copy of a required context beside its
+// successful twin, blocking the PR with every check green and nothing to point
+// at (#319 sat blocked until the cancelled run was re-run by hand).
+const WORKFLOWS_DIR = join(process.cwd(), '.github/workflows');
+const PUSH_SCOPED_TYPES = new Set(['opened', 'synchronize', 'reopened']);
+
+const workflows = readdirSync(WORKFLOWS_DIR)
+  .filter((file) => file.endsWith('.yml') || file.endsWith('.yaml'))
+  .map((file) => ({
+    file,
+    content: readFileSync(join(WORKFLOWS_DIR, file), 'utf8'),
+  }));
+
+// Job-level `name:` sits at four spaces; a step's is `      - name:`, so this
+// cannot pick one up (line-based, like the other ci-policy parsers).
+function jobNames(content: string): string[] {
+  return [...content.matchAll(/^ {4}name: (.+)$/gm)].map((match) =>
+    (match[1] ?? '').trim(),
+  );
+}
+
+function pullRequestTypes(content: string): string[] {
+  const lines = content.split('\n');
+  const start = lines.indexOf('  pull_request:');
+  if (start === -1) return [];
+  for (const line of lines.slice(start + 1)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('types:')) {
+      return [...trimmed.matchAll(/[\w-]+/g)]
+        .map((match) => match[0])
+        .filter((word) => word !== 'types');
+    }
+    // Any sibling key (another trigger, `branches:`, …) ends the block.
+    if (trimmed && !line.startsWith('    ')) break;
+  }
+  return [];
+}
+
+describe('required contexts survive concurrency cancellation', () => {
+  const required = new Set(requiredContexts());
+  const owners = workflows.filter((workflow) =>
+    jobNames(workflow.content).some((name) => required.has(name)),
+  );
+
+  it('every required context is owned by exactly one workflow job', () => {
+    const owned = owners.flatMap((workflow) =>
+      jobNames(workflow.content).filter((name) => required.has(name)),
+    );
+    expect(owned.sort()).toEqual([...required].sort());
+  });
+
+  it('no workflow owning a required context cancels runs when one head sha can produce two', () => {
+    const offenders = owners
+      .filter((workflow) =>
+        pullRequestTypes(workflow.content).some((type) => !PUSH_SCOPED_TYPES.has(type)),
+      )
+      .filter((workflow) => /cancel-in-progress:\s*true/.test(workflow.content))
+      .map((workflow) => workflow.file);
+    expect(offenders).toEqual([]);
+  });
+
+  it('pr-governance owns `Checks`, listens past the push events, and declares no concurrency', () => {
+    const governance = workflows.find((entry) => entry.file === 'pr-governance.yml');
+    expect(governance).toBeDefined();
+    expect(jobNames(governance?.content ?? '')).toContain('Checks');
+    expect(pullRequestTypes(governance?.content ?? '')).toContain('edited');
+    expect(governance?.content ?? '').not.toMatch(/^concurrency:/m);
+  });
+
+  it('pr-ci keeps its cancellation — it fires once per head sha', () => {
+    const prCiWorkflow = workflows.find((entry) => entry.file === 'pr-ci.yml');
+    const types = pullRequestTypes(prCiWorkflow?.content ?? '');
+    expect(types.every((type) => PUSH_SCOPED_TYPES.has(type))).toBe(true);
+    expect(prCiWorkflow?.content ?? '').toContain('cancel-in-progress: true');
+  });
 });

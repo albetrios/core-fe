@@ -26,8 +26,6 @@ export const AUTH_FORM_TEST_IDS = {
   autoGooglePending: 'auth-auto-google-pending',
   // The gate notice (this branch) and the inline Turnstile slot (main) are
   // different surfaces on the same screen, so both sets of hooks are kept.
-  captchaStalled: 'auth-captcha-stalled',
-  captchaRetry: 'auth-captcha-retry',
   captchaSlot: 'auth-captcha-slot',
   skipAutoGoogle: 'auth-skip-auto-google',
   /** Fallback selector for providers without a dedicated `continue*` id. */
@@ -49,4 +47,23 @@ export function sortOAuthProviders(providers: string[]): string[] {
     const br = rank.get(b) ?? AUTH_OAUTH_PROVIDER_ORDER.length;
     return ar - br || a.localeCompare(b);
   });
+}
+
+/**
+ * Keys naming each captcha-gated control, so an escalated challenge renders at the
+ * control the user pressed rather than at whichever slot mounted last.
+ *
+ * @remarks
+ * The email steps and every OAuth provider are separate targets. They are plain
+ * strings rather than a union so a provider added to the deployment's auth methods
+ * needs no change here.
+ */
+export const AUTH_CHALLENGE_KEYS = {
+  emailSend: 'email-send',
+  emailVerify: 'email-verify',
+} as const;
+
+/** Challenge-target key for one OAuth provider's button. */
+export function oauthChallengeKey(provider: string): string {
+  return `oauth:${provider}`;
 }

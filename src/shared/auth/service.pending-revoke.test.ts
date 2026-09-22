@@ -21,6 +21,12 @@ import type * as TokenModule from './token.ts';
  */
 const REVOKE_PENDING_KEY = `${PRODUCT_NAMESPACE}:logout-pending`;
 const SKIP_AUTO_GOOGLE_KEY = `${PRODUCT_NAMESPACE}-auth-skip-auto-google`;
+const SESSION_STARTED_AT_KEY = `${PRODUCT_NAMESPACE}:session-started-at`;
+
+/** Put the browser in the state a returning, previously signed-in one is in. */
+function markPreviouslySignedIn(): void {
+  localStorage.setItem(SESSION_STARTED_AT_KEY, String(Date.now()));
+}
 
 const { fetchMeContextMock, captureMock } = vi.hoisted(() => ({
   fetchMeContextMock: vi.fn(),
@@ -221,6 +227,7 @@ describe('auth/service — sign-outs that stay signed out', () => {
   });
 
   it('boots normally when nothing is pending', async () => {
+    markPreviouslySignedIn();
     fetchMock.mockResolvedValueOnce(json({ data: { access_token: TOKEN } }));
     fetchMeContextMock.mockResolvedValueOnce(SAMPLE_CTX);
 
@@ -229,6 +236,48 @@ describe('auth/service — sign-outs that stay signed out', () => {
     expect(requests(fetchMock)).toEqual(['POST /auth/refresh']);
     expect(token.getAccessToken()).toBe(TOKEN);
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
+  });
+
+  describe('a browser with no session to restore', () => {
+    // The refresh is the only backend call the login screen makes on a cold
+    // load, and for these two visitors it can only ever answer 401. Asking
+    // anyway costs a cross-origin round trip on the critical path.
+    it('asks nothing of the server on a first-ever visit', async () => {
+      await service.startAuthBootstrap();
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(fetchMeContextMock).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      // Still resolved, not stuck behind a splash that never lifts.
+      expect(useAuthStore.getState().isLoading).toBe(false);
+    });
+
+    it('asks nothing of the server after a sign-out', async () => {
+      markPreviouslySignedIn();
+      fetchMock.mockResolvedValueOnce(json({}));
+      token.setAccessToken(TOKEN);
+      await service.logout();
+      fetchMock.mockClear();
+
+      await service.startAuthBootstrap();
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+
+    // The hint says "signed in last we looked" — it may gate the ASK, never
+    // the answer. A stale hint must still leave the visitor signed OUT.
+    it('still trusts the server, not the hint, when the hint is stale', async () => {
+      markPreviouslySignedIn();
+      fetchMock.mockResolvedValueOnce(json({ error: { detail: 'no session' } }, 401));
+
+      await service.startAuthBootstrap();
+
+      expect(requests(fetchMock)).toEqual(['POST /auth/refresh']);
+      expect(token.getAccessToken()).toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useAuthStore.getState().isLoading).toBe(false);
+    });
   });
 
   describe('auto Google sign-in after a sign-out', () => {
