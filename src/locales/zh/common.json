@@ -101,6 +101,9 @@
   "a11y": {
     "close": "关闭",
     "loading": "加载中",
+    "loadingNamed": "正在加载{{name}}…",
+    "loadingStill": "仍在处理…",
+    "loadingAlmost": "就快好了…",
     "loadingPage": "正在加载页面",
     "toggleTheme": "切换主题",
     "openAppearance": "打开外观",

@@ -32,6 +32,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
+import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import { useDeleteRole, useRoles } from '@/shared/hooks/useRoles/index.ts';
 import { MoreHorizontal, Plus, ShieldCheck } from '@/shared/icons/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -122,8 +123,10 @@ function RoleListItem({
 }
 
 function RolesLoading() {
+  const { t } = useTranslation(SETTINGS_NS);
   return (
     <div className="space-y-2" data-testid="roles-loading">
+      <LoadingMessage name={t(SETTINGS_KEYS.panels.roles.title)} />
       {['a', 'b', 'c'].map((key) => (
         <Skeleton key={key} className="h-14 w-full" />
       ))}

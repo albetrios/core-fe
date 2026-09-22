@@ -101,6 +101,17 @@ describe('SettingsModal', () => {
     );
     expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
+
+    // QA-V3 suggestion 8: the header already said "Security", so the grey bars
+    // under it read as an empty panel rather than a slow one — the wait was
+    // legible to a screen reader (`sr-only`) and to nobody else. Asserted HERE
+    // rather than in a test of its own because `onceAsync` caches each panel's
+    // chunk for the whole file: only the first test to switch sections ever
+    // reaches the Suspense fallback.
+    const label = screen.getByTestId('settings-content-loading-label');
+    expect(label).toHaveTextContent(/Security/);
+    expect(label).not.toHaveClass('sr-only');
+    expect(label).toHaveAttribute('aria-live', 'polite');
   });
 
   it('renders nothing without a settings hash', () => {
@@ -140,9 +151,17 @@ describe('SettingsModal', () => {
     expect(content).not.toHaveClass('sm:px-8');
 
     // Phone sheet: the section picker starts on the content's gutter, so it and
-    // the fields under it share a left edge; `pe-12` clears the close button.
+    // the fields under it share a left edge.
     const picker = screen.getByTestId('settings-mobile-section').parentElement;
-    expect(picker).toHaveClass('ps-4', 'pe-12', 'sm:hidden');
+    expect(picker).toHaveClass('ps-4', 'sm:hidden');
+    // The right reservation is PHYSICAL, because what it reserves room for is:
+    // `DialogContent` pins its close button at `right-4` in every direction.
+    // Logical `pe-12` padded the LEFT under RTL — away from the button — and the
+    // picker ran under the X on Arabic and Hebrew. And 56px rather than 48px
+    // leaves the pane's own 16px gutter between the two, instead of flush
+    // (QA-V3 suggestion 7: "the dropdown plus close icon feels tight").
+    expect(picker).toHaveClass('pr-14');
+    expect(picker).not.toHaveClass('pe-12');
 
     for (const pane of [content, picker]) {
       expect(pane?.className ?? '').not.toMatch(/\bp[xysetb]?-\[/);

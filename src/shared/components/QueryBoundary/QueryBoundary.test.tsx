@@ -26,6 +26,60 @@ describe('QueryBoundary', () => {
     expect(screen.getByTestId('query-skeleton')).toBeInTheDocument();
   });
 
+  // QA-V3 suggestion 8: bare grey bars are indistinguishable from a surface
+  // that finished loading and is simply empty — and `Skeleton` is decorative, so
+  // a screen reader got nothing at all. The wait now says so, out loud.
+  describe('the skeleton says what it is waiting for', () => {
+    const pending = { isPending: true, fetchStatus: 'fetching' as const };
+
+    it('names the thing when the caller gives it a label', () => {
+      render(
+        <QueryBoundary query={asQuery(pending)} label="Members">
+          {(data) => <p>{data}</p>}
+        </QueryBoundary>,
+      );
+      expect(screen.getByTestId('query-skeleton-label')).toHaveTextContent(/Members/);
+    });
+
+    it('falls back to the section title the error boundary already takes', () => {
+      render(
+        <QueryBoundary query={asQuery(pending)} title="Invoices">
+          {(data) => <p>{data}</p>}
+        </QueryBoundary>,
+      );
+      expect(screen.getByTestId('query-skeleton-label')).toHaveTextContent(/Invoices/);
+    });
+
+    it('still says something when the caller names nothing', () => {
+      render(
+        <QueryBoundary query={asQuery(pending)}>{(data) => <p>{data}</p>}</QueryBoundary>,
+      );
+      expect(screen.getByTestId('query-skeleton-label')).toBeInTheDocument();
+      expect(screen.getByTestId('query-skeleton-label').textContent?.trim()).not.toBe('');
+    });
+
+    it('announces politely rather than interrupting', () => {
+      render(
+        <QueryBoundary query={asQuery(pending)} label="Roles">
+          {(data) => <p>{data}</p>}
+        </QueryBoundary>,
+      );
+      expect(screen.getByTestId('query-skeleton-label')).toHaveAttribute(
+        'aria-live',
+        'polite',
+      );
+    });
+
+    it('is gone once the data lands', () => {
+      render(
+        <QueryBoundary query={asQuery({ data: 'done' })} label="Roles">
+          {(data) => <p>{data}</p>}
+        </QueryBoundary>,
+      );
+      expect(screen.queryByTestId('query-skeleton-label')).not.toBeInTheDocument();
+    });
+  });
+
   describe('a disabled query is not a loading one (X-5)', () => {
     // `enabled: false` parks a query at status 'pending' with fetchStatus
     // 'idle' — forever. Branching on isPending alone renders a skeleton that

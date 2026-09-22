@@ -20,7 +20,14 @@ export function SectionHeader({
     <header className="flex items-end justify-between gap-4 border-b pb-4">
       <div className="space-y-1">
         {breadcrumb ? (
-          <p className="text-muted-foreground text-xs font-medium tracking-wide">
+          /*
+            `sm:` and up only. Below that the section picker sits directly above
+            this header and already names the section, so a phone spent three of
+            its first 120 vertical pixels saying "Profile" three times — picker,
+            breadcrumb, title. The picker is the one that can also CHANGE the
+            section, so it is the one that stays.
+          */
+          <p className="text-muted-foreground hidden text-xs font-medium tracking-wide sm:block">
             {breadcrumb}
           </p>
         ) : null}

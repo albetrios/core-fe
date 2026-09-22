@@ -11,7 +11,6 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { ORGANIZATION } from '@/core/config/constants.ts';
-import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { onceAsync, useRetryableLazy } from '@/lib/lazy-module.ts';
 import { cn } from '@/lib/utils.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
@@ -39,6 +38,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAccessResolved } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
+import { useLoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -257,10 +257,23 @@ function SettingsModalBody() {
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
             <SettingsNav groups={readyGroups} active={active} onSelect={goTo} />
             <div className="flex min-h-0 flex-col">
-              {/* Mobile section picker — the sidebar is hidden below sm. `ps-4` is
-                  the content pane's gutter, so the picker and the fields under it
-                  share a left edge; `pe-12` clears the close button. */}
-              <div className="shrink-0 border-b py-3 ps-4 pe-12 sm:hidden">
+              {/*
+                Mobile section picker — the sidebar is hidden below sm. `ps-4` is
+                the content pane's gutter, so the picker and the fields under it
+                share a left edge.
+
+                The right inset is PHYSICAL (`pr-`), not logical (`pe-`), because
+                the thing it is reserving room for is physical: `DialogContent`
+                pins its close button at `right-4` in every direction. Under
+                `pe-12` an RTL locale padded the left — away from the button —
+                and the picker ran straight under the X on Arabic and Hebrew.
+
+                `pr-14` rather than `pr-12`: the button is 32px wide inset 16px,
+                so 48px of reservation left it flush against the X with nothing
+                between them. 56px is the same 16px gutter the rest of the pane
+                uses, and is what "feels tight" was about (QA-V3 suggestion 7).
+              */}
+              <div className="shrink-0 border-b py-3 ps-4 pr-14 sm:hidden">
                 <Select
                   value={`${active.scope}/${active.section}`}
                   onValueChange={(value) => {
@@ -401,11 +414,24 @@ const PANEL_LOADERS = {
 
 function SettingsContentLoading({ active }: { active: SettingsSectionRef }) {
   const { t } = useTranslation(SETTINGS_NS);
-  const { t: tLocale } = useTranslation(LOCALE_NS);
+  const sectionLabel = t(SETTINGS_SECTION_LABEL_KEYS[active.section]);
+  // Advances while the panel's chunk and data land, so a slow section looks
+  // alive instead of stuck on one line.
+  const loadingMessage = useLoadingMessage(sectionLabel);
   return (
     <div className="flex flex-col gap-6" data-testid="settings-content-loading">
-      <SectionHeader title={t(SETTINGS_SECTION_LABEL_KEYS[active.section])} />
-      <output className="sr-only">{tLocale(LOCALE_KEYS.loading)}</output>
+      <SectionHeader title={sectionLabel} />
+      {/* Named and VISIBLE, not `sr-only`. The header already said "Members",
+          so the grey bars under it read as an empty members list rather than a
+          slow one — the wait was legible to a screen reader and to nobody
+          else. Polite, and it names the section so a slow panel says which. */}
+      <output
+        aria-live="polite"
+        className="text-muted-foreground text-sm"
+        data-testid="settings-content-loading-label"
+      >
+        {loadingMessage}
+      </output>
       <div aria-hidden="true" className="flex max-w-xl flex-col gap-6">
         {[0, 1, 2].map((field) => (
           <div key={field} className="flex flex-col gap-2">
