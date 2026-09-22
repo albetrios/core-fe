@@ -297,10 +297,18 @@ export async function getRolePermissions(roleId: string): Promise<string[]> {
 
 // ── API keys ──
 
+/**
+ * One API-key row as core-be serializes it
+ * (`organization-api-key.serializer.ts`). The masked prefix is `key_prefix` on
+ * the wire — this schema asked for `prefix`, so the first organization to own a
+ * key got a parse failure instead of a list. An empty organization parsed fine,
+ * which is why the mismatch survived: the only state anyone had seen was the
+ * empty one.
+ */
 const apiKeyWire = z.object({
   id: z.string(),
   name: z.string(),
-  prefix: z.string(),
+  key_prefix: z.string(),
   created_at: isoDateString,
   last_used_at: isoDateString.nullable().optional(),
   expires_at: isoDateString.nullable().optional(),
@@ -311,7 +319,7 @@ function toApiKey(w: ApiKeyWire): ApiKey {
   return {
     id: w.id,
     name: w.name,
-    prefix: w.prefix,
+    prefix: w.key_prefix,
     createdAt: w.created_at,
     lastUsedAt: w.last_used_at ?? undefined,
     expiresAt: w.expires_at ?? undefined,
@@ -326,16 +334,31 @@ export async function listApiKeys(
   return { ...page, rows: page.rows.map(toApiKey) };
 }
 
+/**
+ * Create an API key. The full secret comes back exactly once.
+ *
+ * `scopes` is REQUIRED and the body is `.strict()` server-side, so a request
+ * without it is rejected 400 before it reaches the handler — which is what the
+ * earlier shape of this fetcher did, and why nothing ever called it. The scopes
+ * are permission codes, and core-be additionally refuses any the caller does not
+ * hold themselves (`assertCallerCanGrantPermissionCodes`).
+ *
+ * `expires_in_days` is a NUMBER of days (1–365) or omitted for a key that never
+ * expires — not the string the old shape sent.
+ */
 export async function createApiKey(input: {
   name: string;
-  expiresInDays: '30' | '90' | '365' | 'never';
+  scopes: string[];
+  expiresInDays: number | null;
 }): Promise<ApiKeyWithSecret> {
   const res = await apiClient.post<unknown>(`${ORG_API}/api-keys`, {
     name: input.name,
-    expires_in_days: input.expiresInDays,
+    scopes: input.scopes,
+    ...(input.expiresInDays === null ? {} : { expires_in_days: input.expiresInDays }),
   });
-  const wire = apiKeyWire.extend({ secret: z.string() }).parse(res.data);
-  return { ...toApiKey(wire), secret: wire.secret };
+  // `{ api_key, raw_key }`, not a flat row with a `secret` field.
+  const wire = z.object({ api_key: apiKeyWire, raw_key: z.string() }).parse(res.data);
+  return { ...toApiKey(wire.api_key), secret: wire.raw_key };
 }
 
 export async function renameApiKey(input: { id: string; name: string }): Promise<ApiKey> {

@@ -192,3 +192,51 @@ export function filterNav(
     }))
     .filter((group) => group.items.length > 0);
 }
+/** `scope/section`, the identity a nav item is compared by. */
+function sectionKey(ref: SettingsSectionRef): string {
+  return `${ref.scope}/${ref.section}`;
+}
+
+/**
+ * {@link filterNav}'s result, with the section the content pane is showing kept
+ * in it.
+ *
+ * @remarks
+ * Searching filters the rail but does not navigate, so the pane goes on showing
+ * whatever was open. When the filter dropped that section, the modal contradicted
+ * itself: a Profile form filling the pane under a rail listing only Integrations,
+ * with `aria-current="page"` on nothing at all — so a screen-reader user in the
+ * rail had no current item while a settings pane was open, and a sighted one had
+ * a panel with no entry to go back to.
+ *
+ * Keeping it listed is the smaller half of the answer. The other half is that it
+ * stays MARKED current, which is what tells the two panes apart: these matched
+ * your search, and this one is what you are looking at.
+ *
+ * Group and item order come from `all`, so a kept section appears where it always
+ * does rather than appended somewhere new. A section that is not in `all` — one
+ * this user cannot open — is not resurrected.
+ */
+export function withActiveSection(
+  filtered: readonly SettingsNavGroup[],
+  all: readonly SettingsNavGroup[],
+  active: SettingsSectionRef,
+): readonly SettingsNavGroup[] {
+  const activeKey = sectionKey(active);
+  const alreadyListed = filtered.some((group) =>
+    group.items.some((item) => sectionKey(item) === activeKey),
+  );
+  if (alreadyListed) return filtered;
+
+  const matched = new Set(
+    filtered.flatMap((group) => group.items.map((item) => sectionKey(item))),
+  );
+  return all
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => matched.has(sectionKey(item)) || sectionKey(item) === activeKey,
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+}

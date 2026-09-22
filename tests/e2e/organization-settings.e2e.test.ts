@@ -136,6 +136,54 @@ test.describe('Organization settings', () => {
     expect((await invite).postDataJSON()).toMatchObject({ email: recipient });
   });
 
+  /**
+   * The integrations panel listed and revoked API keys but offered no way to
+   * make one, so the section opened on an empty state with no next action.
+   *
+   * This drives the whole round trip because two wire mismatches sat behind
+   * that missing button and neither was visible from an empty organization:
+   * the create body omitted the REQUIRED `scopes` and sent `expires_in_days`
+   * as a string (a 400 before it reached the handler), and the row schema
+   * asked for `prefix` where core-be sends `key_prefix` (a parse failure the
+   * moment an organization owned its first key). The final assertion — the new
+   * key rendered in the LIST — is what pins the second one.
+   */
+  test('an API key can be created, revealed once, and then listed', async ({
+    page,
+    playwright,
+  }) => {
+    const ctx = await landOnTeamDashboard(page, playwright);
+    test.skip(ctx === null, 'team org could not be provisioned in this environment');
+
+    await openSettingsHash(page, 'organization', 'integrations');
+    await expect(page.getByTestId('settings-organization-integrations')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await byTestId(page, 'apikey-create-open').click();
+    await expect(page.getByTestId('apikey-create-dialog')).toBeVisible({
+      timeout: 10000,
+    });
+    await byTestId(page, 'apikey-name').fill('Production server');
+    await byTestId(page, 'apikey-scope-organization:read').click();
+    await byTestId(page, 'apikey-create').click();
+
+    // The secret is shown exactly once, and Done is held until acknowledged —
+    // core-be stores only a hash, so a stray dismissal costs a rotation.
+    const secret = page.getByTestId('apikey-secret');
+    await expect(secret).toBeVisible({ timeout: 15000 });
+    await expect(secret).toHaveText(/^ak_\w+/);
+    await expect(page.getByTestId('apikey-secret-done')).toBeDisabled();
+
+    await byTestId(page, 'apikey-secret-ack').click();
+    await expect(page.getByTestId('apikey-secret-done')).toBeEnabled();
+    await byTestId(page, 'apikey-secret-done').click();
+
+    await expect(
+      page.getByTestId('apikeys-list').getByText('Production server'),
+    ).toBeVisible({ timeout: 15000 });
+  });
+
   test('roles section lists the seeded organization roles', async ({
     page,
     playwright,

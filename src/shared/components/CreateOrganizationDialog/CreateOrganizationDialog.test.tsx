@@ -80,6 +80,115 @@ describe('CreateOrganizationDialog', () => {
     });
   });
 
+  /**
+   * QA-7: an invalid Workspace URL stopped the submit and said nothing. The
+   * dialog stayed open, the page did not move, and there was not one
+   * `role="alert"` anywhere on the form — so pressing Create looked like a
+   * dead button. The name field beside it had always explained itself.
+   */
+  describe('an invalid Workspace URL says so', () => {
+    it('explains the refusal instead of failing silently', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+
+      await user.type(
+        await screen.findByTestId('create-organization-dialog-name'),
+        'QA Org',
+      );
+      // What a user types under a label reading "Workspace URL" when they have
+      // the organization's name in their head.
+      await user.type(
+        screen.getByTestId('create-organization-dialog-slug'),
+        'QA Org 4877!',
+      );
+      await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+      const error = await screen.findByTestId('create-organization-dialog-slug-error');
+      expect(error).toHaveTextContent('Lowercase letters, numbers, and hyphens only');
+      expect(error).toHaveAttribute('role', 'alert');
+      expect(screen.getByTestId('create-organization-dialog-slug')).toHaveAttribute(
+        'aria-invalid',
+        'true',
+      );
+      // Nothing was created — the refusal itself was always right.
+      expect(createOrganization).not.toHaveBeenCalled();
+    });
+
+    it('names the length when length is what is wrong', async () => {
+      // The charset and length rules used to be one regex, so a 60-character
+      // all-lowercase slug was told to use lowercase letters. Harmless while
+      // the message was invisible; misdirection once it is on screen.
+      const user = userEvent.setup();
+      renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+
+      await user.type(
+        await screen.findByTestId('create-organization-dialog-name'),
+        'QA Org',
+      );
+      await user.type(
+        screen.getByTestId('create-organization-dialog-slug'),
+        'a'.repeat(51),
+      );
+      await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+      expect(
+        await screen.findByTestId('create-organization-dialog-slug-error'),
+      ).toHaveTextContent('Workspace URL cannot be longer than 50 characters');
+      expect(createOrganization).not.toHaveBeenCalled();
+    });
+
+    it('clears the message once the URL is valid, and creates', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+
+      await user.type(
+        await screen.findByTestId('create-organization-dialog-name'),
+        'QA Org',
+      );
+      const slug = screen.getByTestId('create-organization-dialog-slug');
+      await user.type(slug, 'QA Org');
+      await user.click(screen.getByTestId('create-organization-dialog-submit'));
+      await screen.findByTestId('create-organization-dialog-slug-error');
+
+      await user.clear(slug);
+      await user.type(slug, 'qa-org');
+      await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+      await vi.waitFor(() =>
+        expect(createOrganization).toHaveBeenCalledWith({
+          name: 'QA Org',
+          slug: 'qa-org',
+        }),
+      );
+      expect(
+        screen.queryByTestId('create-organization-dialog-slug-error'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('still treats an empty Workspace URL as "pick one for me"', async () => {
+      // The field is optional; making its failure visible must not make blank
+      // a failure.
+      const user = userEvent.setup();
+      renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+
+      await user.type(
+        await screen.findByTestId('create-organization-dialog-name'),
+        'QA Org',
+      );
+      await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+      await vi.waitFor(() =>
+        expect(createOrganization).toHaveBeenCalledWith({
+          name: 'QA Org',
+          slug: undefined,
+        }),
+      );
+      expect(
+        screen.queryByTestId('create-organization-dialog-slug-error'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   // ── SET-6: only the create is a form-level failure ────────────────────────
 
   it('keeps the user on the form and shows the real error when the create fails', async () => {

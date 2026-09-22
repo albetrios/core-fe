@@ -138,6 +138,38 @@ test.describe('Account settings', () => {
 });
 
 /**
+ * QA-9: the settings search filters the rail but does not navigate, so the pane
+ * keeps showing whatever was open. When the filter dropped that section, the
+ * modal contradicted itself — the open panel had no entry in the rail beside it.
+ */
+test.describe('Account settings — search', () => {
+  test('the open section stays in the rail while an unrelated search runs', async ({
+    page,
+  }) => {
+    test.skip(
+      !(await verifyDatabaseConnection()),
+      'DATABASE_URL must reach core-be Postgres (mail_outbox)',
+    );
+    await registerNewUserAndGoToDashboard(page);
+    await openSettingsHash(page, 'account', 'profile');
+    await expect(page.getByTestId('settings-section-profile')).toBeVisible({
+      timeout: 15000,
+    });
+
+    await page.getByTestId('settings-search').fill('passkey');
+
+    // Security matched the query; Profile did not — and is still listed,
+    // because it is the section filling the pane.
+    await expect(page.getByTestId('settings-nav-account-security')).toBeVisible();
+    await expect(page.getByTestId('settings-nav-account-sessions')).toBeHidden();
+    const profile = page.getByTestId('settings-nav-account-profile');
+    await expect(profile).toBeVisible();
+    await expect(profile).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByTestId('settings-section-profile')).toBeVisible();
+  });
+});
+
+/**
  * QA-6 reported the Profile Email field as "disabled but empty". It is not: the
  * address is there, it survives a reload, and — unlike the fields beside it —
  * it is readable from the DOM `value` ATTRIBUTE as well as the property.

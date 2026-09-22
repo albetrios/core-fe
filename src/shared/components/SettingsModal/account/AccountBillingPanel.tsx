@@ -390,7 +390,16 @@ function BillingContent({ sub, plans }: BillingContentProps) {
               plan={plan}
               current={sub?.planId === plan.id}
               canManage={canManage}
-              hasSubscription={sub !== null}
+              // `Boolean`, not `!== null`: this was the one check in the file
+              // that told `undefined` apart from `null`, and it decides whether
+              // the buttons read "Choose Free" or "Switch to Free". An
+              // `undefined` here therefore put "Switch to …" on every card of a
+              // workspace whose own summary says "No active subscription yet.
+              // Choose a plan below." — the card telling the user they are on a
+              // plan while the heading above it says they are not. Every other
+              // read of `sub` in this component (`sub ?`, `!sub`,
+              // `Boolean(sub)`) already treats the two alike.
+              hasSubscription={Boolean(sub)}
               billingCycle={billingCycle}
               pendingPlanId={pendingPlanId}
               onSelect={handlePlanSelect}
