@@ -7,7 +7,7 @@ import { Search } from '@/shared/icons/index.ts';
 
 import { SETTINGS_KEYS, SETTINGS_NS } from './settings.constants.ts';
 import type { SettingsNavGroup, SettingsSectionRef } from './settings-sections.ts';
-import { filterNav } from './settings-sections.ts';
+import { filterNav, withActiveSection } from './settings-sections.ts';
 
 interface SettingsNavProps {
   /** Groups already filtered by context + permission (parent owns gating). */
@@ -19,9 +19,19 @@ interface SettingsNavProps {
 export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
   const { t } = useTranslation(SETTINGS_NS);
   const [query, setQuery] = useState('');
-  const visible = useMemo(
+  const matches = useMemo(
     () => filterNav(groups, query, (key) => t(key)),
     [groups, query, t],
+  );
+  /**
+   * Searching does not navigate, so the section the pane is showing stays
+   * listed even when it does not match — see {@link withActiveSection}. The
+   * "no matches" line below still answers for the SEARCH, which is a different
+   * question from what is open.
+   */
+  const visible = useMemo(
+    () => withActiveSection(matches, groups, active),
+    [matches, groups, active],
   );
 
   return (
@@ -56,7 +66,7 @@ export function SettingsNav({ groups, active, onSelect }: SettingsNavProps) {
         className="flex-1 space-y-4 overflow-y-auto px-6 pb-6"
         aria-label={t(SETTINGS_KEYS.nav.ariaSettings)}
       >
-        {visible.length === 0 && (
+        {matches.length === 0 && (
           <p
             className="text-muted-foreground px-2 py-4 text-center text-xs"
             data-testid="settings-nav-empty"
