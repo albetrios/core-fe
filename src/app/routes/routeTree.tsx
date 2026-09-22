@@ -222,20 +222,27 @@ export function preloadBootRoutes(hint: { likelySignedIn: boolean }): void {
  *   this is speculation, and the router re-requests through the normal path
  *   where an error boundary and a Retry exist.
  */
-export function preloadSignedInShell(): Promise<void> {
-  // `allSettled`, not `all`: one destination failing to warm says nothing about
-  // the others, and there is no failure here worth reporting — the router
-  // re-requests every chunk through the normal path, where an error boundary and
-  // a Retry exist. It also means this can never reject, so callers need no catch.
-  return Promise.allSettled([
+export async function preloadSignedInShell(): Promise<void> {
+  /*
+   * Onboarding first, then everything else.
+   *
+   * A FIRST sign-in — the case this warm-up exists for, since a returning user
+   * already had the shells warmed at boot — lands on onboarding, not the
+   * dashboard. It is also the smallest of the four. Starting all four at once
+   * lets the much heavier dashboard shell compete with it for the same
+   * connections, so the one chunk most likely to be needed can arrive last.
+   *
+   * `allSettled`, not `all`: one destination failing to warm says nothing about
+   * the others, and there is no failure worth catching — the router re-requests
+   * every chunk through the normal path, where an error boundary and a Retry
+   * exist. It also means this never rejects, so callers need no catch.
+   */
+  await Promise.allSettled([OnboardingPage.preload?.()]);
+  await Promise.allSettled([
     PersonalShell.preload?.(),
     OrganizationShell.preload?.(),
     DashboardPage.preload?.(),
-    // A first sign-in lands here, not on the dashboard, and it was the one chunk
-    // still arriving after the navigation once the shells were warm. 11 kB is a
-    // cheap wrong guess for anyone who has already onboarded.
-    OnboardingPage.preload?.(),
-  ]).then(() => undefined);
+  ]);
 }
 
 // ── Root ──
