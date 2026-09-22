@@ -47,28 +47,16 @@ const contextArb: fc.Arbitrary<AccessContext> = fc.record({
 });
 
 describe('rbac policies — property based', () => {
-  it('super_admin is granted every permission (platform god-mode)', () => {
+  // No role is exempt — super_admin included. It is a platform-admin role for the admin
+  // console; core-be grants it nothing inside an organization, so the client must not
+  // pretend otherwise (it would only surface controls the API answers with 403).
+  it('a grant is exactly explicit set membership for EVERY role (deny by default)', () => {
     fc.assert(
-      fc.property(permissionArb, permissionSetArb, (perm, held) => {
-        expect(hasPermission({ role: 'super_admin', permissions: held }, perm)).toBe(
-          true,
+      fc.property(roleArb, permissionArb, permissionSetArb, (role, perm, held) => {
+        expect(hasPermission({ role, permissions: held }, perm)).toBe(
+          held.includes(perm),
         );
       }),
-    );
-  });
-
-  it('a non-super_admin grant is exactly explicit set membership (deny by default)', () => {
-    fc.assert(
-      fc.property(
-        fc.constantFrom<Role>('admin', 'user'),
-        permissionArb,
-        permissionSetArb,
-        (role, perm, held) => {
-          expect(hasPermission({ role, permissions: held }, perm)).toBe(
-            held.includes(perm),
-          );
-        },
-      ),
     );
   });
 

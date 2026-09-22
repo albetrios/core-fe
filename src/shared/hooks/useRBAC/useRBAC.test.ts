@@ -37,9 +37,9 @@ describe('useHasPermission', () => {
     expect(renderHook(() => useHasPermission('role:manage')).result.current).toBe(false);
   });
 
-  it('super_admin bypasses the permission set', () => {
+  it('super_admin is still governed by the permission set', () => {
     useAuthStore.setState({ user: { ...USER, role: 'super_admin' } as AuthUser });
-    expect(renderHook(() => useHasPermission('role:manage')).result.current).toBe(true);
+    expect(renderHook(() => useHasPermission('role:manage')).result.current).toBe(false);
   });
 });
 
@@ -77,11 +77,11 @@ describe('useRequirePermission', () => {
     expect(navigateMock).not.toHaveBeenCalled();
   });
 
-  it('does not redirect for super_admin regardless of the permission set', () => {
+  it('redirects a super_admin that does not hold the permission', () => {
     useAuthStore.setState({ user: { ...USER, role: 'super_admin' } as AuthUser });
 
     renderHook(() => useRequirePermission('role:manage'));
-    expect(navigateMock).not.toHaveBeenCalled();
+    expect(navigateMock).toHaveBeenCalled();
   });
 
   it('re-evaluates when the permission set changes', () => {

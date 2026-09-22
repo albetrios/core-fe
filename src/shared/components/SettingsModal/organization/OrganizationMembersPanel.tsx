@@ -112,9 +112,11 @@ function MemberRowActions({
   const updateRole = useUpdateMemberRole();
   const updateStatus = useUpdateMemberStatus();
 
-  const assignableRoles = (roles.rows ?? []).filter(
-    (role) => role.name.toLowerCase() !== 'owner',
-  );
+  // Exclude the system roles by their flag, not by matching the name "owner" — a custom role
+  // called "Owners" slipped straight through that string compare. This is UI robustness only;
+  // core-be runs the real guard (`assertCallerCanGrantPermissionCodes` on membership create
+  // and update refuses any role carrying a code the caller does not hold).
+  const assignableRoles = (roles.rows ?? []).filter((role) => !role.isSystem);
   const isSuspended = member.status === 'suspended';
   /**
    * One membership write at a time. The menu is still clickable while a change
@@ -208,6 +210,24 @@ function MemberRowActions({
 }
 
 /**
+ * Whether this caller can complete an invite, which takes two grants rather than one.
+ *
+ * Invite calls `POST /tenancy/organization/memberships`, gated on `membership:manage` —
+ * NOT `invitation:manage`, which guards only the resend/revoke routes this client never
+ * calls, so gating on it showed the button to a caller the API answers with 403. The dialog
+ * also has to list roles to pick one (`GET .../roles`, `role:read`); without that the picker
+ * renders empty and the invite cannot be finished, so offering the trigger would be a dead end.
+ */
+function useCanInviteMembers(): boolean {
+  const canManageMembers = useCan({
+    permission: 'membership:manage',
+    teamOrganizationOnly: true,
+  });
+  const canReadRoles = useCan({ permission: 'role:read' });
+  return canManageMembers && canReadRoles;
+}
+
+/**
  * Members panel — the active organization's people. Lists members with their
  * role + status; removal is gated on the membership:manage permission (team
  * orgs only) and confirmed via undo-capable deferred commit.
@@ -227,10 +247,7 @@ export function OrganizationMembersPanel() {
     permission: 'membership:manage',
     teamOrganizationOnly: true,
   });
-  const canInvite = useCan({
-    permission: 'invitation:manage',
-    teamOrganizationOnly: true,
-  });
+  const canInvite = useCanInviteMembers();
   /**
    * `useCan` is synchronous and the guard chain fills the permission set a beat
    * after this panel first renders, so a `false` here can mean "not yet". A

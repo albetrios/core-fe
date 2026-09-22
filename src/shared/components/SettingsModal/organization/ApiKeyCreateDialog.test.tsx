@@ -4,6 +4,26 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiKeyCreateDialog } from './ApiKeyCreateDialog.tsx';
 
+// The permission picker now reads core-be's catalog (`GET /tenancy/permissions`) intersected
+// with what the caller holds, instead of a hardcoded client list. Stub the hook so these
+// tests stay about the dialog rather than the fetch.
+const { useAssignablePermissionsMock } = vi.hoisted(() => ({
+  useAssignablePermissionsMock: vi.fn(() => ({
+    rows: [
+      { code: 'organization:read', name: 'View Organization', category: 'tenancy' },
+      { code: 'membership:read', name: 'View Members', category: 'tenancy' },
+      { code: 'membership:manage', name: 'Manage Members', category: 'tenancy' },
+      { code: 'invitation:manage', name: 'Manage Invitations', category: 'tenancy' },
+      { code: 'webhook:manage', name: 'Manage Webhooks', category: 'notify' },
+    ],
+    isPending: false,
+    isError: false,
+  })),
+}));
+vi.mock('@/shared/hooks/useAssignablePermissions/index.ts', () => ({
+  useAssignablePermissions: useAssignablePermissionsMock,
+}));
+
 const { createMutate, createState, copySensitiveText, notifyError, notifySuccess } =
   vi.hoisted(() => ({
     createMutate: vi.fn(),

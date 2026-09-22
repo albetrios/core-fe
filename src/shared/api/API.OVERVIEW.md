@@ -12,6 +12,7 @@ All fetchers call **core-be over HTTP** via `apiClient` (or raw `authFetch` for 
 | `auth-api.ts` (+ .test)     | Auth fetchers (login, register, forgot/reset password, verify email, MFA). Raw `fetch`, not `apiClient`, to avoid interceptor recursion               |
 | `organization-contracts.ts` | Zod schemas for org-domain entities — `Member`, `Invitation`, `OrgRole`, `RoleSummary`, `ApiKey`, `Plan`, `Subscription`                              |
 | `organization-api.ts`       | Fetcher functions for org-domain resources (members, invitations, roles, api-keys, billing) — will shrink as resource pages adopt `useList<T>()` etc. |
+| `uploads-api.ts` (+ .test)  | The storage flow core-be requires before a file can be attached: `POST /uploads` (presign) → raw `fetch` of the bytes to storage → `POST /uploads/:id/confirm`. Returns the FINAL key the attach routes want. The storage write is the one call that deliberately bypasses `apiClient` — it leaves the API origin, and `isApiOriginUrl` refuses to send the bearer token there |
 | `notifications-api.ts`      | Notification inbox + preference fetchers                                                                                                              |
 | `notification-contracts.ts` | Zod schemas for notifications                                                                                                                         |
 

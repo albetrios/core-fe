@@ -95,6 +95,8 @@ export const ERRORS_KEYS = {
       logoInvalidType: 'frontend.organization.logoInvalidType',
       logoTooLarge: 'frontend.organization.logoTooLarge',
       logoReadFailed: 'frontend.organization.logoReadFailed',
+      logoUpdated: 'frontend.organization.logoUpdated',
+      logoRemoved: 'frontend.organization.logoRemoved',
       formCheck: 'frontend.organization.formCheck',
     },
     account: {

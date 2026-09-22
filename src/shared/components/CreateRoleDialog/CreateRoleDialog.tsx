@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
+import type { OrganizationPermission } from '@/core/types/permissions.ts';
 import { translateFormMessage } from '@/lib/i18n/translate-form-message.ts';
 import {
-  ASSIGNABLE_ROLE_PERMISSIONS,
   type RoleInput,
   roleInputSchema,
   type RoleSummary,
@@ -30,6 +30,10 @@ import { Label } from '@/shared/components/ui/label.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { Textarea } from '@/shared/components/ui/textarea.tsx';
 import {
+  type AssignablePermissions,
+  useAssignablePermissions,
+} from '@/shared/hooks/useAssignablePermissions/index.ts';
+import {
   useCreateRole,
   useRolePermissions,
   useUpdateRole,
@@ -39,12 +43,18 @@ import { Plus } from '@/shared/icons/index.ts';
 const EMPTY_ROLE: RoleInput = { name: '', description: '', permissions: [] };
 
 /** Selected permission codes with `perm` added. */
-function withPermission(current: string[], perm: string): string[] {
+function withPermission(
+  current: OrganizationPermission[],
+  perm: OrganizationPermission,
+): OrganizationPermission[] {
   return current.includes(perm) ? current : [...current, perm];
 }
 
 /** Selected permission codes with `perm` removed. */
-function withoutPermission(current: string[], perm: string): string[] {
+function withoutPermission(
+  current: OrganizationPermission[],
+  perm: OrganizationPermission,
+): OrganizationPermission[] {
   return current.filter((p) => p !== perm);
 }
 
@@ -60,6 +70,68 @@ interface CreateRoleDialogProps {
   /** Controlled open state — required in edit mode (the parent owns the trigger). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+}
+
+/**
+ * The permission checkboxes, plus the catalog's own loading and error states.
+ *
+ * Split out of {@link CreateRoleDialog} so those two extra states do not push the dialog past
+ * the complexity ceiling — and because "render the grants this caller may delegate" is a
+ * coherent unit on its own.
+ */
+function PermissionChecklist({
+  assignable,
+  selected,
+  onToggle,
+}: {
+  assignable: AssignablePermissions;
+  selected: OrganizationPermission[];
+  onToggle: (next: OrganizationPermission[]) => void;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+
+  if (assignable.isPending) {
+    return (
+      <p className="text-muted-foreground text-xs">
+        {t(SETTINGS_KEYS.panels.roles.permissionsLoading)}
+      </p>
+    );
+  }
+  if (assignable.isError) {
+    return (
+      <p className="text-destructive text-xs" role="alert">
+        {t(SETTINGS_KEYS.panels.roles.permissionsLoadFailed)}
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {assignable.rows.map((entry) => (
+        <div key={entry.code} className="flex items-center gap-2">
+          <Checkbox
+            id={`role-perm-${entry.code}`}
+            checked={selected.includes(entry.code)}
+            onCheckedChange={(value) =>
+              onToggle(
+                value === true
+                  ? withPermission(selected, entry.code)
+                  : withoutPermission(selected, entry.code),
+              )
+            }
+            data-testid={`role-perm-${entry.code}`}
+          />
+          <Label
+            htmlFor={`role-perm-${entry.code}`}
+            className="text-muted-foreground text-xs font-normal"
+            title={entry.code}
+          >
+            {entry.name}
+          </Label>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /**
@@ -85,6 +157,9 @@ export function CreateRoleDialog({
   // The roles list omits permissions, so an edit must fetch the role's real
   // grants to pre-fill — otherwise saving would wipe them.
   const rolePermissions = useRolePermissions(role?.id);
+  // The catalog core-be enforces, narrowed to what this caller may actually grant —
+  // `assertCallerCanGrantPermissionCodes` refuses anything else.
+  const assignable = useAssignablePermissions();
 
   const initialValues: RoleInput = role
     ? { name: role.name, description: role.description, permissions: role.permissions }
@@ -210,30 +285,11 @@ export function CreateRoleDialog({
                   control={control}
                   name="permissions"
                   render={({ field }) => (
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {ASSIGNABLE_ROLE_PERMISSIONS.map((perm) => (
-                        <div key={perm} className="flex items-center gap-2">
-                          <Checkbox
-                            id={`role-perm-${perm}`}
-                            checked={field.value.includes(perm)}
-                            onCheckedChange={(value) =>
-                              field.onChange(
-                                value === true
-                                  ? withPermission(field.value, perm)
-                                  : withoutPermission(field.value, perm),
-                              )
-                            }
-                            data-testid={`role-perm-${perm}`}
-                          />
-                          <Label
-                            htmlFor={`role-perm-${perm}`}
-                            className="text-muted-foreground font-mono text-xs font-normal"
-                          >
-                            {perm}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
+                    <PermissionChecklist
+                      assignable={assignable}
+                      selected={field.value}
+                      onToggle={field.onChange}
+                    />
                   )}
                 />
                 {errors.permissions && (

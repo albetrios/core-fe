@@ -8,6 +8,7 @@ import {
 } from '@/shared/api/organization-query-keys.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
+import { useCan } from '@/shared/hooks/useCan/index.ts';
 import {
   type CursorListResult,
   useCursorList,
@@ -23,6 +24,13 @@ export type RolesListParams = OrgListKeyParams;
  */
 export function useRoles(params: RolesListParams = {}): CursorListResult<RoleSummary> {
   const orgId = useOrganizationStore((s) => s.organizationId);
+  // `GET /tenancy/organization/roles` enforces `role:read`. The members panel calls this hook
+  // from every member row regardless of whether it will render a role picker, so without this
+  // guard the seeded **Viewer** role — which holds `organization:read` + `membership:read` and
+  // nothing else — fired a guaranteed 403 every time it opened Settings → Members. The failure
+  // was invisible in the UI (`notifyOnError: false`) but core-be writes a permission-deny audit
+  // row on every denial, so it was a request worth not making.
+  const canReadRoles = useCan({ permission: 'role:read' });
   return useCursorList<RoleSummary>({
     queryKey: orgQueryKeys.rolesList(orgId, params),
     queryFn: (after) => orgApi.listRoles({ ...params, after }),
@@ -30,7 +38,7 @@ export function useRoles(params: RolesListParams = {}): CursorListResult<RoleSum
     notifyOnError: false,
     // No active org (mid org-switch, or before context resolves) → skip the
     // request instead of firing a `Forbidden` against an empty org scope.
-    enabled: Boolean(orgId),
+    enabled: Boolean(orgId) && canReadRoles,
   });
 }
 

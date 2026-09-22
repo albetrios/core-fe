@@ -85,7 +85,9 @@
       "formCheck": "양식을 확인하세요",
       "updateSuccess": "조직이 업데이트됨",
       "createSuccess": "{{name}} 생성됨",
-      "createdSwitchFailed": "{{name}}을(를) 만들었지만 열지 못했습니다. 조직 전환기에서 선택해 주세요."
+      "createdSwitchFailed": "{{name}}을(를) 만들었지만 열지 못했습니다. 조직 전환기에서 선택해 주세요.",
+      "logoUpdated": "로고를 업데이트했습니다.",
+      "logoRemoved": "로고를 삭제했습니다."
     },
     "account": {
       "copyFailed": "클립보드에 복사할 수 없습니다",

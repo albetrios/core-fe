@@ -164,7 +164,9 @@
       "namePlaceholder": "z. B. Mitglied",
       "descriptionPlaceholder": "Was darf diese Rolle tun?",
       "create": "Neue Rolle",
-      "roleFallback": "diese Rolle"
+      "roleFallback": "diese Rolle",
+      "permissionsLoading": "Berechtigungen werden geladen…",
+      "permissionsLoadFailed": "Die Berechtigungsliste konnte nicht geladen werden. Bitte erneut versuchen."
     },
     "listSort": {
       "label": "Sortieren nach",

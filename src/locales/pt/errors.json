@@ -85,7 +85,9 @@
       "formCheck": "Verifique o formulário",
       "updateSuccess": "Organização atualizada",
       "createSuccess": "{{name}} criado",
-      "createdSwitchFailed": "{{name}} foi criada, mas não foi possível abri-la. Selecione-a no seletor de organizações."
+      "createdSwitchFailed": "{{name}} foi criada, mas não foi possível abri-la. Selecione-a no seletor de organizações.",
+      "logoUpdated": "Logotipo atualizado.",
+      "logoRemoved": "Logotipo removido."
     },
     "account": {
       "copyFailed": "Não foi possível copiar para a área de transferência",

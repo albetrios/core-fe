@@ -131,7 +131,7 @@ provider lists. Disabled methods omit UI; misconfiguration shows an empty state 
 | **Org switcher**     | **Hidden** — not in AppLayout, not in build-time chrome. User has one implicit workspace                                                       |
 | **Create org**       | **Hidden** — no `CreateOrganizationDialog`, no `/create-organization` nav                                                                      |
 | **URLs**             | Root space only (`/dashboard`, …). No `/organization/$slug` tree in nav; guard may still exist for deep links → 404 or redirect home           |
-| **Settings**         | No Organization settings group; billing under Account (`#settings/account/billing`). Team sections hidden via `sectionsForOrgType('PERSONAL')` |
+| **Settings**         | Billing under Account (`#settings/account/billing`). Of the Organization group only **Integrations** is shown — the api-key routes are organization-scope `both` on core-be and a personal owner holds `api-key:*`; the panel's webhooks half gates itself on `webhook:read`, which a personal owner does not hold. General / Members / Roles hidden via `sectionsForOrgType('PERSONAL')` |
 
 ### Team only (`team-only`)
 

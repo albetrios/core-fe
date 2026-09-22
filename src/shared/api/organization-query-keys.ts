@@ -41,4 +41,9 @@ export const orgQueryKeys = {
     [...orgQueryKeys.org(organizationId), 'api-keys'] as const,
   apiKeysList: (organizationId: string | null, params: OrgListKeyParams) =>
     [...orgQueryKeys.apiKeys(organizationId), 'list', params] as const,
+  /**
+   * The permission catalog is platform-wide reference data, not org-scoped — it sits under
+   * `all` rather than `org(id)` so switching workspaces does not refetch it.
+   */
+  permissionCatalog: () => [...orgQueryKeys.all, 'permission-catalog'] as const,
 };

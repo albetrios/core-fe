@@ -76,13 +76,13 @@ describe('canViewSettingsSection', () => {
     ).toBe(false);
   });
 
-  it('super_admin bypasses organization permissions', () => {
+  it('super_admin is still governed by organization permissions', () => {
     expect(
       canViewSettingsSection(
         { scope: 'organization', section: 'roles' },
         { role: 'super_admin', permissions: [] },
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('denies sections whose L6b module is disabled for the deployment', () => {

@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import {
+  type OrganizationPermission,
+  organizationPermissionSchema,
+} from '@/core/types/permissions.ts';
+
 /**
  * Organization domain types and runtime form schemas.
  *
@@ -38,7 +43,8 @@ export type RoleSummary = {
   id: string;
   name: string;
   description: string;
-  permissions: string[];
+  /** Known codes only — `toOrganizationPermissions` drops anything this build does not model. */
+  permissions: OrganizationPermission[];
   memberCount: number;
   isSystem: boolean;
 };
@@ -61,25 +67,20 @@ export type ApiKeyWithSecret = ApiKey & {
   secret: string;
 };
 
-/** Assignable (non-system) permissions a custom role may grant. */
-export const ASSIGNABLE_ROLE_PERMISSIONS = [
-  'organization:read',
-  'organization:update',
-  'membership:read',
-  'membership:manage',
-  'invitation:manage',
-  'role:read',
-  'role:manage',
-  'api-key:read',
-  'api-key:manage',
-  'subscription:read',
-  'subscription:manage',
-] as const;
-
-/** Form input for creating or editing a custom role. */
+/**
+ * Form input for creating or editing a custom role.
+ *
+ * The selectable permissions are NOT listed here: they come from core-be's own catalog
+ * (`GET /tenancy/permissions`, via `useAssignablePermissions`) intersected with what the
+ * caller holds. A hardcoded list had drifted to 11 of the backend's 18 codes, which made the
+ * missing ones — both webhook codes among them — impossible to delegate through this UI.
+ * `permissions` is typed against the permission union so an unknown code cannot be submitted.
+ */
 export const roleInputSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(40),
   description: z.string().min(2, 'Add a short description').max(160),
-  permissions: z.array(z.string()).min(1, 'Select at least one permission'),
+  permissions: z
+    .array(organizationPermissionSchema)
+    .min(1, 'Select at least one permission'),
 });
 export type RoleInput = z.infer<typeof roleInputSchema>;

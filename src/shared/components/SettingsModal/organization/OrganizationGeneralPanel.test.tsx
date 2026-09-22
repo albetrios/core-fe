@@ -14,10 +14,22 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 /** The panel's copy as the bundle renders it — never the English literal. */
 const copy = (key: string, lng = 'en') => i18n.t(key, { ns: SETTINGS_NS, lng });
 
-const { listMock, updateMock } = vi.hoisted(() => ({
+const { listMock, updateMock, uploadLogoMock, removeLogoMock } = vi.hoisted(() => ({
   listMock: vi.fn(),
   updateMock: vi.fn(),
+  uploadLogoMock: vi.fn(),
+  removeLogoMock: vi.fn(),
 }));
+// The logo goes through core-be's storage flow now (presign → storage → confirm → attach),
+// not a `logoUrl` field on the rename PATCH — which the client silently dropped.
+vi.mock('@/shared/api/organization-api.ts', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    uploadOrganizationLogo: uploadLogoMock,
+    removeOrganizationLogo: removeLogoMock,
+  };
+});
 vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return { ...actual, listMyOrganizations: listMock, updateOrganization: updateMock };
@@ -36,7 +48,9 @@ function setCanManage(value: boolean) {
   useOrganizationStore.setState({
     organizationId: 'org_acme',
     organizationType: value ? 'TEAM' : 'PERSONAL',
-    permissions: value ? ['membership:manage'] : [],
+    // `PATCH /tenancy/organization` and the logo routes enforce `organization:update`.
+    permissions: value ? ['organization:update'] : [],
+    permissionsResolved: true,
   });
 }
 
@@ -83,18 +97,31 @@ describe('OrganizationGeneralPanel', () => {
     expect(screen.queryByTestId('org-logo-upload')).not.toBeInTheDocument();
   });
 
-  it('uploads a logo as a data URL (FE-33)', async () => {
+  it('uploads a logo through the storage flow (FE-33)', async () => {
+    uploadLogoMock.mockResolvedValue(undefined);
     const user = userEvent.setup();
     renderWithProviders(<OrganizationGeneralPanel />);
     await screen.findByTestId('org-logo-preview');
     const file = new File(['logo-bytes'], 'logo.png', { type: 'image/png' });
     await user.upload(screen.getByTestId('org-logo-input'), file);
     await waitFor(() =>
-      expect(updateMock).toHaveBeenCalledWith(
-        'org_acme',
-        expect.objectContaining({ logoUrl: expect.stringContaining('data:image/png') }),
-      ),
+      expect(uploadLogoMock).toHaveBeenCalledWith({ file, organizationId: 'org_acme' }),
     );
+    // The rename PATCH must not be dragged into a logo change.
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  // core-be refuses anything outside png/jpeg/webp — SVG included — so the client refuses it
+  // first rather than spending a presign round trip to be told no.
+  it('refuses a content type core-be would reject, without calling the API', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<OrganizationGeneralPanel />);
+    await screen.findByTestId('org-logo-preview');
+    await user.upload(
+      screen.getByTestId('org-logo-input'),
+      new File(['<svg/>'], 'logo.svg', { type: 'image/svg+xml' }),
+    );
+    expect(uploadLogoMock).not.toHaveBeenCalled();
   });
 
   it('removes an existing logo (FE-33)', async () => {
@@ -111,30 +138,24 @@ describe('OrganizationGeneralPanel', () => {
     renderWithProviders(<OrganizationGeneralPanel />);
     const remove = await screen.findByTestId('org-logo-remove');
     await user.click(remove);
-    await waitFor(() =>
-      expect(updateMock).toHaveBeenCalledWith('org_acme', { logoUrl: null }),
-    );
+    await waitFor(() => expect(removeLogoMock).toHaveBeenCalled());
+    expect(updateMock).not.toHaveBeenCalled();
   });
 
-  // ── SET-27: reading the file is part of the upload ───────────────────────
+  // ── SET-27: the wait is covered end to end ───────────────────────────────
 
-  it('says it is working while the file is being read', async () => {
-    // Regression: `disabled={update.isPending}` covered the request but not the
-    // FileReader window in front of it, so picking a large logo looked like
-    // nothing had happened. A controlled reader holds that window open.
-    const readerCtl: { finish?: () => void } = {};
-    class ControlledFileReader {
-      onload: (() => void) | null = null;
-      onerror: (() => void) | null = null;
-      result: string | null = null;
-      readAsDataURL() {
-        readerCtl.finish = () => {
-          this.result = 'data:image/png;base64,AAAA';
-          this.onload?.();
-        };
-      }
-    }
-    vi.stubGlobal('FileReader', ControlledFileReader);
+  it('says it is working for the whole upload, not just part of it', async () => {
+    // Regression: the busy state used to cover only the request, leaving the FileReader
+    // window in front of it looking like nothing had happened. There is no reader any more —
+    // the single mutation spans presign, storage write, confirm and attach — so one pending
+    // flag now covers the entire wait the user experiences.
+    let finishUpload: (() => void) | undefined;
+    uploadLogoMock.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishUpload = resolve;
+        }),
+    );
 
     setCanManage(true);
     const user = userEvent.setup();
@@ -146,14 +167,14 @@ describe('OrganizationGeneralPanel', () => {
       new File(['x'.repeat(2048)], 'logo.png', { type: 'image/png' }),
     );
 
-    // Still reading: the button says so, and cannot be pressed again.
-    const upload = screen.getByTestId('org-logo-upload');
-    expect(upload).toHaveAttribute('aria-busy', 'true');
+    const upload = await screen.findByTestId('org-logo-upload');
+    await waitFor(() => expect(upload).toHaveAttribute('aria-busy', 'true'));
     expect(upload).toHaveTextContent(copy(SETTINGS_KEYS.panels.general.uploading));
     expect(upload).toBeDisabled();
 
-    await act(async () => readerCtl.finish?.());
-    await waitFor(() => expect(updateMock).toHaveBeenCalled());
-    vi.unstubAllGlobals();
+    await act(async () => {
+      finishUpload?.();
+    });
+    await waitFor(() => expect(upload).not.toBeDisabled());
   });
 });

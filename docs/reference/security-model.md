@@ -130,13 +130,25 @@ not fail) on a deploy environment that leaves it unset. Steps:
    Propagating login would tempt cross-tab token sharing for no security gain.
 5. **Client-side RBAC is non-authoritative.** Route guards (`requirePermission`,
    the security gateway) and UI gating (`useCan`, `<Gate>`) read the in-memory
-   role + active-org permission set — including `super_admin` god-mode in
-   [`core/rbac/policies.ts`](../../src/core/rbac/policies.ts) (`role === 'super_admin' → true`).
-   A tampered in-memory store can flip any of these **client-side**. This is
-   accepted: it is UX/redirect logic only — **every** org-scoped action re-checks
-   on the backend (via the signed `org` claim in the access token), and the route loader's fetch is the
-   real authorization boundary (API 403/404 → Unauthorized/NotFound islands).
+   role + active-org permission set. A tampered in-memory store can flip any of
+   these **client-side**. This is accepted: it is UX/redirect logic only —
+   **every** org-scoped action re-checks on the backend (via the signed `org`
+   claim in the access token), and the route loader's fetch is the real
+   authorization boundary (API 403/404 → Unauthorized/NotFound islands).
    Never let a destructive action rely on the client check alone.
+
+   `hasPermission` in [`core/rbac/policies.ts`](../../src/core/rbac/policies.ts)
+   previously short-circuited to `true` for `super_admin` ("platform god-mode").
+   That is gone. `super_admin` is a **platform-admin role** — the admin console,
+   `requireRole` on core-be's `/users/*`, `/audit/logs` and `/mcp` — and core-be
+   grants it nothing inside an organization: `requireOrganizationPermission`
+   resolves a strict role→membership join with no global-role branch, and the
+   tenancy RLS policies never honour `app.global_admin`. The bypass therefore
+   unlocked controls the API answered with 403, and each click wrote a
+   permission-deny audit row. Being *more* permissive than the boundary is a
+   broken UI, not a breach — but it is still wrong, so the client now mirrors
+   the server exactly. A super_admin needing access inside an organization gets
+   it the normal way: a membership with a role.
 
 ## Backend's half (confirm, don't implement here)
 

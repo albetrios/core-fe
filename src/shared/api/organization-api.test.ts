@@ -205,6 +205,8 @@ describe('organization-api roles (live)', () => {
     // (400). Permissions are applied via PUT /roles/:id/permissions.
     postMock.mockResolvedValue({ data: { ...ROLE_WIRE, is_system: false } });
     putMock.mockResolvedValue({ data: null });
+    // The stored set is read back after the PUT rather than echoing the request.
+    getMock.mockResolvedValue({ data: [{ permission_code: 'role:read' }] });
     const role = await createRole({
       name: 'X',
       description: 'd',
@@ -221,6 +223,31 @@ describe('organization-api roles (live)', () => {
     expect(role.permissions).toEqual(['role:read']);
   });
 
+  // The two calls are not atomic and the second one genuinely fails — core-be refuses any
+  // code the caller does not hold. Leaving the role behind meant an error message plus a
+  // zero-permission role the user never asked for.
+  it('createRole rolls the role back when the permissions PUT is refused', async () => {
+    postMock.mockResolvedValue({ data: { ...ROLE_WIRE, is_system: false } });
+    putMock.mockRejectedValue(new Error('forbidden'));
+    deleteMock.mockResolvedValue({ data: null });
+
+    await expect(
+      createRole({ name: 'X', description: 'd', permissions: ['role:read'] }),
+    ).rejects.toThrow('forbidden');
+
+    expect(deleteMock).toHaveBeenCalledWith(expect.stringContaining(`/roles/${ROL}`));
+  });
+
+  it('createRole reports the original failure even when the rollback also fails', async () => {
+    postMock.mockResolvedValue({ data: { ...ROLE_WIRE, is_system: false } });
+    putMock.mockRejectedValue(new Error('forbidden'));
+    deleteMock.mockRejectedValue(new Error('cleanup exploded'));
+
+    await expect(
+      createRole({ name: 'X', description: 'd', permissions: ['role:read'] }),
+    ).rejects.toThrow('forbidden');
+  });
+
   it('createRole skips the permissions PUT when none are selected', async () => {
     postMock.mockResolvedValue({ data: { ...ROLE_WIRE, is_system: false } });
     await createRole({ name: 'X', description: 'd', permissions: [] });
@@ -231,6 +258,9 @@ describe('organization-api roles (live)', () => {
     // Same strict-body contract as createRole: the PATCH rejects `permissions`.
     patchMock.mockResolvedValue({ data: { ...ROLE_WIRE, is_system: false } });
     putMock.mockResolvedValue({ data: null });
+    getMock.mockResolvedValue({
+      data: [{ permission_code: 'role:read' }, { permission_code: 'membership:manage' }],
+    });
     const role = await updateRole({
       id: ROL,
       name: 'X',
@@ -245,7 +275,12 @@ describe('organization-api roles (live)', () => {
       expect.stringContaining(`/roles/${ROL}/permissions`),
       { permission_codes: ['role:read', 'membership:manage'] },
     );
+    // The stored set, read back — not the requested one echoed. The cache must never claim a
+    // role is more capable than the server says it is.
     expect(role.permissions).toEqual(['role:read', 'membership:manage']);
+    expect(getMock).toHaveBeenCalledWith(
+      expect.stringContaining(`/roles/${ROL}/permissions`),
+    );
   });
 
   it('getRolePermissions maps the wire rows to permission_code strings', async () => {

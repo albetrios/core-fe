@@ -163,7 +163,9 @@
       "namePlaceholder": "例如：成员",
       "descriptionPlaceholder": "该角色可以做什么？",
       "create": "新建角色",
-      "roleFallback": "该角色"
+      "roleFallback": "该角色",
+      "permissionsLoading": "正在加载权限…",
+      "permissionsLoadFailed": "无法加载权限列表。请重试。"
     },
     "listSort": {
       "label": "排序方式",

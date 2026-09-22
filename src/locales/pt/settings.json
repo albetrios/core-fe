@@ -167,7 +167,9 @@
       "namePlaceholder": "ex.: Membro",
       "descriptionPlaceholder": "O que esta função pode fazer?",
       "create": "Nova função",
-      "roleFallback": "esta função"
+      "roleFallback": "esta função",
+      "permissionsLoading": "Carregando permissões…",
+      "permissionsLoadFailed": "Não foi possível carregar a lista de permissões. Tente novamente."
     },
     "listSort": {
       "label": "Ordenar por",
