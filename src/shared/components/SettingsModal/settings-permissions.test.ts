@@ -56,10 +56,12 @@ describe('canViewSettingsSection', () => {
     ).toBe(false);
   });
 
-  it('integrations is reachable via api-key:read, not the never-granted webhook:read', () => {
-    // Regression: integrations was gated on `webhook:read`, which the backend never
-    // grants, so the whole section (incl. API-key management the user IS entitled to)
-    // was unreachable for everyone.
+  it('integrations is reachable via api-key:read, and not via webhook:read', () => {
+    // Regression: integrations was gated on `webhook:read`, so the whole section
+    // (incl. API-key management the user IS entitled to) was unreachable for
+    // everyone — core-be granted that code to no role at all. core-be now grants
+    // it to a TEAM organization's Owner (core-be#1180); this gate stays on
+    // `api-key:read`, because holding one of the two codes is not holding the other.
     expect(
       canViewSettingsSection(
         { scope: 'organization', section: 'integrations' },
