@@ -181,4 +181,31 @@ describe('CreateRoleDialog', () => {
     );
     expect(screen.getByTestId('role-perm-invitation:manage')).toBeChecked();
   });
+
+  // The catalog is fetched now, so the picker has two states it never had when the list was
+  // a hardcoded constant. Neither may render as "no permissions to grant".
+  it('says the permission list is loading rather than showing an empty picker', async () => {
+    useAssignablePermissionsMock.mockReturnValue({
+      rows: [],
+      isPending: true,
+      isError: false,
+    });
+    render(<CreateRoleDialog />);
+    await open();
+
+    expect(screen.queryByTestId('role-perm-membership:manage')).not.toBeInTheDocument();
+    expect(screen.getByText(/loading permissions/i)).toBeInTheDocument();
+  });
+
+  it('reports a failed catalog fetch instead of an empty picker', async () => {
+    useAssignablePermissionsMock.mockReturnValue({
+      rows: [],
+      isPending: false,
+      isError: true,
+    });
+    render(<CreateRoleDialog />);
+    await open();
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/permission list/i);
+  });
 });

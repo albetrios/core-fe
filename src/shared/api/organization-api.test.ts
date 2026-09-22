@@ -7,6 +7,8 @@ const { getMock, postMock, putMock, patchMock, deleteMock } = vi.hoisted(() => (
   patchMock: vi.fn(),
   deleteMock: vi.fn(),
 }));
+const { uploadFileMock } = vi.hoisted(() => ({ uploadFileMock: vi.fn() }));
+vi.mock('./uploads-api.ts', () => ({ uploadFile: uploadFileMock }));
 vi.mock('@/core/http/fetch-client.ts', () => ({
   apiClient: {
     get: getMock,
@@ -20,6 +22,9 @@ vi.mock('@/core/http/fetch-client.ts', () => ({
 import {
   createApiKey,
   createRole,
+  listPermissionCatalog,
+  removeOrganizationLogo,
+  uploadOrganizationLogo,
   deleteRole,
   getMyPermissions,
   getRolePermissions,
@@ -422,5 +427,87 @@ describe('organization-api permissions', () => {
 
     expect(await getMyPermissions()).toEqual(['organization:read']);
     expect(getMock).toHaveBeenCalledWith(expect.stringContaining('/auth/me/context'));
+  });
+});
+
+
+describe('organization-api permission catalog', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('reads the catalog core-be enforces', async () => {
+    getMock.mockResolvedValue({
+      data: [
+        { code: 'organization:read', name: 'View Organization', category: 'tenancy' },
+        { code: 'webhook:manage', name: 'Manage Webhooks', category: 'notify' },
+      ],
+    });
+
+    const rows = await listPermissionCatalog();
+
+    expect(getMock).toHaveBeenCalledWith(expect.stringContaining('/tenancy/permissions'));
+    expect(rows).toEqual([
+      { code: 'organization:read', name: 'View Organization', category: 'tenancy' },
+      { code: 'webhook:manage', name: 'Manage Webhooks', category: 'notify' },
+    ]);
+  });
+
+  // A backend that adds a permission ahead of this client must not break the picker: the
+  // unknown code is dropped rather than rendered as an unselectable mystery row.
+  it('drops codes this build does not model', async () => {
+    getMock.mockResolvedValue({
+      data: [
+        { code: 'organization:read', name: 'View Organization', category: 'tenancy' },
+        { code: 'quantum:entangle', name: 'Entangle', category: 'future' },
+      ],
+    });
+
+    const rows = await listPermissionCatalog();
+
+    expect(rows.map((row) => row.code)).toEqual(['organization:read']);
+  });
+});
+
+describe('organization-api logo', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('uploads the bytes, then attaches the FINAL key', async () => {
+    uploadFileMock.mockResolvedValue({ key: 'organization-logos/org_a/abc.png' });
+    putMock.mockResolvedValue({ data: null });
+
+    const file = new File(['bytes'], 'logo.png', { type: 'image/png' });
+    await uploadOrganizationLogo({ file, organizationId: 'org_a' });
+
+    expect(uploadFileMock).toHaveBeenCalledWith({
+      file,
+      purpose: 'organization-logo',
+      organizationId: 'org_a',
+    });
+    expect(putMock).toHaveBeenCalledWith(expect.stringContaining('/organization/logo'), {
+      key: 'organization-logos/org_a/abc.png',
+    });
+  });
+
+  // Nothing is attached unless the bytes actually landed — a failed upload must leave the
+  // existing logo alone rather than pointing the organization at a key that is not there.
+  it('does not attach when the upload fails', async () => {
+    uploadFileMock.mockRejectedValue(new Error('storage refused'));
+
+    await expect(
+      uploadOrganizationLogo({
+        file: new File(['b'], 'logo.png', { type: 'image/png' }),
+        organizationId: 'org_a',
+      }),
+    ).rejects.toThrow('storage refused');
+    expect(putMock).not.toHaveBeenCalled();
+  });
+
+  it('clears the logo through the delete route', async () => {
+    deleteMock.mockResolvedValue({ data: null });
+
+    await removeOrganizationLogo();
+
+    expect(deleteMock).toHaveBeenCalledWith(
+      expect.stringContaining('/organization/logo'),
+    );
   });
 });

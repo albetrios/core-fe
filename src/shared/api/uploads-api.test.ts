@@ -124,6 +124,34 @@ describe('uploadFile', () => {
     expect(postMock).not.toHaveBeenCalled();
   });
 
+  // S3 browser POST uploads take the policy fields as a multipart form, and the file MUST be
+  // appended last — anything after it is ignored by S3.
+  it('submits a multipart form when the presign asks for POST', async () => {
+    postMock
+      .mockResolvedValueOnce({
+        data: {
+          ...PRESIGN,
+          upload_method: 'POST',
+          fields: { key: 'organization-logos/org_a/abc.png', policy: 'p', signature: 's' },
+        },
+      })
+      .mockResolvedValueOnce({ data: { id: 'upl_x', status: 'UPLOADED' } });
+
+    await uploadFile({
+      file: logoFile(),
+      purpose: 'organization-logo',
+      organizationId: 'org_a',
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.method).toBe('POST');
+    const form = init.body as FormData;
+    expect(form).toBeInstanceOf(FormData);
+    expect(form.get('policy')).toBe('p');
+    expect(form.get('signature')).toBe('s');
+    expect([...form.keys()].at(-1)).toBe('file');
+  });
+
   it('omits organization_id for a user-scoped upload', async () => {
     postMock
       .mockResolvedValueOnce({
