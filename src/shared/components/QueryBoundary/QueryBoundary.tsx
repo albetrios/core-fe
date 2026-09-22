@@ -54,16 +54,13 @@ function QueryData<T>({ data, render }: { data: T; render: (data: T) => ReactNod
  * `<output>` announces the wait once, politely.
  */
 function DefaultSkeleton({ label }: { label?: string }) {
-  // Advances while the wait continues — a line that never changes reads as a
-  // frozen screen, which is the thing a skeleton is supposed to rule out.
+  // Advances while the wait continues, so a screen reader hears progress rather
+  // than one frozen line. Announced only: the skeleton is the visible answer, and
+  // prose above it just competes with the shape describing the same wait.
   const message = useLoadingMessage(label);
   return (
     <div className="space-y-3" data-testid="query-skeleton">
-      <output
-        aria-live="polite"
-        className="text-muted-foreground block text-sm"
-        data-testid="query-skeleton-label"
-      >
+      <output aria-live="polite" className="sr-only" data-testid="query-skeleton-label">
         {message}
       </output>
       <Skeleton className="h-8 w-48" />

@@ -198,13 +198,42 @@ function preloadAuthShell(): Promise<unknown> {
  */
 export function preloadBootRoutes(hint: { likelySignedIn: boolean }): void {
   const warm = hint.likelySignedIn
-    ? [
-        PersonalShell.preload?.(),
-        OrganizationShell.preload?.(),
-        DashboardPage.preload?.(),
-      ]
+    ? [preloadSignedInShell()]
     : [preloadAuthShell(), LoginPage.preload?.()];
   Promise.all(warm).catch(() => undefined);
+}
+
+/**
+ * Warm the chunks a successful sign-in lands on.
+ *
+ * @remarks
+ * - **Why:** {@link preloadBootRoutes} runs once, at boot, and a first-time
+ *   visitor has no session hint — so it warms the PUBLIC side and the signed-in
+ *   shell is not fetched until after the post-login navigation has already
+ *   happened. Measured at 100ms RTT, those chunks started downloading at 554ms,
+ *   on the far side of the login round trip, with the user already committed and
+ *   watching a transition.
+ * - **When:** the moment the visitor submits an email — a declaration of intent
+ *   to sign in. They then spend seconds finding a six-digit code in their inbox,
+ *   which is otherwise dead air on a warm connection.
+ * - **Being wrong is cheap:** a visitor who abandons the form has spent idle
+ *   bandwidth on chunks the guards would never have shown them, exactly as the
+ *   boot-time hint already risks. Failures are swallowed for the same reason —
+ *   this is speculation, and the router re-requests through the normal path
+ *   where an error boundary and a Retry exist.
+ */
+export function preloadSignedInShell(): Promise<void> {
+  return Promise.all([
+    PersonalShell.preload?.(),
+    OrganizationShell.preload?.(),
+    DashboardPage.preload?.(),
+    // A first sign-in lands here, not on the dashboard, and it was the one chunk
+    // still arriving after the navigation once the shells were warm. 11 kB is a
+    // cheap wrong guess for anyone who has already onboarded.
+    OnboardingPage.preload?.(),
+  ])
+    .then(() => undefined)
+    .catch(() => undefined);
 }
 
 // ── Root ──

@@ -31,6 +31,9 @@ vi.mock('@/shared/notify/index.ts', () => ({
   notify: { success: notifySuccess, error: notifyError },
 }));
 
+import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
+
 import {
   useCancelSubscription,
   useResumeSubscription,
@@ -52,6 +55,13 @@ function wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The read is gated on `subscription:read` — a workspace without it can only
+  // be answered 403, so the query is not sent at all. `useCan` also requires a
+  // signed-in user, so both halves of the check have to be seeded.
+  useAuthStore.setState({
+    user: { id: 'usr_1', email: 'a@b.test', role: 'member' } as never,
+  });
+  useOrganizationStore.setState({ permissions: ['subscription:read'] });
 });
 
 describe('useSubscription', () => {
@@ -60,6 +70,18 @@ describe('useSubscription', () => {
     const { result } = renderHook(() => useSubscription(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(SUB);
+  });
+
+  // The wasted round trip this gate exists to remove: it used to fire on every
+  // dashboard load for a workspace that could only ever be refused.
+  it('never asks when the caller lacks subscription:read', async () => {
+    useOrganizationStore.setState({ permissions: [] });
+    getActiveSubscription.mockResolvedValue(SUB);
+
+    const { result } = renderHook(() => useSubscription(), { wrapper });
+
+    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'));
+    expect(getActiveSubscription).not.toHaveBeenCalled();
   });
 });
 

@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~629 src files · ~366 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
+Stats: ~630 src files · ~366 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -424,6 +424,7 @@ core-fe/
 │   │   ├── product-identity.ts
 │   │   ├── responsive-grid.ts
 │   │   ├── sensitive-clipboard.ts
+│   │   ├── signed-in-shell-warmup.ts
 │   │   ├── telemetry-scrub.ts
 │   │   ├── utils.ts
 │   │   └── [19 test files]

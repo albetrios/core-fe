@@ -423,13 +423,14 @@ function SettingsContentLoading({ active }: { active: SettingsSectionRef }) {
   return (
     <div className="flex flex-col gap-6" data-testid="settings-content-loading">
       <SectionHeader title={sectionLabel} />
-      {/* Named and VISIBLE, not `sr-only`. The header already said "Members",
-          so the grey bars under it read as an empty members list rather than a
-          slow one — the wait was legible to a screen reader and to nobody
-          else. Polite, and it names the section so a slow panel says which. */}
+      {/* Announced, not drawn. The section header above already names what is
+          loading, so a second line of prose only competes with the skeleton
+          describing the same wait. `Skeleton` is decorative, so this still has
+          to exist for a screen reader — it names the section, so a slow panel
+          says which one. */}
       <output
         aria-live="polite"
-        className="text-muted-foreground text-sm"
+        className="sr-only"
         data-testid="settings-content-loading-label"
       >
         {loadingMessage}

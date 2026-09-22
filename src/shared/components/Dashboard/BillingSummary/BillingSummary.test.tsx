@@ -7,6 +7,8 @@ import type {
   BillingPlan,
   BillingSubscription,
 } from '@/shared/api/billing-contracts.ts';
+import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
+import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 const { getActiveSubscription, listBillingPlans, listBillingPaymentMethods, stripe } =
@@ -69,6 +71,13 @@ const CARD: BillingPaymentMethod = {
 describe('BillingSummary', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // The subscription read is gated on `subscription:read` (and a signed-in
+    // user): without both, the query is never sent and this panel has no plan
+    // to show — which is the point of the gate, not a failure of this panel.
+    useAuthStore.setState({
+      user: { id: 'usr_1', email: 'a@b.test', role: 'member' } as never,
+    });
+    useOrganizationStore.setState({ permissions: ['subscription:read'] });
     stripe.enabled = true;
     getActiveSubscription.mockResolvedValue(null);
     listBillingPlans.mockResolvedValue([PRO_PLAN]);
