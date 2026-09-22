@@ -24,9 +24,6 @@ export type ProfileInput = z.infer<typeof profileSchema>;
  */
 export function computeProfileCompleteness(profile: Partial<ProfileInput>): number {
   const fields: (keyof ProfileInput)[] = ['name', 'jobTitle'];
-  const filled = fields.filter((f) =>
-    // eslint-disable-next-line security/detect-object-injection -- `f` is a constrained keyof union
-    Boolean(profile[f]?.toString().trim()),
-  ).length;
+  const filled = fields.filter((f) => Boolean(profile[f]?.toString().trim())).length;
   return Math.round((filled / fields.length) * 100);
 }

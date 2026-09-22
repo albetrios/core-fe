@@ -310,7 +310,6 @@ export function NavList({
   variant: keyof typeof NAV_STYLES;
 }) {
   const { t } = useTranslation(LAYOUT_NS);
-  // eslint-disable-next-line security/detect-object-injection -- variant is a typed keyof union
   const style = NAV_STYLES[variant];
 
   const links = navItems.map((item) => {

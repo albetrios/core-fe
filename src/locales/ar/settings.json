@@ -176,7 +176,9 @@
       "namePlaceholder": "مثال: عضو",
       "descriptionPlaceholder": "ما الذي يمكن لهذا الدور فعله؟",
       "create": "دور جديد",
-      "roleFallback": "هذا الدور"
+      "roleFallback": "هذا الدور",
+      "permissionsLoading": "جارٍ تحميل الأذونات…",
+      "permissionsLoadFailed": "تعذر تحميل قائمة الأذونات. يرجى المحاولة مجددًا."
     },
     "listSort": {
       "label": "ترتيب حسب",

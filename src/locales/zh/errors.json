@@ -85,7 +85,9 @@
       "formCheck": "请检查表单",
       "updateSuccess": "组织已更新",
       "createSuccess": "已创建 {{name}}",
-      "createdSwitchFailed": "已创建 {{name}}，但无法打开。请在组织切换器中选择它。"
+      "createdSwitchFailed": "已创建 {{name}}，但无法打开。请在组织切换器中选择它。",
+      "logoUpdated": "已更新标志。",
+      "logoRemoved": "已移除标志。"
     },
     "account": {
       "copyFailed": "无法复制到剪贴板",

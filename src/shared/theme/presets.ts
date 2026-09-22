@@ -586,7 +586,6 @@ function pickId(ids: readonly string[], exclude: string | null): string {
   const pool =
     exclude !== null && ids.length > 1 ? ids.filter((id) => id !== exclude) : ids;
   const idx = Math.floor(rng() * pool.length);
-  // eslint-disable-next-line security/detect-object-injection -- idx is a bounded random index into a local string[]
   return pool[idx] ?? ids[0] ?? DEFAULT_PRESET;
 }
 
@@ -598,7 +597,6 @@ function pickPairing(current: GeneratedTheme | null): { body: string; heading: s
       ? FONT_PAIRINGS.filter((p) => `${p.body}/${p.heading}` !== key)
       : FONT_PAIRINGS;
   const idx = Math.floor(rng() * pool.length);
-  // eslint-disable-next-line security/detect-object-injection -- idx is a bounded random index into a local array
   return pool[idx] ?? FONT_PAIRINGS[0] ?? { body: 'inter', heading: 'inter' };
 }
 

@@ -85,7 +85,9 @@
       "formCheck": "Revisa el formulario",
       "updateSuccess": "Organización actualizada",
       "createSuccess": "Se creó {{name}}",
-      "createdSwitchFailed": "Se creó {{name}}, pero no pudimos abrirla. Selecciónala en el selector de organizaciones."
+      "createdSwitchFailed": "Se creó {{name}}, pero no pudimos abrirla. Selecciónala en el selector de organizaciones.",
+      "logoUpdated": "Logotipo actualizado.",
+      "logoRemoved": "Logotipo eliminado."
     },
     "account": {
       "copyFailed": "No se pudo copiar al portapapeles",

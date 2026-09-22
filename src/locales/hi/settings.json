@@ -164,7 +164,9 @@
       "namePlaceholder": "उदा. सदस्य",
       "descriptionPlaceholder": "यह भूमिका क्या कर सकती है?",
       "create": "नई भूमिका",
-      "roleFallback": "यह भूमिका"
+      "roleFallback": "यह भूमिका",
+      "permissionsLoading": "अनुमतियाँ लोड हो रही हैं…",
+      "permissionsLoadFailed": "अनुमति सूची लोड नहीं हो सकी। कृपया पुनः प्रयास करें।"
     },
     "listSort": {
       "label": "क्रमबद्ध करें",

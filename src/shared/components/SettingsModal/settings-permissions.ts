@@ -19,14 +19,12 @@ const ORGANIZATION_SECTION_PERMISSION: Record<
   general: 'organization:read',
   members: 'membership:read',
   roles: 'role:read',
-  // API-key management is the always-available part of Integrations; webhooks are
-  // gated separately inside the panel on `webhook:read`. Gating the whole section
-  // on `webhook:read` hid the API-key management the user IS entitled to via
-  // `api-key:read`, and hid it from everyone: core-be seeded that code into its
-  // permission catalog and granted it to no role at all. core-be now grants it to
-  // a TEAM organization's Owner (core-be#1180), so the panel's webhook section can
-  // render — but this gate stays on `api-key:read`, because the two codes travel
-  // separately and holding one is not holding the other.
+  // API keys are the always-available part of Integrations; webhooks gate themselves
+  // separately inside the panel on `webhook:read`, and each write is gated on the code
+  // core-be actually enforces for it (`api-key:manage` / `webhook:manage`). This section
+  // gate stays on `api-key:read` because the codes travel separately — holding one is not
+  // holding the other — and because the section is also reachable from a personal
+  // workspace, where the owner holds `api-key:*` but no notify codes.
   integrations: 'api-key:read',
 };
 

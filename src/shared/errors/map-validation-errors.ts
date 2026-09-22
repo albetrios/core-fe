@@ -13,7 +13,11 @@ function readFieldErrors(data: unknown): Record<string, string[]> | null {
   const nested = body.error?.fields ?? body.error?.field_errors ?? body.errors;
   if (!nested || typeof nested !== 'object') return null;
 
-  const out: Record<string, string[]> = {};
+  // Field names come straight off the wire, so they are attacker-influenced in principle.
+  // A null-prototype accumulator means a payload carrying `__proto__` (or `constructor`)
+  // writes an ordinary own property instead of reaching the prototype chain — `{}` would
+  // have let `out['__proto__'] = […]` reassign this object's prototype.
+  const out = Object.create(null) as Record<string, string[]>;
   for (const [field, value] of Object.entries(nested as Record<string, unknown>)) {
     if (Array.isArray(value)) {
       const messages = value.filter((m): m is string => typeof m === 'string');

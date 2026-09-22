@@ -77,7 +77,7 @@ export function LanguagePrefsCard() {
                     )}
                   >
                     <span>
-                      {/* eslint-disable-next-line security/detect-object-injection -- fixed locale catalog */}
+                      {}
                       {t(LOCALE_LABEL_KEYS[code], {
                         defaultValue: LOCALE_NATIVE_LABELS[code],
                       })}
@@ -100,10 +100,7 @@ export function LanguagePrefsCard() {
             ariaLabel={t(LOCALE_KEYS.textDirectionHeading)}
             value={textDirection}
             options={TEXT_DIRECTION_PREFERENCE_LIST}
-            labelFor={(id) =>
-              // eslint-disable-next-line security/detect-object-injection -- fixed preference catalog
-              t(TEXT_DIRECTION_LABEL_KEYS[id])
-            }
+            labelFor={(id) => t(TEXT_DIRECTION_LABEL_KEYS[id])}
             onPick={(id) => setTextDirection(id)}
             testPrefix="text-direction"
           />

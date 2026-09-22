@@ -85,7 +85,9 @@
       "formCheck": "Check the form",
       "updateSuccess": "Organization updated",
       "createSuccess": "Created {{name}}",
-      "createdSwitchFailed": "{{name}} was created, but we couldn't open it. Pick it from the organization switcher."
+      "createdSwitchFailed": "{{name}} was created, but we couldn't open it. Pick it from the organization switcher.",
+      "logoUpdated": "Logo updated.",
+      "logoRemoved": "Logo removed."
     },
     "account": {
       "copyFailed": "Could not copy to clipboard",

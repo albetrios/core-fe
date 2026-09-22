@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ListPage } from '@/shared/api/fetch-list-page.ts';
 import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
+import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 const { listRoles, createRole, updateRole, deleteRole, getRolePermissions } = vi.hoisted(
@@ -71,7 +72,18 @@ beforeEach(() => {
       mutations: { retry: false },
     },
   });
-  useOrganizationStore.setState({ organizationId: ORG });
+  // `GET /tenancy/organization/roles` enforces `role:read`; the hook skips the request
+  // without it, so the default fixture must hold it. `useCan` also requires a signed-in
+  // user — a permission set with no user is not a grant.
+  useAuthStore.setState({
+    user: { id: 'u', email: 'a@b.test', role: 'user' },
+    isAuthenticated: true,
+  });
+  useOrganizationStore.setState({
+    organizationId: ORG,
+    permissions: ['role:read'],
+    permissionsResolved: true,
+  });
 });
 
 afterEach(() => {

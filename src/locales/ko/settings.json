@@ -163,7 +163,9 @@
       "namePlaceholder": "예: 멤버",
       "descriptionPlaceholder": "이 역할은 무엇을 할 수 있나요?",
       "create": "새 역할",
-      "roleFallback": "이 역할"
+      "roleFallback": "이 역할",
+      "permissionsLoading": "권한을 불러오는 중…",
+      "permissionsLoadFailed": "권한 목록을 불러오지 못했습니다. 다시 시도해 주세요."
     },
     "listSort": {
       "label": "정렬 기준",

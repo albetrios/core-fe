@@ -50,15 +50,21 @@ export const DEFAULT_SETTINGS: SettingsSectionRef = {
 };
 
 /**
- * Organization sections available per org type. **Personal** organizations have
- * no organization settings group — billing lives under Account. **Team**
- * organizations get the full management set. Permission gating
+ * Organization sections available per org type. **Team** organizations get the full
+ * management set. A **personal** workspace has no members, roles or organization-level
+ * general settings (billing lives under Account), but it does get **integrations**: the
+ * api-key routes are organization-scope `both` on core-be and a personal owner holds the
+ * `api-key:*` codes, so hiding the section withheld a capability the backend grants. The
+ * webhooks half of that panel gates itself separately on `webhook:read`, which a personal
+ * owner does not hold, so it stays hidden there. Permission gating
  * (settings-permissions.ts) still applies on top.
  */
 export function sectionsForOrgType(
   type: OrganizationType,
 ): readonly OrganizationSettingsSection[] {
-  return type === 'TEAM' ? ['general', 'members', 'roles', 'integrations'] : [];
+  return type === 'TEAM'
+    ? ['general', 'members', 'roles', 'integrations']
+    : ['integrations'];
 }
 
 /** One openable destination in the Settings nav (and in the command palette). */

@@ -142,7 +142,6 @@ function requiredIssues(environment: AppEnvironment): {
   const warnings: string[] = [];
   const fileVals = envFileValues(environment);
   const onCi = process.env.GITHUB_ACTIONS === 'true';
-  // eslint-disable-next-line security/detect-object-injection -- key from schema, not user input
   const get = (key: string): string | undefined => runtimeGet(key) ?? fileVals[key];
   for (const rule of envProfiles[environment].required) {
     const applies = rule.when ? rule.when(get) : true;
@@ -192,7 +191,6 @@ function allowedErrors(environment: AppEnvironment): string[] {
   const onCi = process.env.GITHUB_ACTIONS === 'true';
   const errors: string[] = [];
   for (const [key, permitted] of Object.entries(allowed)) {
-    // eslint-disable-next-line security/detect-object-injection -- key from schema, not user input
     const value = fileVals[key] ?? (onCi ? runtimeGet(key) : undefined);
     if (value === undefined) continue;
     if (!permitted.includes(value)) {

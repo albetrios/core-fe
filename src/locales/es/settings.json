@@ -167,7 +167,9 @@
       "namePlaceholder": "p. ej. Miembro",
       "descriptionPlaceholder": "¿Qué puede hacer este rol?",
       "create": "Nuevo rol",
-      "roleFallback": "este rol"
+      "roleFallback": "este rol",
+      "permissionsLoading": "Cargando permisos…",
+      "permissionsLoadFailed": "No se pudo cargar la lista de permisos. Inténtalo de nuevo."
     },
     "listSort": {
       "label": "Ordenar por",

@@ -91,6 +91,11 @@ export function InvisibleTurnstile(): ReactElement | null {
   // back to a viewport-centered overlay for captcha-gated actions outside auth screens.
   const slot = useSyncExternalStore(subscribeCaptchaSlot, getCaptchaSlot, () => null);
 
+  // `slot` is a re-run TRIGGER, not a value this effect reads: when the auth form registers
+  // or drops its inline anchor, the widget must be torn down and re-rendered into the new
+  // container. Biome sees an unread capture and calls it unnecessary; dropping it would
+  // strand the widget in the old anchor.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: slot is a re-mount trigger, not a read
   useEffect(() => {
     if (!(isInvisibleTurnstileActive() && TURNSTILE_SITE_KEY)) return;
     let cancelled = false;

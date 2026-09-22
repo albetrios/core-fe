@@ -17,6 +17,25 @@ vi.mock('@/shared/hooks/useRoles/index.ts', () => ({
   useUpdateRole: () => ({ mutateAsync: updateRoleMutate, isPending: false }),
   useRolePermissions: useRolePermissionsMock,
 }));
+// The permission picker now reads core-be's catalog (`GET /tenancy/permissions`) intersected
+// with what the caller holds, instead of a hardcoded client list. Stub the hook so these
+// tests stay about the dialog rather than the fetch.
+const { useAssignablePermissionsMock } = vi.hoisted(() => ({
+  useAssignablePermissionsMock: vi.fn(() => ({
+    rows: [
+      { code: 'organization:read', name: 'View Organization', category: 'tenancy' },
+      { code: 'membership:read', name: 'View Members', category: 'tenancy' },
+      { code: 'membership:manage', name: 'Manage Members', category: 'tenancy' },
+      { code: 'invitation:manage', name: 'Manage Invitations', category: 'tenancy' },
+      { code: 'webhook:manage', name: 'Manage Webhooks', category: 'notify' },
+    ],
+    isPending: false,
+    isError: false,
+  })),
+}));
+vi.mock('@/shared/hooks/useAssignablePermissions/index.ts', () => ({
+  useAssignablePermissions: useAssignablePermissionsMock,
+}));
 
 const EDIT_ROLE: RoleSummary = {
   id: 'rol_x',
@@ -161,5 +180,32 @@ describe('CreateRoleDialog', () => {
       expect(screen.getByTestId('role-create-name')).toHaveValue('Editor'),
     );
     expect(screen.getByTestId('role-perm-invitation:manage')).toBeChecked();
+  });
+
+  // The catalog is fetched now, so the picker has two states it never had when the list was
+  // a hardcoded constant. Neither may render as "no permissions to grant".
+  it('says the permission list is loading rather than showing an empty picker', async () => {
+    useAssignablePermissionsMock.mockReturnValue({
+      rows: [],
+      isPending: true,
+      isError: false,
+    });
+    render(<CreateRoleDialog />);
+    await open();
+
+    expect(screen.queryByTestId('role-perm-membership:manage')).not.toBeInTheDocument();
+    expect(screen.getByText(/loading permissions/i)).toBeInTheDocument();
+  });
+
+  it('reports a failed catalog fetch instead of an empty picker', async () => {
+    useAssignablePermissionsMock.mockReturnValue({
+      rows: [],
+      isPending: false,
+      isError: true,
+    });
+    render(<CreateRoleDialog />);
+    await open();
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/permission list/i);
   });
 });

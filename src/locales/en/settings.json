@@ -164,7 +164,9 @@
       "namePlaceholder": "e.g. Member",
       "descriptionPlaceholder": "What can this role do?",
       "create": "New role",
-      "roleFallback": "this role"
+      "roleFallback": "this role",
+      "permissionsLoading": "Loading permissions…",
+      "permissionsLoadFailed": "Couldn't load the permission list. Please try again."
     },
     "listSort": {
       "label": "Sort by",

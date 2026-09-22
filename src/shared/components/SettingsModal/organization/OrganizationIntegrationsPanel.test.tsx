@@ -69,6 +69,19 @@ vi.mock('@/shared/hooks/useWebhooks/index.ts', async () => {
 
 import { OrganizationIntegrationsPanel } from './OrganizationIntegrationsPanel.tsx';
 
+// The API-key create dialog now sources its scope list from core-be's permission catalog.
+// This suite renders the panel without a QueryClientProvider, so stub the hook.
+const { useAssignablePermissionsMock } = vi.hoisted(() => ({
+  useAssignablePermissionsMock: vi.fn(() => ({
+    rows: [{ code: 'organization:read', name: 'View Organization', category: 'tenancy' }],
+    isPending: false,
+    isError: false,
+  })),
+}));
+vi.mock('@/shared/hooks/useAssignablePermissions/index.ts', () => ({
+  useAssignablePermissions: useAssignablePermissionsMock,
+}));
+
 const KEY = {
   id: 'key_1',
   name: 'CI deploy key',
@@ -104,8 +117,12 @@ function setCanManage(value: boolean) {
   });
   useOrganizationStore.setState({
     organizationType: value ? 'TEAM' : 'PERSONAL',
-    // `webhook:read` gates the Webhooks sub-section; `role:manage` gates its controls.
-    permissions: value ? ['role:manage', 'webhook:read'] : [],
+    // Each resource is gated on the permission core-be enforces for it: `api-key:manage` for
+    // the key controls, `webhook:read` to see the Webhooks sub-section and `webhook:manage`
+    // for its controls. The panel used to gate all of them on `role:manage`, a code none of
+    // those routes checks.
+    permissions: value ? ['api-key:manage', 'webhook:read', 'webhook:manage'] : [],
+    permissionsResolved: true,
   });
 }
 
@@ -210,7 +227,10 @@ describe('OrganizationIntegrationsPanel — webhooks', () => {
     });
     useOrganizationStore.setState({
       organizationType: 'TEAM',
-      permissions: ['role:manage', 'api-key:read'],
+      // Read-only on keys, nothing on webhooks: the caller sees the key list and neither the
+      // create control nor the Webhooks section.
+      permissions: ['api-key:read'],
+      permissionsResolved: true,
     });
     render(<OrganizationIntegrationsPanel />);
     expect(screen.getByText('CI deploy key')).toBeInTheDocument();
