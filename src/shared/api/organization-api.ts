@@ -38,6 +38,17 @@ export function toOrganizationPermissions(codes: string[]): OrganizationPermissi
   return codes.filter((p): p is OrganizationPermission => VALID_PERMISSIONS.has(p));
 }
 
+/**
+ * The caller's permission codes in the active organization, filtered to the ones
+ * this client knows about.
+ *
+ * @remarks
+ * Reads `me/context` rather than a dedicated endpoint, so it shares that request's
+ * cache. Codes core-be returns that are not in the client's union are dropped by
+ * `toOrganizationPermissions` — a newer backend never breaks an older client.
+ *
+ * @returns The granted codes, or an empty list outside an organization.
+ */
 export async function getMyPermissions(): Promise<OrganizationPermission[]> {
   const ctx = await fetchMeContext();
   return toOrganizationPermissions(ctx.myPermissions);
@@ -296,6 +307,17 @@ export async function updateRole(input: {
   return { ...role, permissions: await getRolePermissions(input.id) };
 }
 
+/**
+ * Delete a custom role.
+ *
+ * @remarks
+ * core-be refuses this for a seeded (`is_system`) role, so the caller should offer it
+ * only for roles the organization created. The route answers 204 with no body; the id
+ * is echoed back so callers can evict it from the roles cache.
+ *
+ * @param roleId - Public id of the role to delete.
+ * @returns The deleted role's id.
+ */
 export async function deleteRole(roleId: string): Promise<{ id: string }> {
   await apiClient.delete<unknown>(`${ORG_API}/roles/${roleId}`);
   return { id: roleId };

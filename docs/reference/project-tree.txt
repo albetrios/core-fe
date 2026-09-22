@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~634 src files · ~369 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
+Stats: ~635 src files · ~370 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -641,6 +641,7 @@ core-fe/
 │   │   │   ├── notifications-api.ts
 │   │   │   ├── organization-api.ts
 │   │   │   ├── organization-contracts.ts
+│   │   │   ├── organization-logo-api.ts
 │   │   │   ├── organization-query-keys.ts
 │   │   │   ├── passkey-contracts.ts
 │   │   │   ├── passkeys-api.ts
@@ -650,7 +651,7 @@ core-fe/
 │   │   │   ├── uploads-api.ts
 │   │   │   ├── webhook-contracts.ts
 │   │   │   ├── webhooks-api.ts
-│   │   │   └── [15 test files]
+│   │   │   └── [16 test files]
 │   │   ├── auth/
 │   │   │   ├── captcha/
 │   │   │   │   ├── useCaptchaIntent/
