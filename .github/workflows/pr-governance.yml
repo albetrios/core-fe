@@ -4,9 +4,23 @@ on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
-concurrency:
-  group: pr-governance-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+# NO `concurrency:` BLOCK HERE — ON PURPOSE. Do not add one back.
+#
+# This job is named `Checks`, which branch protection requires
+# (.github/rulesets/main.json). Unlike every other PR workflow this one also
+# triggers on `edited`, so ONE head sha can get two runs: release-please
+# force-pushes the branch and rewrites the PR body in the same instant, firing
+# `synchronize` + `edited` together. A concurrency group cancels one of that
+# pair, leaving a `cancelled` check run named `Checks` on the LIVE head commit
+# beside its successful twin. Branch protection resolves a required context to
+# the newest check suite, so whenever the cancelled twin is newer the PR is
+# blocked with every check visibly green and no way to tell why (#319 sat
+# blocked until the cancelled run was re-run by hand).
+#
+# Cancelling bought nothing here: the runs it killed were for the CURRENT head
+# sha, not a superseded one, and this job finishes in ~15s. Runs for genuinely
+# superseded commits are left to finish — their check runs land on a sha
+# nothing evaluates.
 
 permissions:
   contents: read
@@ -54,20 +68,13 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
+            // Reconcile, never churn: work out the label FIRST, then touch only
+            // what is actually wrong. With no concurrency group (see the note at
+            // the top of this file) two runs can reconcile one head sha at the
+            // same time, so this has to converge rather than remove-then-add —
+            // the old order left the PR briefly unlabelled and made a twin run's
+            // removeLabel 404.
             const SIZE_PREFIX = 'size/';
-            const { data: existing } = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            for (const label of existing.filter((labelItem) => labelItem.name.startsWith(SIZE_PREFIX))) {
-              await github.rest.issues.removeLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                name: label.name,
-              });
-            }
             const { data: files } = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -79,12 +86,37 @@ jobs:
             if (changes > 500) sizeLabel = 'size/x-large';
             else if (changes > 200) sizeLabel = 'size/large';
             else if (changes > 50) sizeLabel = 'size/medium';
-            await github.rest.issues.addLabels({
+            const { data: existing } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              labels: [sizeLabel],
             });
+            const present = existing.map((labelItem) => labelItem.name);
+            if (!present.includes(sizeLabel)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [sizeLabel],
+              });
+            }
+            const stale = present.filter(
+              (name) => name.startsWith(SIZE_PREFIX) && name !== sizeLabel,
+            );
+            for (const name of stale) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name,
+                });
+              } catch (error) {
+                // A twin run for this same head sha got there first. 404 means
+                // the label is already gone, which is the state we wanted.
+                if (error.status !== 404) throw error;
+              }
+            }
 
       # Branch names are repo-controlled, but pass them through env anyway —
       # never interpolate event data directly into run: scripts.
