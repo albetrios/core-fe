@@ -262,18 +262,20 @@ function SettingsModalBody() {
                 the content pane's gutter, so the picker and the fields under it
                 share a left edge.
 
-                The right inset is PHYSICAL (`pr-`), not logical (`pe-`), because
-                the thing it is reserving room for is physical: `DialogContent`
-                pins its close button at `right-4` in every direction. Under
-                `pe-12` an RTL locale padded the left — away from the button —
-                and the picker ran straight under the X on Arabic and Hebrew.
+                `pe-14` reserves room for the dialog's close button, which is
+                now pinned on the logical end too (`ui/dialog.tsx`) — so the two
+                mirror together. They did not: the button was physical
+                (`right-4`) while this inset was logical, which put them on
+                opposite sides in Arabic and Hebrew and ran the picker under the
+                X. Fixed in the primitive rather than here, because every dialog
+                had it.
 
-                `pr-14` rather than `pr-12`: the button is 32px wide inset 16px,
-                so 48px of reservation left it flush against the X with nothing
+                14 rather than 12: the button is 32px wide inset 16px, so 48px of
+                reservation left the picker flush against the X with nothing
                 between them. 56px is the same 16px gutter the rest of the pane
                 uses, and is what "feels tight" was about (QA-V3 suggestion 7).
               */}
-              <div className="shrink-0 border-b py-3 ps-4 pr-14 sm:hidden">
+              <div className="shrink-0 border-b py-3 ps-4 pe-14 sm:hidden">
                 <Select
                   value={`${active.scope}/${active.section}`}
                   onValueChange={(value) => {

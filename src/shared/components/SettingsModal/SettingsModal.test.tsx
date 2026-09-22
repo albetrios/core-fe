@@ -154,14 +154,25 @@ describe('SettingsModal', () => {
     // the fields under it share a left edge.
     const picker = screen.getByTestId('settings-mobile-section').parentElement;
     expect(picker).toHaveClass('ps-4', 'sm:hidden');
-    // The right reservation is PHYSICAL, because what it reserves room for is:
-    // `DialogContent` pins its close button at `right-4` in every direction.
-    // Logical `pe-12` padded the LEFT under RTL — away from the button — and the
-    // picker ran under the X on Arabic and Hebrew. And 56px rather than 48px
-    // leaves the pane's own 16px gutter between the two, instead of flush
-    // (QA-V3 suggestion 7: "the dropdown plus close icon feels tight").
-    expect(picker).toHaveClass('pr-14');
+    // Reserves room for the dialog's close button, which is pinned on the
+    // logical end too — so the two mirror together under RTL. They did not: the
+    // button was physical (`right-4`) while this was logical, which put them on
+    // opposite sides in Arabic and Hebrew and ran the picker under the X; fixed
+    // in `ui/dialog.tsx`, since every dialog had it. 14 rather than 12 leaves
+    // the pane's own 16px gutter between the two instead of flush (QA-V3
+    // suggestion 7: "the dropdown plus close icon feels tight").
+    expect(picker).toHaveClass('pe-14');
     expect(picker).not.toHaveClass('pe-12');
+    // And never physical — `validate:logical` is the CI half of this contract.
+    expect(picker?.className ?? '').not.toMatch(/\bp[lr]-/);
+
+    // The other side of that reservation: the button it makes room for. It sits
+    // in vendored `ui/`, which `validate:logical` exempts — so nothing else
+    // would catch it going back to upstream's physical `right-4`, and the
+    // picker's logical inset would silently stop lining up under RTL.
+    const close = screen.getByRole('button', { name: 'Close', exact: true });
+    expect(close).toHaveClass('end-4');
+    expect(close.className).not.toMatch(/\b(right|left)-4\b/);
 
     for (const pane of [content, picker]) {
       expect(pane?.className ?? '').not.toMatch(/\bp[xysetb]?-\[/);
