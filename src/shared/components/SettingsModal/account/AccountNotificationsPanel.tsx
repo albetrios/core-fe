@@ -96,10 +96,8 @@ function withRestoredOverride(
   previous: boolean | undefined,
 ): Record<string, boolean> {
   const next = { ...current };
-  /* eslint-disable security/detect-object-injection -- key is an internal `category:channel` string built from the fixed CATEGORIES/CHANNELS lists, never user input */
   if (previous === undefined) delete next[key];
   else next[key] = previous;
-  /* eslint-enable security/detect-object-injection */
   return next;
 }
 
@@ -109,7 +107,6 @@ function withoutCommitted(
   committedKeys: string[],
 ): Record<string, boolean> {
   const next = { ...current };
-  // eslint-disable-next-line security/detect-object-injection -- key is an internal `category:channel` string built from the fixed CATEGORIES/CHANNELS lists, never user input
   for (const key of committedKeys) delete next[key];
   return next;
 }
@@ -203,7 +200,6 @@ export function AccountNotificationsPanel() {
       const key = prefKey(category, channel);
       // What this key was showing before the flick — restored verbatim if the
       // save fails, including "no override at all".
-      // eslint-disable-next-line security/detect-object-injection -- key is an internal `category:channel` string built from the fixed CATEGORIES/CHANNELS lists, never user input
       const previous = latestOverrides[key];
       const nextOverrides = { ...latestOverrides, [key]: value };
       const committedKeys = Object.keys(nextOverrides);

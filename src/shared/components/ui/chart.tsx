@@ -139,10 +139,7 @@ function ChartTooltipContent({
       <div className="grid gap-1.5">
         {payload.map((item) => {
           const key = item.dataKey ?? item.name ?? 'value';
-          const itemConfig = Object.hasOwn(config, key)
-            ? // eslint-disable-next-line security/detect-object-injection -- guarded by hasOwnProperty
-              config[key]
-            : undefined;
+          const itemConfig = Object.hasOwn(config, key) ? config[key] : undefined;
           const formatted =
             item.value != null
               ? (valueFormatter?.(Number(item.value)) ??

@@ -167,7 +167,9 @@
       "namePlaceholder": "ex. Membre",
       "descriptionPlaceholder": "Que peut faire ce rôle ?",
       "create": "Nouveau rôle",
-      "roleFallback": "ce rôle"
+      "roleFallback": "ce rôle",
+      "permissionsLoading": "Chargement des autorisations…",
+      "permissionsLoadFailed": "Impossible de charger la liste des autorisations. Veuillez réessayer."
     },
     "listSort": {
       "label": "Trier par",

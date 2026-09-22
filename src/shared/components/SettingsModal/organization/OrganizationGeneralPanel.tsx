@@ -3,6 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import {
+  UPLOAD_IMAGE_CONTENT_TYPES,
+  UPLOAD_MAX_BYTES,
+  type UploadImageContentType,
+} from '@/shared/api/uploads-api.ts';
 import { QueryBoundary } from '@/shared/components/QueryBoundary/index.ts';
 import {
   SETTINGS_KEYS,
@@ -22,50 +27,55 @@ import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
+import {
+  useRemoveOrganizationLogo,
+  useUploadOrganizationLogo,
+} from '@/shared/hooks/useOrganizationLogo/index.ts';
 import { useUpdateOrganization } from '@/shared/hooks/useUpdateOrganization/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
 
-/** Max logo size accepted by the uploader — keeps the data URL sane until CDN upload lands. */
-const MAX_LOGO_BYTES = 1024 * 1024;
+/** Matches core-be's `organization-logo` ceiling; a larger file is refused at presign. */
+const MAX_LOGO_BYTES = UPLOAD_MAX_BYTES['organization-logo'];
 
 type UpdateMutation = ReturnType<typeof useUpdateOrganization>;
 
 /**
- * Organization logo (FE-33) — preview + upload/remove. Client preview uses a data
- * URL until the live API accepts a CDN `logo_url`. Gated on the manage permission;
- * permission; rejects non-images and oversized files before reading.
+ * Organization logo (FE-33) — preview + upload/remove, through core-be's real storage flow
+ * (presign → storage → confirm → attach). Gated on `organization:update`; rejects the content
+ * types and sizes core-be would refuse before spending a round trip on them.
  */
 function OrgLogoCard({
   logoUrl,
   name,
   canManage,
-  update,
 }: {
   logoUrl: string | null;
   name: string;
   canManage: boolean;
-  update: UpdateMutation;
 }) {
   const { t } = useTranslation(SETTINGS_NS);
   const general = SETTINGS_KEYS.panels.general;
   const fileRef = useRef<HTMLInputElement>(null);
   const initial = (name || '?').charAt(0).toUpperCase();
   /**
-   * Reading the file is part of the upload as far as the user is concerned. A
-   * multi-megabyte logo spends that whole window in `FileReader`, before the
-   * mutation exists — so `update.isPending` covered none of it and the click
+   * The whole upload — presign, storage write, confirm, attach — is one mutation, so
+   * `isPending` covers the entire window the user is waiting on. The old flow read the file
+   * in the browser first, outside any mutation, and that stretch looked like nothing had
    * looked like it had done nothing (SET-27).
    */
-  const [isReading, setIsReading] = useState(false);
-  const busy = isReading || update.isPending;
+  const uploadLogo = useUploadOrganizationLogo();
+  const removeLogo = useRemoveOrganizationLogo();
+  const busy = uploadLogo.isPending || removeLogo.isPending;
 
   function onLogoFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = ''; // allow re-selecting the same file after a failure
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
+    // core-be rejects anything outside this set — SVG included — so refuse it here rather
+    // than spending a presign round trip to be told no.
+    if (!UPLOAD_IMAGE_CONTENT_TYPES.includes(file.type as UploadImageContentType)) {
       notify.error(
         i18n.t(ERRORS_KEYS.frontend.organization.logoInvalidType, { ns: ERRORS_NS }),
       );
@@ -77,19 +87,7 @@ function OrgLogoCard({
       );
       return;
     }
-    const reader = new FileReader();
-    setIsReading(true);
-    reader.onload = () => {
-      setIsReading(false);
-      if (typeof reader.result === 'string') update.mutate({ logoUrl: reader.result });
-    };
-    reader.onerror = () => {
-      setIsReading(false);
-      notify.error(
-        i18n.t(ERRORS_KEYS.frontend.organization.logoReadFailed, { ns: ERRORS_NS }),
-      );
-    };
-    reader.readAsDataURL(file);
+    uploadLogo.mutate(file);
   }
 
   return (
@@ -119,7 +117,7 @@ function OrgLogoCard({
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept={UPLOAD_IMAGE_CONTENT_TYPES.join(',')}
               className="hidden"
               onChange={onLogoFile}
               data-testid="org-logo-input"
@@ -137,7 +135,7 @@ function OrgLogoCard({
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => update.mutate({ logoUrl: null })}
+                onClick={() => removeLogo.mutate()}
                 disabled={busy}
                 data-testid="org-logo-remove"
               >
@@ -156,7 +154,7 @@ function OrgLogoCard({
 /**
  * Organization general settings — rename the active org (name-only; the slug
  * drives URLs and is read-only here) and manage its logo (FE-33). Gated on the
- * membership:manage permission (team orgs only). The
+ * organization:update permission (team orgs only). The
  * editable name is derived as a local draft over the server value (no
  * prop→state effect); saving updates via {@link useUpdateOrganization}.
  */
@@ -164,8 +162,11 @@ export function OrganizationGeneralPanel() {
   const { t } = useTranslation(SETTINGS_NS);
   const organizationId = useOrganizationStore((s) => s.organizationId);
   const organizationSlug = useOrganizationStore((s) => s.organizationSlug);
+  // `PATCH /tenancy/organization` (rename) and `PUT`/`DELETE .../logo` all enforce
+  // `organization:update` on core-be — not `membership:manage`, which guards the membership
+  // routes instead. The two coincide on the seeded Admin role, which is what hid this.
   const canManage = useCan({
-    permission: 'membership:manage',
+    permission: 'organization:update',
     teamOrganizationOnly: true,
   });
   const update = useUpdateOrganization();
@@ -279,7 +280,6 @@ function OrganizationGeneralForm({
         logoUrl={activeOrg?.logoUrl ?? null}
         name={activeOrg?.name ?? ''}
         canManage={canManage}
-        update={update}
       />
     </>
   );

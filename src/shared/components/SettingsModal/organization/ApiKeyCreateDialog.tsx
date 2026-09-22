@@ -3,10 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { copySensitiveText } from '@/lib/sensitive-clipboard.ts';
 import { cn } from '@/lib/utils.ts';
-import {
-  type ApiKeyWithSecret,
-  ASSIGNABLE_ROLE_PERMISSIONS,
-} from '@/shared/api/organization-contracts.ts';
+import type { ApiKeyWithSecret } from '@/shared/api/organization-contracts.ts';
 import {
   SETTINGS_KEYS,
   SETTINGS_NS,
@@ -33,6 +30,7 @@ import {
 import { mapApiError } from '@/shared/errors/errorHandler.ts';
 import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useCreateApiKey } from '@/shared/hooks/useApiKeys/index.ts';
+import { useAssignablePermissions } from '@/shared/hooks/useAssignablePermissions/index.ts';
 import { Copy, Plus } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 
@@ -155,6 +153,9 @@ export function ApiKeyCreateDialog() {
   const { t } = useTranslation(SETTINGS_NS);
   const integrations = SETTINGS_KEYS.panels.integrations;
   const create = useCreateApiKey();
+  // Same catalog the role builder uses: what core-be knows, narrowed to what this caller may
+  // actually delegate. An API key cannot carry a scope its creator does not hold.
+  const assignable = useAssignablePermissions();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -287,22 +288,31 @@ export function ApiKeyCreateDialog() {
                 <p className="text-muted-foreground text-xs">
                   {t(integrations.apiKeyScopesHint)}
                 </p>
+                {assignable.isPending ? (
+                  <p className="text-muted-foreground text-xs">
+                    {t(SETTINGS_KEYS.panels.roles.permissionsLoading)}
+                  </p>
+                ) : null}
+                {assignable.isError ? (
+                  <p className="text-destructive text-xs" role="alert">
+                    {t(SETTINGS_KEYS.panels.roles.permissionsLoadFailed)}
+                  </p>
+                ) : null}
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {ASSIGNABLE_ROLE_PERMISSIONS.map((scope) => (
-                    <div key={scope} className="flex items-center gap-2">
+                  {assignable.rows.map((entry) => (
+                    <div key={entry.code} className="flex items-center gap-2">
                       <Checkbox
-                        id={`apikey-scope-${scope}`}
-                        checked={scopes.includes(scope)}
-                        onCheckedChange={() => toggleScope(scope)}
-                        data-testid={`apikey-scope-${scope}`}
+                        id={`apikey-scope-${entry.code}`}
+                        checked={scopes.includes(entry.code)}
+                        onCheckedChange={() => toggleScope(entry.code)}
+                        data-testid={`apikey-scope-${entry.code}`}
                       />
                       <Label
-                        htmlFor={`apikey-scope-${scope}`}
-                        className={cn(
-                          'text-muted-foreground font-mono text-xs font-normal',
-                        )}
+                        htmlFor={`apikey-scope-${entry.code}`}
+                        className={cn('text-muted-foreground text-xs font-normal')}
+                        title={entry.code}
                       >
-                        {scope}
+                        {entry.name}
                       </Label>
                     </div>
                   ))}

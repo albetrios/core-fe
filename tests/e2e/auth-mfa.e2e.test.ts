@@ -192,7 +192,7 @@ test.describe.serial('MFA — TOTP enrollment and challenge login', () => {
   test('a recovery code passes the MFA challenge when the authenticator is lost', async ({
     page,
   }) => {
-    test.skip(!secret || !recoveryCode, 'enrollment test did not run');
+    test.skip(!(secret && recoveryCode), 'enrollment test did not run');
 
     await gotoApp(page, '/login');
     await installE2eCaptchaHeadersOnAuthApi(page);

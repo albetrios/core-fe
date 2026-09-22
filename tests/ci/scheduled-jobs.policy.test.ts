@@ -19,7 +19,7 @@ const CRON_SHAPE = /^(?:\S+\s+){4}\S+$/;
 function scheduledWorkflows(): Map<string, string[]> {
   const map = new Map<string, string[]>();
   for (const file of readdirSync(WORKFLOWS_DIR)) {
-    if (!file.endsWith('.yml') && !file.endsWith('.yaml')) continue;
+    if (!(file.endsWith('.yml') || file.endsWith('.yaml'))) continue;
     // Drop comment lines so a `# cron:` in prose can't be read as a schedule.
     const lines = readFileSync(join(WORKFLOWS_DIR, file), 'utf8')
       .split('\n')

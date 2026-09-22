@@ -100,7 +100,6 @@ function renderCatalog(): string {
     const schemaDefault = codeOrDash(zodDefaults.get(key) ?? '');
     const dev = codeOrDash(devDefaults.get(key) ?? '');
     const prod = codeOrDash(prodDefaults.get(key) ?? '');
-    // eslint-disable-next-line security/detect-object-injection -- key from the schema, not user input
     const description = escapeCell(envFieldDescriptions[key] ?? '');
     return `| \`${key}\` | ${kind} | ${schemaDefault} | ${dev} | ${prod} | ${description} |`;
   });

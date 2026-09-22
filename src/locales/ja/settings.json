@@ -163,7 +163,9 @@
       "namePlaceholder": "例: メンバー",
       "descriptionPlaceholder": "このロールで何ができますか？",
       "create": "新しいロール",
-      "roleFallback": "このロール"
+      "roleFallback": "このロール",
+      "permissionsLoading": "権限を読み込み中…",
+      "permissionsLoadFailed": "権限リストを読み込めませんでした。もう一度お試しください。"
     },
     "listSort": {
       "label": "並び替え",

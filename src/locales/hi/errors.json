@@ -85,7 +85,9 @@
       "formCheck": "फ़ॉर्म जाँचें",
       "updateSuccess": "संगठन अपडेट किया गया",
       "createSuccess": "{{name}} बनाया गया",
-      "createdSwitchFailed": "{{name}} बन गया, लेकिन हम उसे खोल नहीं सके. उसे संगठन स्विचर से चुनें."
+      "createdSwitchFailed": "{{name}} बन गया, लेकिन हम उसे खोल नहीं सके. उसे संगठन स्विचर से चुनें.",
+      "logoUpdated": "लोगो अपडेट किया गया।",
+      "logoRemoved": "लोगो हटा दिया गया।"
     },
     "account": {
       "copyFailed": "क्लिपबोर्ड पर कॉपी नहीं हो सका",

@@ -12,12 +12,7 @@ export function accentIdForHue(hue: number): string | null {
 
 /** Human summary of a custom look ("Inter · Rounded"); empty parts dropped. */
 export function customLookLabel(bodyFontId: string, radiusId: string): string {
-  return [
-    // eslint-disable-next-line security/detect-object-injection -- key from the fixed font catalog
-    GENERATED_FONTS[bodyFontId]?.label,
-    // eslint-disable-next-line security/detect-object-injection -- key from the fixed radius catalog
-    GENERATED_RADII[radiusId]?.label,
-  ]
+  return [GENERATED_FONTS[bodyFontId]?.label, GENERATED_RADII[radiusId]?.label]
     .filter(Boolean)
     .join(' · ');
 }

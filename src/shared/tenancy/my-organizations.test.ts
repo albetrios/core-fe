@@ -4,6 +4,7 @@ vi.mock('@/core/http/fetch-client.ts', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
   },
 }));
 
@@ -13,6 +14,8 @@ import {
   createOrganization,
   listMyOrganizations,
   organizationSchema,
+  updateOrganization,
+  updateOrganizationSchema,
 } from './my-organizations.ts';
 
 describe('listMyOrganizations', () => {
@@ -131,5 +134,47 @@ describe('organizationSchema', () => {
 
   it('rejects missing fields', () => {
     expect(() => organizationSchema.parse({ id: '1' })).toThrow();
+  });
+});
+
+describe('updateOrganization', () => {
+  // This was the coverage hole that let the logo bug ship: the hook test and the panel test
+  // both mocked `updateOrganization` itself, so nothing anywhere asserted the request body.
+  // A `logoUrl` was accepted by the schema, never forwarded, and the mutation still reported
+  // success — the user saw "Organization updated" and an unchanged logo.
+  it('sends the name and nothing else', async () => {
+    vi.mocked(apiClient.patch).mockResolvedValue({
+      data: {
+        id: 'org_acme',
+        name: 'Acme Co.',
+        slug: 'acme',
+        status: 'ACTIVE',
+        logo_url: null,
+      },
+    } as never);
+
+    await updateOrganization('org_acme', { name: 'Acme Co.' });
+
+    expect(apiClient.patch).toHaveBeenCalledWith(
+      expect.stringContaining('/tenancy/organization'),
+      { name: 'Acme Co.' },
+    );
+  });
+
+  it('rejects a logo field outright rather than dropping it silently', () => {
+    // The logo has its own routes (`PUT`/`DELETE /tenancy/organization/logo`). Keeping the
+    // field out of the schema means it cannot be passed here and quietly lost again.
+    expect(() =>
+      updateOrganizationSchema.parse({
+        name: 'Acme',
+        logoUrl: 'data:image/png;base64,AA',
+      }),
+    ).not.toThrow();
+    expect(
+      updateOrganizationSchema.parse({
+        name: 'Acme',
+        logoUrl: 'data:image/png;base64,AA',
+      }),
+    ).toEqual({ name: 'Acme' });
   });
 });

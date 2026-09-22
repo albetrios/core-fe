@@ -77,7 +77,10 @@ describe('sectionsForOrgType', () => {
     expect(team).not.toContain('billing');
   });
 
-  it('exposes no organization sections for a personal org', () => {
-    expect(sectionsForOrgType('PERSONAL')).toEqual([]);
+  // A personal workspace has no members, roles or org-level general settings, but core-be's
+  // api-key routes are organization-scope `both` and a personal owner holds the `api-key:*`
+  // codes — so hiding Integrations withheld a capability the backend grants.
+  it('exposes only the integrations section for a personal org', () => {
+    expect(sectionsForOrgType('PERSONAL')).toEqual(['integrations']);
   });
 });

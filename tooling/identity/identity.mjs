@@ -159,7 +159,11 @@ const replaceValue = (pattern, value) => (text) =>
  *
  * @returns {Array<{ file: string, label: string, apply: (text: string, identity: Identity) => string }>}
  */
-export function derivedSurfaces(identity, root = ROOT) {
+// `_root` is vestigial: every surface below is keyed by a repo-relative path and every
+// `apply` works on text handed to it, so nothing here resolves against a root. Five callers
+// still pass it (and two tests pin the signature), so it stays in place rather than churning
+// them — underscored to say "deliberately unused" rather than "forgotten".
+export function derivedSurfaces(identity, _root = ROOT) {
   const { name, displayName, productName, productDescription, codeowner, repository } =
     identity;
   const themeColor = identity.themeColor;

@@ -64,7 +64,7 @@ function shouldAutoStartGoogle(args: {
   busy: boolean;
   captchaReady: boolean;
 }): boolean {
-  if (!args.autoGoogleEnabled || !args.googleEnabled) return false;
+  if (!(args.autoGoogleEnabled && args.googleEnabled)) return false;
   if (args.alreadyStarted || args.busy || !args.captchaReady) return false;
   return shouldAttemptAutoGoogleSignIn();
 }
@@ -323,6 +323,7 @@ export function AuthForm() {
       autoGoogleTimerRef.current = null;
       autoGoogleStartedRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startOAuth is render-local; adding it re-arms the timer every render (LOGIN-3)
   }, [authMethods.oauthAutoGoogle, authMethods.oauth.google, pending, turnstileReady]);
 
   // The redirect watchdog is the one timer that can outlive this component:

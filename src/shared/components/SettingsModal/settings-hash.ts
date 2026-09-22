@@ -24,7 +24,6 @@ export {
 } from './settings-hash-grammar.ts';
 
 function isSectionOf(scope: SettingsScope, section: string): section is SettingsSection {
-  // eslint-disable-next-line security/detect-object-injection -- scope is a typed two-value union; the map is exhaustive
   return (SECTIONS_BY_SCOPE[scope] as readonly string[]).includes(section);
 }
 

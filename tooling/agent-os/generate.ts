@@ -69,7 +69,10 @@ const codexCommand = (entry: HookManifestEntry): string =>
 
 function buildClaudeHooks(): Record<string, unknown[]> {
   const supported = new Set(claudeTarget?.capabilities.hookEvents ?? []);
-  const grouped: Record<string, unknown[]> = {};
+  // Null-prototype accumulator: the keys below come from the hooks/agent manifests, so a
+  // manifest carrying `__proto__` would otherwise reassign this object's prototype instead
+  // of adding an own property.
+  const grouped = Object.create(null) as Record<string, unknown[]>;
   for (const entry of manifest.hooks) {
     if (!entry.claude) continue;
     if (!supported.has(entry.claude.event)) {
@@ -90,7 +93,10 @@ function buildClaudeHooks(): Record<string, unknown[]> {
 
 function buildCursorHooks(): Record<string, Array<{ command: string }>> {
   const supported = new Set(cursorTarget?.capabilities.hookEvents ?? []);
-  const grouped: Record<string, Array<{ command: string }>> = {};
+  // Null-prototype accumulator: the keys below come from the hooks/agent manifests, so a
+  // manifest carrying `__proto__` would otherwise reassign this object's prototype instead
+  // of adding an own property.
+  const grouped = Object.create(null) as Record<string, Array<{ command: string }>>;
   for (const entry of manifest.hooks) {
     if (!entry.cursor) continue;
     if (!supported.has(entry.cursor.event)) {
@@ -107,7 +113,10 @@ function buildCursorHooks(): Record<string, Array<{ command: string }>> {
 
 function buildCodexHooks(): Record<string, unknown[]> {
   const supported = new Set(codexTarget?.capabilities.hookEvents ?? []);
-  const grouped: Record<string, unknown[]> = {};
+  // Null-prototype accumulator: the keys below come from the hooks/agent manifests, so a
+  // manifest carrying `__proto__` would otherwise reassign this object's prototype instead
+  // of adding an own property.
+  const grouped = Object.create(null) as Record<string, unknown[]>;
   for (const entry of manifest.hooks) {
     if (!entry.codex) continue;
     if (!supported.has(entry.codex.event)) {
@@ -133,7 +142,8 @@ function buildCodexHooks(): Record<string, unknown[]> {
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
-    const sorted: Record<string, unknown> = {};
+    // Same reasoning as `grouped` above: keys are manifest-derived.
+    const sorted = Object.create(null) as Record<string, unknown>;
     for (const key of Object.keys(value).sort())
       sorted[key] = canonical((value as Record<string, unknown>)[key]);
     return sorted;

@@ -80,7 +80,7 @@ function AuthLocaleSelect() {
       <SelectContent align="end">
         {I18N_LOCALES.map((code) => (
           <SelectItem key={code} value={code}>
-            {/* eslint-disable-next-line security/detect-object-injection -- fixed locale catalog */}
+            {}
             {t(LOCALE_LABEL_KEYS[code], { defaultValue: LOCALE_NATIVE_LABELS[code] })}
           </SelectItem>
         ))}

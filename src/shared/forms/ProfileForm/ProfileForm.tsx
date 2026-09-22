@@ -80,6 +80,11 @@ export function ProfileForm({ email, defaultValues, onValuesChange }: ProfileFor
    * touched one alone (SET-18, and rule 14).
    */
   const seededRef = useRef(toDefaults(defaultValues));
+  // Keyed on the two field VALUES, not the `defaultValues` object: the panel rebuilds that
+  // object on every store write, so depending on it would re-seed constantly and fight an
+  // edit in progress. Same rationale as the eslint suppression on the dependency array
+  // below (SET-18).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on field values, not the object
   useEffect(() => {
     const next = toDefaults(defaultValues);
     if (

@@ -117,13 +117,25 @@ describe('requirePermission', () => {
     await expect(requirePermission('membership:manage')).resolves.toBeUndefined();
   });
 
-  it('does not throw for super_admin regardless of org permissions', async () => {
+  // super_admin is a platform-admin role, not an organization capability: core-be grants it
+  // nothing org-scoped, so letting it through here would only reach a 403.
+  it('throws for super_admin without the org permission', async () => {
     setAuth({
       user: { id: '1', email: 'sa@test.com', role: 'super_admin' },
       isAuthenticated: true,
       isLoading: false,
     });
     setOrganization({ permissions: [] });
+    await expect(requirePermission('organization:delete')).rejects.toBeDefined();
+  });
+
+  it('does not throw for super_admin that holds the org permission', async () => {
+    setAuth({
+      user: { id: '1', email: 'sa@test.com', role: 'super_admin' },
+      isAuthenticated: true,
+      isLoading: false,
+    });
+    setOrganization({ permissions: ['organization:delete'] });
     await expect(requirePermission('organization:delete')).resolves.toBeUndefined();
   });
 

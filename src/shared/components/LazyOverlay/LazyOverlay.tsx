@@ -204,7 +204,7 @@ function LazyOverlayError({
 
       // Focus escaped the card entirely (or never got in) — the scrim blocks
       // every pointer route to the page behind, so Tab must not be a way there.
-      if (!(active instanceof HTMLElement) || !card.contains(active)) {
+      if (!(active instanceof HTMLElement && card.contains(active))) {
         event.preventDefault();
         (event.shiftKey ? last : first).focus();
         return;

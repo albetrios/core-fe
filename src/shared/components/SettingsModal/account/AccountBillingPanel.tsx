@@ -240,8 +240,7 @@ function BillingContent({ sub, plans }: BillingContentProps) {
 
   useEffect(() => {
     if (
-      !sub ||
-      sub.status !== 'incomplete' ||
+      sub?.status !== 'incomplete' ||
       !stripeEnabled ||
       !canManage ||
       paymentClientSecret

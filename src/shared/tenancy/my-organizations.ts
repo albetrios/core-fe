@@ -31,9 +31,15 @@ export const createOrganizationSchema = z.object({
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 
+/**
+ * Rename-only. The logo is NOT settable here: `updateOrganization` forwards `name` and
+ * nothing else, so a `logoUrl` accepted by this schema was silently dropped and the caller
+ * still got a success. The logo goes through `useOrganizationLogo` and core-be's own
+ * `PUT`/`DELETE /tenancy/organization/logo`; keeping the field out means that mistake cannot
+ * be made again.
+ */
 export const updateOrganizationSchema = z.object({
   name: z.string().trim().min(1, 'Organization name is required').max(100).optional(),
-  logoUrl: z.string().nullable().optional(),
 });
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 

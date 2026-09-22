@@ -85,7 +85,9 @@
       "formCheck": "Vérifiez le formulaire",
       "updateSuccess": "Organisation mise à jour",
       "createSuccess": "{{name}} créé",
-      "createdSwitchFailed": "{{name}} a été créée, mais nous n'avons pas pu l'ouvrir. Sélectionnez-la dans le sélecteur d'organisations."
+      "createdSwitchFailed": "{{name}} a été créée, mais nous n'avons pas pu l'ouvrir. Sélectionnez-la dans le sélecteur d'organisations.",
+      "logoUpdated": "Logo mis à jour.",
+      "logoRemoved": "Logo supprimé."
     },
     "account": {
       "copyFailed": "Impossible de copier dans le presse-papiers",

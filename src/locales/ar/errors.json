@@ -85,7 +85,9 @@
       "formCheck": "تحقق من النموذج",
       "updateSuccess": "تم تحديث المؤسسة",
       "createSuccess": "تم إنشاء {{name}}",
-      "createdSwitchFailed": "تم إنشاء {{name}}، لكن تعذّر فتحها. اخترها من مبدّل المؤسسات."
+      "createdSwitchFailed": "تم إنشاء {{name}}، لكن تعذّر فتحها. اخترها من مبدّل المؤسسات.",
+      "logoUpdated": "تم تحديث الشعار.",
+      "logoRemoved": "تمت إزالة الشعار."
     },
     "account": {
       "copyFailed": "تعذّر النسخ إلى الحافظة",

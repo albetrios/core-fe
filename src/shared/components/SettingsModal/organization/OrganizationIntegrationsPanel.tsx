@@ -36,7 +36,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { mapApiError } from '@/shared/errors/errorHandler.ts';
 import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useApiKeys, useRevokeApiKey } from '@/shared/hooks/useApiKeys/index.ts';
-import { useCan } from '@/shared/hooks/useCan/index.ts';
+import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import {
   useCreateWebhook,
@@ -53,8 +53,22 @@ import {
 } from './org-list-sort.ts';
 import { OrgListControls } from './OrgListControls.tsx';
 
-function useCanManageIntegrations(): boolean {
-  return useCan({ permission: 'role:manage', teamOrganizationOnly: true });
+/**
+ * Write access to API keys. Gated on the permission core-be actually enforces on
+ * `POST`/`DELETE /tenancy/organization/api-keys` — `api-key:manage`, not `role:manage`.
+ * Deliberately NOT `teamOrganizationOnly`: those routes are organization-scope `both` and a
+ * personal owner holds the api-key codes, so a personal workspace can manage its own keys.
+ */
+function useCanManageApiKeys(): boolean {
+  return useCan({ permission: 'api-key:manage' });
+}
+
+/**
+ * Write access to webhooks — `webhook:manage`, the permission core-be enforces on
+ * `POST`/`DELETE /notify/webhooks`. Webhooks are a team surface, so the org-type guard stays.
+ */
+function useCanManageWebhooks(): boolean {
+  return useCan({ permission: 'webhook:manage', teamOrganizationOnly: true });
 }
 
 /** API keys — windowed list (masked) + search + cap-gated revoke. */
@@ -66,12 +80,22 @@ function useCanManageIntegrations(): boolean {
  */
 function ApiKeysHeader({ canManage }: { canManage: boolean }) {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
+  // `useCan` is synchronous and the guard chain fills the permission set a beat after this
+  // panel first renders, so a `false` can mean "not yet". A disabled placeholder of the same
+  // size holds the slot rather than letting the control pop in (SET-23).
+  const accessResolved = useAccessResolved();
   return (
     <div className="flex items-center justify-between">
       <h3 className="text-sm font-medium">
         {tSettings(SETTINGS_KEYS.panels.integrations.apiKeysTitle)}
       </h3>
-      {canManage ? <ApiKeyCreateDialog /> : null}
+      {accessResolved ? null : (
+        <Button size="sm" disabled data-testid="apikey-create-pending">
+          <Plus className="me-2 h-4 w-4" />
+          {tSettings(SETTINGS_KEYS.panels.integrations.createApiKey)}
+        </Button>
+      )}
+      {accessResolved && canManage ? <ApiKeyCreateDialog /> : null}
     </div>
   );
 }
@@ -88,7 +112,7 @@ function ApiKeysSection() {
     q: debouncedSearch || undefined,
     ...sortParams,
   });
-  const canManage = useCanManageIntegrations();
+  const canManage = useCanManageApiKeys();
   const revokeKey = useRevokeApiKey();
   const [toRevoke, setToRevoke] = useState<ApiKey | null>(null);
   const isSearching = debouncedSearch.length > 0;
@@ -204,7 +228,7 @@ function WebhooksSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
   const integrations = SETTINGS_KEYS.panels.integrations;
   const { data: hooks, isLoading, isError, isFetching, refetch } = useWebhooks();
-  const canManage = useCanManageIntegrations();
+  const canManage = useCanManageWebhooks();
   const create = useCreateWebhook();
   const remove = useDeleteWebhook();
   const [toDelete, setToDelete] = useState<Webhook | null>(null);
@@ -407,13 +431,20 @@ function WebhooksSection() {
 }
 
 /**
- * Integrations panel — API keys (create/revoke) + outbound webhooks
- * (create/delete), both gated on the role:manage permission (team orgs only).
+ * Integrations panel — API keys (create/revoke) + outbound webhooks (create/delete).
+ *
+ * Each resource is gated on the permission core-be enforces for it: `api-key:manage` and
+ * `webhook:manage` respectively. One shared `role:manage` flag used to gate both, which failed
+ * in each direction — it showed controls to a caller the API answers with 403, and hid them
+ * from a caller who held the right code but not `role:manage`. Both combinations are reachable,
+ * since the role builder grants those codes independently.
  */
 export function OrganizationIntegrationsPanel() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
   // Webhooks are only shown when the caller can actually read them; API keys are
   // the always-available part of this section (see settings-permissions.ts).
+  // `useAccessResolved` distinguishes "not allowed" from "not resolved yet" — without it a
+  // corrected gate renders hidden on first paint and pops in a beat later (SET-23).
   const canReadWebhooks = useCan({
     permission: 'webhook:read',
     teamOrganizationOnly: true,

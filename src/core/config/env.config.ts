@@ -43,13 +43,11 @@ const runtimeConfig: Record<string, string> =
 
 /** Read a config value: runtime (`window.__CONFIG__`) → `import.meta.env.VITE_*`. */
 export function getRuntimeConfigValue(key: string): string | undefined {
-  /* eslint-disable security/detect-object-injection -- keys from controlled callers */
   return (
     runtimeConfig[key] ??
     (import.meta.env[`VITE_${key}`] as string | undefined) ??
     undefined
   );
-  /* eslint-enable security/detect-object-injection */
 }
 
 /** Run cross-field auth/platform invariant checks once at boot. */

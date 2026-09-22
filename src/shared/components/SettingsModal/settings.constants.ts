@@ -193,6 +193,8 @@ export const SETTINGS_KEYS = {
       deletePending: 'panels.roles.deletePending',
       create: 'panels.roles.create',
       roleFallback: 'panels.roles.roleFallback',
+      permissionsLoading: 'panels.roles.permissionsLoading',
+      permissionsLoadFailed: 'panels.roles.permissionsLoadFailed',
     },
     listSort: {
       label: 'panels.listSort.label',

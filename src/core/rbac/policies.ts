@@ -20,8 +20,16 @@ export interface AccessContext {
 /**
  * Check whether the access context grants a single org-scoped permission.
  *
- * `super_admin` bypasses (platform god-mode); every other role is governed by
- * the explicit permission set granted in the active organization.
+ * Every role — `super_admin` included — is governed by the explicit permission
+ * set granted in the active organization. There is deliberately no global-role
+ * bypass here: `super_admin` is a **platform-admin role** (the admin console,
+ * `requireRole` on `/users/*`, `/audit/logs`, `/mcp`), and core-be grants it
+ * nothing inside an organization — `requireOrganizationPermission` resolves a
+ * strict role→membership join with no global-role branch, and the tenancy RLS
+ * policies never honour `app.global_admin`. A bypass here would only unlock
+ * controls the API then refuses with a 403, and every such click writes a
+ * permission-deny audit row. A super_admin who needs access inside an
+ * organization gets it the normal way: a membership with a role.
  *
  * @param ctx - The user's global role + active-org permission set.
  * @param permission - The required org-scoped permission code.
@@ -34,7 +42,6 @@ export function hasPermission(
   ctx: AccessContext,
   permission: OrganizationPermission,
 ): boolean {
-  if (ctx.role === 'super_admin') return true;
   return ctx.permissions.includes(permission);
 }
 

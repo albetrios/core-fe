@@ -59,9 +59,13 @@ export interface EnsureResult {
 }
 
 function readConfig(path: string): McpConfig {
-  if (!existsSync(path)) return { mcpServers: {} };
+  if (!existsSync(path)) return { mcpServers: Object.create(null) };
   const parsed = JSON.parse(readFileSync(path, 'utf-8')) as Partial<McpConfig>;
-  return { mcpServers: parsed.mcpServers ?? {} };
+  // Server names are read from a JSON file on disk; a null-prototype map keeps a
+  // `__proto__` entry an ordinary key rather than a prototype write.
+  return {
+    mcpServers: Object.assign(Object.create(null), parsed.mcpServers ?? {}),
+  };
 }
 
 function readServers(path: string, label: string): Record<string, McpServerDefinition> {

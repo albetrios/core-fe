@@ -27,7 +27,6 @@ type MutateCallbacks = { onSuccess?: () => void; onError?: () => void };
 /** The callbacks from the Nth `mutate` call. */
 function callbacksOf(call = 0): MutateCallbacks {
   // `call` is a literal test index into this suite's own mock, never user input.
-  // eslint-disable-next-line security/detect-object-injection -- test-local index
   return (updateMutate.mock.calls[call]?.[1] ?? {}) as MutateCallbacks;
 }
 vi.mock('@/shared/notifications/desktop.ts', () => ({

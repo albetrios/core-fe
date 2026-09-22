@@ -85,7 +85,9 @@
       "formCheck": "フォームを確認",
       "updateSuccess": "組織を更新しました",
       "createSuccess": "{{name}} を作成しました",
-      "createdSwitchFailed": "{{name}} を作成しましたが、開けませんでした。組織スイッチャーから選択してください。"
+      "createdSwitchFailed": "{{name}} を作成しましたが、開けませんでした。組織スイッチャーから選択してください。",
+      "logoUpdated": "ロゴを更新しました。",
+      "logoRemoved": "ロゴを削除しました。"
     },
     "account": {
       "copyFailed": "クリップボードにコピーできませんでした",

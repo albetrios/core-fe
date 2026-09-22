@@ -186,7 +186,9 @@ function setCanManage(value: boolean) {
   });
   useOrganizationStore.setState({
     organizationType: value ? 'TEAM' : 'PERSONAL',
-    permissions: value ? ['membership:manage', 'invitation:manage'] : [],
+    // Invite calls `POST .../memberships` (`membership:manage`) and its dialog needs the
+    // roles list (`role:read`); `invitation:manage` guards only the resend/revoke routes.
+    permissions: value ? ['membership:manage', 'role:read'] : [],
     // A session whose guard chain has ANSWERED — the unresolved case is its own
     // test below (SET-23).
     permissionsResolved: true,
@@ -500,9 +502,27 @@ describe('OrganizationMembersPanel', () => {
     expect(screen.getByTestId('invite-member-open')).toBeInTheDocument();
   });
 
-  it('hides the invite button without invitation:manage', () => {
+  it('hides the invite button without membership:manage', () => {
     useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
     setCanManage(false);
+    render(<OrganizationMembersPanel />);
+    expect(screen.queryByTestId('invite-member-open')).not.toBeInTheDocument();
+  });
+
+  // The dialog cannot complete an invite without a role to assign, and
+  // `GET .../roles` enforces `role:read` — so a caller holding only
+  // `membership:manage` gets no trigger rather than a dead picker.
+  it('hides the invite button without role:read', () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [MEMBER] }));
+    useAuthStore.setState({
+      user: { id: 'u', email: 'a@b.test', role: 'user' },
+      isAuthenticated: true,
+    });
+    useOrganizationStore.setState({
+      organizationType: 'TEAM',
+      permissions: ['membership:manage'],
+      permissionsResolved: true,
+    });
     render(<OrganizationMembersPanel />);
     expect(screen.queryByTestId('invite-member-open')).not.toBeInTheDocument();
   });

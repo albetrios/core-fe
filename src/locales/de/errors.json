@@ -85,7 +85,9 @@
       "formCheck": "Formular prüfen",
       "updateSuccess": "Organisation aktualisiert",
       "createSuccess": "{{name}} erstellt",
-      "createdSwitchFailed": "{{name}} wurde erstellt, konnte aber nicht geöffnet werden. Wähle sie im Organisationswechsler aus."
+      "createdSwitchFailed": "{{name}} wurde erstellt, konnte aber nicht geöffnet werden. Wähle sie im Organisationswechsler aus.",
+      "logoUpdated": "Logo aktualisiert.",
+      "logoRemoved": "Logo entfernt."
     },
     "account": {
       "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",

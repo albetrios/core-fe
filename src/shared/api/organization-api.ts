@@ -23,6 +23,8 @@ import { fetchListPage, type ListPage, type ListPageParams } from './fetch-list-
 /** Active-org scoped tenancy base (active org comes from the token, not the URL). */
 const ORG_API = `${API_BASE_PATH}/tenancy/organization`;
 const INVITATIONS_API = `${API_BASE_PATH}/tenancy/invitations`;
+/** Sibling of ORG_API, not a child: the permission catalog is platform-wide, not org-scoped. */
+const PERMISSIONS_API = `${API_BASE_PATH}/tenancy/permissions`;
 
 const VALID_PERMISSIONS = new Set<string>(organizationPermissionSchema.options);
 
@@ -36,6 +38,17 @@ export function toOrganizationPermissions(codes: string[]): OrganizationPermissi
   return codes.filter((p): p is OrganizationPermission => VALID_PERMISSIONS.has(p));
 }
 
+/**
+ * The caller's permission codes in the active organization, filtered to the ones
+ * this client knows about.
+ *
+ * @remarks
+ * Reads `me/context` rather than a dedicated endpoint, so it shares that request's
+ * cache. Codes core-be returns that are not in the client's union are dropped by
+ * `toOrganizationPermissions` — a newer backend never breaks an older client.
+ *
+ * @returns The granted codes, or an empty list outside an organization.
+ */
 export async function getMyPermissions(): Promise<OrganizationPermission[]> {
   const ctx = await fetchMeContext();
   return toOrganizationPermissions(ctx.myPermissions);
@@ -212,7 +225,9 @@ function toRoleSummary(w: RoleWire): RoleSummary {
     id: w.id,
     name: w.name,
     description: w.description ?? '',
-    permissions: w.permissions ?? [],
+    // Drop codes this build does not model rather than widening the type — an unknown code
+    // cannot be rendered in the picker or round-tripped through a save.
+    permissions: toOrganizationPermissions(w.permissions ?? []),
     memberCount: w.member_count ?? 0,
     isSystem: w.is_system,
   };
@@ -246,10 +261,22 @@ export async function createRole(input: {
 
   if (input.permissions.length === 0) return role;
 
-  await apiClient.put<unknown>(`${ORG_API}/roles/${role.id}/permissions`, {
-    permission_codes: input.permissions,
-  });
-  return { ...role, permissions: input.permissions };
+  // The two calls are not atomic, and the second one genuinely fails: core-be refuses any
+  // code the caller does not personally hold. Left alone that surfaced an error while a
+  // zero-permission role stayed behind — a role the user never asked for and did not know
+  // existed. Roll the creation back so a failed write leaves nothing behind, and report the
+  // original failure rather than the cleanup's.
+  try {
+    await apiClient.put<unknown>(`${ORG_API}/roles/${role.id}/permissions`, {
+      permission_codes: input.permissions,
+    });
+  } catch (error) {
+    await deleteRole(role.id).catch(() => undefined);
+    throw error;
+  }
+  // Read the stored set back rather than echoing the request: the response is what the
+  // cache and the UI should believe.
+  return { ...role, permissions: await getRolePermissions(role.id) };
 }
 
 /**
@@ -270,12 +297,27 @@ export async function updateRole(input: {
   });
   const role = toRoleSummary(roleWire.parse(res.data));
 
+  // `PUT .../permissions` is a full replace and can be refused independently of the PATCH
+  // above, so an edit can half-apply: renamed, but not re-permissioned. Nothing can be rolled
+  // back here (the previous name is already gone), so surface the failure and let the caller
+  // invalidate — the mutation hooks do — rather than reporting a success that is half true.
   await apiClient.put<unknown>(`${ORG_API}/roles/${input.id}/permissions`, {
     permission_codes: input.permissions,
   });
-  return { ...role, permissions: input.permissions };
+  return { ...role, permissions: await getRolePermissions(input.id) };
 }
 
+/**
+ * Delete a custom role.
+ *
+ * @remarks
+ * core-be refuses this for a seeded (`is_system`) role, so the caller should offer it
+ * only for roles the organization created. The route answers 204 with no body; the id
+ * is echoed back so callers can evict it from the roles cache.
+ *
+ * @param roleId - Public id of the role to delete.
+ * @returns The deleted role's id.
+ */
 export async function deleteRole(roleId: string): Promise<{ id: string }> {
   await apiClient.delete<unknown>(`${ORG_API}/roles/${roleId}`);
   return { id: roleId };
@@ -288,11 +330,47 @@ const rolePermissionWire = z.object({ permission_code: z.string() });
  * (only `GET /roles/:id/permissions` returns them), so editing a role must read
  * them here to pre-fill — otherwise a save would wipe the role's real grants.
  */
-export async function getRolePermissions(roleId: string): Promise<string[]> {
+export async function getRolePermissions(
+  roleId: string,
+): Promise<OrganizationPermission[]> {
   const res = await apiClient.get<unknown>(`${ORG_API}/roles/${roleId}/permissions`);
-  return parseListTolerant(rolePermissionWire, res.data, 'role permissions').map(
-    (row) => row.permission_code,
+  return toOrganizationPermissions(
+    parseListTolerant(rolePermissionWire, res.data, 'role permissions').map(
+      (row) => row.permission_code,
+    ),
   );
+}
+
+const permissionCatalogWire = z.object({
+  code: z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  category: z.string(),
+});
+
+/** One assignable permission, as the role builder and API-key scope picker render it. */
+export interface PermissionCatalogEntry {
+  code: OrganizationPermission;
+  /** Human label supplied by core-be (e.g. "Manage API Keys") — no client i18n key needed. */
+  name: string;
+  category: string;
+}
+
+/**
+ * The permission catalog core-be actually enforces (`GET /tenancy/permissions`, auth-only).
+ *
+ * Replaces a hardcoded client list that had drifted to 11 of the backend's codes, silently
+ * making the missing ones — both webhook codes among them — undelegatable through the roles
+ * UI. Unknown codes are dropped (`toOrganizationPermissions`) so a backend that adds one
+ * ahead of the client cannot break the picker.
+ */
+export async function listPermissionCatalog(): Promise<PermissionCatalogEntry[]> {
+  const res = await apiClient.get<unknown>(PERMISSIONS_API);
+  return parseListTolerant(permissionCatalogWire, res.data, 'permission catalog')
+    .filter((row): row is typeof row & { code: OrganizationPermission } =>
+      VALID_PERMISSIONS.has(row.code),
+    )
+    .map((row) => ({ code: row.code, name: row.name, category: row.category }));
 }
 
 // ── API keys ──

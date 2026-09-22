@@ -85,7 +85,9 @@
       "formCheck": "Controlla il modulo",
       "updateSuccess": "Organizzazione aggiornata",
       "createSuccess": "Creato {{name}}",
-      "createdSwitchFailed": "{{name}} è stata creata, ma non siamo riusciti ad aprirla. Selezionala dal selettore di organizzazioni."
+      "createdSwitchFailed": "{{name}} è stata creata, ma non siamo riusciti ad aprirla. Selezionala dal selettore di organizzazioni.",
+      "logoUpdated": "Logo aggiornato.",
+      "logoRemoved": "Logo rimosso."
     },
     "account": {
       "copyFailed": "Impossibile copiare negli appunti",

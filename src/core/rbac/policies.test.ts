@@ -33,8 +33,22 @@ describe('hasPermission', () => {
     ).toBe(false);
   });
 
-  it('super_admin bypasses the permission set', () => {
-    expect(hasPermission(ctx({ role: 'super_admin' }), 'organization:delete')).toBe(true);
+  // super_admin is a platform-admin role (the admin console), not an organization
+  // capability: core-be's requireOrganizationPermission has no global-role branch, so a
+  // bypass here would only unlock controls the API answers with 403.
+  it('super_admin is still governed by org permissions', () => {
+    expect(hasPermission(ctx({ role: 'super_admin' }), 'organization:delete')).toBe(
+      false,
+    );
+  });
+
+  it('super_admin is granted a permission it actually holds', () => {
+    expect(
+      hasPermission(
+        ctx({ role: 'super_admin', permissions: ['organization:delete'] }),
+        'organization:delete',
+      ),
+    ).toBe(true);
   });
 
   it('global admin is still governed by org permissions', () => {
