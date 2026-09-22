@@ -621,6 +621,9 @@ describe('auth/service', () => {
       fetchMeContextMock
         .mockReturnValueOnce(initial.promise)
         .mockReturnValueOnce(next.promise);
+      // A returning browser — the boot only asks the server to restore a
+      // session when this browser has one to restore.
+      localStorage.setItem(`${PRODUCT_NAMESPACE}:session-started-at`, String(Date.now()));
       const bootstrap = startAuthBootstrap();
       expect(startAuthBootstrap()).toBe(bootstrap);
       await vi.waitFor(() => expect(fetchMeContextMock).toHaveBeenCalledOnce());
