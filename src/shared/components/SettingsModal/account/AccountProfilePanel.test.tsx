@@ -73,6 +73,37 @@ describe('AccountProfilePanel', () => {
     expect(screen.getByText(/100% complete/i)).toBeInTheDocument();
   });
 
+  // ── The Email field (QA-6: reported disabled AND empty) ──────────────────
+
+  it('shows the signed-in address in the disabled Email field', async () => {
+    // Email is not editable here — core-be owns it — so the field is disabled.
+    // Disabled must not mean blank: a greyed-out box with nothing in it reads as
+    // "we lost your address", which is what QA-6 reported seeing.
+    useAuthStore.getState().setUser(LATE_USER);
+
+    renderQ(<AccountProfilePanel />);
+
+    const email = screen.getByTestId('profile-email');
+    expect(email).toHaveValue('ada@acme.test');
+    expect(email).toBeDisabled();
+  });
+
+  it('fills the Email in when the session lands after mount', async () => {
+    // Same rule as the name/job-title fields above: the panel can mount before
+    // the session write, and the address must appear when it arrives rather
+    // than being snapshotted as empty.
+    useAuthStore.setState({ user: null, isAuthenticated: true, isLoading: false });
+    renderQ(<AccountProfilePanel />);
+
+    expect(screen.getByTestId('profile-email')).toHaveValue('');
+
+    act(() => useAuthStore.getState().setUser(LATE_USER));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-email')).toHaveValue('ada@acme.test'),
+    );
+  });
+
   it('never overwrites what the user has already typed', async () => {
     // The other half of the same rule: a late store write fills an UNTOUCHED
     // form and leaves a touched one alone.

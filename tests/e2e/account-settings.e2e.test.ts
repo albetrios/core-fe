@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { registerNewUserAndGoToDashboard } from '@/tests/utils/e2e-auth.ts';
+import {
+  authenticateViaEmailCodeAndLand,
+  registerNewUserAndGoToDashboard,
+} from '@/tests/utils/e2e-auth.ts';
 import { openSettingsHash } from '@/tests/utils/e2e-hybrid.ts';
 import { verifyDatabaseConnection } from '@/tests/utils/e2e-session.ts';
 
@@ -133,6 +136,7 @@ test.describe('Account settings', () => {
     await expect(page.getByTestId('notification-popover')).not.toBeVisible();
   });
 });
+
 /**
  * QA-9: the settings search filters the rail but does not navigate, so the pane
  * keeps showing whatever was open. When the filter dropped that section, the
@@ -162,5 +166,55 @@ test.describe('Account settings — search', () => {
     await expect(profile).toBeVisible();
     await expect(profile).toHaveAttribute('aria-current', 'page');
     await expect(page.getByTestId('settings-section-profile')).toBeVisible();
+  });
+});
+
+/**
+ * QA-6 reported the Profile Email field as "disabled but empty". It is not: the
+ * address is there, it survives a reload, and — unlike the fields beside it —
+ * it is readable from the DOM `value` ATTRIBUTE as well as the property.
+ *
+ * That distinction is the whole point of the second half of this test. The
+ * editable fields are `register()`-ed, so React never writes their attribute
+ * and `getAttribute('value')` is `null` for text a user can plainly see; the
+ * Email field is controlled, so its attribute is written. An inspector that
+ * reads attributes therefore reports the editable fields as empty and the Email
+ * field as filled — the exact opposite of the report, and the same measurement
+ * trap that produced QA-1.
+ */
+test.describe('Account settings — profile identity', () => {
+  test('the Profile Email shows the signed-in address, before and after a reload', async ({
+    page,
+  }) => {
+    test.skip(
+      !(await verifyDatabaseConnection()),
+      'DATABASE_URL must reach core-be Postgres (mail_outbox)',
+    );
+    const { email } = await authenticateViaEmailCodeAndLand(page);
+
+    await openSettingsHash(page, 'account', 'profile');
+    await expect(page.getByTestId('profile-email')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('profile-email')).toHaveValue(email);
+    await expect(page.getByTestId('profile-email')).toBeDisabled();
+
+    // A cold boot rebuilds the session from the refresh cookie, which is the
+    // path that has to re-supply the address rather than carrying it over.
+    await page.reload();
+    await expect(page.getByTestId('profile-email')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByTestId('profile-email')).toHaveValue(email);
+
+    const readings = await page.evaluate(() => {
+      const field = (id: string) =>
+        document.querySelector<HTMLInputElement>(`[data-testid="${id}"]`);
+      return {
+        emailAttribute: field('profile-email')?.getAttribute('value') ?? null,
+        nameAttribute: field('profile-name')?.getAttribute('value') ?? null,
+        nameProperty: field('profile-name')?.value ?? null,
+      };
+    });
+    expect(readings.emailAttribute).toBe(email);
+    // The trap, pinned: the Name field carries text with no `value` attribute.
+    expect(readings.nameAttribute).toBeNull();
+    expect(readings.nameProperty).not.toBe('');
   });
 });
