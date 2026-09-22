@@ -132,7 +132,11 @@ describe('uploadFile', () => {
         data: {
           ...PRESIGN,
           upload_method: 'POST',
-          fields: { key: 'organization-logos/org_a/abc.png', policy: 'p', signature: 's' },
+          fields: {
+            key: 'organization-logos/org_a/abc.png',
+            policy: 'p',
+            signature: 's',
+          },
         },
       })
       .mockResolvedValueOnce({ data: { id: 'upl_x', status: 'UPLOADED' } });

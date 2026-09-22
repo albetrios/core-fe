@@ -22,22 +22,22 @@ vi.mock('@/core/http/fetch-client.ts', () => ({
 import {
   createApiKey,
   createRole,
-  listPermissionCatalog,
-  removeOrganizationLogo,
-  uploadOrganizationLogo,
   deleteRole,
   getMyPermissions,
   getRolePermissions,
   inviteMember,
   listApiKeys,
   listMembers,
+  listPermissionCatalog,
   listRoles,
   removeMember,
+  removeOrganizationLogo,
   revokeApiKey,
   toOrganizationPermissions,
   updateMemberRole,
   updateMemberStatus,
   updateRole,
+  uploadOrganizationLogo,
 } from './organization-api.ts';
 
 const TS = '2026-01-01T00:00:00.000Z';
@@ -429,7 +429,6 @@ describe('organization-api permissions', () => {
     expect(getMock).toHaveBeenCalledWith(expect.stringContaining('/auth/me/context'));
   });
 });
-
 
 describe('organization-api permission catalog', () => {
   beforeEach(() => vi.clearAllMocks());
