@@ -1485,6 +1485,9 @@ core-fe/
 │   │   ├── identity.d.mts
 │   │   ├── identity.mjs
 │   │   └── rebrand.mjs
+│   ├── perf/
+│   │   ├── measure-public-routes.mjs
+│   │   └── public-route-budgets.json
 │   ├── reports/
 │   │   ├── code-review-report.mjs
 │   │   └── generate-project-tree.py

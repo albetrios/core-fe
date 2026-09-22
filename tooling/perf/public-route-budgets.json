@@ -1,0 +1,47 @@
+{
+  "headroomPercent": 3,
+  "routes": {
+    "/": {
+      "url": "/",
+      "firstPaintJsKb": 250.6,
+      "totalJsKb": 490.8,
+      "cssKb": 23.2
+    },
+    "/login": {
+      "url": "/login",
+      "firstPaintJsKb": 235.3,
+      "totalJsKb": 490.8,
+      "cssKb": 23.2
+    },
+    "/mfa": {
+      "url": "/mfa",
+      "firstPaintJsKb": 235.3,
+      "totalJsKb": 492.7,
+      "cssKb": 23.2
+    },
+    "/unauthorized": {
+      "url": "/unauthorized",
+      "firstPaintJsKb": 235.3,
+      "totalJsKb": 495.4,
+      "cssKb": 23.2
+    },
+    "/accept-invite/$id": {
+      "url": "/accept-invite/inv_budgetprobe000000000",
+      "firstPaintJsKb": 250.1,
+      "totalJsKb": 490.8,
+      "cssKb": 23.2
+    },
+    "/callback/$provider": {
+      "url": "/callback/google",
+      "firstPaintJsKb": 235.3,
+      "totalJsKb": 507.2,
+      "cssKb": 23.2
+    },
+    "/not-found": {
+      "url": "/no-such-route-budget-probe",
+      "firstPaintJsKb": 236.5,
+      "totalJsKb": 491.6,
+      "cssKb": 23.2
+    }
+  }
+}

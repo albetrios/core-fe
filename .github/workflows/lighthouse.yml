@@ -30,6 +30,20 @@ jobs:
 
       - run: pnpm build
 
+      # Per-route transfer budgets for every route a signed-OUT visitor can
+      # reach, each measured in a cold browser context. Lives here rather than
+      # in the PR gate for the same reason Lighthouse does — it builds and
+      # drives a real browser — and it belongs with Lighthouse specifically
+      # because they answer the same question at different resolutions: the
+      # assertions in .lighthouserc.cjs are a coarse per-page ceiling, this
+      # names the individual chunks. Public routes need no backend, which is
+      # what lets either of them run in CI at all.
+      #
+      # `--update` is never passed here: re-pinning a budget is a decision, not
+      # something a scheduled job does on its own.
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm perf:routes
+
       # @lhci/cli is installed ad-hoc (heavy, only needed here);
       # configuration lives in .lighthouserc.cjs.
       - run: pnpm dlx @lhci/cli@0.15.x autorun
