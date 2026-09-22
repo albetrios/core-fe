@@ -101,6 +101,9 @@
   "a11y": {
     "close": "Schließen",
     "loading": "Wird geladen",
+    "loadingNamed": "{{name}} wird geladen…",
+    "loadingStill": "Noch in Arbeit…",
+    "loadingAlmost": "Fast geschafft…",
     "loadingPage": "Seite wird geladen",
     "toggleTheme": "Design umschalten",
     "openAppearance": "Darstellung öffnen",

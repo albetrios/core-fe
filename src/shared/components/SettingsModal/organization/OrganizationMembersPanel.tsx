@@ -38,6 +38,7 @@ import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/in
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
+import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import {
   useMembers,
   useRemoveMember,
@@ -75,8 +76,10 @@ function statusVariant(
 }
 
 function MembersLoading() {
+  const { t } = useTranslation(SETTINGS_NS);
   return (
     <div className="space-y-2" data-testid="members-loading">
+      <LoadingMessage name={t(SETTINGS_KEYS.panels.members.title)} />
       {['a', 'b', 'c'].map((key) => (
         <Skeleton key={key} className="h-14 w-full" />
       ))}

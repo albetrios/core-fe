@@ -1002,6 +1002,16 @@
     display: none;
   }
 }
+/* Same rule, the other direction: a MODAL dialog owns the screen while it is
+   open, and the trigger is pinned above everything the dialog dims — so it sat
+   lit up over Settings, over a confirm, over the invite form, at every width.
+   Keyed on the OVERLAY rather than the content: that is what marks a dialog as
+   modal, so the non-modal Appearance panel (no scrim, page stays live) keeps
+   its trigger, which is right — nothing is being interrupted there. */
+:root:has([data-slot='dialog-overlay'], [data-slot='alert-dialog-overlay'])
+  #sentry-feedback {
+  display: none;
+}
 
 /* ── Accessibility: honour reduced-motion globally ──
    Users who set "reduce motion" get a near-instant, motion-free experience

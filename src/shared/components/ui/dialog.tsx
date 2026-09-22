@@ -61,7 +61,14 @@ function DialogContent({
             data-slot="dialog-close"
             className={cn(
               closeControlClassName,
-              'ring-offset-background focus-visible:ring-ring absolute top-4 right-4 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
+              // `end-4`, not upstream's `right-4`. This directory is exempt from
+              // `validate:logical` as vendored shadcn, which is why a physical
+              // inset survived here — but the exemption is about not churning
+              // vendored code, not about opting dialogs out of RTL. Pinned
+              // physically, the button stayed on the right in Arabic and Hebrew
+              // while every consumer reserved room for it on the logical end,
+              // so the two were on opposite sides and content ran under the X.
+              'ring-offset-background focus-visible:ring-ring absolute end-4 top-4 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
             )}
           >
             <XIcon />

@@ -101,6 +101,9 @@
   "a11y": {
     "close": "닫기",
     "loading": "로딩 중",
+    "loadingNamed": "{{name}} 불러오는 중…",
+    "loadingStill": "계속 진행 중…",
+    "loadingAlmost": "거의 다 됐어요…",
     "loadingPage": "페이지 로딩 중",
     "toggleTheme": "테마 전환",
     "openAppearance": "모양 열기",

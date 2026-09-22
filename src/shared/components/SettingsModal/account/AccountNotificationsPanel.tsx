@@ -16,6 +16,7 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { Switch } from '@/shared/components/ui/switch.tsx';
+import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
@@ -266,6 +267,10 @@ export function AccountNotificationsPanel() {
             // switch row. Four 48px bars were about a third of the real height,
             // so the card grew under the user when the data landed (SET-22).
             <div className="divide-y" data-testid="notifications-prefs-loading">
+              <LoadingMessage
+                name={t(SETTINGS_KEYS.panels.notifications.title)}
+                className="pb-3"
+              />
               {CATEGORIES.map((cat) => (
                 <div key={cat.id} className="py-4 first:pt-0 last:pb-0">
                   {/* 20px label + 16px description + the switch row: the exact
