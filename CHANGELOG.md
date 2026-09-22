@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.2](https://github.com/albetrios/core-fe/compare/v1.9.1...v1.9.2) (2026-09-22)
+
+
+### Performance
+
+* **auth:** stop asking the server to restore a session that was never there ([#323](https://github.com/albetrios/core-fe/issues/323)) ([14b3c33](https://github.com/albetrios/core-fe/commit/14b3c33933a2d77aa746233b8d5b2d270390dcd8))
+* **budgets:** measure what a visit actually downloads, signed out and signed in ([#325](https://github.com/albetrios/core-fe/issues/325)) ([9031902](https://github.com/albetrios/core-fe/commit/9031902ccea4828dc2eea56443e0e0aef045a6a2))
+
 ## [1.9.1](https://github.com/albetrios/core-fe/compare/v1.9.0...v1.9.1) (2026-09-22)
 
 
