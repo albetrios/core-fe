@@ -5,6 +5,10 @@
     "searchPlaceholder": "Search",
     "searchAria": "Search settings",
     "empty": "No matches",
+    "emptyHint": "No settings match “{{query}}”. The section you have open is still listed below.",
+    "matches_one": "{{count}} match",
+    "matches_other": "{{count}} matches",
+    "clearSearch": "Clear search",
     "groups": {
       "account": "Account",
       "organization": "Organization"
@@ -172,6 +176,10 @@
     "profile": {
       "title": "Profile",
       "description": "How you appear in the app. Visible to people in your organization.",
+      "nameLabel": "Name",
+      "jobTitleLabel": "Job title",
+      "emailLabel": "Email",
+      "emailHint": "Email cannot be changed here.",
       "completeness": "Profile {{percent}}% complete",
       "confirmTitle": "Save profile changes?",
       "confirmDescription": "Are you sure you want to update your profile information?",

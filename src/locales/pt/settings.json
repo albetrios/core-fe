@@ -5,6 +5,11 @@
     "searchPlaceholder": "Pesquisar",
     "searchAria": "Pesquisar configurações",
     "empty": "Nenhuma correspondência",
+    "emptyHint": "Nenhuma configuração corresponde a “{{query}}”. A seção aberta continua listada abaixo.",
+    "matches_one": "{{count}} resultado",
+    "matches_many": "{{count}} resultados",
+    "matches_other": "{{count}} resultados",
+    "clearSearch": "Limpar pesquisa",
     "groups": {
       "account": "Conta",
       "organization": "Organização"
@@ -174,6 +179,10 @@
     "profile": {
       "title": "Perfil",
       "description": "Como você aparece no app. Visível para pessoas da sua organização.",
+      "nameLabel": "Nome",
+      "jobTitleLabel": "Cargo",
+      "emailLabel": "E-mail",
+      "emailHint": "O e-mail não pode ser alterado aqui.",
       "completeness": "Perfil {{percent}}% completo",
       "confirmTitle": "Salvar alterações do perfil?",
       "confirmDescription": "Tem certeza de que deseja atualizar suas informações de perfil?",

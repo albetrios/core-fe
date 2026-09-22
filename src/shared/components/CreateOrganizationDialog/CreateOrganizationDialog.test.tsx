@@ -2,6 +2,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { CreateOrganizationDialog } from './CreateOrganizationDialog.tsx';
@@ -48,6 +49,7 @@ vi.mock('@/shared/notify/index.ts', () => ({
 describe('CreateOrganizationDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useWorkspaceSwitchStore.getState().endSwitch();
     navigateMock.mockResolvedValue(undefined);
     switchToOrganization.mockResolvedValue(undefined);
     hydrateSessionContext.mockResolvedValue({ organizations: [] });
@@ -236,6 +238,48 @@ describe('CreateOrganizationDialog', () => {
     // …and the failure is NOT dressed up as a form error.
     expect(notifyError).not.toHaveBeenCalled();
     expect(createOrganization).toHaveBeenCalledTimes(1);
+  });
+
+  // Regression (QA-V3-2): the dialog closes before a four-await hop (context
+  // re-read, token re-mint, cache invalidation, navigation), so the screen
+  // underneath stayed on the OLD workspace — still ticked in the switcher — and
+  // the create looked like it had failed and then auto-switched by itself.
+  it('covers the post-create hop with the workspace-switch overlay', async () => {
+    const user = userEvent.setup();
+    let switchingDuringHop: string | null = null;
+    switchToOrganization.mockImplementation(() => {
+      switchingDuringHop = useWorkspaceSwitchStore.getState().switchingTo;
+      return Promise.resolve(undefined);
+    });
+    renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+
+    await user.type(
+      await screen.findByTestId('create-organization-dialog-name'),
+      'New Org',
+    );
+    await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+    await vi.waitFor(() => expect(navigateMock).toHaveBeenCalled());
+    expect(switchingDuringHop).toBe('New Org');
+    // …and released once the hop lands, whatever the outcome.
+    await vi.waitFor(() =>
+      expect(useWorkspaceSwitchStore.getState().switchingTo).toBeNull(),
+    );
+  });
+
+  it('releases the overlay when the post-create hop fails', async () => {
+    const user = userEvent.setup();
+    switchToOrganization.mockRejectedValueOnce(new Error('switch failed'));
+    renderWithProviders(<CreateOrganizationDialog open onOpenChange={() => {}} />);
+
+    await user.type(
+      await screen.findByTestId('create-organization-dialog-name'),
+      'New Org',
+    );
+    await user.click(screen.getByTestId('create-organization-dialog-submit'));
+
+    await vi.waitFor(() => expect(notifyWarning).toHaveBeenCalledTimes(1));
+    expect(useWorkspaceSwitchStore.getState().switchingTo).toBeNull();
   });
 
   it('drops a double-click on Create — one organization', async () => {

@@ -8,6 +8,7 @@
  *   marks a reload **pending** instead of reloading immediately, then applies it
  *   the moment it's *safe*:
  *     • never while the user is editing a field (input/textarea/select/CE),
+ *     • immediately while the app is still on its boot splash (nothing to lose),
  *     • immediately when the tab is hidden (the reload is invisible),
  *     • otherwise once the user has gone idle (no input for IDLE_AFTER_MS) or
  *       returns to the tab.
@@ -16,6 +17,7 @@
  */
 
 import { platformConfig } from '@/core/config/env.ts';
+import { isAppSplashActive } from '@/lib/app-splash.ts';
 import { isEditableElementFocused } from '@/lib/editable-focus.ts';
 import { readInjectedAppBuildId } from '@/lib/i18n/build-env.ts';
 
@@ -265,6 +267,15 @@ export function startVersionCheck(
   // Reloading is "safe" when it won't throw away in-flight work.
   function safeToReload(): boolean {
     if (isEditableElementFocused()) return false; // never interrupt active editing
+    // Still on the boot splash: there is no screen, no session and no typed
+    // input to lose, so the whole "defer until idle" policy has nothing to
+    // protect — and deferring is actively harmful here. `lastActivityAt` starts
+    // at the moment this checker is installed, which means a COLD load counts
+    // as "active" for the next IDLE_AFTER_MS; a returning user whose cached
+    // shell points at chunks the new deployment no longer serves therefore sat
+    // on the splash behind a small "Update available" toast, looking like a
+    // hang, until they found and pressed Refresh themselves (QA-V3-7).
+    if (isAppSplashActive()) return true;
     if (document.visibilityState === 'hidden') return true; // away → invisible reload
     return Date.now() - lastActivityAt >= IDLE_AFTER_MS; // otherwise wait for idle
   }

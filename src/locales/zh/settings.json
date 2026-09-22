@@ -5,6 +5,9 @@
     "searchPlaceholder": "搜索",
     "searchAria": "搜索设置",
     "empty": "无匹配项",
+    "emptyHint": "没有设置与“{{query}}”匹配。您打开的部分仍列在下方。",
+    "matches_other": "{{count}} 项匹配",
+    "clearSearch": "清除搜索",
     "groups": {
       "account": "账户",
       "organization": "组织"
@@ -172,6 +175,10 @@
     "profile": {
       "title": "个人资料",
       "description": "您在应用中的显示方式。对组织内成员可见。",
+      "nameLabel": "姓名",
+      "jobTitleLabel": "职位",
+      "emailLabel": "电子邮件",
+      "emailHint": "电子邮件无法在此处更改。",
       "completeness": "个人资料已完成 {{percent}}%",
       "confirmTitle": "保存个人资料更改？",
       "confirmDescription": "确定要更新您的个人资料信息吗？",

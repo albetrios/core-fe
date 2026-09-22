@@ -5,6 +5,10 @@
     "searchPlaceholder": "खोजें",
     "searchAria": "सेटिंग्स खोजें",
     "empty": "कोई मेल नहीं",
+    "emptyHint": "“{{query}}” से कोई सेटिंग मेल नहीं खाती। आपका खुला अनुभाग नीचे सूचीबद्ध है।",
+    "matches_one": "{{count}} परिणाम",
+    "matches_other": "{{count}} परिणाम",
+    "clearSearch": "खोज साफ़ करें",
     "groups": {
       "account": "खाता",
       "organization": "संगठन"
@@ -172,6 +176,10 @@
     "profile": {
       "title": "प्रोफ़ाइल",
       "description": "ऐप में आप कैसे दिखते हैं। आपके संगठन के लोगों को दिखाई देता है।",
+      "nameLabel": "नाम",
+      "jobTitleLabel": "पद",
+      "emailLabel": "ईमेल",
+      "emailHint": "ईमेल यहाँ से नहीं बदला जा सकता।",
       "completeness": "प्रोफ़ाइल {{percent}}% पूर्ण",
       "confirmTitle": "प्रोफ़ाइल परिवर्तन सहेजें?",
       "confirmDescription": "क्या आप वाकई अपनी प्रोफ़ाइल जानकारी अपडेट करना चाहते हैं?",

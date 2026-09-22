@@ -167,6 +167,7 @@ vi.mock('@/shared/api/auth-api.ts', () => ({
 
 import { notify } from '@/shared/notify/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
+import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
 
 import { OnboardingPage } from './OnboardingPage.tsx';
 
@@ -333,6 +334,7 @@ describe('OnboardingPage', () => {
     createRole.mockResolvedValue(memberRole('rol_created'));
     inviteMember.mockResolvedValue({ id: 'mem_1', email: 'a@acme.com' });
     useOnboardingStore.getState().reset();
+    useWorkspaceSwitchStore.getState().endSwitch();
   });
 
   it('renders the page container', async () => {
@@ -389,6 +391,35 @@ describe('OnboardingPage', () => {
     expect(useOnboardingStore.getState().createdOrganizationId).toBe('org_new');
     expect(navigate).toHaveBeenCalledWith(
       expect.objectContaining({ params: { organizationSlug: 'acme' }, replace: true }),
+    );
+  });
+
+  // Regression (QA-V3-1): the writes land, the toast fires, the URL flips — and
+  // then the destination's guard chain runs for up to three seconds with THIS
+  // wizard still on screen and its button back to idle, because `submitting`
+  // was cleared the instant `navigate()` was called rather than when it landed.
+  // It read as a click that did nothing, and users reloaded to escape it.
+  it('covers the hand-off to the workspace until the destination lands', async () => {
+    const user = userEvent.setup();
+    seedDoneStep([]);
+    let switchingDuringNavigation: string | null = null;
+    let finishStillDisabled = false;
+    navigate.mockImplementation(async () => {
+      switchingDuringNavigation = useWorkspaceSwitchStore.getState().switchingTo;
+      finishStillDisabled = screen
+        .getByTestId('onboarding-finish')
+        .hasAttribute('disabled');
+    });
+    renderWithProviders(<OnboardingPage />);
+
+    await user.click(await screen.findByTestId('onboarding-finish'));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+    expect(switchingDuringNavigation).toBe('Acme Inc.');
+    expect(finishStillDisabled).toBe(true);
+    // …and released once the destination is up, so the cover cannot outlive it.
+    await waitFor(() =>
+      expect(useWorkspaceSwitchStore.getState().switchingTo).toBeNull(),
     );
   });
 

@@ -28,10 +28,11 @@
     "typeHintTeam": "Shared with your team",
     "typeHintPersonal": "Private to you",
     "billing": "Billing",
-    "billingManaged": "Managed",
     "billingNone": "—",
-    "billingHintTeam": "Team plan",
-    "billingHintPersonal": "Personal — none"
+    "billingNoPlan": "No plan yet",
+    "billingHintPlan": "Billed {{cycle}}",
+    "billingCycleMonthly": "monthly",
+    "billingCycleYearly": "yearly"
   },
   "nextSteps": {
     "ariaLabel": "Suggested next steps",
@@ -185,7 +186,10 @@
     "description": "Plan, renewal, and payment",
     "plan": "Plan",
     "nextInvoice": "Next invoice",
-    "payment": "Payment"
+    "payment": "Payment",
+    "noPlan": "No plan",
+    "choosePlan": "Choose a plan",
+    "manage": "Manage billing"
   },
   "ai": {
     "heading": "Ask your workspace",

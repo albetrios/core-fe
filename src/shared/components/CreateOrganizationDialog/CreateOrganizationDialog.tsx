@@ -24,6 +24,7 @@ import { mapApiError } from '@/shared/errors/errorHandler.ts';
 import { Plus } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { notify } from '@/shared/notify/index.ts';
+import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
 import {
   createOrganization,
   type CreateOrganizationInput,
@@ -63,6 +64,8 @@ export function CreateOrganizationDialog({
   };
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const beginSwitch = useWorkspaceSwitchStore((state) => state.beginSwitch);
+  const endSwitch = useWorkspaceSwitchStore((state) => state.endSwitch);
   // Synchronous twin of react-hook-form's `isSubmitting` — see onSubmit.
   const submittingRef = useRef(false);
 
@@ -113,6 +116,19 @@ export function CreateOrganizationDialog({
       );
 
       try {
+        /*
+         * Four awaits — a context re-read, a token re-mint, a cache
+         * invalidation and a navigation — with the dialog already closed. The
+         * screen underneath for that whole stretch is the workspace the user is
+         * LEAVING, with its own name still ticked in the switcher, so creating
+         * an organization looked like it had silently failed and then
+         * auto-switched on its own some seconds later (QA-V3-2).
+         *
+         * The same overlay the switcher raises for the same hop: it names the
+         * destination, so what is on screen and what is happening finally agree.
+         * Cleared in `finally`, on both outcomes.
+         */
+        beginSwitch(org.name);
         await hydrateSessionContext();
         await switchToOrganization(org.id);
         await queryClient.invalidateQueries({ queryKey: ['organizations'] });
@@ -127,6 +143,8 @@ export function CreateOrganizationDialog({
             name: org.name,
           }),
         );
+      } finally {
+        endSwitch();
       }
     } finally {
       submittingRef.current = false;

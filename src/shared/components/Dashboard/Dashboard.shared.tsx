@@ -40,6 +40,7 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
+import { useCurrentPlan } from '@/shared/hooks/useSubscription/index.ts';
 import { Boxes, Building, ShieldCheck, Zap } from '@/shared/icons/index.ts';
 import type { MeContext, OrganizationSummary } from '@/shared/tenancy/me-context.ts';
 
@@ -118,6 +119,7 @@ export function StatsSection({
 }) {
   const { t } = useTranslation(DASHBOARD_NS);
   const personalOnly = useDeploymentMode() === 'personal-only';
+  const currentPlan = useCurrentPlan();
 
   const tiles = [
     personalOnly
@@ -155,12 +157,23 @@ export function StatsSection({
     {
       icon: Zap,
       label: t(DASHBOARD_KEYS.stats.billing),
-      value: isTeam
-        ? t(DASHBOARD_KEYS.stats.billingManaged)
-        : t(DASHBOARD_KEYS.stats.billingNone),
-      hint: isTeam
-        ? t(DASHBOARD_KEYS.stats.billingHintTeam)
-        : t(DASHBOARD_KEYS.stats.billingHintPersonal),
+      /*
+       * The subscription this workspace actually has, not a guess from its
+       * type. `isTeam ? 'Managed' : '—'` put "Managed · Team plan" on every team
+       * dashboard, including the ones Settings → Billing was simultaneously
+       * telling "No active subscription yet" (QA-V3-3). Unknown reads as a dash
+       * while the query resolves, which is the honest answer for that moment.
+       */
+      value: currentPlan.plan?.name ?? t(DASHBOARD_KEYS.stats.billingNone),
+      hint: currentPlan.plan
+        ? t(DASHBOARD_KEYS.stats.billingHintPlan, {
+            cycle: t(
+              currentPlan.subscription?.billingCycle === 'yearly'
+                ? DASHBOARD_KEYS.stats.billingCycleYearly
+                : DASHBOARD_KEYS.stats.billingCycleMonthly,
+            ),
+          })
+        : t(DASHBOARD_KEYS.stats.billingNoPlan),
       testId: 'dashboard-stat-billing',
     },
   ].filter((tile) => tile !== null);

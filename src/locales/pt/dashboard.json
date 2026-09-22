@@ -28,10 +28,11 @@
     "typeHintTeam": "Compartilhado com sua equipe",
     "typeHintPersonal": "Privado para você",
     "billing": "Cobrança",
-    "billingManaged": "Gerenciada",
     "billingNone": "—",
-    "billingHintTeam": "Plano de equipe",
-    "billingHintPersonal": "Pessoal — nenhum"
+    "billingNoPlan": "Ainda sem plano",
+    "billingHintPlan": "Cobrança {{cycle}}",
+    "billingCycleMonthly": "mensal",
+    "billingCycleYearly": "anual"
   },
   "nextSteps": {
     "ariaLabel": "Próximos passos sugeridos",
@@ -186,7 +187,10 @@
     "description": "Plano, renovação e pagamento",
     "plan": "Plano",
     "nextInvoice": "Próxima fatura",
-    "payment": "Pagamento"
+    "payment": "Pagamento",
+    "noPlan": "Sem plano",
+    "choosePlan": "Escolher um plano",
+    "manage": "Gerenciar faturamento"
   },
   "ai": {
     "heading": "Pergunte ao seu espaço",

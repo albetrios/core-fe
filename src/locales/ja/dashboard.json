@@ -28,10 +28,11 @@
     "typeHintTeam": "チームと共有",
     "typeHintPersonal": "あなた専用",
     "billing": "請求",
-    "billingManaged": "管理済み",
     "billingNone": "—",
-    "billingHintTeam": "チームプラン",
-    "billingHintPersonal": "個人 — なし"
+    "billingNoPlan": "プラン未設定",
+    "billingHintPlan": "{{cycle}}請求",
+    "billingCycleMonthly": "毎月",
+    "billingCycleYearly": "毎年"
   },
   "nextSteps": {
     "ariaLabel": "おすすめの次のステップ",
@@ -184,7 +185,10 @@
     "description": "プラン・更新・支払い",
     "plan": "プラン",
     "nextInvoice": "次回請求",
-    "payment": "支払い方法"
+    "payment": "支払い方法",
+    "noPlan": "プランなし",
+    "choosePlan": "プランを選ぶ",
+    "manage": "請求を管理"
   },
   "ai": {
     "heading": "ワークスペースに質問",

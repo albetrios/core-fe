@@ -124,6 +124,24 @@ describe('startVersionCheck', () => {
       cleanup?.();
     });
 
+    it('reloads immediately while the boot splash is still up', async () => {
+      // A returning user on a cached shell: the app has painted nothing yet, so
+      // the idle policy has no in-flight work to protect and waiting out
+      // IDLE_AFTER_MS just leaves them staring at the splash (QA-V3-7).
+      const splash = document.createElement('div');
+      splash.id = 'app-splash';
+      document.body.appendChild(splash);
+      mockVersionResponse('build-NEW');
+      const { startVersionCheck } = await import('./check.ts');
+      const cleanup = startVersionCheck();
+
+      await vi.advanceTimersByTimeAsync(2_000); // initial check → applied at once
+
+      expect(reload).toHaveBeenCalledTimes(1);
+      splash.remove();
+      cleanup?.();
+    });
+
     it('reloads immediately when the tab is hidden (invisible reload)', async () => {
       mockVersionResponse('build-NEW');
       const { startVersionCheck } = await import('./check.ts');
