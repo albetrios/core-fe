@@ -22,14 +22,10 @@ const { listMock, updateMock, uploadLogoMock, removeLogoMock } = vi.hoisted(() =
 }));
 // The logo goes through core-be's storage flow now (presign → storage → confirm → attach),
 // not a `logoUrl` field on the rename PATCH — which the client silently dropped.
-vi.mock('@/shared/api/organization-api.ts', async (importOriginal) => {
-  const actual = await importOriginal<Record<string, unknown>>();
-  return {
-    ...actual,
-    uploadOrganizationLogo: uploadLogoMock,
-    removeOrganizationLogo: removeLogoMock,
-  };
-});
+vi.mock('@/shared/api/organization-logo-api.ts', () => ({
+  uploadOrganizationLogo: uploadLogoMock,
+  removeOrganizationLogo: removeLogoMock,
+}));
 vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return { ...actual, listMyOrganizations: listMock, updateOrganization: updateMock };

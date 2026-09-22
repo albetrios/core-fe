@@ -19,7 +19,6 @@ import { FRONTEND_ERROR_CODES } from '@/shared/errors/frontend-error-codes.ts';
 import { fetchMeContext } from '@/shared/tenancy/me-context.ts';
 
 import { fetchListPage, type ListPage, type ListPageParams } from './fetch-list-page.ts';
-import { uploadFile } from './uploads-api.ts';
 
 /** Active-org scoped tenancy base (active org comes from the token, not the URL). */
 const ORG_API = `${API_BASE_PATH}/tenancy/organization`;
@@ -350,37 +349,6 @@ export async function listPermissionCatalog(): Promise<PermissionCatalogEntry[]>
       VALID_PERMISSIONS.has(row.code),
     )
     .map((row) => ({ code: row.code, name: row.name, category: row.category }));
-}
-
-/**
- * Replace the active organization's logo.
- *
- * @remarks
- * Two steps, because core-be separates storage from attachment: the bytes go through the
- * uploads flow (presign → storage → confirm), then `PUT /tenancy/organization/logo` binds the
- * resulting key to the organization. The key must be the **final** one confirm promoted, not
- * the `pending/` path the presigned URL points at, and the route re-checks that it lives under
- * `organization-logos/<this org>/` before accepting it.
- *
- * This replaces a `PATCH /tenancy/organization` carrying a `logoUrl` data URL, which the
- * client dropped on the floor: the request went out with an empty body, the mutation reported
- * success, and the logo never changed.
- */
-export async function uploadOrganizationLogo(input: {
-  file: File;
-  organizationId: string;
-}): Promise<void> {
-  const { key } = await uploadFile({
-    file: input.file,
-    purpose: 'organization-logo',
-    organizationId: input.organizationId,
-  });
-  await apiClient.put<unknown>(`${ORG_API}/logo`, { key });
-}
-
-/** Clear the active organization's logo (204, no body). */
-export async function removeOrganizationLogo(): Promise<void> {
-  await apiClient.delete<unknown>(`${ORG_API}/logo`);
 }
 
 // ── API keys ──

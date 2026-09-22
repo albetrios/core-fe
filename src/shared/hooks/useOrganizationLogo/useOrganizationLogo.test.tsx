@@ -14,7 +14,7 @@ const { uploadOrganizationLogo, removeOrganizationLogo } = vi.hoisted(() => ({
   uploadOrganizationLogo: vi.fn(),
   removeOrganizationLogo: vi.fn(),
 }));
-vi.mock('@/shared/api/organization-api.ts', () => ({
+vi.mock('@/shared/api/organization-logo-api.ts', () => ({
   uploadOrganizationLogo,
   removeOrganizationLogo,
 }));

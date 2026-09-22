@@ -3,7 +3,7 @@ import i18n from '@/lib/i18n/i18n.ts';
 import {
   removeOrganizationLogo,
   uploadOrganizationLogo,
-} from '@/shared/api/organization-api.ts';
+} from '@/shared/api/organization-logo-api.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { meContextQueryKey } from '@/shared/tenancy/me-context.ts';
