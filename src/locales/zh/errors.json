@@ -150,7 +150,8 @@
         "createFailed": "无法创建 Webhook",
         "deleteFailed": "无法删除 Webhook",
         "createSuccess": "Webhook 已创建",
-        "deleteSuccess": "Webhook 已删除"
+        "deleteSuccess": "Webhook 已删除",
+        "updateSuccess": "Webhook 已更新"
       },
       "subscription": {
         "changePlanFailed": "无法更改套餐",

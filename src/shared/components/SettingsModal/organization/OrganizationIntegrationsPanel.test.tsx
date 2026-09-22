@@ -20,6 +20,10 @@ const {
   useWebhooksMock,
   createWebhookMutate,
   deleteWebhookMutateAsync,
+  updateWebhookMutate,
+  testWebhookMutate,
+  useWebhookEventsMock,
+  useDeliveryAttemptsMock,
   webhookCtl,
 } = vi.hoisted(() => ({
   createApiKeyMutate: vi.fn(),
@@ -28,6 +32,10 @@ const {
   useWebhooksMock: vi.fn(),
   createWebhookMutate: vi.fn(),
   deleteWebhookMutateAsync: vi.fn(),
+  updateWebhookMutate: vi.fn(),
+  testWebhookMutate: vi.fn(),
+  useWebhookEventsMock: vi.fn(),
+  useDeliveryAttemptsMock: vi.fn(),
   /** Settles the in-flight create (set by the stub when `mutate` is called). */
   webhookCtl: { settle: null as null | ((error?: Error) => void) },
 }));
@@ -38,6 +46,9 @@ vi.mock('@/shared/hooks/useApiKeys/index.ts', () => ({
   // own behaviour is covered in ApiKeyCreateDialog.test.tsx; here it only has
   // to exist so the section renders.
   useCreateApiKey: () => ({ mutate: createApiKeyMutate, isPending: false }),
+}));
+vi.mock('@/shared/hooks/useWebhookEvents/index.ts', () => ({
+  useWebhookEvents: useWebhookEventsMock,
 }));
 vi.mock('@/shared/hooks/useWebhooks/index.ts', async () => {
   const { useState } = await import('react');
@@ -64,6 +75,13 @@ vi.mock('@/shared/hooks/useWebhooks/index.ts', async () => {
       };
     },
     useDeleteWebhook: () => ({ mutateAsync: deleteWebhookMutateAsync }),
+    useUpdateWebhook: () => ({ isPending: false, mutate: updateWebhookMutate }),
+    useTestWebhook: () => ({
+      isPending: false,
+      variables: undefined,
+      mutate: testWebhookMutate,
+    }),
+    useWebhookDeliveryAttempts: useDeliveryAttemptsMock,
   };
 });
 
@@ -132,6 +150,25 @@ beforeEach(() => {
   deleteWebhookMutateAsync.mockResolvedValue(undefined);
   useApiKeysMock.mockReturnValue(apiKeysResult({ rows: [KEY] }));
   useWebhooksMock.mockReturnValue({ data: [WEBHOOK], isLoading: false, isError: false });
+  // The checklist reads the real catalog now. These are core-be's actual event names — the
+  // four this UI used to hardcode (`member.created`, `role.changed`, …) are not among them.
+  useWebhookEventsMock.mockReturnValue({
+    rows: [
+      { event: 'membership.created', description: 'When a membership is created' },
+      { event: 'subscription.updated', description: 'When a subscription is updated' },
+    ],
+    isPending: false,
+    isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  });
+  useDeliveryAttemptsMock.mockReturnValue({
+    data: { rows: [], next: null, hasMore: false },
+    isLoading: false,
+    isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  });
   useOrganizationStore.getState().clearOrganization();
 });
 
@@ -244,12 +281,140 @@ describe('OrganizationIntegrationsPanel — webhooks', () => {
     render(<OrganizationIntegrationsPanel />);
     await user.click(screen.getByTestId('webhook-add'));
     await user.type(await screen.findByTestId('webhook-url'), 'https://new.test/hook');
-    await user.click(screen.getByTestId('webhook-event-member.created'));
-    await user.click(screen.getByTestId('webhook-create'));
+    await user.click(screen.getByTestId('webhook-event-membership.created'));
+    await user.click(screen.getByTestId('webhook-save'));
     expect(createWebhookMutate).toHaveBeenCalledWith(
-      { url: 'https://new.test/hook', events: ['member.created'] },
+      { url: 'https://new.test/hook', events: ['membership.created'] },
       expect.anything(),
     );
+  });
+
+  // ── Edit / test / history: the three routes this panel never called ──────
+
+  it('opens the edit form prefilled with the row being edited', async () => {
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-edit-whk_1'));
+    expect(await screen.findByTestId('webhook-url')).toHaveValue('https://x.test/hook');
+  });
+
+  it('saves an edit as a PATCH for that webhook id', async () => {
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-edit-whk_1'));
+    const url = await screen.findByTestId('webhook-url');
+    await user.clear(url);
+    await user.type(url, 'https://moved.test/hook');
+    await user.click(screen.getByTestId('webhook-save'));
+    expect(updateWebhookMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'whk_1',
+        input: expect.objectContaining({ url: 'https://moved.test/hook' }),
+      }),
+      expect.anything(),
+    );
+    // Never a secret: core-be keeps the existing signing key only while the field is absent,
+    // so sending one here would silently break the receiver's signature check.
+    const [vars] = updateWebhookMutate.mock.calls[0] as [
+      { input: Record<string, unknown> },
+    ];
+    expect(vars.input).not.toHaveProperty('secret');
+  });
+
+  // Reopening after a cancelled edit must not show the abandoned draft — the dialog is
+  // remounted per open rather than re-seeded by an effect.
+  it('re-seeds the form when it is reopened after a cancelled edit', async () => {
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-edit-whk_1'));
+    const first = await screen.findByTestId('webhook-url');
+    await user.clear(first);
+    await user.type(first, 'https://abandoned.test/hook');
+    await user.click(screen.getByTestId('webhook-cancel'));
+
+    await user.click(screen.getByTestId('webhook-edit-whk_1'));
+    expect(await screen.findByTestId('webhook-url')).toHaveValue('https://x.test/hook');
+  });
+
+  it('fires a test delivery for the row', async () => {
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-test-whk_1'));
+    expect(testWebhookMutate).toHaveBeenCalledWith('whk_1', expect.anything());
+  });
+
+  // A refused delivery resolves — core-be answers `success: false` with the status it got.
+  // Reporting that as "sent" would hide the breakage the button exists to reveal.
+  it('reports a refused test delivery as a failure, not a success', async () => {
+    setCanManage(true);
+    testWebhookMutate.mockImplementation(
+      (_id: string, options?: { onSuccess?: (result: unknown) => void }) => {
+        options?.onSuccess?.({
+          success: false,
+          statusCode: 500,
+          deliveredAt: '2026-01-01T00:00:00.000Z',
+          responseBody: 'boom',
+        });
+      },
+    );
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-test-whk_1'));
+    const result = await screen.findByTestId('webhook-test-result-whk_1');
+    expect(result).toHaveTextContent('500');
+    expect(result).toHaveTextContent(/failed/i);
+  });
+
+  it('distinguishes an unreachable endpoint from one that answered', async () => {
+    setCanManage(true);
+    testWebhookMutate.mockImplementation(
+      (_id: string, options?: { onSuccess?: (result: unknown) => void }) => {
+        options?.onSuccess?.({
+          success: false,
+          statusCode: null,
+          deliveredAt: '2026-01-01T00:00:00.000Z',
+          responseBody: 'getaddrinfo ENOTFOUND',
+        });
+      },
+    );
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-test-whk_1'));
+    expect(await screen.findByTestId('webhook-test-result-whk_1')).toHaveTextContent(
+      copy(SETTINGS_KEYS.panels.integrations.testNoStatus),
+    );
+  });
+
+  it('opens the delivery history for the row', async () => {
+    setCanManage(true);
+    const user = userEvent.setup();
+    render(<OrganizationIntegrationsPanel />);
+    await user.click(screen.getByTestId('webhook-history-whk_1'));
+    expect(await screen.findByTestId('webhook-attempts-dialog')).toBeInTheDocument();
+  });
+
+  // History is `webhook:read`, which everyone who can see this list already holds; the
+  // write controls are `webhook:manage`. A read-only caller still gets the diagnosis.
+  it('keeps delivery history reachable without webhook:manage', () => {
+    // Not `setCanManage(false)` — that switches to a PERSONAL org, which hides the whole
+    // team-only section. The case under test is a TEAM caller who can read but not manage.
+    useAuthStore.setState({
+      user: { id: 'u', email: 'a@b.test', role: 'user' },
+      isAuthenticated: true,
+    });
+    useOrganizationStore.setState({
+      organizationType: 'TEAM',
+      permissions: ['webhook:read'],
+      permissionsResolved: true,
+    });
+    render(<OrganizationIntegrationsPanel />);
+    expect(screen.getByTestId('webhook-history-whk_1')).toBeInTheDocument();
+    expect(screen.queryByTestId('webhook-test-whk_1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('webhook-edit-whk_1')).not.toBeInTheDocument();
   });
 
   it('confirms and deletes a webhook', async () => {
@@ -318,17 +483,17 @@ describe('OrganizationIntegrationsPanel — webhooks', () => {
 
     await user.click(screen.getByTestId('webhook-add'));
     await user.type(screen.getByTestId('webhook-url'), 'https://hooks.acme.test/core');
-    await user.click(screen.getByTestId('webhook-event-member.created'));
-    await user.click(screen.getByTestId('webhook-create'));
+    await user.click(screen.getByTestId('webhook-event-membership.created'));
+    await user.click(screen.getByTestId('webhook-save'));
 
     // Mid-flight: the way out is held, not live.
     expect(screen.getByTestId('webhook-cancel')).toBeDisabled();
-    expect(screen.getByTestId('webhook-create')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByTestId('webhook-save')).toHaveAttribute('aria-busy', 'true');
 
     await act(async () => webhookCtl.settle?.(new Error('Endpoint already registered')));
 
     // The reason lands in the dialog, next to the field the server rejected.
-    expect(screen.getByTestId('webhook-add-dialog')).toBeInTheDocument();
+    expect(screen.getByTestId('webhook-form-dialog')).toBeInTheDocument();
     // …on the shared error card — the surface the sign-in form and the step-up
     // dialog use — not as a bare red caption under the event chips.
     const inline = screen.getByTestId('webhook-error');

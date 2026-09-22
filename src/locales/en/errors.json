@@ -150,7 +150,8 @@
         "createFailed": "Could not create webhook",
         "deleteFailed": "Could not delete webhook",
         "createSuccess": "Webhook created",
-        "deleteSuccess": "Webhook deleted"
+        "deleteSuccess": "Webhook deleted",
+        "updateSuccess": "Webhook updated"
       },
       "subscription": {
         "changePlanFailed": "Could not change plan",

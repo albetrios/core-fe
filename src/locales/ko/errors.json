@@ -150,7 +150,8 @@
         "createFailed": "웹훅을 만들 수 없습니다",
         "deleteFailed": "웹훅을 삭제할 수 없습니다",
         "createSuccess": "웹훅이 생성됨",
-        "deleteSuccess": "웹훅이 삭제됨"
+        "deleteSuccess": "웹훅이 삭제됨",
+        "updateSuccess": "웹훅이 업데이트됨"
       },
       "subscription": {
         "changePlanFailed": "플랜을 변경할 수 없습니다",
