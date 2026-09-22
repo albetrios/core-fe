@@ -55,6 +55,43 @@ test.describe('Organization picker', () => {
     await expect(page.getByTestId('create-organization-dialog-form')).toBeHidden();
   });
 
+  /**
+   * QA-7: an invalid Workspace URL stopped the submit and said nothing at all —
+   * the dialog stayed open, the page did not move, and the form held no
+   * `role="alert"`. Pressing Create looked like a dead button.
+   */
+  test('an invalid Workspace URL is explained, not silently refused', async ({
+    page,
+  }) => {
+    await registerNewUserAndGoToDashboard(page);
+    const trigger = byTestId(page, 'organization-switcher-trigger');
+    test.skip(!(await trigger.isVisible()), 'org switcher hidden');
+
+    await trigger.click();
+    const createItem = page.getByTestId('organization-switcher-create');
+    test.skip(
+      !(await createItem.isVisible()),
+      'team creation disabled in this deployment mode',
+    );
+    await createItem.click();
+    await expect(page.getByTestId('create-organization-dialog-form')).toBeVisible();
+
+    await byTestId(page, 'create-organization-dialog-name').fill('QA Org');
+    await byTestId(page, 'create-organization-dialog-slug').fill('QA Org 4877!');
+    await byTestId(page, 'create-organization-dialog-submit').click();
+
+    const error = byTestId(page, 'create-organization-dialog-slug-error');
+    await expect(error).toBeVisible();
+    await expect(error).toHaveText(/lowercase letters, numbers, and hyphens only/i);
+    await expect(byTestId(page, 'create-organization-dialog-slug')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+    // Still on the form, and nothing was created.
+    await expect(page.getByTestId('create-organization-dialog-form')).toBeVisible();
+    await expect(page).not.toHaveURL(/\/organization\/qa-org/);
+  });
+
   test('organization switcher lists team org after create', async ({ page }) => {
     await registerNewUserAndGoToDashboard(page);
     const switcher = byTestId(page, 'organization-switcher-trigger');
