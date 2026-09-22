@@ -56,8 +56,18 @@ const AS_JSON = process.argv.includes('--json');
 const AUTHED = process.argv.includes('--authed');
 const API_ORIGIN = process.env.PERF_API_ORIGIN ?? 'http://localhost:3001';
 const FIXTURE_EMAIL = process.env.PERF_FIXTURE_EMAIL ?? 'demo@example.com';
-const PORT = 4183;
+/*
+ * The dev-server port, deliberately — NOT an arbitrary free one. core-be checks
+ * `Origin` on the refresh path, and an origin it does not allow is rejected
+ * with 403 before the session is ever restored, so the authed routes measure a
+ * signed-out page. 5173 is the origin a local backend already allows.
+ */
+const PORT = Number(process.env.PERF_PORT ?? 5173);
 const ORIGIN = `http://localhost:${PORT}`;
+
+/** The per-email resend cooldown is 60s; wait past it rather than around it. */
+const COOLDOWN_WAIT_MS = 62_000;
+const SEND_CODE_ATTEMPTS = 3;
 
 /**
  * Settle policy.
@@ -128,7 +138,23 @@ function startStaticProxy(port) {
           body: chunks.length ? Buffer.concat(chunks) : undefined,
           redirect: 'manual',
         });
-        res.writeHead(upstream.status, Object.fromEntries(upstream.headers));
+        const headersOut = Object.fromEntries(upstream.headers);
+        /*
+         * `Object.fromEntries` folds repeated headers into ONE comma-joined
+         * value. core-be sets two cookies on sign-in (`session_id` and
+         * `csrf_token`), so folding them hands the browser a single malformed
+         * cookie and it stores neither. The next `/auth/refresh` then answers
+         * `401 Missing session cookie` and every "signed-in" measurement is
+         * quietly a signed-OUT page — which reads as a real auth regression
+         * rather than as a broken harness. Pass them through as a list.
+         */
+        delete headersOut['set-cookie'];
+        const setCookie = upstream.headers.getSetCookie?.() ?? [];
+        if (setCookie.length > 0) headersOut['set-cookie'] = setCookie;
+        // Decoded by `fetch`; leaving these on describes a body we no longer have.
+        delete headersOut['content-encoding'];
+        delete headersOut['content-length'];
+        res.writeHead(upstream.status, headersOut);
         res.end(Buffer.from(await upstream.arrayBuffer()));
       } catch (error) {
         res.writeHead(502).end(String(error));
@@ -256,9 +282,18 @@ async function measureRoute(browser, routePath, storageState) {
       firstPaintJsKb: sum(js.filter((row) => row.beforeLoad)),
       totalJsKb: sum(js),
       cssKb: sum(css),
-      // The five biggest files, so a breach names its own cause instead of
-      // sending the reader to a bundle analyzer.
-      top: [...js]
+      /*
+       * The five biggest files ON THE CRITICAL PATH, so a breach names its own
+       * cause instead of sending the reader to a bundle analyzer.
+       *
+       * Scoped to `beforeLoad` deliberately: drawn from every file the route
+       * ever fetches, this list is led by whatever is biggest overall — on the
+       * dashboard that was `sentry.js`, which arrives ~660ms AFTER first paint
+       * and is not on the critical path at all. Naming it invites cutting the
+       * one chunk that costs the measured number nothing.
+       */
+      top: js
+        .filter((row) => row.beforeLoad)
         .sort((a, b) => b.kb - a.kb)
         .slice(0, 5)
         .map((row) => ({
@@ -280,16 +315,31 @@ async function measureRoute(browser, routePath, storageState) {
  * route is supposed to be measured without.
  */
 async function signInFixture(browser) {
-  const send = await fetch(`${API_ORIGIN}/api/v1/auth/email/send-code`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: FIXTURE_EMAIL }),
-  });
-  if (!send.ok) throw new Error(`send-code failed (HTTP ${send.status})`);
-  const code = (await send.json())?.data?.debug_verification_code;
+  /*
+   * `send-code` holds a 60s per-email cooldown in Redis. Inside that window it
+   * returns a normal HTTP 200 with the usual body and simply OMITS the debug
+   * code — deliberately indistinguishable from a real send, which reads as
+   * "TEST_MODE is off" rather than "you re-ran within a minute". Clearing
+   * `auth.verification_tokens` does not help; the cooldown is not in Postgres.
+   */
+  let code;
+  for (let attempt = 0; attempt < SEND_CODE_ATTEMPTS && !code; attempt += 1) {
+    if (attempt > 0) {
+      log(`[perf:routes] send-code cooldown held; retrying in ${COOLDOWN_WAIT_MS / 1000}s`);
+      await new Promise((done) => setTimeout(done, COOLDOWN_WAIT_MS));
+    }
+    const send = await fetch(`${API_ORIGIN}/api/v1/auth/email/send-code`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: ORIGIN },
+      body: JSON.stringify({ email: FIXTURE_EMAIL }),
+    });
+    if (!send.ok) throw new Error(`send-code failed (HTTP ${send.status})`);
+    code = (await send.json())?.data?.debug_verification_code;
+  }
   if (!code) {
     throw new Error(
-      'backend returned no debug_verification_code — --authed needs core-be in TEST_MODE',
+      'backend returned no debug_verification_code — --authed needs core-be in TEST_MODE ' +
+        `(tried ${SEND_CODE_ATTEMPTS}x across the resend cooldown)`,
     );
   }
 
@@ -305,7 +355,21 @@ async function signInFixture(browser) {
     await page.waitForURL((url) => !url.pathname.startsWith('/login'), {
       timeout: 20_000,
     });
-    return await context.storageState();
+    const state = await context.storageState();
+    /*
+     * Fail LOUD rather than measure a signed-out page dressed as a signed-in
+     * one. Without the session cookie every authed route silently reports the
+     * login screen's bytes plus whatever the router preloads, which looks like
+     * a plausible number and is not one.
+     */
+    const cookieNames = state.cookies.map((cookie) => cookie.name);
+    if (!cookieNames.includes('session_id')) {
+      throw new Error(
+        `signed in but no session_id cookie was stored (got: ${cookieNames.join(', ') || 'none'}) — ` +
+          'the proxy is probably folding the two Set-Cookie headers into one',
+      );
+    }
+    return state;
   } finally {
     await context.close();
   }
@@ -392,11 +456,13 @@ async function main() {
     /*
      * `firstPaintJsKb` is REPORTED but not asserted. It is drawn against the
      * load event, which moves with things that are not the bundle: with a
-     * reachable backend the app does more before `load`, and `sentry.js` — the
-     * single largest chunk — crosses the line, swinging the number ~10 kB
-     * between runs on identical bytes. `totalJsKb` does not move at all
-     * (476.4 kB on every run), because it is a property of the file set rather
-     * than of timing.
+     * reachable backend the app does more before `load`, and a large chunk
+     * lands on one side of the line or the other depending on how the run went.
+     * Measured across two back-to-back runs of identical bytes, `/unauthorized`
+     * came in at 228.5 kB and then 267.8 kB — a 39 kB swing, and `/mfa` and
+     * `/not-found` moved ~13 kB each. `totalJsKb` moved at most 0.1 kB on
+     * any route across three runs, because it is a property of the file set
+     * rather than of timing.
      *
      * So: budget what is stable, report what is not. `pnpm size` already
      * guards the critical path properly, from the modulepreload set.
