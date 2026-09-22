@@ -162,7 +162,7 @@ export function BillingPaymentMethods({
   // Hide the whole card when there is no subscription, or Stripe is off. The
   // guard is about the card, not about the query: QueryBoundary tells a disabled
   // query apart from a loading one by itself now (X-5).
-  if (!enabled || !isStripeEnabled()) {
+  if (!(enabled && isStripeEnabled())) {
     return null;
   }
 

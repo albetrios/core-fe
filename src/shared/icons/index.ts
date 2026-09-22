@@ -146,7 +146,6 @@ function makeIcon(name: IconName): AppIcon {
   function Icon(props: IconProps) {
     const lib = useThemeStore((s) => s.iconLibrary);
     const set = useIconSet(lib);
-    // eslint-disable-next-line security/detect-object-injection -- name is a fixed IconName key
     const Component = set?.[name] ?? lucideIcons[name];
     return createElement(Component, props);
   }

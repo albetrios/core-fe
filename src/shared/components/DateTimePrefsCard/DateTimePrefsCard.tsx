@@ -161,10 +161,7 @@ export function DateTimePrefsCard() {
             ariaLabel={t(LOCALE_KEYS.dateFormatHeading)}
             value={dateFormat}
             options={DATE_FORMAT_PREFERENCE_LIST}
-            labelFor={(id) =>
-              // eslint-disable-next-line security/detect-object-injection -- fixed preference catalog
-              t(DATE_FORMAT_LABEL_KEYS[id])
-            }
+            labelFor={(id) => t(DATE_FORMAT_LABEL_KEYS[id])}
             onPick={(id) => setDateFormat(id)}
             testPrefix="date-format"
           />
@@ -176,10 +173,7 @@ export function DateTimePrefsCard() {
             ariaLabel={t(LOCALE_KEYS.hourCycleHeading)}
             value={hourCycle}
             options={HOUR_CYCLE_PREFERENCE_LIST}
-            labelFor={(id) =>
-              // eslint-disable-next-line security/detect-object-injection -- fixed preference catalog
-              t(HOUR_CYCLE_LABEL_KEYS[id])
-            }
+            labelFor={(id) => t(HOUR_CYCLE_LABEL_KEYS[id])}
             onPick={(id) => setHourCycle(id)}
             testPrefix="hour-cycle"
           />

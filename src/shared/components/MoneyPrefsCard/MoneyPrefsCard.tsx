@@ -79,10 +79,7 @@ export function MoneyPrefsCard() {
             ariaLabel={t(LOCALE_KEYS.numberStyleHeading)}
             value={numberStyle}
             options={NUMBER_STYLE_PREFERENCE_LIST}
-            labelFor={(id) =>
-              // eslint-disable-next-line security/detect-object-injection -- fixed preference catalog
-              t(NUMBER_STYLE_LABEL_KEYS[id])
-            }
+            labelFor={(id) => t(NUMBER_STYLE_LABEL_KEYS[id])}
             onPick={(id) => setNumberStyle(id)}
             testPrefix="number-style"
           />
@@ -93,10 +90,7 @@ export function MoneyPrefsCard() {
             ariaLabel={t(LOCALE_KEYS.currencyDisplayHeading)}
             value={currencyDisplay}
             options={CURRENCY_DISPLAY_PREFERENCE_LIST}
-            labelFor={(id) =>
-              // eslint-disable-next-line security/detect-object-injection -- fixed preference catalog
-              t(CURRENCY_DISPLAY_LABEL_KEYS[id])
-            }
+            labelFor={(id) => t(CURRENCY_DISPLAY_LABEL_KEYS[id])}
             onPick={(id) => setCurrencyDisplay(id)}
             testPrefix="currency-display"
           />
@@ -134,19 +128,16 @@ export function MoneyPrefsCard() {
           <p>{t(LOCALE_KEYS.previewCurrency, { value: previews.sampleCurrency })}</p>
           <p data-testid="locale-preview-direction">
             {t(LOCALE_KEYS.previewDirection, {
-              // eslint-disable-next-line security/detect-object-injection -- fixed direction catalog
               value: t(DIRECTION_LABEL_KEYS[direction]),
             })}
           </p>
           <p data-testid="locale-preview-first-day">
             {t(LOCALE_KEYS.previewFirstDay, {
-              // eslint-disable-next-line security/detect-object-injection -- fixed first-day catalog
               value: t(FIRST_DAY_LABEL_KEYS[firstDayOfWeek]),
             })}
           </p>
           <p data-testid="locale-preview-measurement">
             {t(LOCALE_KEYS.previewMeasurement, {
-              // eslint-disable-next-line security/detect-object-injection -- fixed measurement catalog
               value: t(MEASUREMENT_LABEL_KEYS[measurementSystem]),
             })}
           </p>

@@ -6,6 +6,10 @@ const ERRORS_NS = I18N_NAMESPACES.errors;
 
 /** Dotted i18n keys used as Zod `message` values (e.g. `validation.emailRequired`). */
 export function isLikelyI18nKey(message: string): boolean {
+  // `\w` cannot match `.`, so the outer `+` and the inner `\w+` consume disjoint characters
+  // and the engine has no ambiguous split to backtrack over. Anchored at both ends; matching
+  // is linear in the input length.
+  // eslint-disable-next-line security/detect-unsafe-regex -- \w and . are disjoint, no ambiguity
   return /^\w+(?:\.\w+)+$/.test(message);
 }
 

@@ -257,6 +257,57 @@ export default defineConfig([
     },
   },
 
+  // ── Dev-time surfaces: scripts, generators and tests ──────────────────────
+  // These walk the repo, build paths from directory listings and print to stdout — that is
+  // their job, not a finding. The inputs are files already in the checkout, so a malicious
+  // path implies an attacker who can already write to the repo. `plugins/**` has carried the
+  // same exemption for `detect-non-literal-fs-filename` since it was added; this extends the
+  // same reasoning to the other build-time surfaces rather than scattering ~140 inline
+  // disables through them. `src/**` stays strict — nothing here loosens shipped code.
+  {
+    files: [
+      'tooling/**/*.{ts,mjs}',
+      'agent-os/**/*.{ts,mjs}',
+      'tests/**/*.{ts,tsx}',
+      '**/*.test.{ts,tsx}',
+      'plugins/**/*.ts',
+    ],
+    rules: {
+      'security/detect-non-literal-fs-filename': 'off',
+      'security/detect-non-literal-regexp': 'off',
+      'security/detect-unsafe-regex': 'off',
+      'no-console': 'off',
+      'max-depth': 'off',
+    },
+  },
+
+  // ── detect-object-injection ────────────────────────────────────────────────
+  // The rule flags the SYNTAX `obj[key]`, not an actual unsafe lookup, so it cannot be
+  // satisfied by making the code safer — only by avoiding computed access entirely. Every
+  // remaining site here is a record keyed by a typed union or a local `as const` array
+  // (`INTL_LOCALE[locale]`, `envProfiles[environment]`, `TOAST_VARIANTS[next]`), and
+  // `noUncheckedIndexedAccess: true` (tsconfig.app.json) already forces each of those reads
+  // to be handled as possibly-undefined. That is the guarantee the rule is reaching for, and
+  // the compiler enforces it where the linter can only guess.
+  //
+  // Where keys genuinely come from outside — an API error payload, a JSON manifest on disk —
+  // the accumulators they write into are built with `Object.create(null)` so a `__proto__`
+  // entry lands as an ordinary own property instead of reassigning a prototype. See
+  // `src/shared/errors/map-validation-errors.ts`, `tooling/agent-os/generate.ts` and
+  // `tooling/dev/mcp-config.ts`. That is the real defence; this rule does not detect it.
+  {
+    files: [
+      'src/**/*.{ts,tsx}',
+      'tooling/**/*.{ts,mjs}',
+      'tests/**/*.{ts,tsx}',
+      'plugins/**/*.ts',
+      'agent-os/**/*.{ts,mjs}',
+    ],
+    rules: {
+      'security/detect-object-injection': 'off',
+    },
+  },
+
   // API/route path constants (strings like /auth/reset-password), not credentials
   {
     files: ['**/core/config/constants.ts', '**/*.constants.ts'],

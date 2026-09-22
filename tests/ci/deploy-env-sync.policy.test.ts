@@ -74,6 +74,7 @@ describe('deploy env sync policy', () => {
     }
     // The identity comes from the resolved environment, not a hand-set secret.
     expect(reusable).toContain(
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression syntax, asserted verbatim
       'VITE_APP_ENV: ${{ needs.resolve-environment.outputs.environment }}',
     );
     expect(preview).toContain('VITE_APP_ENV: development');

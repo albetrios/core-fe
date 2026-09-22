@@ -73,7 +73,6 @@ export function stepAtIndex(
   steps: readonly OnboardingStep[],
 ): OnboardingStep {
   const clamped = clampStepIndex(index, steps);
-  // eslint-disable-next-line security/detect-object-injection -- clamped index is bounded
   return steps[clamped] ?? ONBOARDING_STEPS[0] ?? 'welcome';
 }
 

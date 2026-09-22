@@ -64,6 +64,7 @@ describe('deploy workflows policy', () => {
     expect(release).toContain('workflow_dispatch:');
     // production reviewer gate (via the reusable) + tag pin, never github.sha
     expect(release).toContain('github_environment: production');
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression syntax, asserted verbatim
     expect(release).toContain('ref: ${{ needs.resolve.outputs.tag }}');
     expect(release).not.toContain('github.sha');
     expect(release).toContain('reusable-netlify-deploy.yml');

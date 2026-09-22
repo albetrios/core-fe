@@ -58,7 +58,7 @@ export function showDesktopNotification(
   options?: { body?: string; tag?: string },
 ): boolean {
   const N = ctor();
-  if (!N || N.permission !== 'granted') return false;
+  if (N?.permission !== 'granted') return false;
   if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
     return false;
   }

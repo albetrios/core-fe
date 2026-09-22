@@ -9,7 +9,6 @@ import type { Plugin, UserConfig } from 'vite';
 export function stripAmbientViteEnv(env: NodeJS.ProcessEnv = process.env): string[] {
   const stripped = Object.keys(env).filter((key) => key.startsWith('VITE_'));
   for (const key of stripped) {
-    // eslint-disable-next-line security/detect-object-injection -- key comes from Object.keys(env), not user input
     delete env[key];
   }
   return stripped;

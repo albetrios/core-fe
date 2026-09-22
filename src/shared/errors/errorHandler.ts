@@ -73,9 +73,7 @@ function tError(key: string): string {
 }
 
 function statusFallbackMessage(status: number): string {
-  /* eslint-disable security/detect-object-injection -- status is validated HTTP status code */
   const key = HTTP_STATUS_KEYS[status];
-  /* eslint-enable security/detect-object-injection */
   return key ? tError(key) : tError(ERRORS_KEYS.api.fallback);
 }
 

@@ -145,7 +145,7 @@ not fail) on a deploy environment that leaves it unset. Steps:
    resolves a strict role→membership join with no global-role branch, and the
    tenancy RLS policies never honour `app.global_admin`. The bypass therefore
    unlocked controls the API answered with 403, and each click wrote a
-   permission-deny audit row. Being *more* permissive than the boundary is a
+   permission-deny audit row. Being _more_ permissive than the boundary is a
    broken UI, not a breach — but it is still wrong, so the client now mirrors
    the server exactly. A super_admin needing access inside an organization gets
    it the normal way: a membership with a role.

@@ -13,6 +13,10 @@ const PUBLIC_ID_SUFFIX_LEN = 21;
 
 /** Zod schema for a specific prefixed public id, e.g. `publicId('org')`. */
 export function publicId(prefix: string) {
+  // Both interpolations are internal constants — `prefix` is an entity key from this module's
+  // own call sites and the length is the literal above. Nothing user-supplied reaches the
+  // pattern, so there is no injection surface here.
+  // eslint-disable-next-line security/detect-non-literal-regexp -- prefix is an internal entity key, not input
   const re = new RegExp(`^${prefix}_[a-z0-9]{${PUBLIC_ID_SUFFIX_LEN}}$`);
   return z.string().regex(re, `invalid ${prefix} id`);
 }
@@ -27,6 +31,10 @@ export const isoDateString = z
   .string()
   .refine((v) => !Number.isNaN(Date.parse(v)), 'invalid ISO-8601 date');
 
+// `safe-regex` flags the nested quantifier, but the two branches match disjoint character
+// classes — a digit is never a dot — so no input can make the engine backtrack between them.
+// Anchored at both ends with a bounded `{1,2}`: matching is linear in the input length.
+// eslint-disable-next-line security/detect-unsafe-regex -- disjoint classes, no backtracking ambiguity
 const DECIMAL_RE = /^\d+(\.\d{1,2})?$/;
 
 /**

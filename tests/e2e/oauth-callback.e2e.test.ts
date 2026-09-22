@@ -34,7 +34,7 @@ test.describe('OAuth callback error handling', () => {
     const pageErrors: Error[] = [];
     page.on('pageerror', (error) => pageErrors.push(error));
 
-    await gotoApp(page, '/callback/not-a-provider?code=x&state=' + 'b'.repeat(64));
+    await gotoApp(page, `/callback/not-a-provider?code=x&state=${'b'.repeat(64)}`);
     await expect(page).toHaveURL(/\/login/, { timeout: 15_000 });
     expect(
       pageErrors,

@@ -46,7 +46,7 @@ function resolveFormatInstant(
   if (typeof iso === 'string') {
     return new Date(iso);
   }
-  if (!civilDay || !timeZone) {
+  if (!(civilDay && timeZone)) {
     return iso;
   }
   return new Date(Date.UTC(iso.getFullYear(), iso.getMonth(), iso.getDate(), 12, 0, 0));
