@@ -422,7 +422,7 @@ function SettingsContentLoading({ active }: { active: SettingsSectionRef }) {
   return (
     <div className="flex flex-col gap-6" data-testid="settings-content-loading">
       <SectionHeader title={sectionLabel} />
-      <PanelSkeleton className="max-w-xl" />
+      <PanelSkeleton className="max-w-xl" name={sectionLabel} />
     </div>
   );
 }

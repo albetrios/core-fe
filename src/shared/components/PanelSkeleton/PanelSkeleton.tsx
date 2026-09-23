@@ -24,13 +24,20 @@ const BAR_KEYS = ['first', 'second', 'third'] as const;
  * while a surface loads — but the visible copy was the churn, not the
  * information, and the section header above already names what is loading.
  *
- * @param props - `testId` overrides the default for a caller whose tests
- *   already assert on its own id; `className` tunes spacing at the call site.
+ * It still NAMES what is loading when the caller knows: a sighted user reads
+ * the section header, and a screen-reader user should not have to settle for a
+ * bare "Loading…" when the panel can say which one.
+ *
+ * @param props - `name` is what is being fetched ("Members", "Billing");
+ *   `testId` overrides the default for a caller whose tests already assert on
+ *   its own id; `className` tunes spacing at the call site.
  */
 export function PanelSkeleton({
+  name,
   testId,
   className,
 }: {
+  name?: string;
   testId?: string;
   className?: string;
 }) {
@@ -41,7 +48,7 @@ export function PanelSkeleton({
       data-testid={testId ?? 'panel-skeleton'}
     >
       <output aria-live="polite" className="sr-only">
-        {`${t(LOCALE_KEYS.loading)}…`}
+        {name ? t(LOCALE_KEYS.loadingNamed, { name }) : `${t(LOCALE_KEYS.loading)}…`}
       </output>
       {BAR_KEYS.map((bar) => (
         <Skeleton key={bar} className="h-14 w-full" />

@@ -308,13 +308,15 @@ function WebhooksSection() {
                     {hook.events.join(', ')}
                   </p>
                   {testResult?.id === hook.id ? (
-                    <p
-                      className="text-muted-foreground mt-1 text-xs"
-                      role="status"
+                    // `<output>` rather than `role="status"`: it carries the same
+                    // implicit live region, and some assistive tech announces the
+                    // native element where it ignores the ARIA role (S6819).
+                    <output
+                      className="text-muted-foreground mt-1 block text-xs"
                       data-testid={`webhook-test-result-${hook.id}`}
                     >
                       {testResult.text}
-                    </p>
+                    </output>
                   ) : null}
                 </div>
                 {/*

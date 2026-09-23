@@ -70,7 +70,9 @@ beforeEach(() => {
 
 describe('useNotifications', () => {
   it('loads the inbox list', async () => {
-    const { result } = renderHook(() => useNotifications(), { wrapper });
+    const { result } = renderHook(() => useNotifications({ isInboxOpen: true }), {
+      wrapper,
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([ITEM]);
   });
@@ -108,7 +110,9 @@ describe('useNotifications', () => {
     // and never surface org A's cached notifications.
     useOrganizationStore.setState({ organizationId: 'org_b' });
     listMock.mockResolvedValue([{ ...ITEM, id: 'ntf_org_b' }]);
-    const { result } = renderHook(() => useNotifications(), { wrapper: shared });
+    const { result } = renderHook(() => useNotifications({ isInboxOpen: true }), {
+      wrapper: shared,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ ...ITEM, id: 'ntf_org_b' }]);
@@ -154,7 +158,9 @@ describe('SHELL-10 — the polls wait for an org scope', () => {
   });
 
   it('does not fetch the inbox without a resolved org', async () => {
-    const { result } = renderHook(() => useNotifications(), { wrapper });
+    const { result } = renderHook(() => useNotifications({ isInboxOpen: true }), {
+      wrapper,
+    });
     await waitFor(() => expect(result.current.isPending).toBe(true));
     expect(listMock).not.toHaveBeenCalled();
     expect(result.current.fetchStatus).toBe('idle');
@@ -168,7 +174,10 @@ describe('SHELL-10 — the polls wait for an org scope', () => {
   });
 
   it('starts fetching as soon as the org scope resolves', async () => {
-    const { result, rerender } = renderHook(() => useNotifications(), { wrapper });
+    const { result, rerender } = renderHook(
+      () => useNotifications({ isInboxOpen: true }),
+      { wrapper },
+    );
     expect(listMock).not.toHaveBeenCalled();
 
     useOrganizationStore.setState({ organizationId: ORG_ID });
@@ -176,5 +185,56 @@ describe('SHELL-10 — the polls wait for an org scope', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(listMock).toHaveBeenCalled();
+  });
+});
+
+/**
+ * The inbox renders only inside the bell popover, but the hook sits at the top
+ * of a component the app shell mounts on every authenticated page. Before this
+ * gate, a closed bell fetched a full inbox every 30s that nothing displayed.
+ */
+describe('inbox poll is gated on the popover being open', () => {
+  beforeEach(() => {
+    useOrganizationStore.setState({ organizationId: ORG_ID });
+  });
+
+  it('does not fetch the inbox while the popover is closed', async () => {
+    const { result } = renderHook(() => useNotifications({ isInboxOpen: false }), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isPending).toBe(true));
+    expect(listMock).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
+  });
+
+  it('fetches the inbox as soon as the popover opens', async () => {
+    let open = false;
+    const { result, rerender } = renderHook(
+      () => useNotifications({ isInboxOpen: open }),
+      { wrapper },
+    );
+    expect(listMock).not.toHaveBeenCalled();
+
+    open = true;
+    rerender();
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(listMock).toHaveBeenCalledTimes(1);
+  });
+
+  // The badge is the whole point of a notification bell — it has to stay live
+  // whether or not anyone has opened the popover, so it keeps the org gate only.
+  it('keeps polling the unread count while the popover is closed', async () => {
+    const { result } = renderHook(
+      () => ({
+        inbox: useNotifications({ isInboxOpen: false }),
+        badge: useUnreadCount(),
+      }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.badge.isSuccess).toBe(true));
+    expect(countMock).toHaveBeenCalled();
+    expect(listMock).not.toHaveBeenCalled();
   });
 });

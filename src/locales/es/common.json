@@ -101,6 +101,7 @@
   "a11y": {
     "close": "Cerrar",
     "loading": "Cargando",
+    "loadingNamed": "Cargando {{name}}…",
     "loadingPage": "Cargando página",
     "toggleTheme": "Cambiar tema",
     "openAppearance": "Abrir apariencia",

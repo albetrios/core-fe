@@ -105,14 +105,21 @@ describe('SettingsModal', () => {
     expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
 
-    // The header already names the section, so the wait needs no second line of
-    // copy under it — and the line it used to show advanced through three
-    // different strings while one panel loaded. The announcement survives as
-    // `sr-only` inside the shared skeleton; the visible churn does not.
+    // Two things at once, because `onceAsync` caches each panel's chunk for the
+    // whole file: only the first test to switch sections ever reaches this
+    // fallback. (1) There is ONE skeleton and no visible copy — the line that
+    // used to sit here advanced through three strings while a single panel
+    // loaded. (2) The announcement survives, `sr-only` and polite, and still
+    // NAMES the section, so a slow panel says which one rather than a bare
+    // "Loading" (carried over from #329).
     expect(
       screen.queryByTestId('settings-content-loading-label'),
     ).not.toBeInTheDocument();
-    expect(screen.getByTestId('panel-skeleton')).toBeInTheDocument();
+    const region = screen.getByTestId('settings-content-loading');
+    const live = region.querySelector('output[aria-live="polite"]');
+    expect(live).not.toBeNull();
+    expect(live).toHaveClass('sr-only');
+    expect(live).toHaveTextContent(/Security/);
   });
 
   it('renders nothing without a settings hash', () => {

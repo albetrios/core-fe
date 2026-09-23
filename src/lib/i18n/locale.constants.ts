@@ -26,6 +26,7 @@ export const LOCALE_KEYS = {
   openAria: 'language.openAria',
   closeAria: 'a11y.close',
   loading: 'a11y.loading',
+  loadingNamed: 'a11y.loadingNamed',
   loadingPage: 'a11y.loadingPage',
   toggleTheme: 'a11y.toggleTheme',
   openAppearance: 'a11y.openAppearance',

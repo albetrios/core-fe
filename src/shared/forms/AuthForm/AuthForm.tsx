@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { enabledOAuthProviders } from '@/core/config/auth-methods.ts';
+import { warmSignedInShell } from '@/lib/signed-in-shell-warmup.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { authApi } from '@/shared/api/auth-api.ts';
@@ -189,6 +190,13 @@ export function AuthForm() {
       cancelAutoGoogle();
     }
     setPending({ method: 'oauth', provider });
+    /*
+     * Same commitment as submitting an email, and a wider window: `oauthStart`
+     * below is a full round trip before the redirect, and chunks fetched now
+     * survive the trip to the provider in the HTTP cache — so the callback lands
+     * on a warm shell instead of starting the download after the code exchange.
+     */
+    warmSignedInShell();
     stashReturnTo((location.search as { redirect?: unknown }).redirect);
     try {
       /*

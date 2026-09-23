@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { queryClient } from '@/core/http/queryClient.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import { translateFormMessage } from '@/lib/i18n/translate-form-message.ts';
+import { warmSignedInShell } from '@/lib/signed-in-shell-warmup.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { authApi, MfaRequiredError } from '@/shared/api/auth-api.ts';
@@ -225,6 +226,14 @@ export function AuthEmailPanel({
     sendingRef.current = true;
     setFormError(null);
     onPendingChange?.({ method: 'email-send' });
+    /*
+     * Submitting an email is a declaration of intent to sign in, and the user is
+     * about to spend seconds hunting a six-digit code in their inbox. Warm the
+     * chunks that sign-in lands on during that dead air, rather than after the
+     * post-login navigation when they are already watching a transition.
+     * Deliberately not awaited: this must never delay the code being sent.
+     */
+    warmSignedInShell();
     try {
       // Blocked until the captcha is satisfied — but blocked HERE, with the
       // challenge on screen beside the button, rather than by a disabled control

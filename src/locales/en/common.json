@@ -2,6 +2,7 @@
   "a11y": {
     "close": "Close",
     "loading": "Loading",
+    "loadingNamed": "Loading {{name}}…",
     "loadingPage": "Loading page",
     "toggleTheme": "Toggle theme",
     "openAppearance": "Open appearance",

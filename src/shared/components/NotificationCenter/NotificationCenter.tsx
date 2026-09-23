@@ -87,7 +87,15 @@ export function NotificationCenter({
   const { t } = useTranslation(LAYOUT_NS);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { data: items, isLoading, isError, refetch, isFetching } = useNotifications();
+  const {
+    data: items,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useNotifications({
+    isInboxOpen: open,
+  });
   const { data: unread = 0 } = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();

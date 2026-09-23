@@ -27,6 +27,11 @@ interface QueryBoundaryProps<T> {
    * render the data bare.
    */
   title?: string;
+  /**
+   * What this boundary is fetching — "Members", "Billing". It reaches the
+   * skeleton's screen-reader announcement only; nothing is drawn.
+   */
+  label?: string;
 }
 
 /**
@@ -47,8 +52,8 @@ function QueryData<T>({ data, render }: { data: T; render: (data: T) => ReactNod
  * keeps the screen-reader announcement, which is the part that carried
  * information, and drops the visible text.
  */
-function DefaultSkeleton() {
-  return <PanelSkeleton testId="query-skeleton" />;
+function DefaultSkeleton({ label }: { label?: string }) {
+  return <PanelSkeleton testId="query-skeleton" name={label} />;
 }
 
 /**
@@ -75,13 +80,15 @@ export function QueryBoundary<T>({
   loading,
   idle,
   title,
+  label,
 }: QueryBoundaryProps<T>) {
   const { t } = useTranslation(ERRORS_NS);
   const resolvedErrorMessage = errorMessage ?? t(ERRORS_KEYS.frontend.query.loadFailed);
 
   // Pending + idle = disabled and never started. Not loading — nothing is coming.
   if (query.isPending && query.fetchStatus === 'idle') return <>{idle ?? null}</>;
-  if (query.isPending) return <>{loading ?? <DefaultSkeleton />}</>;
+  if (query.isPending)
+    return <>{loading ?? <DefaultSkeleton label={label ?? title} />}</>;
   if (query.isError) {
     return (
       <RetryError

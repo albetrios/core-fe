@@ -24,6 +24,13 @@ describe('PanelSkeleton', () => {
     expect(live).toHaveClass('sr-only');
   });
 
+  // Carried over from #329: a screen-reader user should not be left with a bare
+  // "Loading" when the caller knows which panel it is.
+  it('names what is loading when the caller says', () => {
+    const { container } = render(<PanelSkeleton name="Members" />);
+    expect(container.querySelector('output')).toHaveTextContent(/Members/);
+  });
+
   // The whole point of the change: a wait is ONE state, not a sequence. If a
   // later edit reintroduces a rotating line, this pins that it must not be visible.
   it('renders no visible loading text', () => {
