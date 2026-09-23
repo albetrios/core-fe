@@ -102,8 +102,6 @@
     "close": "बंद करें",
     "loading": "लोड हो रहा है",
     "loadingNamed": "{{name}} लोड हो रहा है…",
-    "loadingStill": "अभी भी काम चल रहा है…",
-    "loadingAlmost": "बस थोड़ा और…",
     "loadingPage": "पेज लोड हो रहा है",
     "toggleTheme": "थीम बदलें",
     "openAppearance": "दिखावट खोलें",

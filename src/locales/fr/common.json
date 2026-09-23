@@ -102,8 +102,6 @@
     "close": "Fermer",
     "loading": "Chargement",
     "loadingNamed": "Chargement de {{name}}…",
-    "loadingStill": "Toujours en cours…",
-    "loadingAlmost": "Presque terminé…",
     "loadingPage": "Chargement de la page",
     "toggleTheme": "Changer de thème",
     "openAppearance": "Ouvrir l’apparence",

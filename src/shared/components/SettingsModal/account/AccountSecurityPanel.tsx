@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { copySensitiveText } from '@/lib/sensitive-clipboard.ts';
 import type { MfaEnrollment } from '@/shared/api/mfa-api.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { QrCode } from '@/shared/components/QrCode/index.ts';
 import { RecoveryCodesPanel } from '@/shared/components/RecoveryCodesPanel/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
@@ -472,12 +473,7 @@ function PasskeysCard() {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        {passkeysQuery.isPending ? (
-          <div className="flex flex-col gap-2" data-testid="passkeys-loading">
-            <Skeleton className="h-11 w-full" />
-            <Skeleton className="h-11 w-full" />
-          </div>
-        ) : null}
+        {passkeysQuery.isPending ? <PanelSkeleton testId="passkeys-loading" /> : null}
         {passkeysQuery.isError ? (
           <div data-testid="passkeys-error">
             <RetryError

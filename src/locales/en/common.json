@@ -3,8 +3,6 @@
     "close": "Close",
     "loading": "Loading",
     "loadingNamed": "Loading {{name}}…",
-    "loadingStill": "Still working…",
-    "loadingAlmost": "Almost there…",
     "loadingPage": "Loading page",
     "toggleTheme": "Toggle theme",
     "openAppearance": "Open appearance",

@@ -73,9 +73,6 @@ describe('AccountNotificationsPanel', () => {
     usePrefsMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     render(<AccountNotificationsPanel />);
     expect(screen.getByTestId('notifications-prefs-loading')).toBeInTheDocument();
-    expect(
-      screen.getByTestId('notifications-prefs-loading').querySelector('p'),
-    ).toHaveTextContent(/\S/);
     expect(screen.queryByTestId('notify-system-email')).not.toBeInTheDocument();
   });
 
@@ -358,9 +355,12 @@ describe('AccountNotificationsPanel', () => {
 
   // ── SET-22: one skeleton block per real category ─────────────────────────
 
-  it('renders one skeleton block per category, in the row shell', () => {
-    // Regression: four 48px bars for rows that are ~3x taller — the card grew
-    // under the user when the preferences landed.
+  it('draws one skeleton with no visible copy, not a block per category', () => {
+    // Superseded SET-22: the loading block used to mirror the real rows so the
+    // card would not grow when preferences landed. It now draws the SAME single
+    // skeleton every other settings wait draws — the reflow when content lands
+    // is the accepted cost of a click producing one loading state instead of a
+    // shell skeleton, then a category-shaped one, then content.
     usePrefsMock.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     const { container } = render(<AccountNotificationsPanel />);
 
@@ -368,12 +368,8 @@ describe('AccountNotificationsPanel', () => {
       '[data-testid="notifications-prefs-loading"]',
     );
     expect(loading).not.toBeNull();
-    expect(loading?.className).toContain('divide-y');
-    // One block per category, in the same `py-4` shell the loaded rows use.
-    const blocks = container.querySelectorAll(
-      '[data-testid="notifications-prefs-loading"] > div',
-    );
-    expect(blocks.length).toBeGreaterThan(0);
-    expect(blocks[0]?.className).toContain('py-4');
+    const clone = loading?.cloneNode(true) as HTMLElement;
+    for (const srOnly of clone.querySelectorAll('.sr-only')) srOnly.remove();
+    expect(clone.textContent?.trim()).toBe('');
   });
 });

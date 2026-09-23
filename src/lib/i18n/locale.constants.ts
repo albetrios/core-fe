@@ -27,8 +27,6 @@ export const LOCALE_KEYS = {
   closeAria: 'a11y.close',
   loading: 'a11y.loading',
   loadingNamed: 'a11y.loadingNamed',
-  loadingStill: 'a11y.loadingStill',
-  loadingAlmost: 'a11y.loadingAlmost',
   loadingPage: 'a11y.loadingPage',
   toggleTheme: 'a11y.toggleTheme',
   openAppearance: 'a11y.openAppearance',

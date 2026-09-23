@@ -157,15 +157,12 @@ describe('AccountSessionsPanel', () => {
     });
     const { container } = render(<AccountSessionsPanel />);
 
-    const skeletonRows = container.querySelectorAll(
-      '[data-testid="sessions-loading"] li',
-    );
-    expect(skeletonRows).toHaveLength(2);
-    // Same shell as a rendered row: the p-3 list item inside the card.
-    expect(skeletonRows[0]?.className).toContain('p-3');
-    expect(
-      container.querySelector('[data-testid="sessions-loading"] ul.divide-y'),
-    ).not.toBeNull();
+    // One skeleton, the same shape every other settings wait draws — the
+    // bespoke row-shell copy of the list is gone along with the second stage.
+    expect(screen.getByTestId('sessions-loading')).toBeInTheDocument();
+    const clone = container.cloneNode(true) as HTMLElement;
+    for (const srOnly of clone.querySelectorAll('.sr-only')) srOnly.remove();
+    expect(clone.querySelector('[data-testid="sessions-loading"]')?.textContent).toBe('');
   });
 
   // ── X-9: copy comes from the locale bundle, not from the component ───────

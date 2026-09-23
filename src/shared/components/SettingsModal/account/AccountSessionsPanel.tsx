@@ -5,13 +5,12 @@ import type { Session } from '@/shared/api/session-contracts.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card } from '@/shared/components/ui/card.tsx';
-import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
-import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import { useRevokeSession, useSessions } from '@/shared/hooks/useSessions/index.ts';
 import { Laptop, LogOut } from '@/shared/icons/index.ts';
 
@@ -44,30 +43,7 @@ export function AccountSessionsPanel() {
     <section className="space-y-6" data-testid="settings-account-sessions">
       <SectionHeader title={t(panels.title)} description={t(panels.description)} />
 
-      {isLoading ? (
-        // Built from the SAME shell as a real row — card, dividers, 12px padding,
-        // a 20px icon and two lines of text — so the panel does not jump when
-        // the answer lands (SET-22). The line above it says what the wait is
-        // for; `Skeleton` is decorative, so without it a screen reader was told
-        // nothing at all while this panel loaded.
-        <div className="space-y-2">
-          <LoadingMessage name={t(panels.title)} />
-          <Card className="gap-0 overflow-hidden py-0" data-testid="sessions-loading">
-            <ul className="divide-border divide-y">
-              {['a', 'b'].map((key) => (
-                <li key={key} className="flex items-center gap-3 p-3">
-                  <Skeleton className="size-5 shrink-0 rounded-sm" />
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-3 w-64" />
-                  </div>
-                  <Skeleton className="h-8 w-24 shrink-0" />
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-      ) : null}
+      {isLoading ? <PanelSkeleton testId="sessions-loading" /> : null}
 
       {isError ? (
         // A dead end used to be the whole story here: a sentence, and the only
