@@ -44,7 +44,6 @@ const hydratedContextRef = vi.hoisted(() => ({
     activeOrganization: null,
     myPermissions: ['organization:read'],
     globalRole: null,
-    organizations: [],
     deploymentFlags: { personalOrganizations: false, teamOrganizations: true },
     personalOrganizationId: null as string | null,
   },
@@ -110,6 +109,27 @@ vi.mock('@/shared/hooks/useDeploymentFlags/index.ts', () => ({
 
 const createOrganization = vi.fn();
 const listMyOrganizations = vi.fn();
+
+/*
+ * The wizard derives its step list from the caller's ORGANIZATIONS, which come
+ * from `GET /users/me/organizations` now rather than riding along in me/context.
+ * The helpers below still take `organizations` and route them here, so every
+ * test's call site is unchanged — only the source moved.
+ */
+const { organizationsRef } = vi.hoisted(() => ({
+  organizationsRef: { value: [] as unknown[] },
+}));
+vi.mock('@/shared/tenancy/my-organization-summaries.ts', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  useMyOrganizationSummaries: () => ({
+    data: organizationsRef.value,
+    isPending: false,
+    isError: false,
+  }),
+  // The finish path refetches deliberately: onboarding may have just created the
+  // organization it is about to activate, so a cached read would miss it.
+  fetchMyOrganizationSummaries: () => Promise.resolve(organizationsRef.value),
+}));
 vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => ({
   // Spread the real module so the REAL schema is used: the wizard validates the
   // slug against the same one `createOrganization` does, and a stubbed schema
@@ -233,6 +253,8 @@ function makeLiveContext(
     personalOrganizationId?: string | null;
   } = {},
 ) {
+  // The list is no longer part of the context — it is served by the mocked hook.
+  organizationsRef.value = input.organizations ?? [];
   return {
     user: {
       id: input.userId ?? SESSION_USER_ID,
@@ -244,7 +266,6 @@ function makeLiveContext(
     activeOrganization: null,
     myPermissions: ['organization:read'],
     globalRole: null,
-    organizations: input.organizations ?? [],
     deploymentFlags: input.flags ?? {
       personalOrganizations: false,
       teamOrganizations: true,
@@ -256,6 +277,7 @@ function makeLiveContext(
 /** Switch both the deployment flags and the live context to a hybrid session. */
 function useHybridSession(organizations: unknown[] = []) {
   const flags = { personalOrganizations: true, teamOrganizations: true };
+  organizationsRef.value = organizations;
   deploymentFlagsRef.value = flags;
   hydratedContextRef.value = {
     ...hydratedContextRef.value,

@@ -28,6 +28,7 @@ import {
   shouldShowOrganizationSwitcher,
 } from '@/shared/tenancy/deployment-mode.ts';
 import type { OrganizationSummary } from '@/shared/tenancy/me-context.ts';
+import { useMyOrganizationSummaries } from '@/shared/tenancy/my-organization-summaries.ts';
 import { switchToPersonal } from '@/shared/tenancy/switch.ts';
 
 interface OrganizationSwitcherProps {
@@ -191,6 +192,10 @@ export function OrganizationSwitcher({
   // says the same thing without moving anything.
   const { data: ctx, isLoading } = useMeContext({ notifyOnError: true });
   const deploymentFlags = useDeploymentFlags();
+  // Above the early return below: a hook after a conditional `return` is called
+  // in a different order once the switcher is hidden, which is exactly what
+  // rules-of-hooks forbids.
+  const orgs = useMyOrganizationSummaries().data ?? [];
 
   if (!shouldShowOrganizationSwitcher(deploymentFlags)) {
     return null;
@@ -200,7 +205,6 @@ export function OrganizationSwitcher({
   const showPersonalSection = deploymentFlags.personalOrganizations;
   const showCreateTeam = shouldAllowCreateTeam(deploymentFlags);
 
-  const orgs = ctx?.organizations ?? [];
   const personalOrgs = showPersonalSection
     ? orgs.filter((o) => o.type === 'PERSONAL')
     : [];

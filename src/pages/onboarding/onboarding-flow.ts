@@ -6,13 +6,15 @@ import {
   type DeploymentFlags,
   resolveDeploymentMode,
 } from '@/shared/tenancy/deployment-mode.ts';
-import type { MeContext } from '@/shared/tenancy/me-context.ts';
+import type { OrganizationType } from '@/shared/tenancy/me-context.ts';
 import { createOrganizationSchema } from '@/shared/tenancy/my-organizations.ts';
 
 export type { OnboardingStep };
 
-function hasTeamOrganization(ctx: MeContext): boolean {
-  return ctx.organizations.some((o) => o.type === 'TEAM');
+function hasTeamOrganization(
+  organizations: readonly { type: OrganizationType }[],
+): boolean {
+  return organizations.some((o) => o.type === 'TEAM');
 }
 
 /**
@@ -28,10 +30,10 @@ function hasTeamOrganization(ctx: MeContext): boolean {
  */
 export function deriveOnboardingSteps(
   flags: DeploymentFlags,
-  ctx: MeContext,
+  organizations: readonly { type: OrganizationType }[],
 ): readonly OnboardingStep[] {
   const mode = resolveDeploymentMode(flags);
-  const hasTeam = hasTeamOrganization(ctx);
+  const hasTeam = hasTeamOrganization(organizations);
 
   const steps: OnboardingStep[] = ['welcome', 'profile', 'questions'];
 
@@ -54,7 +56,7 @@ export function deriveOnboardingSteps(
  */
 export function shouldCreateOrganizationOnFinish(
   flags: DeploymentFlags,
-  _ctx: MeContext,
+  _organizations: readonly { type: OrganizationType }[],
 ): boolean {
   const mode = resolveDeploymentMode(flags);
   if (mode === 'personal-only') return false;

@@ -5,6 +5,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { useUIStore } from '@/shared/store/useUIStore/index.ts';
 import type { MeContext } from '@/shared/tenancy/me-context.ts';
+import type * as MyOrganizationSummariesModule from '@/shared/tenancy/my-organization-summaries.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { CommandPalette, PALETTE_LOGOUT_TOAST_ID } from './CommandPalette.tsx';
@@ -45,17 +46,30 @@ vi.mock('@/shared/errors/errorHandler.ts', async (importOriginal) => {
 vi.mock('@/shared/hooks/useMeContext/index.ts', () => ({
   useMeContext: useMeContextMock,
 }));
+const { useMyOrganizationSummariesMock } = vi.hoisted(() => ({
+  useMyOrganizationSummariesMock: vi.fn(() => ({ data: [], isPending: false })),
+}));
+vi.mock('@/shared/tenancy/my-organization-summaries.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof MyOrganizationSummariesModule>()),
+  useMyOrganizationSummaries: useMyOrganizationSummariesMock,
+}));
+
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return { ...actual, useNavigate: () => navigateMock };
 });
 
-/** Minimal me/context the palette reads: active-org type + the org list. */
+/** The org list now comes from `GET /users/me/organizations`, not me/context. */
+function withOrganizations(organizations: unknown[]): void {
+  useMyOrganizationSummariesMock.mockReturnValue({
+    data: organizations,
+    isPending: false,
+  });
+}
+
+/** Minimal me/context the palette reads: the active organization's type. */
 function meContext(orgType: 'TEAM' | 'PERSONAL'): MeContext {
-  return {
-    activeOrganization: { type: orgType },
-    organizations: [],
-  } as unknown as MeContext;
+  return { activeOrganization: { type: orgType } } as unknown as MeContext;
 }
 
 /** A personal workspace has NO slug — that is the whole point of SHELL-12. */
@@ -74,11 +88,14 @@ const TEAM_ORG = {
   isActive: true,
 };
 
+/**
+ * Active-organization context PLUS the org list, which now comes from
+ * `GET /users/me/organizations` rather than riding along in me/context. Seeded
+ * together because every caller of this wants both workspaces listed.
+ */
 function meContextWithBoth(): MeContext {
-  return {
-    activeOrganization: { type: 'TEAM' },
-    organizations: [TEAM_ORG, PERSONAL_ORG],
-  } as unknown as MeContext;
+  withOrganizations([TEAM_ORG, PERSONAL_ORG]);
+  return { activeOrganization: { type: 'TEAM' } } as unknown as MeContext;
 }
 
 describe('CommandPalette', () => {
@@ -402,14 +419,12 @@ describe('CommandPalette', () => {
     });
 
     it('marks an active personal workspace as current and does not switch to it', async () => {
+      withOrganizations([
+        { ...TEAM_ORG, isActive: false },
+        { ...PERSONAL_ORG, isActive: true },
+      ]);
       useMeContextMock.mockReturnValue({
-        data: {
-          activeOrganization: { type: 'PERSONAL' },
-          organizations: [
-            { ...TEAM_ORG, isActive: false },
-            { ...PERSONAL_ORG, isActive: true },
-          ],
-        } as unknown as MeContext,
+        data: { activeOrganization: { type: 'PERSONAL' } } as unknown as MeContext,
       });
       const user = userEvent.setup();
       renderWithProviders(<CommandPalette />);

@@ -21,7 +21,7 @@ src/shared/    UI, auth, api, errors, forms, hooks, layouts, store (Zustand)
 src/lib/       Pure utilities, animations, route-island helpers
 tests/         E2E, utils (project root)
 
-Stats: ~643 src files · ~376 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
+Stats: ~644 src files · ~376 tests in src/ · 51 E2E specs · 23 shadcn UI primitives
 
 ================================================================================
 §2  FULL DIRECTORY TREE
@@ -1401,6 +1401,7 @@ core-fe/
 │   │   ├── tenancy/
 │   │   │   ├── deployment-mode.ts
 │   │   │   ├── me-context.ts
+│   │   │   ├── my-organization-summaries.ts
 │   │   │   ├── my-organizations.ts
 │   │   │   ├── organization-context.ts
 │   │   │   ├── organization-membership.ts

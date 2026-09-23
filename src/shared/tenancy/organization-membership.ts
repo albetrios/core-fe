@@ -6,20 +6,14 @@ import {
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import { type MeContext, meContextQueryKey } from './me-context.ts';
+import {
+  ensureMyOrganizationSummaries,
+  fetchMyOrganizationSummaries,
+  myOrganizationsQueryKey,
+  type MyOrganizationSummary,
+} from './my-organization-summaries.ts';
 import type { Organization } from './my-organizations.ts';
 import { listMyOrganizations, organizationSchema } from './my-organizations.ts';
-
-function organizationFromMeContext(ctx: MeContext, slug: string): Organization | null {
-  const summary = ctx.organizations.find((o) => o.slug === slug);
-  if (!summary?.slug) return null;
-  return organizationSchema.parse({
-    id: summary.id,
-    name: summary.name,
-    slug: summary.slug,
-    status: summary.status === 'SUSPENDED' ? 'suspended' : 'active',
-    logoUrl: summary.logoUrl,
-  });
-}
 
 /**
  * Membership + per-organization permission loading.
@@ -52,21 +46,35 @@ export async function findMembership(
  * non-member slug resolves to `null` → 404, identical to an unknown slug.
  */
 export async function findMembershipBySlug(slug: string): Promise<Organization | null> {
-  // Cache-first: the org guard chain runs requireProvisionedWorkspace →
-  // hydrateSessionContext() (which setQueryData's me/context) BEFORE this, so the
-  // cache is warm and carries the org list — resolve from it without a second
-  // network call. INVARIANT: relies on me/context being fetched first; if a future
-  // route skips that, we fall back to the network below (no bug, just no speedup).
-  const ctx = queryClient.getQueryData<MeContext>(meContextQueryKey);
-  if (ctx) {
-    const fromContext = organizationFromMeContext(ctx, slug);
-    if (fromContext) return fromContext;
-  }
+  const toOrganization = (row: MyOrganizationSummary): Organization | null =>
+    row.slug
+      ? organizationSchema.parse({
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          status: row.status === 'SUSPENDED' ? 'suspended' : 'active',
+          logoUrl: row.logoUrl,
+        })
+      : null;
 
-  // Fallback on cache miss only — never 404 a real member just because me/context
-  // didn't list the slug; the list call is the authoritative membership source.
-  const organizations = await listMyOrganizations();
-  return organizations.find((o) => o.slug === slug) ?? null;
+  // Cache-first: this runs on every organization-route navigation, so it must
+  // not refetch each time. `ensureMyOrganizationSummaries` serves the cached
+  // list and goes to the network only on a miss.
+  const cached = await ensureMyOrganizationSummaries();
+  const fromCache = cached.find((o) => o.slug === slug);
+  if (fromCache) return toOrganization(fromCache);
+
+  /*
+   * A cache MISS is not proof of non-membership. The list this user just joined
+   * — or the workspace onboarding created seconds ago — may not be in a list we
+   * fetched before it existed. Never 404 a real member on a stale cache: refetch
+   * once and let the fresh answer decide. Only then is `null` the truth, and the
+   * route renders a 404 identical to an unknown slug (existence is never leaked).
+   */
+  const fresh = await fetchMyOrganizationSummaries();
+  queryClient.setQueryData(myOrganizationsQueryKey, fresh);
+  const fromFresh = fresh.find((o) => o.slug === slug);
+  return fromFresh ? toOrganization(fromFresh) : null;
 }
 
 let permissionsLoadedFor: string | null = null;

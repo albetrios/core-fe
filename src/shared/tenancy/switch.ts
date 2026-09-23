@@ -16,6 +16,10 @@ import {
   organizationWire,
   toOrganization,
 } from './me-context.ts';
+import {
+  myOrganizationsQueryKey,
+  type MyOrganizationSummary,
+} from './my-organization-summaries.ts';
 import { deriveOrgContext } from './organization-context.ts';
 
 const switchWire = z.object({
@@ -30,20 +34,27 @@ function applyActiveOrg(
   permissions: string[],
   globalRole: GlobalRole | null,
 ): MeContext | undefined {
-  return queryClient.setQueryData<MeContext>(meContextQueryKey, (prev) =>
+  const next = queryClient.setQueryData<MeContext>(meContextQueryKey, (prev) =>
     prev
       ? {
           ...prev,
           activeOrganization: active,
           myPermissions: permissions,
           globalRole: globalRole ?? prev.globalRole,
-          organizations: prev.organizations.map((o) => ({
-            ...o,
-            isActive: !!active && o.id === active.id,
-          })),
         }
       : prev,
   );
+  // The list lives in its own cache now and carries `isActive`, derived from the
+  // context we have just changed — so every row's flag is stale the moment the
+  // active organization moves. Re-derive in place rather than refetching: the
+  // membership set did not change, only which of them is active.
+  queryClient.setQueryData<MyOrganizationSummary[]>(myOrganizationsQueryKey, (prev) =>
+    prev?.map((organization) => ({
+      ...organization,
+      isActive: !!active && organization.id === active.id,
+    })),
+  );
+  return next;
 }
 
 /**

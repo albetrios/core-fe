@@ -106,37 +106,15 @@ describe('deployment-mode — personal-and-team', () => {
   });
 
   it('skips onboarding workspace create (personal auto-provisioned; teams from switcher)', () => {
-    const ctx = meCtx({
-      activeOrganization: {
-        id: 'org_p',
-        name: 'Personal',
-        slug: null,
-        type: 'PERSONAL',
-        status: 'ACTIVE',
-        logoUrl: null,
-        createdAt: 't',
-        updatedAt: 't',
-      },
-      organizations: [
-        {
-          id: 'org_p',
-          name: 'Personal',
-          slug: null,
-          type: 'PERSONAL',
-          status: 'ACTIVE',
-          logoUrl: null,
-          createdAt: 't',
-          updatedAt: 't',
-          isActive: true,
-        },
-      ],
-    });
-    expect(deriveOnboardingSteps(BOTH, ctx)).toEqual([
+    // The step list is derived from the caller's ORGANIZATIONS, which come from
+    // `GET /users/me/organizations` rather than riding along in me/context.
+    const organizations = [{ id: 'org_p', type: 'PERSONAL' as const, slug: null }];
+    expect(deriveOnboardingSteps(BOTH, organizations)).toEqual([
       'welcome',
       'profile',
       'questions',
       'done',
     ]);
-    expect(shouldCreateOrganizationOnFinish(BOTH, ctx)).toBe(false);
+    expect(shouldCreateOrganizationOnFinish(BOTH, organizations)).toBe(false);
   });
 });
