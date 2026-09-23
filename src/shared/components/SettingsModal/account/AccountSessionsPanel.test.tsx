@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import i18n from '@/lib/i18n/i18n.ts';
 import { ensureLocale } from '@/lib/i18n/load-namespace.ts';
+import { HttpError } from '@/shared/errors/HttpError.ts';
 
 const { useSessionsMock, revokeMutateAsync } = vi.hoisted(() => ({
   useSessionsMock: vi.fn(),
@@ -12,6 +13,26 @@ const { useSessionsMock, revokeMutateAsync } = vi.hoisted(() => ({
 vi.mock('@/shared/hooks/useSessions/index.ts', () => ({
   useSessions: useSessionsMock,
   useRevokeSession: () => ({ mutateAsync: revokeMutateAsync }),
+}));
+// The re-auth dialog has its own suite — stub it to a button that verifies, so
+// this one exercises the guard wiring rather than the dialog's internals.
+vi.mock('@/shared/components/StepUpDialog/StepUpDialog.tsx', () => ({
+  StepUpDialog: ({
+    onVerified,
+    allowEmailCode,
+  }: {
+    onVerified: () => void;
+    allowEmailCode?: boolean;
+  }) => (
+    <button
+      type="button"
+      data-testid="stub-step-up"
+      data-allow-email={String(allowEmailCode)}
+      onClick={onVerified}
+    >
+      verify
+    </button>
+  ),
 }));
 
 import { SETTINGS_KEYS, SETTINGS_NS } from '../settings.constants.ts';
@@ -118,6 +139,43 @@ describe('AccountSessionsPanel', () => {
     await user.click(screen.getByTestId('session-revoke-ses_cli'));
     await user.click(screen.getByTestId('confirm-accept'));
     await waitFor(() => expect(revokeMutateAsync).toHaveBeenCalledWith('ses_cli'));
+  });
+
+  // core-be gates DELETE /auth/me/sessions/:session_id behind a STRONG recent
+  // step-up (sec-A7). Without the guard the 403 was swallowed whole:
+  // `useAppMutation` suppresses the toast for a step-up error — on the
+  // documented assumption that the caller opens the dialog — and rolled the
+  // optimistic removal back, so the row reappeared unchanged with nothing on
+  // screen to explain it. A spinner, then the session exactly as it was.
+  it('opens re-authentication when core-be demands a step-up, then retries', async () => {
+    const stepUp = new HttpError(
+      'Recent step-up authentication is required',
+      403,
+      '/api/v1/auth/me/sessions/ses_other',
+      'DELETE',
+    );
+    revokeMutateAsync.mockRejectedValueOnce(stepUp).mockResolvedValueOnce(undefined);
+    useSessionsMock.mockReturnValue({
+      data: [CURRENT, OTHER],
+      isLoading: false,
+      isError: false,
+    });
+    const user = userEvent.setup();
+    render(<AccountSessionsPanel />);
+
+    await user.click(screen.getByTestId('session-revoke-ses_other'));
+    await user.click(screen.getByTestId('confirm-accept'));
+
+    const prompt = await screen.findByTestId('stub-step-up');
+    // Revoking is destructive, so the bootstrap email code must not be offered —
+    // core-be would reject that window anyway.
+    expect(prompt).toHaveAttribute('data-allow-email', 'false');
+
+    await user.click(prompt);
+    // Re-run after verification, against the id captured before the confirm
+    // dialog closed and cleared it.
+    await waitFor(() => expect(revokeMutateAsync).toHaveBeenCalledTimes(2));
+    expect(revokeMutateAsync).toHaveBeenLastCalledWith('ses_other');
   });
 
   // ── SET-20 / SET-21: a failure you can act on, an empty list you can read ──

@@ -8,6 +8,7 @@ import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
 import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
+import { useStepUpGuard } from '@/shared/components/StepUpDialog/index.ts';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card } from '@/shared/components/ui/card.tsx';
@@ -37,6 +38,14 @@ function sessionDetails(session: Session, unknownLabel: string): string {
  * Sessions panel — devices currently signed in. The current session is badged
  * and can't be revoked; any other session can be signed out (confirmed via the
  * shared destructive-action dialog). Covers loading / error states.
+ *
+ * @remarks
+ * Revoking is gated on a STRONG recent step-up in core-be, so the confirm runs
+ * through {@link useStepUpGuard} rather than calling the mutation directly.
+ * Skipping that guard does not surface an error: `useAppMutation` suppresses the
+ * toast for a step-up 403 precisely because the caller is expected to open the
+ * dialog, and it rolls the optimistic removal back — so the row returns looking
+ * untouched and nothing explains why.
  */
 export function AccountSessionsPanel() {
   const { t } = useTranslation(SETTINGS_NS);
@@ -44,6 +53,7 @@ export function AccountSessionsPanel() {
   const { data: sessions, isLoading, isError, isFetching, refetch } = useSessions();
   const revoke = useRevokeSession();
   const [toRevoke, setToRevoke] = useState<Session | null>(null);
+  const { guard, isSteppingUp, stepUpDialog } = useStepUpGuard();
 
   return (
     <section className="space-y-6" data-testid="settings-account-sessions">
@@ -111,6 +121,7 @@ export function AccountSessionsPanel() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setToRevoke(session)}
+                    disabled={isSteppingUp}
                     data-testid={`session-revoke-${session.id}`}
                   >
                     <LogOut className="me-1.5 size-4" aria-hidden />
@@ -134,10 +145,22 @@ export function AccountSessionsPanel() {
         })}
         confirmLabel={t(panels.revokeConfirm)}
         destructive
-        onConfirm={async () => {
-          if (toRevoke) await revoke.mutateAsync(toRevoke.id);
+        onConfirm={() => {
+          if (!toRevoke) return;
+          // Captured now, not read later: confirming closes this dialog, which
+          // clears `toRevoke` — and when step-up is required the action re-runs
+          // AFTER that, once the user has re-authenticated.
+          const { id } = toRevoke;
+          // core-be gates DELETE /auth/me/sessions/:session_id behind a STRONG
+          // recent step-up (sec-A7: a stolen bearer must not be able to sign the
+          // real user out of their own browser), so the bootstrap email code is
+          // never accepted here. RETURNED, so ConfirmDialog stays busy until the
+          // round-trip settles.
+          return guard(() => revoke.mutateAsync(id), { allowEmailCode: false });
         }}
       />
+
+      {stepUpDialog}
     </section>
   );
 }
