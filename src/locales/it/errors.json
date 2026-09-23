@@ -150,7 +150,8 @@
         "createFailed": "Impossibile creare il webhook",
         "deleteFailed": "Impossibile eliminare il webhook",
         "createSuccess": "Webhook creato",
-        "deleteSuccess": "Webhook eliminato"
+        "deleteSuccess": "Webhook eliminato",
+        "updateSuccess": "Webhook aggiornato"
       },
       "subscription": {
         "changePlanFailed": "Impossibile cambiare piano",
