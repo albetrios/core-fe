@@ -39,7 +39,7 @@ describe('parseSettingsHash', () => {
     ['settings/account/sessions', 'account', 'sessions'],
     ['settings/account/billing', 'account', 'billing'],
     ['#settings/organization/general', 'organization', 'general'],
-    ['settings/organization/integrations', 'organization', 'integrations'],
+    ['settings/account/integrations', 'account', 'integrations'],
   ])('parses %s', (hash, scope, section) => {
     expect(parseSettingsHash(hash)).toEqual({ scope, section });
   });
@@ -60,6 +60,12 @@ describe('parseSettingsHash', () => {
     expect(parseSettingsHash('settings/organization/sessions')).toEqual({
       scope: 'account',
       section: 'sessions',
+    });
+    // Integrations made the same move, so a bookmarked organization link must still
+    // open it rather than dropping the user on Profile.
+    expect(parseSettingsHash('#settings/organization/integrations')).toEqual({
+      scope: 'account',
+      section: 'integrations',
     });
   });
 

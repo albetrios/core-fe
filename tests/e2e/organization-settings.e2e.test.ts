@@ -155,7 +155,7 @@ test.describe('Organization settings', () => {
     const ctx = await landOnTeamDashboard(page, playwright);
     test.skip(ctx === null, 'team org could not be provisioned in this environment');
 
-    await openSettingsHash(page, 'organization', 'integrations');
+    await openSettingsHash(page, 'account', 'integrations');
     await expect(page.getByTestId('settings-organization-integrations')).toBeVisible({
       timeout: 15000,
     });

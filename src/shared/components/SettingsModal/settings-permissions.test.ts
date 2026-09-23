@@ -62,15 +62,19 @@ describe('canViewSettingsSection', () => {
     // everyone — core-be granted that code to no role at all. core-be now grants
     // it to a TEAM organization's Owner (core-be#1180); this gate stays on
     // `api-key:read`, because holding one of the two codes is not holding the other.
+    //
+    // It is an ACCOUNT section: api-key routes are organization-scope `both` and
+    // every owner holds `api-key:*`, so a personal workspace reaches it too — but
+    // the permission gate still applies, which is what these two cases pin.
     expect(
       canViewSettingsSection(
-        { scope: 'organization', section: 'integrations' },
+        { scope: 'account', section: 'integrations' },
         member(['api-key:read']),
       ),
     ).toBe(true);
     expect(
       canViewSettingsSection(
-        { scope: 'organization', section: 'integrations' },
+        { scope: 'account', section: 'integrations' },
         member(['webhook:read']),
       ),
     ).toBe(false);

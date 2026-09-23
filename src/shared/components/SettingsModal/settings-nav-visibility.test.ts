@@ -38,6 +38,13 @@ const personalOnlyCtx = {
 
 // personal-and-team deployment (teams ARE enabled), but the ACTIVE workspace is
 // the user's PERSONAL org — organization settings must still be hidden.
+//
+// `api-key:read` is in this list deliberately. A personal owner really does hold
+// it (core-be grants the whole tenancy set to every owner), and `integrations`
+// is gated on exactly that code — so a context without it made the assertion
+// below pass for the wrong reason: the item was filtered by permission, never by
+// org type, and the nav could offer Integrations in a personal workspace with
+// this suite still green.
 const personalWorkspaceInTeamDeploymentCtx = {
   hasOrganizationContext: true,
   orgType: 'PERSONAL' as const,
@@ -48,6 +55,7 @@ const personalWorkspaceInTeamDeploymentCtx = {
     'membership:read',
     'role:read',
     'webhook:read',
+    'api-key:read',
   ] as const,
 };
 
@@ -75,6 +83,26 @@ describe('visibleSettingsNavGroups', () => {
     // …but account settings (incl. billing) remain available.
     expect(groups.some((g) => g.scope === 'account')).toBe(true);
     expect(groups.some((g) => g.items.some((i) => i.section === 'billing'))).toBe(true);
+  });
+
+  // The point of filing Integrations under Account: API keys stay reachable from a
+  // personal workspace (core-be's api-key routes are organization-scope `both` and
+  // every owner holds `api-key:*`) without claiming that workspace has organization
+  // settings. Both halves matter, so both are asserted together.
+  it('offers Integrations under Account in a personal workspace, with no Organization group', () => {
+    const groups = visibleSettingsNavGroups(personalWorkspaceInTeamDeploymentCtx);
+    const account = groups.find((g) => g.scope === 'account');
+    expect(account?.items.map((i) => i.section)).toContain('integrations');
+    expect(groups.some((g) => g.scope === 'organization')).toBe(false);
+  });
+
+  it('withholds Integrations from an account without api-key:read', () => {
+    const groups = visibleSettingsNavGroups({
+      ...personalWorkspaceInTeamDeploymentCtx,
+      permissions: ['organization:read'] as const,
+    });
+    const account = groups.find((g) => g.scope === 'account');
+    expect(account?.items.map((i) => i.section)).not.toContain('integrations');
   });
 
   it('hides module-gated sections when L6b disables them', () => {

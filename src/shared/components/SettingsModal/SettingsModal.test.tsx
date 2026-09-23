@@ -77,7 +77,7 @@ describe('SettingsModal', () => {
     ['organization/general', 'settings-section-org-general'],
     ['organization/members', 'settings-organization-members'],
     ['organization/roles', 'settings-organization-roles'],
-    ['organization/integrations', 'settings-organization-integrations'],
+    ['account/integrations', 'settings-organization-integrations'],
   ])(
     'loads the selected content inside the persistent shell: %s',
     async (section, id) => {

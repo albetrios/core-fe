@@ -71,16 +71,19 @@ describe('filterNav', () => {
 });
 
 describe('sectionsForOrgType', () => {
-  it('gives a team the full management set', () => {
+  it('gives a team the organization management set', () => {
     const team = sectionsForOrgType('TEAM');
-    expect(team).toEqual(['general', 'members', 'roles', 'integrations']);
+    expect(team).toEqual(['general', 'members', 'roles']);
+    // Billing and Integrations are ACCOUNT sections — neither belongs to an org type.
     expect(team).not.toContain('billing');
+    expect(team).not.toContain('integrations');
   });
 
-  // A personal workspace has no members, roles or org-level general settings, but core-be's
-  // api-key routes are organization-scope `both` and a personal owner holds the `api-key:*`
-  // codes — so hiding Integrations withheld a capability the backend grants.
-  it('exposes only the integrations section for a personal org', () => {
-    expect(sectionsForOrgType('PERSONAL')).toEqual(['integrations']);
+  // Nothing is an organization setting in a personal workspace. Integrations used to be
+  // listed here, which put this function at odds with `isSettingsSectionAvailable` — that
+  // refuses organization scope outright for a PERSONAL workspace, so the nav offered an
+  // entry that bounced to a fallback the moment it was clicked.
+  it('exposes no organization sections for a personal org', () => {
+    expect(sectionsForOrgType('PERSONAL')).toEqual([]);
   });
 });
