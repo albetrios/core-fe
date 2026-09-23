@@ -54,6 +54,7 @@ Listed for completeness — these are real periodic behavior but not
 
 - **Dependabot** (`.github/dependabot.yml`) — weekly Monday, `npm` + `github-actions` ecosystems; updates arrive as PRs, then the event-driven `dependabot-ci-triage` + approval-gated `dependabot-auto-merge` workflows take over.
 - **Runtime version check** (`src/core/version/check.ts`) — the client polls `/version.json` every 5 min while visible and on tab refocus to detect a new deployment (reload lands via the service-worker handoff); not CI, a different axis (app behavior).
+- **Notification polls** (`src/shared/hooks/useNotifications/useNotifications.ts`) — with no realtime channel in core-be yet (FE-63), two client polls at 30 s, both paused while the tab is hidden (TanStack's `refetchIntervalInBackground` default) and both gated on a resolved org scope (SHELL-10). They have **different lifetimes**: the unread badge polls for as long as the app shell is mounted, because that count is what a notification bell exists to show; the inbox list polls only while the bell popover is open, because that is the only place it renders. A future SSE/WebSocket subscription replaces both by invalidating their query keys on push.
 
 ## Adding a scheduled job
 
