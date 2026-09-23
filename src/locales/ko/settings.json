@@ -189,7 +189,14 @@
       "saving": "저장 중…",
       "save": "변경 사항 저장",
       "namePlaceholder": "이름",
-      "jobTitlePlaceholder": "예: 프로덕트 엔지니어"
+      "jobTitlePlaceholder": "예: 프로덕트 엔지니어",
+      "avatarTitle": "아바타",
+      "avatarDescription": "앱 전체에서 이름 옆에 표시됩니다. 정사각형 이미지가 가장 잘 어울립니다.",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "내 아바타",
+      "uploadAvatar": "사진 업로드",
+      "uploadingAvatar": "업로드 중…",
+      "removeAvatar": "제거"
     },
     "account": {
       "deleteTitle": "계정을 삭제하시겠습니까?",

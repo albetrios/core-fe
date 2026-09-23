@@ -190,7 +190,14 @@
       "saving": "सहेजा जा रहा है…",
       "save": "परिवर्तन सहेजें",
       "namePlaceholder": "आपका नाम",
-      "jobTitlePlaceholder": "उदा. प्रोडक्ट इंजीनियर"
+      "jobTitlePlaceholder": "उदा. प्रोडक्ट इंजीनियर",
+      "avatarTitle": "अवतार",
+      "avatarDescription": "ऐप में आपके नाम के साथ दिखता है। वर्गाकार छवियाँ सबसे अच्छी लगती हैं।",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "आपका अवतार",
+      "uploadAvatar": "फ़ोटो अपलोड करें",
+      "uploadingAvatar": "अपलोड हो रहा है…",
+      "removeAvatar": "हटाएँ"
     },
     "account": {
       "deleteTitle": "अपना खाता हटाएँ?",

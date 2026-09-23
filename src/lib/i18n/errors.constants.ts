@@ -109,6 +109,10 @@ export const ERRORS_KEYS = {
       notificationStylePreviewDescription:
         'frontend.account.notificationStylePreviewDescription',
       accountDeletionPending: 'frontend.account.accountDeletionPending',
+      avatarInvalidType: 'frontend.account.avatarInvalidType',
+      avatarTooLarge: 'frontend.account.avatarTooLarge',
+      avatarUpdated: 'frontend.account.avatarUpdated',
+      avatarRemoved: 'frontend.account.avatarRemoved',
     },
     profileUpdated: 'frontend.profileUpdated',
     hooks: {

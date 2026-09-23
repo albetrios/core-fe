@@ -1,11 +1,45 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 
 import { AccountProfilePanel } from './AccountProfilePanel.tsx';
+
+const { useMeContextMock, uploadMutate, removeMutate, notifyError } = vi.hoisted(() => ({
+  useMeContextMock: vi.fn(),
+  uploadMutate: vi.fn(),
+  removeMutate: vi.fn(),
+  notifyError: vi.fn(),
+}));
+vi.mock('@/shared/hooks/useMeContext/index.ts', () => ({
+  useMeContext: useMeContextMock,
+}));
+vi.mock('@/shared/hooks/useUserAvatar/index.ts', () => ({
+  useUploadUserAvatar: () => ({ isPending: false, mutate: uploadMutate }),
+  useRemoveUserAvatar: () => ({ isPending: false, mutate: removeMutate }),
+}));
+vi.mock('@/shared/notify/index.ts', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return { ...actual, notify: { success: vi.fn(), error: notifyError } };
+});
+
+/** me/context with the given avatar URL (null = no avatar set). */
+function meContext(avatarUrl: string | null) {
+  return { data: { user: { avatarUrl } } };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  useMeContextMock.mockReturnValue(meContext(null));
+});
+
+function pickFile(file: File) {
+  const input = screen.getByTestId('user-avatar-input') as HTMLInputElement;
+  Object.defineProperty(input, 'files', { value: [file], configurable: true });
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
 
 /** The panel renders ProfileForm, which uses `useMutation` (QueryClient). */
 function renderQ(ui: React.ReactElement) {
@@ -121,5 +155,79 @@ describe('AccountProfilePanel', () => {
     // A beat later the store says "Ada Lovelace"; the field still says Grace.
     await waitFor(() => expect(screen.getByTestId('profile-job-title')).toHaveValue(''));
     expect(screen.getByTestId('profile-name')).toHaveValue('Grace Hopper');
+  });
+});
+
+describe('AccountProfilePanel — avatar', () => {
+  it('shows the initial when no avatar is set', () => {
+    useAuthStore.getState().setUser({
+      id: 'usr_avatar00000000000000x',
+      email: 'ada@acme.test',
+      role: 'user',
+      name: 'Ada Lovelace',
+    });
+
+    renderQ(<AccountProfilePanel />);
+
+    expect(screen.getByTestId('user-avatar-preview')).toHaveTextContent('A');
+    // Nothing to remove yet, so the control is absent rather than disabled.
+    expect(screen.queryByTestId('user-avatar-remove')).not.toBeInTheDocument();
+  });
+
+  // The URL is a short-lived SIGNED read URL, so it must come from the me-context query
+  // rather than a value snapshotted into the auth store at sign-in.
+  it('renders the signed URL from me-context, not the auth store', () => {
+    useAuthStore.getState().setUser({
+      id: 'usr_avatar00000000000000x',
+      email: 'ada@acme.test',
+      role: 'user',
+      name: 'Ada Lovelace',
+      avatarUrl: 'https://stale.test/from-store.png',
+    });
+    useMeContextMock.mockReturnValue(meContext('https://signed.test/fresh.png?sig=abc'));
+
+    renderQ(<AccountProfilePanel />);
+
+    const image = screen.getByTestId('user-avatar-preview').querySelector('img');
+    expect(image).toHaveAttribute('src', 'https://signed.test/fresh.png?sig=abc');
+  });
+
+  it('offers Remove once an avatar exists', () => {
+    useMeContextMock.mockReturnValue(meContext('https://signed.test/a.png'));
+    renderQ(<AccountProfilePanel />);
+
+    screen.getByTestId('user-avatar-remove').click();
+
+    expect(removeMutate).toHaveBeenCalled();
+  });
+
+  it('uploads an accepted image', () => {
+    renderQ(<AccountProfilePanel />);
+
+    const file = new File(['bytes'], 'me.png', { type: 'image/png' });
+    pickFile(file);
+
+    expect(uploadMutate).toHaveBeenCalledWith(file);
+  });
+
+  // core-be rejects SVG outright. Catching it here saves a presign round trip to be told no.
+  it('refuses an SVG before it reaches the API', () => {
+    renderQ(<AccountProfilePanel />);
+
+    pickFile(new File(['<svg/>'], 'me.svg', { type: 'image/svg+xml' }));
+
+    expect(uploadMutate).not.toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalled();
+  });
+
+  it('refuses a file over the 2 MB ceiling', () => {
+    renderQ(<AccountProfilePanel />);
+
+    const tooBig = new File(['x'], 'big.png', { type: 'image/png' });
+    Object.defineProperty(tooBig, 'size', { value: 3 * 1024 * 1024 });
+    pickFile(tooBig);
+
+    expect(uploadMutate).not.toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalled();
   });
 });

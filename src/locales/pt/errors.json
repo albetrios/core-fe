@@ -80,7 +80,7 @@
       "roleRequired": "É necessária uma função para alterar a função de um membro.",
       "updateFailed": "Não foi possível atualizar a organização",
       "logoInvalidType": "Escolha um arquivo de imagem.",
-      "logoTooLarge": "O logo deve ter menos de 1 MB.",
+      "logoTooLarge": "O logo deve ter menos de 5 MB.",
       "logoReadFailed": "Não foi possível ler esse arquivo.",
       "formCheck": "Verifique o formulário",
       "updateSuccess": "Organização atualizada",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "Compartilhe esta URL para reproduzir a aparência.",
       "notificationStylePreview": "Estilo de notificação",
       "notificationStylePreviewDescription": "{{variant}} — tematizado com seu destaque e cores semânticas.",
-      "accountDeletionPending": "Conta excluída. Saindo…"
+      "accountDeletionPending": "Conta excluída. Saindo…",
+      "avatarInvalidType": "Escolha um arquivo de imagem.",
+      "avatarTooLarge": "O avatar deve ter menos de 2 MB.",
+      "avatarUpdated": "Avatar atualizado.",
+      "avatarRemoved": "Avatar removido."
     },
     "hooks": {
       "passkeys": {
