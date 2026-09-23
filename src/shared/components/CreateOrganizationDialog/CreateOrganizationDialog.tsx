@@ -132,7 +132,12 @@ export function CreateOrganizationDialog({
         await hydrateSessionContext();
         await switchToOrganization(org.id);
         await queryClient.invalidateQueries({ queryKey: ['organizations'] });
-        await navigate({ ...organizationDashboard(org.slug), replace: true });
+        // PUSH, never replace. This dialog is a plain modal opened from inside an
+        // organization (the switcher) as well as from the picker; replacing
+        // overwrote the organization the user was in, so Back from the new one
+        // skipped straight past it. Switching through the switcher or the command
+        // palette already pushes — creating is a switch too.
+        await navigate(organizationDashboard(org.slug));
       } catch {
         // Created, but the hop into it failed. Say exactly that — the new
         // organization is already in the switcher, so the user is one click

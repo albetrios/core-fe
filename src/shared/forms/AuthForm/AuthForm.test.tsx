@@ -484,6 +484,63 @@ describe('AuthForm', () => {
       expect(screen.getByTestId('auth-method-error-banner')).toHaveTextContent(/.+/);
     });
 
+    // Back from a fresh Google sign-in used to walk into /login. `assign`
+    // pushed an entry for the hand-off; the callback and the `/` resolver
+    // replace themselves, so /login was the one entry of ours left under the
+    // dashboard. The hand-off must REPLACE it.
+    it('replaces the login entry when handing off to the OAuth provider', async () => {
+      const { authApi } = await import('@/shared/api/auth-api.ts');
+      vi.mocked(authApi.oauthStart).mockResolvedValue('https://oauth.example/go');
+
+      // jsdom's Location methods are unforgeable, so swap the object (the
+      // repo's pattern) with the real values it reads, and put it back after.
+      const original = window.location;
+      const replace = vi.fn();
+      const assign = vi.fn();
+      const { href, origin, protocol, host, hostname, port, pathname, search, hash } =
+        original;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        writable: true,
+        value: {
+          href,
+          origin,
+          protocol,
+          host,
+          hostname,
+          port,
+          pathname,
+          search,
+          hash,
+          assign,
+          replace,
+          reload: vi.fn(),
+          toString: () => href,
+        },
+      });
+
+      renderForm();
+      const google = await screen.findByTestId('auth-continue-google');
+      vi.useFakeTimers();
+      try {
+        act(() => {
+          google.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(0);
+        });
+        expect(replace).toHaveBeenCalledWith('https://oauth.example/go');
+        expect(assign).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          writable: true,
+          value: original,
+        });
+      }
+    });
+
     // Regression (LOGIN-10): `window.location.assign` neither resolves nor
     // throws when the navigation is blocked, so the form sat disabled behind a
     // spinner forever with no way back.

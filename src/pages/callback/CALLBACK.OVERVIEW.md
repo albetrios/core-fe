@@ -26,3 +26,24 @@ returns the access token (or the MFA-required branch). Register
 `https://<app-origin>/callback/<provider>` (e.g. `…/callback/google`) as the
 redirect URI when configuring each provider on the backend
 (`OAUTH_<PROVIDER>_REDIRECT_URI`) and in the provider's console.
+
+## Browser history
+
+A sign-in must not leave entries of ours behind the landing page, so Back from
+a fresh sign-in leaves the app instead of walking back through the flow:
+
+- `AuthForm` hands off to the provider with `window.location.replace`, not
+  `assign` — the `/login` entry becomes the provider's navigation.
+- This page moves on with `navigate({ …, replace: true })`, and the `/`
+  resolver's redirect replaces too (TanStack Router follows every `beforeLoad`
+  redirect with `replace: true`).
+
+When the provider completes on HTTP redirects — a returning user with one
+signed-in account — the whole sign-in collapses into the landing entry. A
+provider page the user actually clicks through (an account chooser, a
+first-time consent) is the provider's own entry; no page code can remove
+another origin's history entry. core-be keeps that page rare by not forcing a
+prompt: it sends neither `prompt=consent` nor `access_type=offline`.
+
+Everything after the landing pushes, so Back moves between organizations as
+usual — including after creating one.
