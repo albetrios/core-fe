@@ -105,15 +105,16 @@ describe('SettingsModal', () => {
     expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
 
-    // QA-V3 suggestion 8: the header already said "Security", so the grey bars
-    // under it read as an empty panel rather than a slow one — the wait was
-    // legible to a screen reader (`sr-only`) and to nobody else. Asserted HERE
-    // rather than in a test of its own because `onceAsync` caches each panel's
-    // chunk for the whole file: only the first test to switch sections ever
-    // reaches the Suspense fallback.
+    // The skeleton is the visible answer; this line is for screen readers only,
+    // because prose above the bars competes with the shape describing the same
+    // wait. It must still NAME the section, so a slow panel says which one is
+    // loading rather than announcing a bare "Loading". Asserted HERE rather than
+    // in a test of its own because `onceAsync` caches each panel's chunk for the
+    // whole file: only the first test to switch sections ever reaches the
+    // Suspense fallback.
     const label = screen.getByTestId('settings-content-loading-label');
     expect(label).toHaveTextContent(/Security/);
-    expect(label).not.toHaveClass('sr-only');
+    expect(label).toHaveClass('sr-only');
     expect(label).toHaveAttribute('aria-live', 'polite');
   });
 

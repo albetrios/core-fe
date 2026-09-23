@@ -5,7 +5,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { initSentry } from '@/app/observability/sentry.ts';
-import { preloadBootRoutes, router } from '@/app/routes/routeTree.tsx';
+import {
+  preloadBootRoutes,
+  preloadSignedInShell,
+  router,
+} from '@/app/routes/routeTree.tsx';
 import { showUpdateAvailableToast } from '@/app/version/show-update-available-toast.ts';
 import { platformConfig } from '@/core/config/env.ts';
 import { bootstrapResources } from '@/core/resources/index.ts';
@@ -19,6 +23,7 @@ import {
   onAppSplashDismissed,
 } from '@/lib/app-splash.ts';
 import { IDLE_PREFETCH_TIMEOUT_MS } from '@/lib/chunk-prefetch.ts';
+import { registerSignedInShellWarmup } from '@/lib/signed-in-shell-warmup.ts';
 import { subscribeToAuthBroadcast } from '@/shared/auth/auth-channel.ts';
 import { peekTurnstileToken } from '@/shared/auth/captcha/turnstile-token-store.ts';
 import {
@@ -151,6 +156,11 @@ void startAuthBootstrap();
 
 // Warm the destination's chunks WHILE that refresh is in flight — every entry
 // route awaits it before the router will load a single component.
+// The auth screens know WHEN a visitor commits to signing in; only the route tree
+// knows WHICH chunks that lands on. Registered before the form can be interacted
+// with, so the first submit already has somewhere to send the warm-up.
+registerSignedInShellWarmup(() => void preloadSignedInShell());
+
 preloadBootRoutes({ likelySignedIn: hasSessionHint() });
 
 // Initialize observability/analytics after splash dismiss + idle (auth funnels stay lean).
