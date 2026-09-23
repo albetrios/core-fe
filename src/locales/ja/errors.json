@@ -80,7 +80,7 @@
       "roleRequired": "メンバーのロールを変更するにはロールが必要です。",
       "updateFailed": "組織を更新できませんでした",
       "logoInvalidType": "画像ファイルを選択してください。",
-      "logoTooLarge": "ロゴは 1 MB 未満である必要があります。",
+      "logoTooLarge": "ロゴは 5 MB 未満である必要があります。",
       "logoReadFailed": "そのファイルを読み取れませんでした。",
       "formCheck": "フォームを確認",
       "updateSuccess": "組織を更新しました",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "この URL を共有して見た目を再現できます。",
       "notificationStylePreview": "通知スタイル",
       "notificationStylePreviewDescription": "{{variant}} — アクセントとセマンティックカラーでテーマ化。",
-      "accountDeletionPending": "アカウントを削除しました。サインアウト中…"
+      "accountDeletionPending": "アカウントを削除しました。サインアウト中…",
+      "avatarInvalidType": "画像ファイルを選択してください。",
+      "avatarTooLarge": "アバターは 2 MB 未満である必要があります。",
+      "avatarUpdated": "アバターを更新しました。",
+      "avatarRemoved": "アバターを削除しました。"
     },
     "hooks": {
       "passkeys": {
@@ -150,7 +154,8 @@
         "createFailed": "Webhook を作成できませんでした",
         "deleteFailed": "Webhook を削除できませんでした",
         "createSuccess": "Webhook を作成しました",
-        "deleteSuccess": "Webhook を削除しました"
+        "deleteSuccess": "Webhook を削除しました",
+        "updateSuccess": "Webhook を更新しました"
       },
       "subscription": {
         "changePlanFailed": "プランを変更できませんでした",

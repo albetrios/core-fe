@@ -80,7 +80,7 @@
       "roleRequired": "A role is required to change a member role.",
       "updateFailed": "Could not update organization",
       "logoInvalidType": "Please choose an image file.",
-      "logoTooLarge": "Logo must be under 1 MB.",
+      "logoTooLarge": "Logo must be under 5 MB.",
       "logoReadFailed": "Could not read that file.",
       "formCheck": "Check the form",
       "updateSuccess": "Organization updated",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "Share this URL to reproduce the look.",
       "notificationStylePreview": "Notification style",
       "notificationStylePreviewDescription": "{{variant}} — themed with your accent and semantic colors.",
-      "accountDeletionPending": "Account deleted. Signing you out…"
+      "accountDeletionPending": "Account deleted. Signing you out…",
+      "avatarInvalidType": "Please choose an image file.",
+      "avatarTooLarge": "Avatar must be under 2 MB.",
+      "avatarUpdated": "Avatar updated.",
+      "avatarRemoved": "Avatar removed."
     },
     "hooks": {
       "passkeys": {
@@ -150,7 +154,8 @@
         "createFailed": "Could not create webhook",
         "deleteFailed": "Could not delete webhook",
         "createSuccess": "Webhook created",
-        "deleteSuccess": "Webhook deleted"
+        "deleteSuccess": "Webhook deleted",
+        "updateSuccess": "Webhook updated"
       },
       "subscription": {
         "changePlanFailed": "Could not change plan",

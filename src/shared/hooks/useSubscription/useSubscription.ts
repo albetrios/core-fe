@@ -5,6 +5,7 @@ import type { BillingCycle } from '@/shared/api/billing-contracts.ts';
 import { billingQueryKeys } from '@/shared/api/billing-query-keys.ts';
 import { useAppMutation } from '@/shared/hooks/useAppMutation/index.ts';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
+import { useCan } from '@/shared/hooks/useCan/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 /** One toast id for cancel + resume — the two directions of one switch. */
@@ -16,9 +17,21 @@ const SUBSCRIPTION_LIFECYCLE_TOAST = 'subscription-lifecycle';
  */
 export function useSubscription() {
   const orgId = useOrganizationStore((s) => s.organizationId);
+  /*
+   * `GET /billing/subscriptions` requires `subscription:read`. Without it the
+   * request can only ever answer 403, and it was firing on every dashboard load
+   * for a workspace that will never be allowed to see it — a wasted round trip
+   * and a 403 in the logs on a path where nothing is wrong. Asking only when the
+   * caller may be answered is strictly better than asking and swallowing.
+   *
+   * The permission set arrives with the session context, so this starts false and
+   * flips once it resolves; the query runs then, exactly as it would have.
+   */
+  const canReadSubscription = useCan({ permission: 'subscription:read' });
   return useAppQuery({
     queryKey: billingQueryKeys.activeSubscription(orgId),
     queryFn: billingApi.getActiveSubscription,
+    enabled: canReadSubscription,
     // The billing panel renders a QueryBoundary for exactly this failure.
     notifyOnError: false,
   });
@@ -57,8 +70,17 @@ export function useCurrentPlan() {
     /** Amount in cents for the subscription's own cycle, or null without one. */
     priceCents: cyclePrice ?? null,
     currency: plan?.currency ?? null,
-    /** Still resolving — surfaces should show a placeholder, never a guess. */
-    isPending: subscriptionQuery.isPending || plansQuery.isPending,
+    /**
+     * Still resolving — surfaces should show a placeholder, never a guess.
+     *
+     * A DISABLED query (no `subscription:read`) reports `status: 'pending'` for
+     * ever with `fetchStatus: 'idle'`. That is "never asked", not "still
+     * waiting": reading `isPending` alone would leave those workspaces on a
+     * placeholder that never resolves.
+     */
+    isPending:
+      (subscriptionQuery.isPending && subscriptionQuery.fetchStatus !== 'idle') ||
+      plansQuery.isPending,
   };
 }
 

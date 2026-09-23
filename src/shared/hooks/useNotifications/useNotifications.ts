@@ -14,28 +14,50 @@ import { notify } from '@/shared/notify/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 /**
- * Notifications inbox hooks. With no realtime channel yet, the inbox +
- * unread badge poll on an interval (FE-63); a future SSE/WebSocket subscription
- * would replace the poll by invalidating these query keys on push. Server state
- * only — never mirrored into Zustand.
+ * Notifications inbox hooks. With no realtime channel yet, both the inbox and
+ * the unread badge poll on an interval (FE-63); a future SSE/WebSocket
+ * subscription would replace the poll by invalidating these query keys on push.
+ * Server state only — never mirrored into Zustand.
+ *
+ * The two polls do NOT have the same lifetime. The badge is on screen whenever
+ * the app shell is, so it polls for as long as an org is resolved. The inbox
+ * renders only inside the popover, so it polls only while that is open.
  */
 const POLL_INTERVAL_MS = 30_000;
 
-/** The active org's notification inbox for this user (newest first), polled. */
-export function useNotifications() {
+/**
+ * The active org's notification inbox for this user (newest first), polled
+ * **only while the inbox is on screen**.
+ *
+ * @param options - `isInboxOpen`: whether the popover that renders this list is
+ *   open. Required rather than defaulted, so a new call site has to answer it.
+ */
+export function useNotifications({ isInboxOpen }: { isInboxOpen: boolean }) {
   const orgId = useOrganizationStore((s) => s.organizationId);
   return useAppQuery({
     queryKey: notificationQueryKeys.list(orgId),
     queryFn: api.listNotifications,
     refetchInterval: POLL_INTERVAL_MS,
+    // Cache freshness tracks the poll, so reopening the popover within one
+    // interval serves what the poll would have returned anyway instead of
+    // firing a redundant request on every toggle. The global staleTime is five
+    // minutes, which for an inbox someone just opened is too long.
+    staleTime: POLL_INTERVAL_MS,
     // The popover renders a RetryError inline, and this polls — a toast every
     // 30s would be worse than the inline state.
     notifyOnError: false,
-    // Same gate `useMembers` already carries. Without it this polls every 30s
-    // against an empty org scope before context resolves and while an org
-    // switch is in flight — requests that can only ever come back `Forbidden`,
-    // and that keep coming back every interval (SHELL-10).
-    enabled: Boolean(orgId),
+    // Two gates, both load-bearing:
+    //
+    // `orgId` keeps the poll off an empty org scope before context resolves and
+    // while an org switch is in flight — requests that can only ever come back
+    // `Forbidden`, and that kept coming back every interval (SHELL-10).
+    //
+    // `isInboxOpen` keeps it off the rest of the time. This list renders ONLY
+    // inside the popover, but the hook sits at the top of a component the app
+    // shell mounts on every authenticated page — so a closed bell was fetching
+    // a full inbox every 30s that nothing displayed. The badge is the part that
+    // has to stay live, and it has its own query below.
+    enabled: Boolean(orgId) && isInboxOpen,
   });
 }
 
@@ -48,8 +70,9 @@ export function useUnreadCount() {
     refetchInterval: POLL_INTERVAL_MS,
     // A missing badge count is not worth a toast every poll.
     notifyOnError: false,
-    // The badge polls on the same interval as the inbox, so it needs the same
-    // gate — otherwise closing one only halves the wasted traffic.
+    // Org scope only — deliberately NOT gated on the popover the way the inbox
+    // above is. An unread badge nobody can see is the one thing a notification
+    // bell exists to show, so this is the poll that has to keep running.
     enabled: Boolean(orgId),
   });
 }

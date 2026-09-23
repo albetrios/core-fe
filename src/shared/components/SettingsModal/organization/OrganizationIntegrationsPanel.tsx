@@ -1,16 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
-import i18n from '@/lib/i18n/i18n.ts';
 import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
 import { cn } from '@/lib/utils.ts';
 import type { ApiKey } from '@/shared/api/organization-contracts.ts';
-import {
-  createWebhookSchema,
-  type Webhook,
-  WEBHOOK_EVENTS,
-} from '@/shared/api/webhook-contracts.ts';
+import type { Webhook, WebhookTestResult } from '@/shared/api/webhook-contracts.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
@@ -22,28 +16,16 @@ import {
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card } from '@/shared/components/ui/card.tsx';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/components/ui/dialog.tsx';
-import { Input } from '@/shared/components/ui/input.tsx';
-import { Label } from '@/shared/components/ui/label.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
-import { mapApiError } from '@/shared/errors/errorHandler.ts';
-import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useApiKeys, useRevokeApiKey } from '@/shared/hooks/useApiKeys/index.ts';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import {
-  useCreateWebhook,
   useDeleteWebhook,
+  useTestWebhook,
   useWebhooks,
 } from '@/shared/hooks/useWebhooks/index.ts';
-import { Boxes, Plus, Trash } from '@/shared/icons/index.ts';
+import { Boxes, Eye, Plus, SlidersHorizontal, Trash, Zap } from '@/shared/icons/index.ts';
 
 import { ApiKeyCreateDialog } from './ApiKeyCreateDialog.tsx';
 import {
@@ -52,6 +34,8 @@ import {
   orgListSortToParams,
 } from './org-list-sort.ts';
 import { OrgListControls } from './OrgListControls.tsx';
+import { WebhookDeliveryAttemptsDialog } from './WebhookDeliveryAttemptsDialog.tsx';
+import { WebhookFormDialog } from './WebhookFormDialog.tsx';
 
 /**
  * Write access to API keys. Gated on the permission core-be actually enforces on
@@ -223,46 +207,60 @@ function ApiKeysSection() {
   );
 }
 
-/** Webhooks — list + cap-gated create (url + events) + delete. */
+/**
+ * Turn a test-delivery outcome into the line shown under the row.
+ *
+ * @remarks
+ * Three outcomes, not two: delivered, refused with a status, and never reached at all
+ * (`statusCode === null`, e.g. DNS or TLS failure). Collapsing the last two would tell an
+ * operator the endpoint answered when nothing did.
+ */
+function describeTestResult(
+  result: WebhookTestResult,
+  translate: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  const integrations = SETTINGS_KEYS.panels.integrations;
+  if (result.success) {
+    return translate(integrations.testSucceeded, { status: result.statusCode });
+  }
+  if (result.statusCode === null) {
+    return translate(integrations.testNoStatus);
+  }
+  return translate(integrations.testFailed, { status: result.statusCode });
+}
+
+/** Webhooks — list, create/edit, test delivery, delivery history and delete. */
 function WebhooksSection() {
   const { t: tSettings } = useTranslation(SETTINGS_NS);
   const integrations = SETTINGS_KEYS.panels.integrations;
   const { data: hooks, isLoading, isError, isFetching, refetch } = useWebhooks();
   const canManage = useCanManageWebhooks();
-  const create = useCreateWebhook();
   const remove = useDeleteWebhook();
+  const test = useTestWebhook();
   const [toDelete, setToDelete] = useState<Webhook | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [url, setUrl] = useState('');
-  const [events, setEvents] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Webhook | null>(null);
+  // Bumped on every open so WebhookFormDialog remounts and re-seeds from the row being
+  // edited. Without it, reopening after a cancelled edit would show the abandoned values.
+  const [formGeneration, setFormGeneration] = useState(0);
+  const [historyFor, setHistoryFor] = useState<Webhook | null>(null);
+  const [testResult, setTestResult] = useState<{ id: string; text: string } | null>(null);
 
-  function toggleEvent(event: string) {
-    setEvents((prev) =>
-      prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event],
-    );
+  function openForm(hook: Webhook | null) {
+    setEditing(hook);
+    setFormGeneration((generation) => generation + 1);
+    setFormOpen(true);
   }
 
-  function submit() {
-    const parsed = createWebhookSchema.safeParse({ url, events });
-    if (!parsed.success) {
-      setError(
-        parsed.error.issues[0]?.message ??
-          i18n.t(ERRORS_KEYS.frontend.organization.formCheck, { ns: ERRORS_NS }),
-      );
-      return;
-    }
-    setError(null);
-    create.mutate(parsed.data, {
-      onSuccess: () => {
-        setAddOpen(false);
-        setUrl('');
-        setEvents([]);
+  // A refused delivery is NOT a failed request — core-be resolves with `success: false` and
+  // the status it got back. Reporting "sent" for a 500 would hide the very breakage this
+  // button exists to reveal.
+  function runTest(hook: Webhook) {
+    setTestResult(null);
+    test.mutate(hook.id, {
+      onSuccess: (result) => {
+        setTestResult({ id: hook.id, text: describeTestResult(result, tSettings) });
       },
-      // The dialog stays open on failure, so the reason belongs IN it — beside
-      // the URL the server rejected, not only in a toast the user has to catch
-      // before it fades (SET-26).
-      onError: (cause) => setError(mapApiError(cause)),
     });
   }
 
@@ -274,7 +272,7 @@ function WebhooksSection() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setAddOpen(true)}
+            onClick={() => openForm(null)}
             data-testid="webhook-add"
           >
             <Plus className="me-1.5 size-4" />
@@ -311,25 +309,77 @@ function WebhooksSection() {
         <Card className="gap-0 overflow-hidden py-0">
           <ul className="divide-border divide-y" data-testid="webhooks-list">
             {hooks.map((hook) => (
-              <li key={hook.id} className="flex items-center gap-3 p-3">
+              <li key={hook.id} className="flex items-center gap-2 p-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-mono text-sm">{hook.url}</p>
                   <p className="text-muted-foreground truncate text-xs">
                     {hook.events.join(', ')}
                   </p>
+                  {testResult?.id === hook.id ? (
+                    // `<output>` rather than `role="status"`: it carries the same
+                    // implicit live region, and some assistive tech announces the
+                    // native element where it ignores the ARIA role (S6819).
+                    <output
+                      className="text-muted-foreground mt-1 block text-xs"
+                      data-testid={`webhook-test-result-${hook.id}`}
+                    >
+                      {testResult.text}
+                    </output>
+                  ) : null}
                 </div>
+                {/*
+                  History is `webhook:read`, which every caller who can see this list already
+                  holds. Edit, test and delete are `webhook:manage` — a reader gets the
+                  diagnosis without the controls that change anything.
+                */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={tSettings(integrations.deliveryAttemptsAria, {
+                    url: hook.url,
+                  })}
+                  onClick={() => setHistoryFor(hook)}
+                  data-testid={`webhook-history-${hook.id}`}
+                >
+                  <Eye className="size-4" />
+                </Button>
                 {canManage ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={tSettings(integrations.deleteWebhookAria, {
-                      url: hook.url,
-                    })}
-                    onClick={() => setToDelete(hook)}
-                    data-testid={`webhook-delete-${hook.id}`}
-                  >
-                    <Trash className="size-4" />
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={tSettings(integrations.testWebhookAria, {
+                        url: hook.url,
+                      })}
+                      onClick={() => runTest(hook)}
+                      isLoading={test.isPending && test.variables === hook.id}
+                      data-testid={`webhook-test-${hook.id}`}
+                    >
+                      <Zap className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={tSettings(integrations.editWebhookAria, {
+                        url: hook.url,
+                      })}
+                      onClick={() => openForm(hook)}
+                      data-testid={`webhook-edit-${hook.id}`}
+                    >
+                      <SlidersHorizontal className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={tSettings(integrations.deleteWebhookAria, {
+                        url: hook.url,
+                      })}
+                      onClick={() => setToDelete(hook)}
+                      data-testid={`webhook-delete-${hook.id}`}
+                    >
+                      <Trash className="size-4" />
+                    </Button>
+                  </>
                 ) : null}
               </li>
             ))}
@@ -337,81 +387,18 @@ function WebhooksSection() {
         </Card>
       ) : null}
 
-      <Dialog
-        open={addOpen}
-        onOpenChange={(open) => {
-          // Esc and the overlay are dismissals too — none of them may abandon a
-          // create that is already running.
-          if (!create.isPending) setAddOpen(open);
-        }}
-      >
-        <DialogContent data-testid="webhook-add-dialog">
-          <DialogHeader>
-            <DialogTitle>{tSettings(integrations.addWebhookTitle)}</DialogTitle>
-            <DialogDescription>
-              {tSettings(integrations.addWebhookDescription)}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="webhook-url">
-                {tSettings(integrations.payloadUrlLabel)}
-              </Label>
-              <Input
-                id="webhook-url"
-                value={url}
-                onChange={(event) => setUrl(event.target.value)}
-                placeholder={tSettings(integrations.webhookUrlPlaceholder)}
-                data-testid="webhook-url"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>{tSettings(integrations.eventsLabel)}</Label>
-              <div className="flex flex-wrap gap-2">
-                {WEBHOOK_EVENTS.map((event) => (
-                  <Button
-                    key={event}
-                    type="button"
-                    size="sm"
-                    variant={events.includes(event) ? 'default' : 'outline'}
-                    onClick={() => toggleEvent(event)}
-                    data-testid={`webhook-event-${event}`}
-                  >
-                    {event}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            {/*
-              The same error card the sign-in form and the step-up dialog use.
-              A bare red line under the events read as a caption; this reads as
-              the thing that went wrong (SET-26).
-            */}
-            <FormError message={error} data-testid="webhook-error" />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="ghost"
-              onClick={() => setAddOpen(false)}
-              // Cancel used to stay live through the request: pressing it left
-              // the create in flight with nothing on screen to report it.
-              disabled={create.isPending}
-              data-testid="webhook-cancel"
-            >
-              {tSettings(integrations.cancel)}
-            </Button>
-            <Button
-              onClick={submit}
-              isLoading={create.isPending}
-              data-testid="webhook-create"
-            >
-              {create.isPending
-                ? tSettings(integrations.creating)
-                : tSettings(integrations.createWebhook)}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <WebhookFormDialog
+        key={formGeneration}
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        webhook={editing}
+      />
+
+      <WebhookDeliveryAttemptsDialog
+        webhookId={historyFor?.id ?? null}
+        webhookUrl={historyFor?.url ?? ''}
+        onClose={() => setHistoryFor(null)}
+      />
 
       <ConfirmDialog
         open={toDelete !== null}

@@ -80,7 +80,7 @@
       "roleRequired": "멤버 역할을 변경하려면 역할이 필요합니다.",
       "updateFailed": "조직을 업데이트할 수 없습니다",
       "logoInvalidType": "이미지 파일을 선택해 주세요.",
-      "logoTooLarge": "로고는 1MB 미만이어야 합니다.",
+      "logoTooLarge": "로고는 5MB 미만이어야 합니다.",
       "logoReadFailed": "해당 파일을 읽을 수 없습니다.",
       "formCheck": "양식을 확인하세요",
       "updateSuccess": "조직이 업데이트됨",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "이 URL을 공유해 외관을 재현하세요.",
       "notificationStylePreview": "알림 스타일",
       "notificationStylePreviewDescription": "{{variant}} — 액센트와 시맨틱 색상으로 테마 적용.",
-      "accountDeletionPending": "계정이 삭제됨. 로그아웃 중…"
+      "accountDeletionPending": "계정이 삭제됨. 로그아웃 중…",
+      "avatarInvalidType": "이미지 파일을 선택해 주세요.",
+      "avatarTooLarge": "아바타는 2MB 미만이어야 합니다.",
+      "avatarUpdated": "아바타가 업데이트됨.",
+      "avatarRemoved": "아바타가 제거됨."
     },
     "hooks": {
       "passkeys": {
@@ -150,7 +154,8 @@
         "createFailed": "웹훅을 만들 수 없습니다",
         "deleteFailed": "웹훅을 삭제할 수 없습니다",
         "createSuccess": "웹훅이 생성됨",
-        "deleteSuccess": "웹훅이 삭제됨"
+        "deleteSuccess": "웹훅이 삭제됨",
+        "updateSuccess": "웹훅이 업데이트됨"
       },
       "subscription": {
         "changePlanFailed": "플랜을 변경할 수 없습니다",

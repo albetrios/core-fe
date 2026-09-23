@@ -109,6 +109,10 @@ export const ERRORS_KEYS = {
       notificationStylePreviewDescription:
         'frontend.account.notificationStylePreviewDescription',
       accountDeletionPending: 'frontend.account.accountDeletionPending',
+      avatarInvalidType: 'frontend.account.avatarInvalidType',
+      avatarTooLarge: 'frontend.account.avatarTooLarge',
+      avatarUpdated: 'frontend.account.avatarUpdated',
+      avatarRemoved: 'frontend.account.avatarRemoved',
     },
     profileUpdated: 'frontend.profileUpdated',
     hooks: {
@@ -163,6 +167,7 @@ export const ERRORS_KEYS = {
         deleteFailed: 'frontend.hooks.webhooks.deleteFailed',
         createSuccess: 'frontend.hooks.webhooks.createSuccess',
         deleteSuccess: 'frontend.hooks.webhooks.deleteSuccess',
+        updateSuccess: 'frontend.hooks.webhooks.updateSuccess',
       },
       subscription: {
         changePlanFailed: 'frontend.hooks.subscription.changePlanFailed',
