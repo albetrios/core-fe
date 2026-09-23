@@ -71,10 +71,12 @@ describe('filterNav', () => {
 });
 
 describe('sectionsForOrgType', () => {
-  it('gives a team the full management set', () => {
+  it('gives a team the organization management set', () => {
     const team = sectionsForOrgType('TEAM');
-    expect(team).toEqual(['general', 'members', 'roles', 'integrations']);
+    expect(team).toEqual(['general', 'members', 'roles']);
+    // Billing and Integrations are ACCOUNT sections — neither belongs to an org type.
     expect(team).not.toContain('billing');
+    expect(team).not.toContain('integrations');
   });
 
   // Nothing is an organization setting in a personal workspace. Integrations used to be

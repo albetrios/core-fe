@@ -275,6 +275,34 @@ describe('OrganizationIntegrationsPanel — webhooks', () => {
     expect(screen.queryByText('https://x.test/hook')).not.toBeInTheDocument();
   });
 
+  // The header must describe what is on screen. Integrations is an Account section,
+  // so a personal workspace reaches it — and there the webhooks half is hidden, which
+  // made "API keys and webhooks." a promise the panel could not keep.
+  it('says "API keys" alone in a personal workspace, where webhooks are hidden', () => {
+    useAuthStore.setState({
+      user: { id: 'u', email: 'a@b.test', role: 'user' },
+      isAuthenticated: true,
+    });
+    useOrganizationStore.setState({
+      organizationType: 'PERSONAL',
+      // A personal owner holds `api-key:*` but no notify codes.
+      permissions: ['api-key:read', 'api-key:manage'],
+      permissionsResolved: true,
+    });
+    render(<OrganizationIntegrationsPanel />);
+    const keys = SETTINGS_KEYS.panels.integrations;
+    expect(screen.getByText(copy(keys.descriptionApiKeysOnly))).toBeInTheDocument();
+    expect(screen.queryByText(copy(keys.description))).not.toBeInTheDocument();
+  });
+
+  it('mentions webhooks when the webhooks half is actually shown', () => {
+    setCanManage(true);
+    render(<OrganizationIntegrationsPanel />);
+    const keys = SETTINGS_KEYS.panels.integrations;
+    expect(screen.getByText(copy(keys.description))).toBeInTheDocument();
+    expect(screen.queryByText(copy(keys.descriptionApiKeysOnly))).not.toBeInTheDocument();
+  });
+
   it('creates a webhook with a URL + selected event', async () => {
     setCanManage(true);
     const user = userEvent.setup();

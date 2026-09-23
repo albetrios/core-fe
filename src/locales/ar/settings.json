@@ -256,6 +256,7 @@
       "webhookUrlPlaceholder": "https://example.com/hooks",
       "title": "التكاملات",
       "description": "مفاتيح API والويب هوك.",
+      "descriptionApiKeysOnly": "مفاتيح API.",
       "apiKeysTitle": "مفاتيح API",
       "apiKeysLoadFailed": "تعذّر تحميل مفاتيح API. حاول مرة أخرى.",
       "apiKeysEmptyTitle": "لا مفاتيح API",

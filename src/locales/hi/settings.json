@@ -244,6 +244,7 @@
       "webhookUrlPlaceholder": "https://example.com/hooks",
       "title": "एकीकरण",
       "description": "API कुंजियाँ और वेबहुक।",
+      "descriptionApiKeysOnly": "API कुंजियाँ।",
       "apiKeysTitle": "API कुंजियाँ",
       "apiKeysLoadFailed": "API कुंजियाँ लोड नहीं हो सकीं। कृपया फिर कोशिश करें।",
       "apiKeysEmptyTitle": "कोई API कुंजी नहीं",

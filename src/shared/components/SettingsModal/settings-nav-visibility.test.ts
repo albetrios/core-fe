@@ -85,6 +85,26 @@ describe('visibleSettingsNavGroups', () => {
     expect(groups.some((g) => g.items.some((i) => i.section === 'billing'))).toBe(true);
   });
 
+  // The point of filing Integrations under Account: API keys stay reachable from a
+  // personal workspace (core-be's api-key routes are organization-scope `both` and
+  // every owner holds `api-key:*`) without claiming that workspace has organization
+  // settings. Both halves matter, so both are asserted together.
+  it('offers Integrations under Account in a personal workspace, with no Organization group', () => {
+    const groups = visibleSettingsNavGroups(personalWorkspaceInTeamDeploymentCtx);
+    const account = groups.find((g) => g.scope === 'account');
+    expect(account?.items.map((i) => i.section)).toContain('integrations');
+    expect(groups.some((g) => g.scope === 'organization')).toBe(false);
+  });
+
+  it('withholds Integrations from an account without api-key:read', () => {
+    const groups = visibleSettingsNavGroups({
+      ...personalWorkspaceInTeamDeploymentCtx,
+      permissions: ['organization:read'] as const,
+    });
+    const account = groups.find((g) => g.scope === 'account');
+    expect(account?.items.map((i) => i.section)).not.toContain('integrations');
+  });
+
   it('hides module-gated sections when L6b disables them', () => {
     disabledModulesRef.value = new Set(['members', 'billing']);
     const groups = visibleSettingsNavGroups(teamCtx);

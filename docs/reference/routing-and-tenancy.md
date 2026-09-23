@@ -196,14 +196,19 @@ unmounting it (a path change re-runs route matching; a hash change does not). Co
 reproduces page + modal, refresh survives, back/Esc closes.
 
 ```text
-#settings/account/{profile|account|security|notifications|sessions|billing}
-#settings/organization/{general|members|roles|integrations}
+#settings/account/{profile|account|security|notifications|sessions|billing|integrations}
+#settings/organization/{general|members|roles}
 ```
 
-(Source of truth: `settings-sections.ts`. Billing is an **account** section; an
-`#settings/organization/billing` hash is not a valid organization section, so
-`parseSettingsHash` resolves it to the default (`account/profile`). Appearance is not a
-settings section: it is the separate `AppearanceDialog` on the root route.)
+(Source of truth: `settings-sections.ts`. Billing and Integrations are **account** sections.
+Both used to live under `organization/`, so `parseSettingsHash` carries a legacy remap: an
+`#settings/organization/billing` or `#settings/organization/integrations` hash lands on its
+Account equivalent rather than the default, and old bookmarks keep working. Any other
+unknown section falls back to `account/profile`. Integrations manages the active workspace's API keys, and lives under
+Account so a personal workspace can reach it without an "Organization" group appearing
+there — a personal workspace has no organization sections at all. It still requires
+`api-key:read`, and its webhooks half is TEAM-only. Appearance is not a settings section: it
+is the separate `AppearanceDialog` on the root route.)
 
 - Invalid hash → fall back to `#settings/account/profile` (or close). The fallback is
   **written back to the URL**, so it is only decided once the modal has both answers:

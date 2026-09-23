@@ -432,7 +432,14 @@ export function OrganizationIntegrationsPanel() {
     <section className="space-y-8" data-testid="settings-organization-integrations">
       <SectionHeader
         title={tSettings(SETTINGS_KEYS.panels.integrations.title)}
-        description={tSettings(SETTINGS_KEYS.panels.integrations.description)}
+        // Describe what is on screen. This panel is an Account section, so a personal
+        // workspace reaches it too — and there the webhooks half stays hidden, which made
+        // "API keys and webhooks." a promise the panel could not keep.
+        description={tSettings(
+          canReadWebhooks
+            ? SETTINGS_KEYS.panels.integrations.description
+            : SETTINGS_KEYS.panels.integrations.descriptionApiKeysOnly,
+        )}
       />
       <ApiKeysSection />
       {canReadWebhooks ? <WebhooksSection /> : null}

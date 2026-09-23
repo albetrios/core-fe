@@ -243,6 +243,7 @@
       "webhookUrlPlaceholder": "https://example.com/hooks",
       "title": "集成",
       "description": "API 密钥与 Webhook。",
+      "descriptionApiKeysOnly": "API 密钥。",
       "apiKeysTitle": "API 密钥",
       "apiKeysLoadFailed": "无法加载 API 密钥。请重试。",
       "apiKeysEmptyTitle": "暂无 API 密钥",

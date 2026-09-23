@@ -20,16 +20,24 @@ import {
 
 /**
  * Settings registry — two scopes, one modal (routing-and-tenancy.md §7).
- * Account sections need only a signed-in user; organization sections also
- * need organization context + a permission (settings-permissions.ts).
+ * Account sections need a signed-in user; organization sections also need
+ * organization context and an org type that has them. Either scope may carry a
+ * permission gate (settings-permissions.ts) — `integrations` is an account
+ * section that still requires `api-key:read`.
  */
 export type SettingsScope = 'account' | 'organization';
 
-type AccountSettingsSection =
-  'profile' | 'account' | 'security' | 'notifications' | 'sessions' | 'billing';
+/** A section of the Account settings scope — reachable in every workspace, personal or team. */
+export type AccountSettingsSection =
+  | 'profile'
+  | 'account'
+  | 'security'
+  | 'notifications'
+  | 'sessions'
+  | 'billing'
+  | 'integrations';
 
-export type OrganizationSettingsSection =
-  'general' | 'members' | 'roles' | 'integrations';
+export type OrganizationSettingsSection = 'general' | 'members' | 'roles';
 
 export type SettingsSection = AccountSettingsSection | OrganizationSettingsSection;
 
@@ -40,8 +48,16 @@ export interface SettingsSectionRef {
 }
 
 export const SECTIONS_BY_SCOPE: Record<SettingsScope, readonly SettingsSection[]> = {
-  account: ['profile', 'account', 'security', 'notifications', 'sessions', 'billing'],
-  organization: ['general', 'members', 'roles', 'integrations'],
+  account: [
+    'profile',
+    'account',
+    'security',
+    'notifications',
+    'sessions',
+    'billing',
+    'integrations',
+  ],
+  organization: ['general', 'members', 'roles'],
 };
 
 export const DEFAULT_SETTINGS: SettingsSectionRef = {
@@ -50,26 +66,25 @@ export const DEFAULT_SETTINGS: SettingsSectionRef = {
 };
 
 /**
- * Organization sections available per org type. **Team** organizations get the full
- * management set; a **personal** workspace gets none — it has no members, roles or
- * organization-level general settings, and billing lives under Account.
+ * Organization sections available per org type. **Team** organizations get the management
+ * set; a **personal** workspace gets none, so the whole "Organization" group drops out of
+ * the nav there (`visibleSettingsNavGroups` discards empty groups).
  *
  * @remarks
- * Integrations briefly appeared here for a personal workspace, on the reasoning that
- * core-be's api-key routes are organization-scope `both` and a personal owner holds the
- * `api-key:*` codes. That was true of the backend but produced a dead nav entry:
- * `isSettingsSectionAvailable` refuses every organization-scope section while the active
- * workspace is PERSONAL, so the item rendered and then bounced to a fallback when clicked.
- * Returning nothing here puts the nav and the resolver back in agreement. Whoever wants
- * API keys reachable from a personal workspace has to change BOTH, and give them a home
- * that is not filed under "Organization".
+ * Integrations is deliberately absent from both: it is an **account** section now. It was
+ * briefly an organization section listed for personal workspaces too, which produced a dead
+ * nav entry — `isSettingsSectionAvailable` refuses every organization-scope section while
+ * the active workspace is PERSONAL, so the item rendered and then bounced to a fallback
+ * when clicked. Filing it under Account keeps API keys reachable from a personal workspace
+ * (core-be's api-key routes are organization-scope `both` and every owner holds
+ * `api-key:*`) without claiming a personal workspace has organization settings.
  *
  * Permission gating (settings-permissions.ts) still applies on top.
  */
 export function sectionsForOrgType(
   type: OrganizationType,
 ): readonly OrganizationSettingsSection[] {
-  return type === 'TEAM' ? ['general', 'members', 'roles', 'integrations'] : [];
+  return type === 'TEAM' ? ['general', 'members', 'roles'] : [];
 }
 
 /** One openable destination in the Settings nav (and in the command palette). */
@@ -143,6 +158,13 @@ export const SETTINGS_NAV: readonly SettingsNavGroup[] = [
           'seats',
         ],
       },
+      {
+        scope: 'account',
+        section: 'integrations',
+        labelKey: SETTINGS_SECTION_LABEL_KEYS.integrations,
+        icon: Plug,
+        keywords: ['integrations', 'webhooks', 'api keys', 'connect'],
+      },
     ],
   },
   {
@@ -169,13 +191,6 @@ export const SETTINGS_NAV: readonly SettingsNavGroup[] = [
         labelKey: SETTINGS_SECTION_LABEL_KEYS.roles,
         icon: ShieldCheck,
         keywords: ['roles', 'permissions', 'rbac'],
-      },
-      {
-        scope: 'organization',
-        section: 'integrations',
-        labelKey: SETTINGS_SECTION_LABEL_KEYS.integrations,
-        icon: Plug,
-        keywords: ['integrations', 'webhooks', 'api keys', 'connect'],
       },
     ],
   },

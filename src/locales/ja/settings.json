@@ -243,6 +243,7 @@
       "webhookUrlPlaceholder": "https://example.com/hooks",
       "title": "連携",
       "description": "API キーと Webhook。",
+      "descriptionApiKeysOnly": "API キー。",
       "apiKeysTitle": "API キー",
       "apiKeysLoadFailed": "API キーを読み込めませんでした。もう一度お試しください。",
       "apiKeysEmptyTitle": "API キーがありません",

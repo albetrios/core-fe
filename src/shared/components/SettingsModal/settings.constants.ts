@@ -228,6 +228,7 @@ export const SETTINGS_KEYS = {
       webhookUrlPlaceholder: 'panels.integrations.webhookUrlPlaceholder',
       title: 'panels.integrations.title',
       description: 'panels.integrations.description',
+      descriptionApiKeysOnly: 'panels.integrations.descriptionApiKeysOnly',
       apiKeysTitle: 'panels.integrations.apiKeysTitle',
       apiKeysLoadFailed: 'panels.integrations.apiKeysLoadFailed',
       apiKeysEmptyTitle: 'panels.integrations.apiKeysEmptyTitle',

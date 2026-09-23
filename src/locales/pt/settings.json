@@ -247,6 +247,7 @@
       "webhookUrlPlaceholder": "https://example.com/hooks",
       "title": "Integrações",
       "description": "Chaves de API e webhooks.",
+      "descriptionApiKeysOnly": "Chaves de API.",
       "apiKeysTitle": "Chaves de API",
       "apiKeysLoadFailed": "Não foi possível carregar as chaves de API. Tente novamente.",
       "apiKeysEmptyTitle": "Nenhuma chave de API",
