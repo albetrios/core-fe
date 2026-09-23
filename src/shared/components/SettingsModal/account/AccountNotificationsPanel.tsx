@@ -6,6 +6,7 @@ import type {
   NotificationChannel,
   NotificationPreference,
 } from '@/shared/api/notification-contracts.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   Card,
@@ -14,9 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card.tsx';
-import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { Switch } from '@/shared/components/ui/switch.tsx';
-import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
@@ -257,34 +256,7 @@ export function AccountNotificationsPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            // One block per REAL category, in the same `divide-y` + `py-4` shell
-            // as the rendered rows: a label line, a description line and the
-            // switch row. Four 48px bars were about a third of the real height,
-            // so the card grew under the user when the data landed (SET-22).
-            <div className="divide-y" data-testid="notifications-prefs-loading">
-              <LoadingMessage
-                name={t(SETTINGS_KEYS.panels.notifications.title)}
-                className="pb-3"
-              />
-              {CATEGORIES.map((cat) => (
-                <div key={cat.id} className="py-4 first:pt-0 last:pb-0">
-                  {/* 20px label + 16px description + the switch row: the exact
-                      line boxes the rendered category uses. */}
-                  <p className="text-sm font-medium">{t(cat.labelKey)}</p>
-                  <p className="text-muted-foreground text-xs">{t(cat.descriptionKey)}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
-                    {CHANNELS.map((ch) => (
-                      <div key={ch.id} className="flex items-center gap-2 text-sm">
-                        <Skeleton className="h-5 w-8 rounded-full" aria-hidden="true" />
-                        <span className="text-muted-foreground">{t(ch.labelKey)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          {isLoading ? <PanelSkeleton testId="notifications-prefs-loading" /> : null}
 
           {isError ? (
             <div data-testid="notification-prefs-error">

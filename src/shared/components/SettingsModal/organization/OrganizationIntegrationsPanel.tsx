@@ -8,6 +8,7 @@ import type { Webhook, WebhookTestResult } from '@/shared/api/webhook-contracts.
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { FormattedDate } from '@/shared/components/FormattedDate/index.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   SETTINGS_KEYS,
@@ -16,7 +17,6 @@ import {
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
 import { Card } from '@/shared/components/ui/card.tsx';
-import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { useApiKeys, useRevokeApiKey } from '@/shared/hooks/useApiKeys/index.ts';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
@@ -114,13 +114,7 @@ function ApiKeysSection() {
         searchTestId="apikeys-search"
         sortTestId="apikeys-sort"
       />
-      {keys.isPending ? (
-        <div className="space-y-2" data-testid="apikeys-loading">
-          {['a', 'b'].map((key) => (
-            <Skeleton key={key} className="h-14 w-full" />
-          ))}
-        </div>
-      ) : null}
+      {keys.isPending ? <PanelSkeleton testId="apikeys-loading" /> : null}
       {keys.isError ? (
         // The webhooks list beside this one always offered a retry; the API-key
         // list answered the same failure with a dead sentence (SET-20).
@@ -281,9 +275,7 @@ function WebhooksSection() {
         ) : null}
       </div>
 
-      {isLoading ? (
-        <Skeleton className="h-14 w-full" data-testid="webhooks-loading" />
-      ) : null}
+      {isLoading ? <PanelSkeleton testId="webhooks-loading" /> : null}
 
       {isError ? (
         <div data-testid="webhooks-error">

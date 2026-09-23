@@ -10,6 +10,7 @@ import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { InviteMemberDialog } from '@/shared/components/InviteMemberDialog/index.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   formatSettingsBreadcrumb,
@@ -33,12 +34,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu.tsx';
-import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
-import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import {
   useMembers,
   useRemoveMember,
@@ -76,15 +75,7 @@ function statusVariant(
 }
 
 function MembersLoading() {
-  const { t } = useTranslation(SETTINGS_NS);
-  return (
-    <div className="space-y-2" data-testid="members-loading">
-      <LoadingMessage name={t(SETTINGS_KEYS.panels.members.title)} />
-      {['a', 'b', 'c'].map((key) => (
-        <Skeleton key={key} className="h-14 w-full" />
-      ))}
-    </div>
-  );
+  return <PanelSkeleton testId="members-loading" />;
 }
 
 /** Best-effort map of a role's display name to the coarse OrgRole (optimistic label only). */

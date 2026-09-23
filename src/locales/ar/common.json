@@ -101,9 +101,6 @@
   "a11y": {
     "close": "إغلاق",
     "loading": "جارٍ التحميل",
-    "loadingNamed": "جارٍ تحميل {{name}}…",
-    "loadingStill": "لا يزال العمل جاريًا…",
-    "loadingAlmost": "أوشكنا على الانتهاء…",
     "loadingPage": "جارٍ تحميل الصفحة",
     "toggleTheme": "تبديل السمة",
     "openAppearance": "فتح المظهر",

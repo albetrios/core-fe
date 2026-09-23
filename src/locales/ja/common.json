@@ -101,9 +101,6 @@
   "a11y": {
     "close": "閉じる",
     "loading": "読み込み中",
-    "loadingNamed": "{{name}} を読み込み中…",
-    "loadingStill": "処理を続けています…",
-    "loadingAlmost": "もうすぐです…",
     "loadingPage": "ページを読み込み中",
     "toggleTheme": "テーマを切り替え",
     "openAppearance": "外観を開く",

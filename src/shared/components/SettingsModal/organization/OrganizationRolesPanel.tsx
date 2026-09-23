@@ -10,6 +10,7 @@ import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { CreateRoleDialog } from '@/shared/components/CreateRoleDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
   formatSettingsBreadcrumb,
@@ -28,11 +29,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu.tsx';
-import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
-import { LoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import { useDeleteRole, useRoles } from '@/shared/hooks/useRoles/index.ts';
 import { MoreHorizontal, Plus, ShieldCheck } from '@/shared/icons/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -123,15 +122,7 @@ function RoleListItem({
 }
 
 function RolesLoading() {
-  const { t } = useTranslation(SETTINGS_NS);
-  return (
-    <div className="space-y-2" data-testid="roles-loading">
-      <LoadingMessage name={t(SETTINGS_KEYS.panels.roles.title)} />
-      {['a', 'b', 'c'].map((key) => (
-        <Skeleton key={key} className="h-14 w-full" />
-      ))}
-    </div>
-  );
+  return <PanelSkeleton testId="roles-loading" />;
 }
 
 /** Loading / error / empty / list+load-more region for the roles list. */

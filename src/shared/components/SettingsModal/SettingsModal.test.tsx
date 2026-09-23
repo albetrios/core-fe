@@ -105,16 +105,14 @@ describe('SettingsModal', () => {
     expect(screen.getByTestId('settings-content-loading')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close', exact: true })).toBeEnabled();
 
-    // QA-V3 suggestion 8: the header already said "Security", so the grey bars
-    // under it read as an empty panel rather than a slow one — the wait was
-    // legible to a screen reader (`sr-only`) and to nobody else. Asserted HERE
-    // rather than in a test of its own because `onceAsync` caches each panel's
-    // chunk for the whole file: only the first test to switch sections ever
-    // reaches the Suspense fallback.
-    const label = screen.getByTestId('settings-content-loading-label');
-    expect(label).toHaveTextContent(/Security/);
-    expect(label).not.toHaveClass('sr-only');
-    expect(label).toHaveAttribute('aria-live', 'polite');
+    // The header already names the section, so the wait needs no second line of
+    // copy under it — and the line it used to show advanced through three
+    // different strings while one panel loaded. The announcement survives as
+    // `sr-only` inside the shared skeleton; the visible churn does not.
+    expect(
+      screen.queryByTestId('settings-content-loading-label'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId('panel-skeleton')).toBeInTheDocument();
   });
 
   it('renders nothing without a settings hash', () => {

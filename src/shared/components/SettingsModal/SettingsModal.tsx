@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils.ts';
 import { ANALYTICS_EVENTS } from '@/shared/analytics/analytics.constants.ts';
 import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { useEnterAnimationProps } from '@/shared/components/LazyOverlay/index.ts';
+import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,11 +35,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select.tsx';
-import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAccessResolved } from '@/shared/hooks/useCan/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
-import { useLoadingMessage } from '@/shared/hooks/useLoadingMessage/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -417,31 +416,13 @@ const PANEL_LOADERS = {
 function SettingsContentLoading({ active }: { active: SettingsSectionRef }) {
   const { t } = useTranslation(SETTINGS_NS);
   const sectionLabel = t(SETTINGS_SECTION_LABEL_KEYS[active.section]);
-  // Advances while the panel's chunk and data land, so a slow section looks
-  // alive instead of stuck on one line.
-  const loadingMessage = useLoadingMessage(sectionLabel);
+  // The header names the section; the skeleton below is the SAME component every
+  // panel draws while its own query resolves, so the shell-to-panel handoff
+  // swaps identical markup instead of one skeleton shape for another.
   return (
     <div className="flex flex-col gap-6" data-testid="settings-content-loading">
       <SectionHeader title={sectionLabel} />
-      {/* Named and VISIBLE, not `sr-only`. The header already said "Members",
-          so the grey bars under it read as an empty members list rather than a
-          slow one — the wait was legible to a screen reader and to nobody
-          else. Polite, and it names the section so a slow panel says which. */}
-      <output
-        aria-live="polite"
-        className="text-muted-foreground text-sm"
-        data-testid="settings-content-loading-label"
-      >
-        {loadingMessage}
-      </output>
-      <div aria-hidden="true" className="flex max-w-xl flex-col gap-6">
-        {[0, 1, 2].map((field) => (
-          <div key={field} className="flex flex-col gap-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-9 w-full" />
-          </div>
-        ))}
-      </div>
+      <PanelSkeleton className="max-w-xl" />
     </div>
   );
 }
