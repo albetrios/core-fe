@@ -53,9 +53,13 @@ export async function fetchMyOrganizationSummaries(): Promise<MyOrganizationSumm
  * time — `ensureQueryData` returns the cached list and only fetches on a miss.
  */
 export async function ensureMyOrganizationSummaries(): Promise<MyOrganizationSummary[]> {
-  return queryClient.ensureQueryData({
+  // `query({ staleTime: 'static' })`, not the deprecated `ensureQueryData`:
+  // the cached list is served as-is and the network is touched only on a miss,
+  // which is the whole point on a path that runs per navigation.
+  return queryClient.query({
     queryKey: myOrganizationsQueryKey,
     queryFn: fetchMyOrganizationSummaries,
+    staleTime: 'static',
   });
 }
 
