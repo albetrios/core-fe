@@ -422,7 +422,11 @@ function SettingsContentLoading({ active }: { active: SettingsSectionRef }) {
   return (
     <div className="flex flex-col gap-6" data-testid="settings-content-loading">
       <SectionHeader title={sectionLabel} />
-      <PanelSkeleton className="max-w-xl" name={sectionLabel} />
+      {/* No width override here. The panel below draws the SAME component when its
+          own query resolves, so any difference between the two — a max-width, a
+          gap — makes the handoff look like a second skeleton replacing the first,
+          which is exactly what this was meant to stop. */}
+      <PanelSkeleton name={sectionLabel} />
     </div>
   );
 }

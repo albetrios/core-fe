@@ -211,7 +211,7 @@ export function CustomToast({
       data-testid="app-toast"
       data-toast-variant={variant}
       className={cn(
-        'pointer-events-auto relative flex w-full max-w-[min(100%,20rem)] items-start gap-2.5 overflow-hidden border px-3 py-2.5 backdrop-blur-[2px]',
+        'pointer-events-auto relative flex w-full max-w-[min(100%,20rem)] items-start gap-2.5 overflow-hidden rounded-lg border px-3 py-2.5 backdrop-blur-[2px]',
         variant === 'tint' && cn('text-foreground', tone.tintSurface),
         solid && cn(tone.solid, 'border-transparent shadow-md'),
         variant === 'outline' &&

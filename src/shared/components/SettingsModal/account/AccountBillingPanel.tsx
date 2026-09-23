@@ -437,17 +437,35 @@ export function AccountBillingPanel() {
         title={t(BILLING_KEYS.title)}
         description={t(BILLING_KEYS.description)}
       />
-      <QueryBoundary query={subscriptionQuery} errorMessage={t(BILLING_KEYS.loadFailed)}>
-        {(sub) => (
-          <QueryBoundary
-            query={plansQuery}
-            errorMessage={t(BILLING_KEYS.plansLoadFailed)}
-          >
-            {(plans) => (
-              <BillingContent sub={sub} plans={plans.filter((plan) => plan.isActive)} />
-            )}
-          </QueryBoundary>
-        )}
+      {/*
+        Plans on the OUTSIDE, subscription within — and the subscription boundary
+        carries an `idle` fallback.
+
+        Billing is an ACCOUNT section, so a personal workspace reaches it; but
+        `subscription:read` is granted to TEAM owners only
+        (core-be `ownerPermissionCodesForOrganizationType`). `useSubscription` is
+        gated on that permission, so in a personal workspace the query never runs
+        and sits at pending + idle forever. With the subscription boundary on the
+        outside and no `idle` branch, that rendered NOTHING — the plans list
+        included, which needs no permission at all and was fetching fine.
+
+        `null` is the honest value for "no subscription we may read", and it is
+        the same value `getActiveSubscription` already returns when the API
+        answers 403. `BillingContent` has always handled it.
+      */}
+      <QueryBoundary query={plansQuery} errorMessage={t(BILLING_KEYS.plansLoadFailed)}>
+        {(plans) => {
+          const activePlans = plans.filter((plan) => plan.isActive);
+          return (
+            <QueryBoundary
+              query={subscriptionQuery}
+              errorMessage={t(BILLING_KEYS.loadFailed)}
+              idle={<BillingContent sub={null} plans={activePlans} />}
+            >
+              {(sub) => <BillingContent sub={sub} plans={activePlans} />}
+            </QueryBoundary>
+          );
+        }}
       </QueryBoundary>
     </section>
   );

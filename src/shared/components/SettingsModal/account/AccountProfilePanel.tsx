@@ -9,11 +9,8 @@ import {
   type UploadImageContentType,
 } from '@/shared/api/uploads-api.ts';
 import {
-  formatSettingsBreadcrumb,
-  SETTINGS_GROUP_LABEL_KEYS,
   SETTINGS_KEYS,
   SETTINGS_NS,
-  SETTINGS_SECTION_LABEL_KEYS,
 } from '@/shared/components/SettingsModal/settings.constants.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -61,15 +58,10 @@ export function AccountProfilePanel() {
   const completeness = useMemo(() => computeProfileCompleteness(values), [values]);
 
   const panels = SETTINGS_KEYS.panels.profile;
-  const breadcrumb = formatSettingsBreadcrumb(
-    t(SETTINGS_GROUP_LABEL_KEYS.account),
-    t(SETTINGS_SECTION_LABEL_KEYS.profile),
-  );
 
   return (
     <div className="space-y-6" data-testid="settings-section-profile">
       <SectionHeader
-        breadcrumb={breadcrumb}
         title={t(panels.title)}
         description={t(panels.description)}
         meta={t(panels.completeness, { percent: completeness })}

@@ -432,14 +432,6 @@ export const SETTINGS_GROUP_LABEL_KEYS = {
   organization: SETTINGS_KEYS.nav.groups.organization,
 } as const;
 
-/** Build a settings section breadcrumb from scope + section labels. */
-export function formatSettingsBreadcrumb(
-  scopeLabel: string,
-  sectionLabel: string,
-): string {
-  return `${scopeLabel} · ${sectionLabel}`;
-}
-
 export const SETTINGS_SECTION_LABEL_KEYS = {
   profile: SETTINGS_KEYS.nav.profile,
   account: SETTINGS_KEYS.nav.account,
