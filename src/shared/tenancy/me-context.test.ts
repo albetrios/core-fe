@@ -120,14 +120,16 @@ describe('toMeContext', () => {
     expect(ctx.personalOrganizationId).toBe(PERSONAL_ID);
   });
 
-  it('flags the active org; personal orgs keep a null slug', () => {
-    const ctx = toMeContext(WIRE);
-    expect(ctx.organizations).toHaveLength(2);
-    const active = ctx.organizations.find((o) => o.isActive);
-    const personal = ctx.organizations.find((o) => o.type === 'PERSONAL');
-    expect(active?.id).toBe(ORG_ID);
-    expect(personal?.isActive).toBe(false);
-    expect(personal?.slug).toBeNull();
+  // The organization LIST moved to `GET /users/me/organizations`: embedded here
+  // it was a flat array with no cursor filled by a default-paginated read, so a
+  // caller in more than 25 organizations was silently truncated. The context
+  // still names the ACTIVE organization, which is what it is for.
+  it('does not carry the organization list', () => {
+    expect(toMeContext(WIRE)).not.toHaveProperty('organizations');
+  });
+
+  it('still maps the active organization', () => {
+    expect(toMeContext(WIRE).activeOrganization?.id).toBe(ORG_ID);
   });
 
   it('maps a null active organization to null', () => {

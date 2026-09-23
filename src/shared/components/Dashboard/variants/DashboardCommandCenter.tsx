@@ -89,7 +89,7 @@ export function DashboardCommandCenter({
         </div>
       </div>
 
-      {!personalOnly ? <OrgsPanel ctx={ctx} /> : null}
+      {!personalOnly ? <OrgsPanel /> : null}
     </div>
   );
 }

@@ -77,7 +77,7 @@ export function DashboardPulse({ ctx, isTeam, personalOnly, hero }: DashboardVie
       {!personalOnly ? (
         <div className={dashboardFooterGrid}>
           <ThemePanel />
-          <OrgsPanel ctx={ctx} />
+          <OrgsPanel />
         </div>
       ) : null}
     </div>

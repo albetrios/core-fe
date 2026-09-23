@@ -5,12 +5,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PRODUCT_NAME } from '@/lib/product-identity.ts';
 import type { MeContext, OrganizationType } from '@/shared/tenancy/me-context.ts';
+import type * as MyOrganizationSummariesModule from '@/shared/tenancy/my-organization-summaries.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 import { ORG_SWITCH_TOAST_ID, OrganizationSwitcher } from './OrganizationSwitcher.tsx';
 
 const {
   useMeContextMock,
+  useMyOrganizationSummariesMock,
   switchToPersonalMock,
   navigateMock,
   deploymentFlagsMock,
@@ -18,6 +20,7 @@ const {
   reportErrorMock,
 } = vi.hoisted(() => ({
   useMeContextMock: vi.fn(),
+  useMyOrganizationSummariesMock: vi.fn(),
   switchToPersonalMock: vi.fn(),
   navigateMock: vi.fn(async () => undefined),
   deploymentFlagsMock: {
@@ -50,6 +53,10 @@ vi.mock('@/shared/errors/errorHandler.ts', async (importOriginal) => {
   return { ...actual, reportError: reportErrorMock };
 });
 
+vi.mock('@/shared/tenancy/my-organization-summaries.ts', async (importOriginal) => ({
+  ...(await importOriginal<typeof MyOrganizationSummariesModule>()),
+  useMyOrganizationSummaries: useMyOrganizationSummariesMock,
+}));
 vi.mock('@/shared/hooks/useMeContext/index.ts', () => ({
   useMeContext: useMeContextMock,
   meContextQueryKey: ['auth', 'me-context'],
@@ -85,13 +92,19 @@ const ACME = org('org_acme', 'Acme Inc.', 'acme', 'TEAM');
 const PERSONAL = org('org_personal', 'Personal', null, 'PERSONAL');
 const CTX = {
   activeOrganization: ACME,
-  organizations: [
-    { ...ACME, isActive: true },
-    { ...PERSONAL, isActive: false },
-  ],
   deploymentFlags: { personalOrganizations: true, teamOrganizations: true },
   personalOrganizationId: PERSONAL.id,
 } as unknown as MeContext;
+
+/**
+ * The switcher's list comes from `GET /users/me/organizations` now, not from
+ * me/context — embedded there it was a flat array with no cursor, so a user in
+ * more than 25 organizations saw a silently truncated switcher.
+ */
+const ORGS = [
+  { ...ACME, isActive: true },
+  { ...PERSONAL, isActive: false },
+];
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -99,6 +112,7 @@ beforeEach(() => {
   deploymentFlagsMock.teamOrganizations = true;
   switchToPersonalMock.mockResolvedValue(undefined);
   useMeContextMock.mockReturnValue({ data: CTX, isLoading: false });
+  useMyOrganizationSummariesMock.mockReturnValue({ data: ORGS, isPending: false });
 });
 
 describe('OrganizationSwitcher', () => {
