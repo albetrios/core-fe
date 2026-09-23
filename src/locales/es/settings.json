@@ -360,7 +360,7 @@
       "revokeTitle": "¿Cerrar esta sesión?",
       "revokeDescription": "La sesión de {{device}} se cerrará de inmediato.",
       "revokeConfirm": "Cerrar sesión",
-      "deviceFallback": "Este dispositivo"
+      "deviceFallback": "Dispositivo desconocido"
     },
     "billing": {
       "title": "Facturación",

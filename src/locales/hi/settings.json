@@ -356,7 +356,7 @@
       "revokeTitle": "इस सत्र से साइन आउट करें?",
       "revokeDescription": "{{device}} तुरंत साइन आउट हो जाएगा।",
       "revokeConfirm": "साइन आउट",
-      "deviceFallback": "यह डिवाइस"
+      "deviceFallback": "अज्ञात डिवाइस"
     },
     "billing": {
       "title": "बिलिंग",

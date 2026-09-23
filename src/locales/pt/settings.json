@@ -360,7 +360,7 @@
       "revokeTitle": "Sair desta sessão?",
       "revokeDescription": "{{device}} será desconectado imediatamente.",
       "revokeConfirm": "Sair",
-      "deviceFallback": "Este dispositivo"
+      "deviceFallback": "Dispositivo desconhecido"
     },
     "billing": {
       "title": "Cobrança",

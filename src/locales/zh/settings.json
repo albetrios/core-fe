@@ -354,7 +354,7 @@
       "revokeTitle": "退出此会话？",
       "revokeDescription": "{{device}} 将立即退出登录。",
       "revokeConfirm": "退出登录",
-      "deviceFallback": "此设备"
+      "deviceFallback": "未知设备"
     },
     "billing": {
       "title": "账单",

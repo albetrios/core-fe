@@ -42,6 +42,21 @@ describe('sessions-api', () => {
     ]);
   });
 
+  // core-be types `device` / `browser` as `string | null` — `parseUserAgent`
+  // returns null for any agent outside its seven device and five browser
+  // matchers (a mobile app, an API client, curl, a headless run, or no
+  // User-Agent at all). `parseListTolerant` DROPS a row the schema rejects, so
+  // a schema that demanded strings made those sessions invisible in Settings →
+  // Sessions, and therefore impossible to sign out.
+  it('keeps a session whose user agent core-be could not parse', async () => {
+    getMock.mockResolvedValue({
+      data: [{ ...WIRE, id: 'ses_cli', device: null, browser: null, user_agent: null }],
+    });
+    const res = await listSessions();
+    expect(res).toHaveLength(1);
+    expect(res[0]).toMatchObject({ id: 'ses_cli', device: null, browser: null });
+  });
+
   it('revokes via DELETE', async () => {
     deleteMock.mockResolvedValue({ data: null });
     await revokeSession('ses_x');
