@@ -80,7 +80,7 @@
       "roleRequired": "सदस्य भूमिका बदलने के लिए एक भूमिका आवश्यक है।",
       "updateFailed": "संगठन अपडेट नहीं हो सका",
       "logoInvalidType": "कृपया एक छवि फ़ाइल चुनें।",
-      "logoTooLarge": "लोगो 1 MB से कम होना चाहिए।",
+      "logoTooLarge": "लोगो 5 MB से कम होना चाहिए।",
       "logoReadFailed": "वह फ़ाइल पढ़ी नहीं जा सकी।",
       "formCheck": "फ़ॉर्म जाँचें",
       "updateSuccess": "संगठन अपडेट किया गया",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "दिखावट दोहराने के लिए यह URL साझा करें।",
       "notificationStylePreview": "सूचना शैली",
       "notificationStylePreviewDescription": "{{variant}} — आपके एक्सेंट और सिमेंटिक रंगों के साथ।",
-      "accountDeletionPending": "खाता हटाया गया। साइन आउट हो रहा है…"
+      "accountDeletionPending": "खाता हटाया गया। साइन आउट हो रहा है…",
+      "avatarInvalidType": "कृपया एक छवि फ़ाइल चुनें।",
+      "avatarTooLarge": "अवतार 2 MB से कम होना चाहिए।",
+      "avatarUpdated": "अवतार अपडेट किया गया।",
+      "avatarRemoved": "अवतार हटाया गया।"
     },
     "hooks": {
       "passkeys": {

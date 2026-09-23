@@ -189,7 +189,14 @@
       "saving": "保存中…",
       "save": "保存更改",
       "namePlaceholder": "您的姓名",
-      "jobTitlePlaceholder": "例如：产品工程师"
+      "jobTitlePlaceholder": "例如：产品工程师",
+      "avatarTitle": "头像",
+      "avatarDescription": "在整个应用中显示在你的名字旁边。方形图片效果最佳。",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "你的头像",
+      "uploadAvatar": "上传照片",
+      "uploadingAvatar": "正在上传…",
+      "removeAvatar": "移除"
     },
     "account": {
       "deleteTitle": "删除您的账户？",

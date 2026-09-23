@@ -190,7 +190,14 @@
       "saving": "Saving…",
       "save": "Save changes",
       "namePlaceholder": "Your name",
-      "jobTitlePlaceholder": "e.g. Product Engineer"
+      "jobTitlePlaceholder": "e.g. Product Engineer",
+      "avatarTitle": "Avatar",
+      "avatarDescription": "Shown next to your name across the app. Square images look best.",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "Your avatar",
+      "uploadAvatar": "Upload photo",
+      "uploadingAvatar": "Uploading…",
+      "removeAvatar": "Remove"
     },
     "account": {
       "deleteTitle": "Delete your account?",

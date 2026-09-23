@@ -317,6 +317,13 @@ export const SETTINGS_KEYS = {
       confirmSave: 'panels.profile.confirmSave',
       confirmCancel: 'panels.profile.confirmCancel',
       saving: 'panels.profile.saving',
+      avatarTitle: 'panels.profile.avatarTitle',
+      avatarDescription: 'panels.profile.avatarDescription',
+      avatarAlt: 'panels.profile.avatarAlt',
+      avatarAltFallback: 'panels.profile.avatarAltFallback',
+      uploadAvatar: 'panels.profile.uploadAvatar',
+      uploadingAvatar: 'panels.profile.uploadingAvatar',
+      removeAvatar: 'panels.profile.removeAvatar',
       save: 'panels.profile.save',
     },
     account: {
