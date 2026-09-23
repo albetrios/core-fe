@@ -150,7 +150,8 @@
         "createFailed": "Webhook を作成できませんでした",
         "deleteFailed": "Webhook を削除できませんでした",
         "createSuccess": "Webhook を作成しました",
-        "deleteSuccess": "Webhook を削除しました"
+        "deleteSuccess": "Webhook を削除しました",
+        "updateSuccess": "Webhook を更新しました"
       },
       "subscription": {
         "changePlanFailed": "プランを変更できませんでした",

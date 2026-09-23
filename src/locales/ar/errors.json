@@ -150,7 +150,8 @@
         "createFailed": "تعذّر إنشاء الويب هوك",
         "deleteFailed": "تعذّر حذف الويب هوك",
         "createSuccess": "تم إنشاء الويب هوك",
-        "deleteSuccess": "تم حذف الويب هوك"
+        "deleteSuccess": "تم حذف الويب هوك",
+        "updateSuccess": "تم تحديث الويب هوك"
       },
       "subscription": {
         "changePlanFailed": "تعذّر تغيير الخطة",

@@ -150,7 +150,8 @@
         "createFailed": "Não foi possível criar o webhook",
         "deleteFailed": "Não foi possível excluir o webhook",
         "createSuccess": "Webhook criado",
-        "deleteSuccess": "Webhook excluído"
+        "deleteSuccess": "Webhook excluído",
+        "updateSuccess": "Webhook atualizado"
       },
       "subscription": {
         "changePlanFailed": "Não foi possível alterar o plano",

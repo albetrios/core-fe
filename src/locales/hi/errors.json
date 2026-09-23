@@ -150,7 +150,8 @@
         "createFailed": "वेबहुक बनाया नहीं जा सका",
         "deleteFailed": "वेबहुक हटाया नहीं जा सका",
         "createSuccess": "वेबहुक बनाया गया",
-        "deleteSuccess": "वेबहुक हटाया गया"
+        "deleteSuccess": "वेबहुक हटाया गया",
+        "updateSuccess": "वेबहुक अपडेट किया गया"
       },
       "subscription": {
         "changePlanFailed": "प्लान नहीं बदला जा सका",
