@@ -80,7 +80,7 @@
       "roleRequired": "الدور مطلوب لتغيير دور العضو.",
       "updateFailed": "تعذّر تحديث المؤسسة",
       "logoInvalidType": "يُرجى اختيار ملف صورة.",
-      "logoTooLarge": "يجب أن يكون الشعار أقل من 1 ميجابايت.",
+      "logoTooLarge": "يجب أن يكون الشعار أقل من 5 ميجابايت.",
       "logoReadFailed": "تعذّر قراءة ذلك الملف.",
       "formCheck": "تحقق من النموذج",
       "updateSuccess": "تم تحديث المؤسسة",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "شارك هذا الرابط لإعادة إنتاج المظهر.",
       "notificationStylePreview": "نمط الإشعار",
       "notificationStylePreviewDescription": "{{variant}} — مُنمَّط بألوانك المميزة والدلالية.",
-      "accountDeletionPending": "تم حذف الحساب. جارٍ تسجيل الخروج…"
+      "accountDeletionPending": "تم حذف الحساب. جارٍ تسجيل الخروج…",
+      "avatarInvalidType": "يُرجى اختيار ملف صورة.",
+      "avatarTooLarge": "يجب أن تكون الصورة الرمزية أقل من 2 ميجابايت.",
+      "avatarUpdated": "تم تحديث الصورة الرمزية.",
+      "avatarRemoved": "تمت إزالة الصورة الرمزية."
     },
     "hooks": {
       "passkeys": {

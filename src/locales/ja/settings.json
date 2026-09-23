@@ -189,7 +189,14 @@
       "saving": "保存中…",
       "save": "変更を保存",
       "namePlaceholder": "お名前",
-      "jobTitlePlaceholder": "例: プロダクトエンジニア"
+      "jobTitlePlaceholder": "例: プロダクトエンジニア",
+      "avatarTitle": "アバター",
+      "avatarDescription": "アプリ全体で名前の横に表示されます。正方形の画像が最適です。",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "あなたのアバター",
+      "uploadAvatar": "写真をアップロード",
+      "uploadingAvatar": "アップロード中…",
+      "removeAvatar": "削除"
     },
     "account": {
       "deleteTitle": "アカウントを削除しますか？",

@@ -202,7 +202,14 @@
       "saving": "جارٍ الحفظ…",
       "save": "حفظ التغييرات",
       "namePlaceholder": "اسمك",
-      "jobTitlePlaceholder": "مثال: مهندس منتجات"
+      "jobTitlePlaceholder": "مثال: مهندس منتجات",
+      "avatarTitle": "الصورة الرمزية",
+      "avatarDescription": "تظهر بجوار اسمك في جميع أنحاء التطبيق. الصور المربعة تبدو أفضل.",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "صورتك الرمزية",
+      "uploadAvatar": "رفع صورة",
+      "uploadingAvatar": "جارٍ الرفع…",
+      "removeAvatar": "إزالة"
     },
     "account": {
       "deleteTitle": "حذف حسابك؟",

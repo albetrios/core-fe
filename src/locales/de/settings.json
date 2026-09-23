@@ -190,7 +190,14 @@
       "saving": "Wird gespeichert…",
       "save": "Änderungen speichern",
       "namePlaceholder": "Ihr Name",
-      "jobTitlePlaceholder": "z. B. Produktingenieur"
+      "jobTitlePlaceholder": "z. B. Produktingenieur",
+      "avatarTitle": "Avatar",
+      "avatarDescription": "Wird neben Ihrem Namen in der gesamten App angezeigt. Quadratische Bilder wirken am besten.",
+      "avatarAlt": "{{name}}",
+      "avatarAltFallback": "Ihr Avatar",
+      "uploadAvatar": "Foto hochladen",
+      "uploadingAvatar": "Wird hochgeladen…",
+      "removeAvatar": "Entfernen"
     },
     "account": {
       "deleteTitle": "Ihr Konto löschen?",

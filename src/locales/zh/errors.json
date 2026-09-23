@@ -80,7 +80,7 @@
       "roleRequired": "更改成员角色需要选择角色。",
       "updateFailed": "无法更新组织",
       "logoInvalidType": "请选择图片文件。",
-      "logoTooLarge": "Logo 必须小于 1 MB。",
+      "logoTooLarge": "Logo 必须小于 5 MB。",
       "logoReadFailed": "无法读取该文件。",
       "formCheck": "请检查表单",
       "updateSuccess": "组织已更新",
@@ -97,7 +97,11 @@
       "themeLinkCopiedDescription": "分享此 URL 以复现外观。",
       "notificationStylePreview": "通知样式",
       "notificationStylePreviewDescription": "{{variant}} — 使用您的强调色和语义颜色。",
-      "accountDeletionPending": "账户已删除，正在登出…"
+      "accountDeletionPending": "账户已删除，正在登出…",
+      "avatarInvalidType": "请选择图片文件。",
+      "avatarTooLarge": "头像必须小于 2 MB。",
+      "avatarUpdated": "头像已更新。",
+      "avatarRemoved": "头像已移除。"
     },
     "hooks": {
       "passkeys": {

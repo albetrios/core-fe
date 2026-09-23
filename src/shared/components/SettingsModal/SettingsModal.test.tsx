@@ -41,7 +41,10 @@ const ALL_PERMS: OrganizationPermission[] = [
   'api-key:read',
 ];
 const meCtx = (type: 'PERSONAL' | 'TEAM') => ({
-  data: { activeOrganization: { type } },
+  // `user` is required on MeContext whenever `data` is present, and the panels read it
+  // unguarded (EmailVerificationBanner, the profile avatar). A fixture that omits it
+  // stands in for a shape the API cannot return, and crashes the section under test.
+  data: { activeOrganization: { type }, user: { avatarUrl: null } },
   isPending: false,
   isLoading: false,
   isError: false,
