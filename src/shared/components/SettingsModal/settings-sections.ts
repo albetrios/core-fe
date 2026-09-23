@@ -51,20 +51,25 @@ export const DEFAULT_SETTINGS: SettingsSectionRef = {
 
 /**
  * Organization sections available per org type. **Team** organizations get the full
- * management set. A **personal** workspace has no members, roles or organization-level
- * general settings (billing lives under Account), but it does get **integrations**: the
- * api-key routes are organization-scope `both` on core-be and a personal owner holds the
- * `api-key:*` codes, so hiding the section withheld a capability the backend grants. The
- * webhooks half of that panel gates itself separately on `webhook:read`, which a personal
- * owner does not hold, so it stays hidden there. Permission gating
- * (settings-permissions.ts) still applies on top.
+ * management set; a **personal** workspace gets none — it has no members, roles or
+ * organization-level general settings, and billing lives under Account.
+ *
+ * @remarks
+ * Integrations briefly appeared here for a personal workspace, on the reasoning that
+ * core-be's api-key routes are organization-scope `both` and a personal owner holds the
+ * `api-key:*` codes. That was true of the backend but produced a dead nav entry:
+ * `isSettingsSectionAvailable` refuses every organization-scope section while the active
+ * workspace is PERSONAL, so the item rendered and then bounced to a fallback when clicked.
+ * Returning nothing here puts the nav and the resolver back in agreement. Whoever wants
+ * API keys reachable from a personal workspace has to change BOTH, and give them a home
+ * that is not filed under "Organization".
+ *
+ * Permission gating (settings-permissions.ts) still applies on top.
  */
 export function sectionsForOrgType(
   type: OrganizationType,
 ): readonly OrganizationSettingsSection[] {
-  return type === 'TEAM'
-    ? ['general', 'members', 'roles', 'integrations']
-    : ['integrations'];
+  return type === 'TEAM' ? ['general', 'members', 'roles', 'integrations'] : [];
 }
 
 /** One openable destination in the Settings nav (and in the command palette). */

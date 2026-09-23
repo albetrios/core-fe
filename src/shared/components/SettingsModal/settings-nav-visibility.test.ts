@@ -38,6 +38,13 @@ const personalOnlyCtx = {
 
 // personal-and-team deployment (teams ARE enabled), but the ACTIVE workspace is
 // the user's PERSONAL org — organization settings must still be hidden.
+//
+// `api-key:read` is in this list deliberately. A personal owner really does hold
+// it (core-be grants the whole tenancy set to every owner), and `integrations`
+// is gated on exactly that code — so a context without it made the assertion
+// below pass for the wrong reason: the item was filtered by permission, never by
+// org type, and the nav could offer Integrations in a personal workspace with
+// this suite still green.
 const personalWorkspaceInTeamDeploymentCtx = {
   hasOrganizationContext: true,
   orgType: 'PERSONAL' as const,
@@ -48,6 +55,7 @@ const personalWorkspaceInTeamDeploymentCtx = {
     'membership:read',
     'role:read',
     'webhook:read',
+    'api-key:read',
   ] as const,
 };
 

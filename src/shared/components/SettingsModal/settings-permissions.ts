@@ -23,8 +23,8 @@ const ORGANIZATION_SECTION_PERMISSION: Record<
   // separately inside the panel on `webhook:read`, and each write is gated on the code
   // core-be actually enforces for it (`api-key:manage` / `webhook:manage`). This section
   // gate stays on `api-key:read` because the codes travel separately — holding one is not
-  // holding the other — and because the section is also reachable from a personal
-  // workspace, where the owner holds `api-key:*` but no notify codes.
+  // holding the other. (The section is TEAM-only: `sectionsForOrgType` returns nothing for
+  // a personal workspace, and the resolver refuses organization scope there.)
   integrations: 'api-key:read',
 };
 
