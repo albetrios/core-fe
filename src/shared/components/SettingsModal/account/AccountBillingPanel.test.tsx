@@ -187,6 +187,28 @@ describe('AccountBillingPanel', () => {
     expect(screen.getByTestId('query-skeleton')).toBeInTheDocument();
   });
 
+  /*
+   * The regression this pins: billing is an ACCOUNT section, so a personal
+   * workspace reaches it — but `subscription:read` is granted to TEAM owners
+   * only, so `useSubscription` is permanently disabled there. A disabled
+   * TanStack query sits at pending + fetchStatus 'idle' for ever, and with the
+   * subscription boundary on the OUTSIDE and no `idle` branch that rendered
+   * nothing at all: the plan list, which needs no permission and was fetching
+   * fine, disappeared with it. The panel looked broken.
+   */
+  it('still renders the plans when the subscription may not be read', () => {
+    useSubscriptionMock.mockReturnValue({
+      data: undefined,
+      isPending: true,
+      isLoading: false,
+      isError: false,
+      fetchStatus: 'idle' as const,
+    });
+    renderPanel();
+    expect(screen.getByTestId('plan-options')).toBeInTheDocument();
+    expect(screen.queryByTestId('query-skeleton')).not.toBeInTheDocument();
+  });
+
   it('renders the current plan summary and plan options', () => {
     useSubscriptionMock.mockReturnValue({
       data: SUB,

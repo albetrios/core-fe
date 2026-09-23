@@ -13,11 +13,8 @@ import { EmptyState } from '@/shared/components/EmptyState/index.ts';
 import { PanelSkeleton } from '@/shared/components/PanelSkeleton/index.ts';
 import { RetryError } from '@/shared/components/RetryError/index.ts';
 import {
-  formatSettingsBreadcrumb,
-  SETTINGS_GROUP_LABEL_KEYS,
   SETTINGS_KEYS,
   SETTINGS_NS,
-  SETTINGS_SECTION_LABEL_KEYS,
 } from '@/shared/components/SettingsModal/settings.constants.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
 import { Badge } from '@/shared/components/ui/badge.tsx';
@@ -232,19 +229,11 @@ export function OrganizationRolesPanel() {
   const [toEdit, setToEdit] = useState<RoleSummary | null>(null);
 
   const panels = SETTINGS_KEYS.panels.roles;
-  const breadcrumb = formatSettingsBreadcrumb(
-    t(SETTINGS_GROUP_LABEL_KEYS.organization),
-    t(SETTINGS_SECTION_LABEL_KEYS.roles),
-  );
   const isSearching = debouncedSearch.length > 0;
 
   return (
     <section className="space-y-6" data-testid="settings-organization-roles">
-      <SectionHeader
-        breadcrumb={breadcrumb}
-        title={t(panels.title)}
-        description={t(panels.description)}
-      />
+      <SectionHeader title={t(panels.title)} description={t(panels.description)} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <OrgListControls

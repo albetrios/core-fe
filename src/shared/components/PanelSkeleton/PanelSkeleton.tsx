@@ -2,10 +2,11 @@ import { useTranslation } from 'react-i18next';
 
 import { LOCALE_KEYS, LOCALE_NS } from '@/lib/i18n/locale.constants.ts';
 import { cn } from '@/lib/utils.ts';
+import { Card } from '@/shared/components/ui/card.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 
-/** How many bars a wait draws. Three reads as "a list is coming" without implying a length. */
-const BAR_KEYS = ['first', 'second', 'third'] as const;
+/** How many rows a wait draws. Three reads as "a list is coming" without implying a length. */
+const ROW_KEYS = ['first', 'second', 'third'] as const;
 
 /**
  * The one shape every wait in the app draws.
@@ -28,6 +29,11 @@ const BAR_KEYS = ['first', 'second', 'third'] as const;
  * the section header, and a screen-reader user should not have to settle for a
  * bare "Loading…" when the panel can say which one.
  *
+ * **The shape approximates the content it becomes.** Three bare bars were not
+ * wrong so much as unrecognisable: the card, the dividers and the row rhythm
+ * are what a settings panel actually looks like, so the swap to real content
+ * reads as filling in rather than replacing (the property SET-22 was protecting).
+ *
  * @param props - `name` is what is being fetched ("Members", "Billing");
  *   `testId` overrides the default for a caller whose tests already assert on
  *   its own id; `className` tunes spacing at the call site.
@@ -44,15 +50,26 @@ export function PanelSkeleton({
   const { t } = useTranslation(LOCALE_NS);
   return (
     <div
-      className={cn('flex flex-col gap-3', className)}
+      className={cn('flex flex-col gap-2', className)}
       data-testid={testId ?? 'panel-skeleton'}
     >
       <output aria-live="polite" className="sr-only">
         {name ? t(LOCALE_KEYS.loadingNamed, { name }) : `${t(LOCALE_KEYS.loading)}…`}
       </output>
-      {BAR_KEYS.map((bar) => (
-        <Skeleton key={bar} className="h-14 w-full" />
-      ))}
+      <Card className="gap-0 overflow-hidden py-0" aria-hidden="true">
+        <ul className="divide-border divide-y">
+          {ROW_KEYS.map((row) => (
+            <li key={row} className="flex items-center gap-3 p-3">
+              <Skeleton className="size-5 shrink-0" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-40 max-w-[60%]" />
+                <Skeleton className="h-3 w-64 max-w-[85%]" />
+              </div>
+              <Skeleton className="h-8 w-20 shrink-0" />
+            </li>
+          ))}
+        </ul>
+      </Card>
     </div>
   );
 }
