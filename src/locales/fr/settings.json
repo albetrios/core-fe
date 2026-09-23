@@ -360,7 +360,7 @@
       "revokeTitle": "Déconnecter cette session ?",
       "revokeDescription": "{{device}} sera déconnecté immédiatement.",
       "revokeConfirm": "Se déconnecter",
-      "deviceFallback": "Cet appareil"
+      "deviceFallback": "Appareil inconnu"
     },
     "billing": {
       "title": "Facturation",

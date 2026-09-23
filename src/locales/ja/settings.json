@@ -354,7 +354,7 @@
       "revokeTitle": "このセッションからサインアウトしますか？",
       "revokeDescription": "{{device}} はただちにサインアウトされます。",
       "revokeConfirm": "サインアウト",
-      "deviceFallback": "このデバイス"
+      "deviceFallback": "不明なデバイス"
     },
     "billing": {
       "title": "請求",

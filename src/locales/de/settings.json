@@ -356,7 +356,7 @@
       "revokeTitle": "Diese Sitzung abmelden?",
       "revokeDescription": "{{device}} wird sofort abgemeldet.",
       "revokeConfirm": "Abmelden",
-      "deviceFallback": "Dieses Gerät"
+      "deviceFallback": "Unbekanntes Gerät"
     },
     "billing": {
       "title": "Abrechnung",

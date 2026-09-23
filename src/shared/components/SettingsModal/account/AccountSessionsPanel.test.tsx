@@ -88,6 +88,38 @@ describe('AccountSessionsPanel', () => {
     await waitFor(() => expect(revokeMutateAsync).toHaveBeenCalledWith('ses_other'));
   });
 
+  // A session core-be could not label: `parseUserAgent` knows seven device
+  // families and five browsers and returns null for anything else — a mobile
+  // app, an API client, curl, a headless run. The wire schema used to demand
+  // strings, and `parseListTolerant` drops what it rejects, so the row never
+  // reached this panel at all: invisible, and therefore impossible to sign out.
+  it('lists and can revoke a session whose device and browser are unknown', async () => {
+    const UNLABELLED = {
+      id: 'ses_cli',
+      device: null,
+      browser: null,
+      ipAddress: '203.0.113.9',
+      lastActiveAt: '2026-06-23T00:00:00.000Z',
+      current: false,
+    };
+    useSessionsMock.mockReturnValue({
+      data: [CURRENT, UNLABELLED],
+      isLoading: false,
+      isError: false,
+    });
+    const user = userEvent.setup();
+    render(<AccountSessionsPanel />);
+
+    // Named through the bundle, never "null" or a blank line.
+    expect(screen.getByText(copy(KEYS.deviceFallback))).toBeInTheDocument();
+    // The IP survives on its own — no dangling separator where the browser was.
+    expect(screen.getByText(/203\.0\.113\.9/)).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('session-revoke-ses_cli'));
+    await user.click(screen.getByTestId('confirm-accept'));
+    await waitFor(() => expect(revokeMutateAsync).toHaveBeenCalledWith('ses_cli'));
+  });
+
   // ── SET-20 / SET-21: a failure you can act on, an empty list you can read ──
 
   it('offers a retry when the sessions fetch fails', async () => {

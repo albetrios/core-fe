@@ -354,7 +354,7 @@
       "revokeTitle": "이 세션에서 로그아웃할까요?",
       "revokeDescription": "{{device}}에서 즉시 로그아웃됩니다.",
       "revokeConfirm": "로그아웃",
-      "deviceFallback": "이 기기"
+      "deviceFallback": "알 수 없는 기기"
     },
     "billing": {
       "title": "결제",

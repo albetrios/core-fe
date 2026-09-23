@@ -356,7 +356,7 @@
       "revokeTitle": "Sign out this session?",
       "revokeDescription": "{{device}} will be signed out immediately.",
       "revokeConfirm": "Sign out",
-      "deviceFallback": "This device"
+      "deviceFallback": "Unknown device"
     },
     "billing": {
       "title": "Billing",

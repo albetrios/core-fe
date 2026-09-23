@@ -372,7 +372,7 @@
       "revokeTitle": "تسجيل الخروج من هذه الجلسة؟",
       "revokeDescription": "سيتم تسجيل الخروج من {{device}} فورًا.",
       "revokeConfirm": "تسجيل الخروج",
-      "deviceFallback": "هذا الجهاز"
+      "deviceFallback": "جهاز غير معروف"
     },
     "billing": {
       "title": "الفوترة",

@@ -360,7 +360,7 @@
       "revokeTitle": "Disconnettere questa sessione?",
       "revokeDescription": "{{device}} verrà disconnesso immediatamente.",
       "revokeConfirm": "Esci",
-      "deviceFallback": "Questo dispositivo"
+      "deviceFallback": "Dispositivo sconosciuto"
     },
     "billing": {
       "title": "Fatturazione",

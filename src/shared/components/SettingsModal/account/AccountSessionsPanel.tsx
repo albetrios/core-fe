@@ -20,11 +20,17 @@ import { SETTINGS_KEYS, SETTINGS_NS } from '../settings.constants.ts';
  * The browser / IP half of a session row is pure data — device strings joined
  * by a separator, no grammar — so it is assembled here and handed to the
  * sentence as one value. The sentence itself lives in the locale bundle.
+ *
+ * Both halves can be absent: core-be returns a null `browser` for any agent its
+ * heuristic does not recognise. Joining the parts that exist keeps the line free
+ * of a dangling separator, and `unknownLabel` keeps it from collapsing to the
+ * empty string, which would render as a bare "· active 5 minutes ago".
  */
-function sessionDetails(session: Session): string {
-  return session.ipAddress
-    ? `${session.browser} · ${session.ipAddress}`
-    : session.browser;
+function sessionDetails(session: Session, unknownLabel: string): string {
+  const parts = [session.browser, session.ipAddress].filter((part): part is string =>
+    Boolean(part),
+  );
+  return parts.length > 0 ? parts.join(' · ') : unknownLabel;
 }
 
 /**
@@ -77,7 +83,9 @@ export function AccountSessionsPanel() {
                 <Laptop className="text-muted-foreground size-5 shrink-0" aria-hidden />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium">{session.device}</p>
+                    <p className="truncate text-sm font-medium">
+                      {session.device ?? t(panels.deviceFallback)}
+                    </p>
                     {session.current ? (
                       <Badge variant="secondary">{t(panels.currentBadge)}</Badge>
                     ) : null}
@@ -89,7 +97,9 @@ export function AccountSessionsPanel() {
                     <Trans
                       ns={SETTINGS_NS}
                       i18nKey={panels.lastActive}
-                      values={{ details: sessionDetails(session) }}
+                      values={{
+                        details: sessionDetails(session, t(panels.deviceFallback)),
+                      }}
                       components={{
                         1: <FormattedDate value={session.lastActiveAt} relative />,
                       }}
