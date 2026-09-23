@@ -59,15 +59,21 @@ new method through `AuthMethodButton` and it inherits these rules:
 - **Method-specific disables** (invalid form, resend cooldown, incomplete code) go through
   `extraDisabled` — never a second loading path.
 
-The wait is surfaced as **text** instead, by
-[`CaptchaGateNotice`](../../src/shared/forms/AuthForm/components/CaptchaGateNotice/CaptchaGateNotice.tsx),
-which reads live state from `useCaptchaGate()`: it renders nothing once a token exists (so the
-happy path is unchanged), a quiet line while the re-mint is under way, and — once the mint stalls
-past `CAPTCHA_REMINT_STALL_MS` — a `role="alert"` with a **Retry**, because a re-mint that never
-lands is otherwise a dead end. The challenge itself renders **inline** in a
-[`CaptchaSlot`](../../src/shared/auth/captcha/CaptchaSlot.tsx): each auth surface mounts one as the
-anchor the app-global invisible Turnstile portals into (most recently mounted slot wins). `AuthForm`
-mounts the notice with the method picker and `AuthEmailPanel` mounts its own for the email steps.
+The captcha resolves **on intent** rather than gating the page, through
+[`useCaptchaIntent()`](../../src/shared/auth/captcha/useCaptchaIntent/useCaptchaIntent.ts).
+A gated button is never `disabled` for the captcha's sake: `ensureToken(key)` returns `true`
+immediately when a token is already in the store — the overwhelmingly common path — and otherwise
+reveals the challenge **at the control the user actually pressed** and waits up to
+`CAPTCHA_CHALLENGE_WAIT_MS`, blocking the action with the reason on screen instead of silently.
+A timed-out wait resolves `false` and the caller declines to act.
+
+The challenge renders **inline** in a [`CaptchaSlot`](../../src/shared/auth/captcha/CaptchaSlot.tsx),
+one per gated control, which renders only while `challengeFor` matches its own key — so the
+challenge appears at that button rather than wherever a slot happened to be mounted. There is no
+page-level gate notice and no captcha error banner: a control the user cannot press, cannot hover
+for an explanation and cannot reach by keyboard — for a check they never started — was the problem
+being solved, and gating both sign-in methods on one token closed every route into the product at
+once whenever the widget was slow.
 
 Cross-method state lives in [`auth-form-pending.ts`](../../src/shared/forms/AuthForm/auth-form-pending.ts)
 (`authMethodIsLoading` / `authMethodIsDisabled` / `authEmailPanelIsBlocked`). Non-button surfaces
