@@ -62,7 +62,7 @@ it locally via `pnpm run validate:lockfile` (see `agent-os/skills/platform-hygie
 
 ## Documentation
 
-- **Engineering principles (Cursor):** `agent-os/rules/engineering-principles.mdc`
+- **Engineering principles:** `agent-os/rules/engineering-principles.mdc` (auto-applied in Cursor; the same rules bind every agent). First among them — **reuse before you create**: use the helper, hook, component, service or env var that already does the job, and create something new only when nothing fits; if an existing one is close but not right, improve it (or say in the PR why new is better) **in the same PR**, never leaving old and new side by side.
 - **Index by use case:** docs/README.md
 - **Derive a NEW product from this repo:** docs/getting-started/new-project.md — fork path, `pnpm rebrand` (a **total** rename, prose included; `core-be` and `CHANGELOG.md` excluded), `previousNames` guard, upstream sync
 - **Local setup:** docs/getting-started/setup.md

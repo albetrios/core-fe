@@ -6,9 +6,13 @@ this page is the quick reference.
 
 ## Before writing code
 
-- Understand the existing architecture ([architecture.md](architecture.md)) and
-  reuse existing utilities, components, hooks, and services — do not duplicate
-  abstractions.
+- Understand the existing architecture ([architecture.md](architecture.md)).
+- **Reuse before you create.** Search for the helper, hook, component, service,
+  env var or pattern that already does the job and use it; create something new
+  only when nothing fits. If an existing one is close but not right, improve it —
+  or say in the PR why new is better — **in the same PR**, never leaving old and
+  new side by side. Detail and examples in the
+  [always-applied rule](../rules/engineering-principles.mdc).
 - Keep changes minimal and focused; preserve naming and style.
 - Prefer simple over clever.
 

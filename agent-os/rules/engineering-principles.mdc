@@ -10,7 +10,9 @@ Cross-cutting guidance for all work in this repo. For **architecture, routes, fi
 ## Before Writing Code
 
 - Understand existing architecture and patterns before adding code.
-- Reuse existing utilities, components, hooks, and services — do not introduce duplicate abstractions.
+- **Reuse before you create.** Before adding a helper, hook, component, service, env var or pattern, search for the one that already does the job and use it. Create something new only when nothing existing fits.
+  - **Close but not quite right?** Improve the existing one instead of forking a parallel version — or, if new is genuinely the better design, say why in the PR description. Either way, do it **in the same PR**: never leave old and new side by side behind a "consolidate later".
+  - **Recognize the miss:** a second fetch wrapper beside `apiClient` (`@/core/http/fetch-client.ts`), or a page-local list/CRUD hook that re-implements `useList` / `useOne` / `useCreate` / `useUpdate` / `useDelete` (`src/shared/hooks/`), is the parallel-version smell — as is any duplicate abstraction.
 - Keep changes minimal and focused; preserve naming and style consistency.
 - Prefer simple solutions over clever ones.
 
