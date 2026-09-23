@@ -43,6 +43,7 @@ import { useDeploymentMode } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useCurrentPlan } from '@/shared/hooks/useSubscription/index.ts';
 import { Boxes, Building, ShieldCheck, Zap } from '@/shared/icons/index.ts';
 import type { MeContext, OrganizationSummary } from '@/shared/tenancy/me-context.ts';
+import { useMyOrganizationSummaries } from '@/shared/tenancy/my-organization-summaries.ts';
 
 import { DASHBOARD_KEYS, DASHBOARD_NS } from './dashboard.constants.ts';
 import { buildDashboardQuickActions } from './dashboard-quick-actions.ts';
@@ -120,6 +121,9 @@ export function StatsSection({
   const { t } = useTranslation(DASHBOARD_NS);
   const personalOnly = useDeploymentMode() === 'personal-only';
   const currentPlan = useCurrentPlan();
+  // The list moved out of me/context onto its own paged endpoint; an empty
+  // array while it loads shows the tile with 0 rather than blocking the row.
+  const organizations = useMyOrganizationSummaries().data ?? [];
 
   const tiles = [
     personalOnly
@@ -127,9 +131,9 @@ export function StatsSection({
       : {
           icon: Boxes,
           label: t(DASHBOARD_KEYS.stats.workspaces),
-          value: ctx.organizations.length,
+          value: organizations.length,
           hint:
-            ctx.organizations.length === 1
+            organizations.length === 1
               ? t(DASHBOARD_KEYS.stats.workspacesHintOne)
               : t(DASHBOARD_KEYS.stats.workspacesHintMany),
           testId: 'dashboard-stat-workspaces',
@@ -524,9 +528,10 @@ export function ThemePanel() {
 }
 
 /** Org-switcher card grid; renders nothing with fewer than two organizations. */
-export function OrgsPanel({ ctx }: { ctx: MeContext }) {
+export function OrgsPanel() {
   const { t } = useTranslation(DASHBOARD_NS);
-  if (ctx.organizations.length <= 1) return null;
+  const organizations = useMyOrganizationSummaries().data ?? [];
+  if (organizations.length <= 1) return null;
 
   return (
     <SectionErrorBoundary
@@ -539,7 +544,7 @@ export function OrgsPanel({ ctx }: { ctx: MeContext }) {
       >
         <SectionHeading title={t(DASHBOARD_KEYS.organizations.heading)} />
         <div className={autoFitCardsGrid}>
-          {ctx.organizations.map((o) => (
+          {organizations.map((o) => (
             <Card key={o.id} className="gap-0 py-0" data-testid="dashboard-org-item">
               <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 py-3">
                 <CardTitle className="truncate text-sm">{o.name}</CardTitle>

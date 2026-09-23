@@ -57,7 +57,6 @@ export const meContextWire = z.object({
   // codes the FE enum may not yet know (RBAC matches by string membership).
   my_permissions: z.array(z.string()),
   global_role: z.enum(['super_admin', 'user']).nullable(),
-  organizations: z.array(organizationWire.extend({ is_active: z.boolean() })),
 });
 export type MeContextWire = z.infer<typeof meContextWire>;
 
@@ -98,7 +97,6 @@ export interface MeContext {
   activeOrganization: OrganizationSummary | null;
   myPermissions: string[];
   globalRole: GlobalRole | null;
-  organizations: Array<OrganizationSummary & { isActive: boolean }>;
   /** Deployment-wide toggles (personal / team orgs enabled for this install). */
   deploymentFlags: DeploymentFlags;
   /** User's personal workspace id when personal orgs are enabled. */
@@ -146,10 +144,6 @@ export function toMeContext(wire: MeContextWire): MeContext {
       : null,
     myPermissions: wire.my_permissions,
     globalRole: wire.global_role,
-    organizations: wire.organizations.map((o) => ({
-      ...toOrganization(o),
-      isActive: o.is_active,
-    })),
     deploymentFlags,
     personalOrganizationId: wire.user.personal_organization_id ?? null,
   };

@@ -5,7 +5,8 @@ import { useRef, useState } from 'react';
 import { mapApiError, reportError } from '@/shared/errors/errorHandler.ts';
 import { Building, Check, User } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
-import type { MeContext, OrganizationSummary } from '@/shared/tenancy/me-context.ts';
+import type { OrganizationSummary } from '@/shared/tenancy/me-context.ts';
+import { useMyOrganizationSummaries } from '@/shared/tenancy/my-organization-summaries.ts';
 import { switchToPersonal } from '@/shared/tenancy/switch.ts';
 
 import { CommandItem } from './CommandPaletteItem.tsx';
@@ -14,7 +15,6 @@ import { CommandItem } from './CommandPaletteItem.tsx';
 export const PALETTE_SWITCH_TOAST_ID = 'command-palette-switch-failed';
 
 interface CommandPaletteOrgGroupProps {
-  meContext: MeContext;
   heading: string;
   currentOrganizationLabel: (name: string) => string;
   switchOrganizationLabel: (name: string) => string;
@@ -27,7 +27,6 @@ interface CommandPaletteOrgGroupProps {
 
 /** Organization switcher entries for the command palette. */
 export function CommandPaletteOrgGroup({
-  meContext,
   heading,
   currentOrganizationLabel,
   switchOrganizationLabel,
@@ -37,12 +36,13 @@ export function CommandPaletteOrgGroup({
 }: CommandPaletteOrgGroupProps) {
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const switchingRef = useRef(false);
+  const organizations = useMyOrganizationSummaries().data ?? [];
 
   // A personal workspace has no slug — it is reached at the root `/dashboard`,
   // not `/organization/<slug>/dashboard`. The old `.filter((org) => org.slug)`
   // therefore dropped it silently: the one workspace a user cannot navigate to
   // by URL was the one the palette would not list (SHELL-12).
-  const entries = meContext.organizations.filter((org) =>
+  const entries = organizations.filter((org) =>
     org.type === 'PERSONAL' ? personalOrganizationsEnabled : Boolean(org.slug),
   );
 

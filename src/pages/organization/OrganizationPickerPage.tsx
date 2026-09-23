@@ -12,7 +12,10 @@ import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
 import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { AlertCircle, Building, ChevronRight, Plus } from '@/shared/icons/index.ts';
-import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
+import {
+  myOrganizationsQueryKey,
+  type MyOrganizationSummary,
+} from '@/shared/tenancy/my-organization-summaries.ts';
 import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
 
 /**
@@ -35,18 +38,20 @@ function OrganizationList() {
     // The picker renders its own error card with a retry for this failure.
     notifyOnError: false,
     /*
-     * The `/` resolver already fetched `me/context` to decide the user belongs
-     * here, and that payload carries the same organizations. Seeding from it
-     * means a warm arrival renders the real list on the FIRST paint instead of
-     * flashing two skeletons for the length of a 40ms cached response (PICK-2).
-     * Placeholder data is not cached, so the real fetch still runs and replaces
-     * this the moment it lands.
+     * The guard chain that decided the user belongs here already resolved their
+     * organization list, so seeding from that cache renders the real list on the
+     * FIRST paint instead of flashing two skeletons for the length of a 40ms
+     * cached response (PICK-2). Placeholder data is not cached, so the real
+     * fetch still runs and replaces this the moment it lands.
+     *
+     * Read off the list's OWN cache rather than me/context: the list no longer
+     * rides along with the context.
      */
     placeholderData: () =>
       queryClient
-        .getQueryData<MeContext>(meContextQueryKey)
-        ?.organizations // A personal org has no slug, so it has no row to link to.
-        .filter((org) => org.slug !== null)
+        .getQueryData<MyOrganizationSummary[]>(myOrganizationsQueryKey)
+        // A personal org has no slug, so it has no row to link to.
+        ?.filter((org) => org.slug !== null)
         .map((org) => ({
           id: org.id,
           name: org.name,

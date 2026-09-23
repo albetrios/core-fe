@@ -172,7 +172,6 @@ export function CommandPaletteContent() {
 
         {meContext ? (
           <CommandPaletteOrgGroup
-            meContext={meContext}
             personalOrganizationsEnabled={deploymentFlags.personalOrganizations}
             heading={t(cp.groups.organizations)}
             currentOrganizationLabel={(name) => t(cp.currentOrganization, { name })}

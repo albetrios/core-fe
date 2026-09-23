@@ -156,7 +156,7 @@ export function DashboardBento({ ctx, isTeam, personalOnly, hero }: DashboardVie
               <HighlightsSection />
             </div>
             <div className={full}>
-              <OrgsPanel ctx={ctx} />
+              <OrgsPanel />
             </div>
           </>
         ) : null}

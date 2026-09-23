@@ -6,20 +6,9 @@ import {
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import { type MeContext, meContextQueryKey } from './me-context.ts';
+import { ensureMyOrganizationSummaries } from './my-organization-summaries.ts';
 import type { Organization } from './my-organizations.ts';
 import { listMyOrganizations, organizationSchema } from './my-organizations.ts';
-
-function organizationFromMeContext(ctx: MeContext, slug: string): Organization | null {
-  const summary = ctx.organizations.find((o) => o.slug === slug);
-  if (!summary?.slug) return null;
-  return organizationSchema.parse({
-    id: summary.id,
-    name: summary.name,
-    slug: summary.slug,
-    status: summary.status === 'SUSPENDED' ? 'suspended' : 'active',
-    logoUrl: summary.logoUrl,
-  });
-}
 
 /**
  * Membership + per-organization permission loading.
@@ -52,21 +41,22 @@ export async function findMembership(
  * non-member slug resolves to `null` → 404, identical to an unknown slug.
  */
 export async function findMembershipBySlug(slug: string): Promise<Organization | null> {
-  // Cache-first: the org guard chain runs requireProvisionedWorkspace →
-  // hydrateSessionContext() (which setQueryData's me/context) BEFORE this, so the
-  // cache is warm and carries the org list — resolve from it without a second
-  // network call. INVARIANT: relies on me/context being fetched first; if a future
-  // route skips that, we fall back to the network below (no bug, just no speedup).
-  const ctx = queryClient.getQueryData<MeContext>(meContextQueryKey);
-  if (ctx) {
-    const fromContext = organizationFromMeContext(ctx, slug);
-    if (fromContext) return fromContext;
-  }
-
-  // Fallback on cache miss only — never 404 a real member just because me/context
-  // didn't list the slug; the list call is the authoritative membership source.
-  const organizations = await listMyOrganizations();
-  return organizations.find((o) => o.slug === slug) ?? null;
+  // Cache-first, but off the LIST's own cache rather than me/context: the list
+  // no longer rides along with the context, and this runs on every
+  // organization-route navigation, so it must not refetch each time.
+  // `ensureMyOrganizationSummaries` serves the cached list and only goes to the
+  // network on a miss — the speedup the old me/context fast path was for, now
+  // without depending on another query having been fetched first.
+  const organizations = await ensureMyOrganizationSummaries();
+  const match = organizations.find((o) => o.slug === slug);
+  if (!match?.slug) return null;
+  return organizationSchema.parse({
+    id: match.id,
+    name: match.name,
+    slug: match.slug,
+    status: match.status === 'SUSPENDED' ? 'suspended' : 'active',
+    logoUrl: match.logoUrl,
+  });
 }
 
 let permissionsLoadedFor: string | null = null;

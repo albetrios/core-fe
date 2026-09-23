@@ -28,6 +28,7 @@ import {
   shouldShowOrganizationSwitcher,
 } from '@/shared/tenancy/deployment-mode.ts';
 import type { OrganizationSummary } from '@/shared/tenancy/me-context.ts';
+import { useMyOrganizationSummaries } from '@/shared/tenancy/my-organization-summaries.ts';
 import { switchToPersonal } from '@/shared/tenancy/switch.ts';
 
 interface OrganizationSwitcherProps {
@@ -200,7 +201,7 @@ export function OrganizationSwitcher({
   const showPersonalSection = deploymentFlags.personalOrganizations;
   const showCreateTeam = shouldAllowCreateTeam(deploymentFlags);
 
-  const orgs = ctx?.organizations ?? [];
+  const orgs = useMyOrganizationSummaries().data ?? [];
   const personalOrgs = showPersonalSection
     ? orgs.filter((o) => o.type === 'PERSONAL')
     : [];

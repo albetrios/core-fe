@@ -78,7 +78,7 @@ export function DashboardClassic({
 
       <AiCardSection />
 
-      {!personalOnly ? <OrgsPanel ctx={ctx} /> : null}
+      {!personalOnly ? <OrgsPanel /> : null}
     </div>
   );
 }

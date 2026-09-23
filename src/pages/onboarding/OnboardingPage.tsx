@@ -33,7 +33,11 @@ import { notify } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
-import type { MeContext } from '@/shared/tenancy/me-context.ts';
+import type { MeContext, OrganizationType } from '@/shared/tenancy/me-context.ts';
+import {
+  fetchMyOrganizationSummaries,
+  useMyOrganizationSummaries,
+} from '@/shared/tenancy/my-organization-summaries.ts';
 import {
   createOrganization,
   listMyOrganizations,
@@ -281,7 +285,7 @@ function isOnboardingDirty(input: {
 async function activateWorkspaceAfterOnboardingFinish(input: {
   organizationId: string | null;
   personalOrganizationId: string | null;
-  organizations: MeContext['organizations'];
+  organizations: readonly { id: string; type: OrganizationType; status: string }[];
 }): Promise<MeContext | undefined> {
   if (input.organizationId) {
     return switchToOrganization(input.organizationId);
@@ -624,8 +628,19 @@ export function OnboardingPage() {
    * we already know is out of date. Wizard progress lives in localStorage, so
    * gating here costs the user nothing but a retry.
    */
+  /*
+   * The step list depends on whether the user already has a TEAM organization,
+   * which now comes from `GET /users/me/organizations` rather than being embedded
+   * in me/context — so the flow cannot be derived until BOTH have landed. Folded
+   * into the same gate the context already had, so a slow or failed list shows
+   * the existing wait-and-retry screen instead of a silently shorter wizard
+   * (the ONB-9 failure this gate exists to prevent).
+   */
+  const organizationsQuery = useMyOrganizationSummaries();
   const contextReady =
-    !(meContextQuery.isPending || meContextQuery.isError) && Boolean(meContext);
+    !(meContextQuery.isPending || meContextQuery.isError) &&
+    Boolean(meContext) &&
+    !(organizationsQuery.isPending || organizationsQuery.isError);
   /*
    * The same fact as `contextReady`, but as a VALUE the type system can narrow.
    * `deriveOnboardingSteps` and `shouldCreateOrganizationOnFinish` now demand a
@@ -638,7 +653,7 @@ export function OnboardingPage() {
   const deploymentFlags = useDeploymentFlags();
   // Derived ONLY from a loaded context — never from the permissive fallback.
   const effectiveSteps = loadedContext
-    ? deriveOnboardingSteps(deploymentFlags, loadedContext)
+    ? deriveOnboardingSteps(deploymentFlags, organizationsQuery.data ?? [])
     : EMPTY_STEPS;
   const [submitting, setSubmitting] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
@@ -818,7 +833,7 @@ export function OnboardingPage() {
     try {
       const needsCreate = shouldCreateOrganizationOnFinish(
         deploymentFlags,
-        loadedContext,
+        organizationsQuery.data ?? [],
       );
       const { organizationId } = await resolveOrganizationForFinish({
         needsCreate,
@@ -864,7 +879,9 @@ export function OnboardingPage() {
       const activatedContext = await activateWorkspaceAfterOnboardingFinish({
         organizationId,
         personalOrganizationId: refreshedContext.personalOrganizationId,
-        organizations: refreshedContext.organizations,
+        // FRESH, not the cached list: onboarding may have just created the very
+        // organization we are about to activate, so a cached read would miss it.
+        organizations: await fetchMyOrganizationSummaries(),
       });
 
       // Invites go out AFTER activation: they are scoped by the active-org token
