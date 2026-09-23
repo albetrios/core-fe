@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import type { MeContext } from '@/shared/tenancy/me-context.ts';
-
 import {
   deriveOnboardingSteps,
   shouldCreateOrganizationOnFinish,

@@ -6,7 +6,12 @@ import {
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import { type MeContext, meContextQueryKey } from './me-context.ts';
-import { ensureMyOrganizationSummaries } from './my-organization-summaries.ts';
+import {
+  ensureMyOrganizationSummaries,
+  fetchMyOrganizationSummaries,
+  myOrganizationsQueryKey,
+  type MyOrganizationSummary,
+} from './my-organization-summaries.ts';
 import type { Organization } from './my-organizations.ts';
 import { listMyOrganizations, organizationSchema } from './my-organizations.ts';
 
@@ -41,22 +46,35 @@ export async function findMembership(
  * non-member slug resolves to `null` → 404, identical to an unknown slug.
  */
 export async function findMembershipBySlug(slug: string): Promise<Organization | null> {
-  // Cache-first, but off the LIST's own cache rather than me/context: the list
-  // no longer rides along with the context, and this runs on every
-  // organization-route navigation, so it must not refetch each time.
-  // `ensureMyOrganizationSummaries` serves the cached list and only goes to the
-  // network on a miss — the speedup the old me/context fast path was for, now
-  // without depending on another query having been fetched first.
-  const organizations = await ensureMyOrganizationSummaries();
-  const match = organizations.find((o) => o.slug === slug);
-  if (!match?.slug) return null;
-  return organizationSchema.parse({
-    id: match.id,
-    name: match.name,
-    slug: match.slug,
-    status: match.status === 'SUSPENDED' ? 'suspended' : 'active',
-    logoUrl: match.logoUrl,
-  });
+  const toOrganization = (row: MyOrganizationSummary): Organization | null =>
+    row.slug
+      ? organizationSchema.parse({
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          status: row.status === 'SUSPENDED' ? 'suspended' : 'active',
+          logoUrl: row.logoUrl,
+        })
+      : null;
+
+  // Cache-first: this runs on every organization-route navigation, so it must
+  // not refetch each time. `ensureMyOrganizationSummaries` serves the cached
+  // list and goes to the network only on a miss.
+  const cached = await ensureMyOrganizationSummaries();
+  const fromCache = cached.find((o) => o.slug === slug);
+  if (fromCache) return toOrganization(fromCache);
+
+  /*
+   * A cache MISS is not proof of non-membership. The list this user just joined
+   * — or the workspace onboarding created seconds ago — may not be in a list we
+   * fetched before it existed. Never 404 a real member on a stale cache: refetch
+   * once and let the fresh answer decide. Only then is `null` the truth, and the
+   * route renders a 404 identical to an unknown slug (existence is never leaked).
+   */
+  const fresh = await fetchMyOrganizationSummaries();
+  queryClient.setQueryData(myOrganizationsQueryKey, fresh);
+  const fromFresh = fresh.find((o) => o.slug === slug);
+  return fromFresh ? toOrganization(fromFresh) : null;
 }
 
 let permissionsLoadedFor: string | null = null;

@@ -39,8 +39,8 @@ export async function fetchMyOrganizationSummaries(): Promise<MyOrganizationSumm
     organizationWire,
     'organizations',
   );
-  const activeId = queryClient.getQueryData<MeContext>(meContextQueryKey)?.activeOrganization
-    ?.id;
+  const activeId =
+    queryClient.getQueryData<MeContext>(meContextQueryKey)?.activeOrganization?.id;
   return rows.map((row) => ({ ...toOrganization(row), isActive: row.id === activeId }));
 }
 

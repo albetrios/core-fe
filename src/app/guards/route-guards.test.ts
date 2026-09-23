@@ -5,6 +5,7 @@ import { queryClient } from '@/core/http/queryClient.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
+import type * as MyOrganizationSummariesModule from '@/shared/tenancy/my-organization-summaries.ts';
 import type * as MyOrganizationsModule from '@/shared/tenancy/my-organizations.ts';
 import { resetPermissionCacheForTests } from '@/shared/tenancy/organization-membership.ts';
 
@@ -40,6 +41,38 @@ vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
     listMyOrganizations: vi
       .fn()
       .mockResolvedValue([{ id: 'org_acme', name: 'Acme Inc.', slug: 'acme' }]),
+  };
+});
+
+/*
+ * The guard chain resolves the caller's organizations from
+ * `GET /users/me/organizations` now — not from a list embedded in me/context,
+ * which was capped at the default page size and silently truncated anyone in
+ * more than 25 organizations. Both legs are stubbed: `ensure*` calls `fetch*`
+ * inside its own module, so mocking only the export would never intercept it.
+ */
+// `vi.hoisted`, because a `vi.mock` factory is hoisted above any top-level const.
+const { ORG_ROWS } = vi.hoisted(() => ({
+  ORG_ROWS: [
+    {
+      id: 'org_acme',
+      name: 'Acme Inc.',
+      slug: 'acme',
+      type: 'TEAM' as const,
+      status: 'ACTIVE' as const,
+      logoUrl: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      isActive: true,
+    },
+  ],
+}));
+vi.mock('@/shared/tenancy/my-organization-summaries.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof MyOrganizationSummariesModule>();
+  return {
+    ...actual,
+    ensureMyOrganizationSummaries: vi.fn().mockResolvedValue(ORG_ROWS),
+    fetchMyOrganizationSummaries: vi.fn().mockResolvedValue(ORG_ROWS),
   };
 });
 
