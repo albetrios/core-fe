@@ -82,9 +82,15 @@ Module keys must match `docs/reference/frontend-platform.md` catalog (`billing`,
 
 | API                             | When                                                               |
 | ------------------------------- | ------------------------------------------------------------------ |
-| `hydrateSessionContext()`       | After token refresh / boot — seeds React Query + derived org store |
-| `invalidateSessionContext()`    | Logout, forced refresh                                             |
-| `invalidateMembershipContext()` | Org switch — session + per-org permission cache                    |
+| `hydrateSessionContext()`    | After token refresh / boot — seeds React Query + derived org store  |
+| `ensureSessionContext()`     | Guards and the `/` resolver — cached context, fetched once if absent |
+| `invalidateSessionContext()` | Logout, forced refresh                                              |
+
+Switching organization goes through `switchToOrganization()` (`shared/tenancy/switch.ts`), which
+re-mints the token and updates the `me/context` and organization-list caches **in place** with
+`setQueryData`. It deliberately purges **nothing**: every organization-scoped query key carries the
+active organization id, so two tenants can never share a cache entry, and switching back to a
+recently-visited organization is served instantly. Do not re-add a `removeQueries` purge.
 
 Auth bootstrap (`shared/auth/service.ts`) calls `hydrateSessionContext()` after refresh.
 Guards and `/` resolver share the same helper — do not fork a second `me/context` path.
