@@ -210,9 +210,8 @@ export function preloadBootRoutes(hint: { likelySignedIn: boolean }): void {
  * - **Why:** {@link preloadBootRoutes} runs once, at boot, and a first-time
  *   visitor has no session hint — so it warms the PUBLIC side and the signed-in
  *   shell is not fetched until after the post-login navigation has already
- *   happened. Measured at 100ms RTT, those chunks started downloading at 554ms,
- *   on the far side of the login round trip, with the user already committed and
- *   watching a transition.
+ *   happened — on the far side of the login exchange, with the user already
+ *   committed and watching a transition.
  * - **When:** the moment the visitor submits an email — a declaration of intent
  *   to sign in. They then spend seconds finding a six-digit code in their inbox,
  *   which is otherwise dead air on a warm connection.

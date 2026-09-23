@@ -93,19 +93,21 @@ export const webhookEventCatalogWireSchema = z.object({
 /** One `{ event, description }` entry as the catalog route returns it. */
 export type WebhookEventCatalogEntry = z.infer<typeof webhookEventCatalogWireSchema>;
 
-/**
- * Delivery outcome as core-be records it on `notify.webhook_delivery_attempts.status`.
- *
- * Not exported: the union widens to `string` so an unrecognised status still round-trips,
- * which means consumers gain nothing from the named alias over the field's own type.
- */
-type WebhookDeliveryStatus = 'PENDING' | 'SENT' | 'FAILED' | string;
-
 /** One row of a webhook's delivery history. */
 export type WebhookDeliveryAttempt = {
   eventType: string;
   eventKey: string | null;
-  status: WebhookDeliveryStatus;
+  /**
+   * Delivery outcome as core-be records it on
+   * `notify.webhook_delivery_attempts.status`. Known values: `PENDING`, `SENT`,
+   * `FAILED`.
+   *
+   * Typed `string`, not that union: an unrecognised status must still round-trip
+   * rather than fail to parse, and a `| string` member collapses the union to
+   * `string` anyway — so the literals constrained nothing while reading as though
+   * they did. They belong in this doc, where they inform without misleading.
+   */
+  status: string;
   httpStatusCode: number | null;
   sentAt: string | null;
   attemptCount: number;
