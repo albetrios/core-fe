@@ -12,16 +12,15 @@ import {
   useWebhooks,
 } from './useWebhooks.ts';
 
-const { listMock, createMock, deleteMock, updateMock, testMock, attemptsMock } = vi.hoisted(
-  () => ({
+const { listMock, createMock, deleteMock, updateMock, testMock, attemptsMock } =
+  vi.hoisted(() => ({
     listMock: vi.fn(),
     createMock: vi.fn(),
     deleteMock: vi.fn(),
     updateMock: vi.fn(),
     testMock: vi.fn(),
     attemptsMock: vi.fn(),
-  }),
-);
+  }));
 vi.mock('@/shared/api/webhooks-api.ts', () => ({
   listWebhooks: listMock,
   createWebhook: createMock,
