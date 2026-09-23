@@ -216,9 +216,20 @@ export function AuthForm() {
       if (!isSafeExternalHttpsUrl(url)) {
         throw new Error('Unsafe OAuth redirect URL');
       }
-      window.location.assign(url);
       /*
-       * `assign` resolves nothing and throws nothing when the navigation never
+       * REPLACE, not assign. `assign` pushed a history entry, leaving /login
+       * behind the provider's pages; once sign-in completed, the callback and
+       * the `/` resolver both replace themselves, so /login was the only entry
+       * of ours still sitting under the dashboard — Back from a fresh sign-in
+       * walked into it. Replacing hands this entry to the provider instead, and
+       * when the provider completes on HTTP redirects (a returning user, one
+       * signed-in account) the whole sign-in leaves no entry at all. A provider
+       * page the user actually clicks through — an account chooser, a first
+       * consent — is the provider's own entry, and no page code can remove it.
+       */
+      window.location.replace(url);
+      /*
+       * `replace` resolves nothing and throws nothing when the navigation never
        * happens — a popup/redirect blocker, an extension, or a deferred nav all
        * look identical to success from here. Without this the form stayed
        * disabled behind a spinner with no way back (LOGIN-10).

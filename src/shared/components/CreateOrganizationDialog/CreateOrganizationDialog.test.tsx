@@ -76,10 +76,13 @@ describe('CreateOrganizationDialog', () => {
         expect.objectContaining({
           to: '/organization/$organizationSlug/dashboard',
           params: { organizationSlug: 'new-org' },
-          replace: true,
         }),
       );
     });
+    // A push, not a replace: created from inside an organization, a replace
+    // overwrote that organization's history entry, so Back from the new one
+    // skipped past the organization the user had been in.
+    expect(navigateMock.mock.calls.at(-1)?.[0]).not.toHaveProperty('replace', true);
   });
 
   /**
