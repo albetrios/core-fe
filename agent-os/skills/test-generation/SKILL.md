@@ -220,7 +220,7 @@ vi.mock('@/core/http/fetch-client.ts', () => ({
 
 describe('someFunction', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('handles the happy path', () => {
@@ -286,7 +286,7 @@ const createWrapper = () => {
 
 describe('useHookName', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('starts in loading state', () => {

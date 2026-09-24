@@ -18,6 +18,7 @@ Single reference for **every test kind** in this repo: where it lives, how to ru
 - Colocated beside source: `Component.tsx` → `Component.test.tsx`
 - jsdom — no browser, no HTTP server
 - Stub with `vi.mock()` (API modules, hooks, `dataProvider`, router)
+- Reset mocks in `beforeEach` with `vi.resetAllMocks()`, never `vi.clearAllMocks()` (ESLint rejects it): clearing keeps whatever implementation a test installed, so it leaks into every later test. Give each mock its default as `vi.fn(impl)`, because a reset restores that, while a bare `vi.fn()` resets to returning `undefined`
 - `renderWithProviders` from `tests/utils/`
 - `vitest-axe` required on components (`toHaveNoViolations()`)
 
