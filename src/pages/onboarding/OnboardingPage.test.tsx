@@ -606,6 +606,39 @@ describe('OnboardingPage', () => {
     );
   });
 
+  // The same hazard caught earlier, on mount: a stored created-org id whose
+  // organization the user no longer belongs to is forgotten before anything can
+  // navigate to its slug.
+  it('forgets a stored created organization the user no longer belongs to', async () => {
+    const store = useOnboardingStore.getState();
+    store.claimForUser(SESSION_USER_ID);
+    store.setCreatedOrganizationId('org_gone');
+    store.setCreatedOrganizationSlug('gone');
+    renderWithProviders(<OnboardingPage />);
+
+    await waitFor(() =>
+      expect(useOnboardingStore.getState().createdOrganizationId).toBeNull(),
+    );
+    expect(useOnboardingStore.getState().createdOrganizationSlug).toBeNull();
+  });
+
+  it('keeps a stored created organization the user still belongs to', async () => {
+    fetchSummaries.mockResolvedValue([teamOrg('acme')]);
+    const store = useOnboardingStore.getState();
+    store.claimForUser(SESSION_USER_ID);
+    store.setCreatedOrganizationId('org_acme');
+    store.setCreatedOrganizationSlug('acme');
+    renderWithProviders(<OnboardingPage />);
+
+    await waitFor(() => expect(fetchSummaries).toHaveBeenCalled());
+    // Let the membership check settle before asserting it changed nothing.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(useOnboardingStore.getState().createdOrganizationId).toBe('org_acme');
+    expect(useOnboardingStore.getState().createdOrganizationSlug).toBe('acme');
+  });
+
   it('still finishes when an invite fails (best-effort, no trap)', async () => {
     const user = userEvent.setup();
     inviteMember.mockRejectedValueOnce(new Error('bad invite'));
@@ -1236,6 +1269,7 @@ describe('OnboardingPage', () => {
   // step list shrank, so the indicator marked every dot done with none current,
   // `aria-current="step"` vanished, and the first Back click was a no-op.
   it('clamps a stale persisted step index for the indicator and Back', async () => {
+    const user = userEvent.setup();
     const store = useOnboardingStore.getState();
     store.claimForUser('usr_clamp');
     store.setStepIndex(99); // far past the end of any step list
@@ -1247,6 +1281,23 @@ describe('OnboardingPage', () => {
     await waitFor(() =>
       expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1),
     );
+
+    // The first Back click moves: one step back from the clamped last step
+    // (welcome/profile/questions/workspace/INVITE/done), not a no-op from 99.
+    await user.click(screen.getByTestId('onboarding-back'));
+    expect(useOnboardingStore.getState().stepIndex).toBe(4);
+  });
+
+  it('moves forward on Continue and back on Back', async () => {
+    const user = userEvent.setup();
+    useOnboardingStore.getState().claimForUser(SESSION_USER_ID);
+    renderWithProviders(<OnboardingPage />);
+
+    await user.click(await screen.findByTestId('onboarding-next'));
+    expect(useOnboardingStore.getState().stepIndex).toBe(1);
+
+    await user.click(screen.getByTestId('onboarding-back'));
+    expect(useOnboardingStore.getState().stepIndex).toBe(0);
   });
 
   // Regression (ONB-6): the slug was free text with a live URL preview and no
