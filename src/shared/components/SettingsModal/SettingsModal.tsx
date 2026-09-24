@@ -99,11 +99,12 @@ const SETTINGS_DIALOG_CLASS =
   'sm:h-[640px] sm:max-h-[85vh] sm:w-[calc(100%-2rem)] sm:max-w-[960px] sm:rounded-lg ' +
   '3xl:h-[760px] 3xl:max-w-[1120px]';
 
-function SettingsModalBody() {
-  const { t } = useTranslation(SETTINGS_NS);
-  // The shell stays mounted while panels load or change sections.
-  const enterProps = useEnterAnimationProps();
-  const dirtyCtx = useSettingsDirty();
+/**
+ * Which settings section to show, and which nav groups exist yet: derived from the URL hash, the
+ * session, the active organization, and whether me/context and the permission set have answered.
+ * Also keeps the hash canonical and reports each section view.
+ */
+function useSettingsSection() {
   const hash = useRouterState({ select: (s) => s.location.hash });
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
@@ -135,12 +136,6 @@ function SettingsModalBody() {
   const contextReady = !meContext.isPending && (accessResolved || !meContext.data);
   const deploymentFlags = useDeploymentFlags();
   const navigate = useNavigate();
-  const router = useRouter();
-  // Drives the top scroll-shadow on the content panel (elevates the header bar
-  // once the user scrolls down past the top).
-  const [scrolled, setScrolled] = useState(false);
-  const [discardOpen, setDiscardOpen] = useState(false);
-  const pendingActionRef = useRef<(() => void) | null>(null);
 
   const parsed = isAuthenticated ? parseSettingsHash(hash) : null;
   const hasOrganizationContext =
@@ -194,13 +189,17 @@ function SettingsModalBody() {
     }
   }, [scope, section]);
 
-  const close = useCallback(() => {
-    if (router.history.length > 1) {
-      router.history.back();
-    } else {
-      void navigate({ to: '.', hash: '', search: (prev) => prev, replace: true });
-    }
-  }, [navigate, router]);
+  return { active, readyGroups, contextReady };
+}
+
+/**
+ * The unsaved-changes guard: runs an action straight away, or — while a panel is dirty — parks
+ * it behind the discard confirmation until the user leaves or stays.
+ */
+function useDiscardGuard() {
+  const dirtyCtx = useSettingsDirty();
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const pendingActionRef = useRef<(() => void) | null>(null);
 
   const runOrConfirmDiscard = useCallback(
     (action: () => void) => {
@@ -213,6 +212,131 @@ function SettingsModalBody() {
     },
     [dirtyCtx?.isDirty],
   );
+
+  const confirmDiscard = () => {
+    const action = pendingActionRef.current;
+    pendingActionRef.current = null;
+    setDiscardOpen(false);
+    action?.();
+  };
+
+  return { discardOpen, setDiscardOpen, runOrConfirmDiscard, confirmDiscard };
+}
+
+/**
+ * Mobile section picker — the sidebar is hidden below sm. `ps-4` is
+ * the content pane's gutter, so the picker and the fields under it
+ * share a left edge.
+ *
+ * `pe-14` reserves room for the dialog's close button, which is
+ * now pinned on the logical end too (`ui/dialog.tsx`) — so the two
+ * mirror together. They did not: the button was physical
+ * (`right-4`) while this inset was logical, which put them on
+ * opposite sides in Arabic and Hebrew and ran the picker under the
+ * X. Fixed in the primitive rather than here, because every dialog
+ * had it.
+ *
+ * 14 rather than 12: the button is 32px wide inset 16px, so 48px of
+ * reservation left the picker flush against the X with nothing
+ * between them. 56px is the same 16px gutter the rest of the pane
+ * uses, and is what "feels tight" was about (QA-V3 suggestion 7).
+ */
+function MobileSectionPicker({
+  groups,
+  active,
+  onSelect,
+}: {
+  groups: ReturnType<typeof visibleSettingsNavGroups>;
+  active: SettingsSectionRef;
+  onSelect: (next: SettingsSectionRef) => void;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  return (
+    <div className="shrink-0 border-b py-3 ps-4 pe-14 sm:hidden">
+      <Select
+        value={`${active.scope}/${active.section}`}
+        onValueChange={(value) => {
+          const [scope, section] = value.split('/') as [SettingsScope, SettingsSection];
+          onSelect({ scope, section });
+        }}
+      >
+        <SelectTrigger
+          className="w-full"
+          data-testid="settings-mobile-section"
+          aria-label={t(SETTINGS_KEYS.nav.ariaSections)}
+        >
+          <SelectValue placeholder={t(SETTINGS_SECTION_LABEL_KEYS[active.section])} />
+        </SelectTrigger>
+        <SelectContent>
+          {groups
+            .flatMap((group) => group.items)
+            .map((item) => (
+              <SelectItem
+                key={`${item.scope}/${item.section}`}
+                value={`${item.scope}/${item.section}`}
+              >
+                {t(item.labelKey)}
+              </SelectItem>
+            ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+/** "Discard your changes?" — shown when a guarded action meets a dirty panel. */
+function DiscardChangesDialog({
+  open,
+  onOpenChange,
+  onLeave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onLeave: () => void;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent data-testid="settings-discard-dialog">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t(SETTINGS_KEYS.discard.title)}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t(SETTINGS_KEYS.discard.description)}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel data-testid="settings-discard-stay">
+            {t(SETTINGS_KEYS.discard.stay)}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onLeave} data-testid="settings-discard-leave">
+            {t(SETTINGS_KEYS.discard.leave)}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function SettingsModalBody() {
+  const { t } = useTranslation(SETTINGS_NS);
+  // The shell stays mounted while panels load or change sections.
+  const enterProps = useEnterAnimationProps();
+  const { active, readyGroups, contextReady } = useSettingsSection();
+  const { discardOpen, setDiscardOpen, runOrConfirmDiscard, confirmDiscard } =
+    useDiscardGuard();
+  const navigate = useNavigate();
+  const router = useRouter();
+  // Drives the top scroll-shadow on the content panel (elevates the header bar
+  // once the user scrolls down past the top).
+  const [scrolled, setScrolled] = useState(false);
+
+  const close = useCallback(() => {
+    if (router.history.length > 1) {
+      router.history.back();
+    } else {
+      void navigate({ to: '.', hash: '', search: (prev) => prev, replace: true });
+    }
+  }, [navigate, router]);
 
   if (!active) return null;
 
@@ -229,13 +353,6 @@ function SettingsModalBody() {
         replace: true,
       });
     });
-  };
-
-  const confirmDiscard = () => {
-    const action = pendingActionRef.current;
-    pendingActionRef.current = null;
-    setDiscardOpen(false);
-    action?.();
   };
 
   return (
@@ -256,58 +373,7 @@ function SettingsModalBody() {
           <div className="grid h-full min-h-0 grid-cols-1 sm:grid-cols-[240px_1fr]">
             <SettingsNav groups={readyGroups} active={active} onSelect={goTo} />
             <div className="flex min-h-0 flex-col">
-              {/*
-                Mobile section picker — the sidebar is hidden below sm. `ps-4` is
-                the content pane's gutter, so the picker and the fields under it
-                share a left edge.
-
-                `pe-14` reserves room for the dialog's close button, which is
-                now pinned on the logical end too (`ui/dialog.tsx`) — so the two
-                mirror together. They did not: the button was physical
-                (`right-4`) while this inset was logical, which put them on
-                opposite sides in Arabic and Hebrew and ran the picker under the
-                X. Fixed in the primitive rather than here, because every dialog
-                had it.
-
-                14 rather than 12: the button is 32px wide inset 16px, so 48px of
-                reservation left the picker flush against the X with nothing
-                between them. 56px is the same 16px gutter the rest of the pane
-                uses, and is what "feels tight" was about (QA-V3 suggestion 7).
-              */}
-              <div className="shrink-0 border-b py-3 ps-4 pe-14 sm:hidden">
-                <Select
-                  value={`${active.scope}/${active.section}`}
-                  onValueChange={(value) => {
-                    const [scope, section] = value.split('/') as [
-                      SettingsScope,
-                      SettingsSection,
-                    ];
-                    goTo({ scope, section });
-                  }}
-                >
-                  <SelectTrigger
-                    className="w-full"
-                    data-testid="settings-mobile-section"
-                    aria-label={t(SETTINGS_KEYS.nav.ariaSections)}
-                  >
-                    <SelectValue
-                      placeholder={t(SETTINGS_SECTION_LABEL_KEYS[active.section])}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {readyGroups
-                      .flatMap((group) => group.items)
-                      .map((item) => (
-                        <SelectItem
-                          key={`${item.scope}/${item.section}`}
-                          value={`${item.scope}/${item.section}`}
-                        >
-                          {t(item.labelKey)}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <MobileSectionPicker groups={readyGroups} active={active} onSelect={goTo} />
               {/* Desktop: empty header strip — gives the dialog's close button room
                 and elevates with a shadow once the content scrolls beneath it. */}
               <div
@@ -337,27 +403,11 @@ function SettingsModalBody() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
-        <AlertDialogContent data-testid="settings-discard-dialog">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t(SETTINGS_KEYS.discard.title)}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(SETTINGS_KEYS.discard.description)}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel data-testid="settings-discard-stay">
-              {t(SETTINGS_KEYS.discard.stay)}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDiscard}
-              data-testid="settings-discard-leave"
-            >
-              {t(SETTINGS_KEYS.discard.leave)}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DiscardChangesDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        onLeave={confirmDiscard}
+      />
     </>
   );
 }
