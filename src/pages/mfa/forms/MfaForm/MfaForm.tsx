@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { translateFormMessage } from '@/lib/i18n/translate-form-message.ts';
@@ -103,13 +103,14 @@ export function MfaForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<MfaVerifyInput>({
     resolver: zodResolver(mfaVerifySchema),
     defaultValues: { code: '', useRecoveryCode: false },
   });
-  const useRecovery = watch('useRecoveryCode') ?? false;
+  // `useWatch`, not `watch()`: the React Compiler cannot memoize around the value
+  // `watch()` returns, so it skipped this whole component.
+  const useRecovery = useWatch({ control, name: 'useRecoveryCode' }) ?? false;
   /** Verify in flight, or verified and on its way out. Nothing here stays live. */
   const pending = isSubmitting || handedOff;
 
@@ -175,7 +176,13 @@ export function MfaForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        // Bound at submit time, not during render: `onSubmit` reads refs, and
+        // handing a ref-reading callback to `handleSubmit()` during render is what
+        // react-hooks/refs forbids. (Hidden while `watch()` made the compiler skip
+        // this component.)
+        onSubmit={(event) => void handleSubmit(onSubmit)(event)}
+      >
         <div className="flex flex-col gap-4">
           <FormError message={apiError} data-testid={MFA_TEST_IDS.formError} />
 
