@@ -17,14 +17,14 @@ vi.mock('@stripe/react-stripe-js', () => ({
 }));
 
 vi.mock('@/shared/billing/load-stripe.ts', () => ({
-  getStripePromise: vi.fn().mockResolvedValue({}),
+  getStripePromise: vi.fn(async () => ({})),
 }));
 
 import { StripePaymentForm } from './StripePaymentForm.tsx';
 
 describe('StripePaymentForm', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     useStripeMock.mockReturnValue({ confirmPayment, confirmSetup });
     useElementsMock.mockReturnValue({});
     confirmPayment.mockResolvedValue({ error: null });

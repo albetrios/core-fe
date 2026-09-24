@@ -180,8 +180,8 @@ vi.mock('./components/DoneStep/index.ts', async (importOriginal) => {
 
 vi.mock('@/shared/api/auth-api.ts', () => ({
   authApi: {
-    updateProfile: vi.fn().mockResolvedValue(undefined),
-    completeOnboarding: vi.fn().mockResolvedValue(undefined),
+    updateProfile: vi.fn(async () => undefined),
+    completeOnboarding: vi.fn(async () => undefined),
   },
 }));
 
@@ -307,7 +307,7 @@ function personalOrg() {
 
 describe('OnboardingPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     /*
      * `queryClient` is a module singleton, so cache entries survive between
      * tests in this file. The wizard now reads the organization list THROUGH

@@ -48,7 +48,7 @@ vi.mock('@/shared/notify/index.ts', () => ({
 
 describe('CreateOrganizationDialog', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     useWorkspaceSwitchStore.getState().endSwitch();
     navigateMock.mockResolvedValue(undefined);
     switchToOrganization.mockResolvedValue(undefined);

@@ -27,7 +27,7 @@ function wrapper({ children }: { children: ReactNode }) {
 const avatar = () => new File(['bytes'], 'me.png', { type: 'image/png' });
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });

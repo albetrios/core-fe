@@ -34,7 +34,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   statusMock.mockResolvedValue(false);
   beginMock.mockResolvedValue({ secret: 'S', otpauthUri: 'otpauth://x' });
   confirmMock.mockResolvedValue({ recoveryCodes: ['a'] });

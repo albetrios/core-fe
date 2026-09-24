@@ -45,7 +45,7 @@ import {
 
 describe('captureAnalyticsEvent', () => {
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('captures events with shared context when PostHog is loaded', async () => {

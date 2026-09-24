@@ -38,7 +38,7 @@ function withClient(ui: ReactNode) {
 
 let consoleError: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   // React logs every caught boundary error; silence it so the suite stays readable.
   consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 });

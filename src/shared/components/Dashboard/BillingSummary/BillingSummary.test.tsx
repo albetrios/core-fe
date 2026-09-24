@@ -70,7 +70,7 @@ const CARD: BillingPaymentMethod = {
 
 describe('BillingSummary', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     // The subscription read is gated on `subscription:read` (and a signed-in
     // user): without both, the query is never sent and this panel has no plan
     // to show — which is the point of the gate, not a failure of this panel.

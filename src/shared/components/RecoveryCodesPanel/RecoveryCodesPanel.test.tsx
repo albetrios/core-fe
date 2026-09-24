@@ -8,7 +8,7 @@ import { notify } from '@/shared/notify/index.ts';
 import { RecoveryCodesPanel } from './RecoveryCodesPanel.tsx';
 
 vi.mock('@/lib/sensitive-clipboard.ts', () => ({
-  copySensitiveText: vi.fn().mockResolvedValue(true),
+  copySensitiveText: vi.fn(async () => true),
 }));
 vi.mock('@/shared/notify/index.ts', () => ({
   notify: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
@@ -19,13 +19,13 @@ const CODES = ['AAAA-1111', 'BBBB-2222', 'CCCC-3333'];
 // jsdom has no createObjectURL, and a real anchor click would try to navigate.
 const createObjectURL = vi.fn(() => 'blob:recovery');
 const revokeObjectURL = vi.fn();
-const anchorClick = vi
-  .spyOn(HTMLAnchorElement.prototype, 'click')
-  .mockImplementation(() => undefined);
+const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click');
 
 describe('RecoveryCodesPanel', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    // After the reset, which puts a spy back on the real method.
+    anchorClick.mockImplementation(() => undefined);
     URL.createObjectURL = createObjectURL;
     URL.revokeObjectURL = revokeObjectURL;
   });

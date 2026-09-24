@@ -14,7 +14,7 @@ vi.mock('@/shared/theme/org-brand.ts', () => ({ applyOrgBrand: applyMock }));
 import { useOrgBrand } from './useOrgBrand.ts';
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 
 describe('useOrgBrand', () => {

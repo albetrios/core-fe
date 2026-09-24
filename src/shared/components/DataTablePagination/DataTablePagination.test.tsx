@@ -35,7 +35,7 @@ function fakeTable(overrides: {
 
 describe('DataTablePagination', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('shows the selected-rows summary only when rows are selected', () => {

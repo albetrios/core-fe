@@ -51,7 +51,7 @@ function setCanManage(value: boolean) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   listMock.mockResolvedValue([
     { id: 'org_acme', name: 'Acme Inc.', slug: 'acme', status: 'active' },
   ]);

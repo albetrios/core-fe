@@ -33,7 +33,7 @@ const USER = { id: 'usr_1', email: 'you@acme.test', role: 'user' } as AuthUser;
 
 describe('AccountPanel', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     deleteAccount.mockResolvedValue(undefined);
     useAuthStore.setState({ user: USER });
   });

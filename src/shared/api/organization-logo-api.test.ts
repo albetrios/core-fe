@@ -16,7 +16,7 @@ import {
 } from './organization-logo-api.ts';
 
 describe('organization-api logo', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.resetAllMocks());
 
   it('uploads the bytes, then attaches the FINAL key', async () => {
     uploadFileMock.mockResolvedValue({ key: 'organization-logos/org_a/abc.png' });

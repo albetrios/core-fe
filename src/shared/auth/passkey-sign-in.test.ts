@@ -6,7 +6,7 @@ describe('signInWithPasskey', () => {
   const getMock = vi.fn();
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     vi.stubGlobal('PublicKeyCredential', class PublicKeyCredential {});
     vi.stubGlobal('navigator', {
       credentials: { get: getMock },

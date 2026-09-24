@@ -28,7 +28,7 @@ function makeWrapper(client: QueryClient) {
 
 describe('useAppMutation', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('invalidates keys, toasts success, and runs onSuccess', async () => {

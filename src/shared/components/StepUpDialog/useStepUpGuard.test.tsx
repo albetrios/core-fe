@@ -52,7 +52,7 @@ function Harness({
   );
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => vi.resetAllMocks());
 
 describe('useStepUpGuard', () => {
   it('opens the dialog on a step-up 403 and re-runs the action after verification', async () => {

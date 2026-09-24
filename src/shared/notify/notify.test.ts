@@ -14,7 +14,7 @@ async function activate() {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 afterEach(() => {
   notify.dismiss();

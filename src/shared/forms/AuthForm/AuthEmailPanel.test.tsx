@@ -13,9 +13,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 const { emailVerificationCodeSend, emailLogin, establishSession } = vi.hoisted(() => ({
-  emailVerificationCodeSend: vi.fn().mockResolvedValue({}),
-  emailLogin: vi.fn().mockResolvedValue({ accessToken: 'mock-token' }),
-  establishSession: vi.fn().mockResolvedValue(undefined),
+  emailVerificationCodeSend: vi.fn(async () => ({})),
+  emailLogin: vi.fn(async () => ({ accessToken: 'mock-token' })),
+  establishSession: vi.fn(async () => undefined),
 }));
 
 vi.mock('@/shared/auth/captcha/useTurnstileReady/index.ts', () => ({
@@ -151,7 +151,7 @@ async function verifyWith(router: ReturnType<typeof createDestinationRouter>) {
 
 describe('AuthEmailPanel', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('advances to the verification step after sending a code', async () => {

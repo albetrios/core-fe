@@ -31,7 +31,7 @@ function meContext(avatarUrl: string | null) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useMeContextMock.mockReturnValue(meContext(null));
 });
 

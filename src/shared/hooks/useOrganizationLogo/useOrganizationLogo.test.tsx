@@ -30,7 +30,7 @@ function wrapper({ children }: { children: ReactNode }) {
 const logo = () => new File(['bytes'], 'logo.png', { type: 'image/png' });
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });

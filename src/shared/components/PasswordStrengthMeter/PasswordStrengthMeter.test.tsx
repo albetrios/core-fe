@@ -13,7 +13,7 @@ const breachMock = vi.mocked(checkPasswordBreached);
 
 describe('PasswordStrengthMeter', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     breachMock.mockResolvedValue({ breached: false, count: 0 });
   });
 

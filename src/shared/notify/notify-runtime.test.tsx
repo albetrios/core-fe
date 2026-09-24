@@ -8,7 +8,7 @@ vi.mock('sonner', () => ({ toast: toastMock, Toaster: () => null }));
 import { dismiss, promise, show } from './notify-runtime.tsx';
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 
 describe('notification renderer', () => {

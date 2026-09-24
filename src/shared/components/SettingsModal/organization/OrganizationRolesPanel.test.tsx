@@ -131,7 +131,7 @@ function setCanManage(value: boolean) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   // `clearAllMocks` keeps implementations, so a per-test `mockReturnValue` for
   // the write would leak into the next case.
   deleteMutate.mockReset();
@@ -331,6 +331,9 @@ describe('OrganizationRolesPanel', () => {
   // ── SET-23: the New role slot keeps its place ────────────────────────────
 
   it('holds the New role slot with a disabled placeholder before permissions land', () => {
+    // Its own list: this test used to inherit whichever one the test before it
+    // left installed.
+    useRolesMock.mockReturnValue(rolesQueryResult({ rows: [CUSTOM_ROLE] }));
     setCanManage(true);
     useOrganizationStore.setState({ permissionsResolved: false });
     render(<OrganizationRolesPanel />);

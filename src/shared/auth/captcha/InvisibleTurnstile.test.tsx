@@ -51,7 +51,7 @@ describe('InvisibleTurnstile', () => {
     setTurnstileToken(undefined);
     setCaptchaSlot(null);
     delete window.turnstile;
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('renders nothing when captcha is disabled', () => {

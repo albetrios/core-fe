@@ -19,7 +19,7 @@ function avatarFile() {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 
 describe('uploadUserAvatar', () => {

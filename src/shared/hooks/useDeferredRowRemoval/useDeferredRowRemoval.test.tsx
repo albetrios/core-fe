@@ -114,7 +114,7 @@ const rowIds = (client: QueryClient) =>
 
 describe('useDeferredRowRemoval', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     // `cancel()` reports whether it really cancelled; a still-pending handle
     // answers `true`. A bare `vi.fn()` would answer `undefined` — i.e. "did not
     // cancel" — and quietly mute the paths that branch on it.

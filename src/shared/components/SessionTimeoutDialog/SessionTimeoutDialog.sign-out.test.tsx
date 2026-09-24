@@ -72,7 +72,7 @@ describe('SessionTimeoutDialog — signing out after inactivity (real idle timer
 
   afterEach(() => {
     useAuthStore.getState().clearAuth();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     vi.useRealTimers();
     localStorage.clear();
   });

@@ -28,7 +28,7 @@ import { ProfileForm } from './ProfileForm.tsx';
 
 describe('ProfileForm', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     updateProfile.mockResolvedValue(undefined);
     useAuthStore.getState().setUser({
       id: 'usr_1',

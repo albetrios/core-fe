@@ -29,7 +29,7 @@ import { captureAnalyticsConsentDecision } from './capture-consent-decision.ts';
 
 describe('captureAnalyticsConsentDecision', () => {
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     vi.resetModules();
   });
 

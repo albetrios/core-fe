@@ -73,7 +73,7 @@ const LOGIN_REDIRECT = {
 const AFTER_REDIRECT_MS = ACCEPT_INVITE_REDIRECT_MS + 400;
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   getAccessTokenMock.mockReturnValue('token');
   acceptInvitationMock.mockResolvedValue({
     organizationId: 'org_1',

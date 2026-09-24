@@ -34,7 +34,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   listMock.mockResolvedValue([PASSKEY]);
   registerMock.mockResolvedValue({ ...PASSKEY, id: 'pk_2', name: 'YubiKey' });
   removeMock.mockResolvedValue(undefined);

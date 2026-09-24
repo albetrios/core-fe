@@ -29,7 +29,7 @@ const ITEM = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useNotificationsMock.mockReturnValue({
     data: [ITEM],
     isLoading: false,

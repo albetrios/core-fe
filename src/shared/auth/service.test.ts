@@ -123,7 +123,7 @@ describe('auth/service', () => {
   });
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     clearAccessToken();

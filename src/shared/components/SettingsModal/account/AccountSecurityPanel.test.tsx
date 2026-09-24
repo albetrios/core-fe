@@ -92,7 +92,7 @@ const queryFailed = (refetch: () => void) => ({
 });
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useMfaStatusMock.mockReturnValue({ ...querySuccess(false), refetch: refetchMfa });
   beginMutateAsync.mockResolvedValue({
     secret: 'JBSWY3DPEHPK3PXP',

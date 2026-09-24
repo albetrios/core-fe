@@ -22,7 +22,7 @@ const ctx = (isEmailVerified: boolean, email = 'user@example.com') => ({
   data: { user: { isEmailVerified, email } },
 });
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => vi.resetAllMocks());
 
 describe('EmailVerificationBanner', () => {
   it('renders nothing when the email is verified', () => {

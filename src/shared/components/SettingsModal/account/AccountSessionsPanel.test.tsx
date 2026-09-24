@@ -61,7 +61,7 @@ const OTHER = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   revokeMutateAsync.mockResolvedValue(undefined);
 });
 

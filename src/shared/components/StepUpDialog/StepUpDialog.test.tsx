@@ -50,7 +50,7 @@ function renderDialog(props: Partial<Parameters<typeof StepUpDialog>[0]> = {}) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useAuthStore.setState({
     user: { id: 'usr_1', email: 'you@acme.test', role: 'user' } as never,
     isAuthenticated: true,

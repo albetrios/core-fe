@@ -57,7 +57,7 @@ function wrapper({ children }: { children: ReactNode }) {
 const ORG_ID = 'org_acme0000000000000000';
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useOrganizationStore.getState().clearOrganization();
   // The polls are gated on a resolved org scope (SHELL-10), so a test that
   // wants them to run has to say which org it is running against.

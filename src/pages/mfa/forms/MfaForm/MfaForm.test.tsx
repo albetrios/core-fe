@@ -15,8 +15,8 @@ import { axe } from 'vitest-axe';
 import { MfaForm } from './MfaForm.tsx';
 
 const { mfaVerifyMock, establishSessionMock } = vi.hoisted(() => ({
-  mfaVerifyMock: vi.fn().mockResolvedValue({ accessToken: 'token' }),
-  establishSessionMock: vi.fn().mockResolvedValue(undefined),
+  mfaVerifyMock: vi.fn(async () => ({ accessToken: 'token' })),
+  establishSessionMock: vi.fn(async () => undefined),
 }));
 vi.mock('@/shared/api/auth-api.ts', () => ({
   authApi: { mfaVerify: mfaVerifyMock },
@@ -69,7 +69,7 @@ function renderWithRouter() {
 
 describe('MfaForm', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mfaVerifyMock.mockResolvedValue({ accessToken: 'token' });
     mockNavigate.mockResolvedValue(undefined);
     mockUseLocation.mockReturnValue({ state: undefined });

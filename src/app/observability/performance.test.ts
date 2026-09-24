@@ -35,7 +35,7 @@ function metric(overrides: Partial<Metric>): Metric {
 
 describe('initPerformanceMonitoring', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('subscribes to all five web-vitals metrics', () => {
