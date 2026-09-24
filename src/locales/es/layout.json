@@ -128,20 +128,6 @@
       "signingOut": "Cerrando sesión…",
       "signingOutDescription": "Estamos cerrando tu sesión de forma segura. Te llevaremos a la página de inicio de sesión."
     },
-    "membersTable": {
-      "actionsAria": "Acciones para {{name}}",
-      "changeRole": "Cambiar rol",
-      "suspend": "Suspender miembro",
-      "reactivate": "Reactivar miembro",
-      "remove": "Eliminar de la organización",
-      "removeTitle": "¿Eliminar a {{name}}?",
-      "removeDescription": "Perderá el acceso a esta organización. Esta acción no se puede deshacer.",
-      "cancel": "Cancelar",
-      "confirmRemove": "Eliminar",
-      "rolePlaceholder": "Rol",
-      "searchPlaceholder": "Buscar miembros…",
-      "removing": "Eliminando…"
-    },
     "shortcuts": {
       "title": "Atajos de teclado",
       "description": "Referencia rápida de navegación y acciones.",

@@ -136,20 +136,6 @@
       "signingOut": "Abmeldung läuft…",
       "signingOutDescription": "Ihre Sitzung wird sicher beendet. Sie werden zur Anmeldeseite weitergeleitet."
     },
-    "membersTable": {
-      "actionsAria": "Aktionen für {{name}}",
-      "changeRole": "Rolle ändern",
-      "suspend": "Mitglied sperren",
-      "reactivate": "Mitglied reaktivieren",
-      "remove": "Aus Organisation entfernen",
-      "removeTitle": "{{name}} entfernen?",
-      "removeDescription": "Die Person verliert den Zugriff auf diese Organisation. Diese Aktion kann nicht rückgängig gemacht werden.",
-      "cancel": "Abbrechen",
-      "confirmRemove": "Entfernen",
-      "rolePlaceholder": "Rolle",
-      "searchPlaceholder": "Mitglieder suchen…",
-      "removing": "Wird entfernt…"
-    },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
       "slugPlaceholder": "acme",

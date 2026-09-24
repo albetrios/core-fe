@@ -136,20 +136,6 @@
       "signingOut": "Déconnexion…",
       "signingOutDescription": "Fermeture sécurisée de votre session. Vous allez être redirigé vers la page de connexion."
     },
-    "membersTable": {
-      "actionsAria": "Actions pour {{name}}",
-      "changeRole": "Changer le rôle",
-      "suspend": "Suspendre le membre",
-      "reactivate": "Réactiver le membre",
-      "remove": "Retirer de l'organisation",
-      "removeTitle": "Retirer {{name}} ?",
-      "removeDescription": "Cette personne perdra l'accès à cette organisation. Cette action est irréversible.",
-      "cancel": "Annuler",
-      "confirmRemove": "Retirer",
-      "rolePlaceholder": "Rôle",
-      "searchPlaceholder": "Rechercher des membres…",
-      "removing": "Suppression…"
-    },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
       "slugPlaceholder": "acme",

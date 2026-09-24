@@ -136,20 +136,6 @@
       "signingOut": "साइन आउट हो रहा है…",
       "signingOutDescription": "आपका सत्र सुरक्षित रूप से समाप्त किया जा रहा है। आपको साइन-इन पेज पर ले जाया जाएगा।"
     },
-    "membersTable": {
-      "actionsAria": "{{name}} के लिए क्रियाएँ",
-      "changeRole": "भूमिका बदलें",
-      "suspend": "सदस्य निलंबित करें",
-      "reactivate": "सदस्य पुनः सक्रिय करें",
-      "remove": "संगठन से हटाएँ",
-      "removeTitle": "{{name}} को हटाएँ?",
-      "removeDescription": "उन्हें इस संगठन की पहुँच खोनी पड़ेगी। यह क्रिया पूर्ववत नहीं की जा सकती।",
-      "cancel": "रद्द करें",
-      "confirmRemove": "हटाएँ",
-      "rolePlaceholder": "भूमिका",
-      "searchPlaceholder": "सदस्य खोजें…",
-      "removing": "हटाया जा रहा है…"
-    },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
       "slugPlaceholder": "acme",

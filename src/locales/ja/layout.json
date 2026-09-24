@@ -136,20 +136,6 @@
       "signingOut": "サインアウトしています…",
       "signingOutDescription": "セッションを安全に終了しています。サインインページに移動します。"
     },
-    "membersTable": {
-      "actionsAria": "{{name}} のアクション",
-      "changeRole": "ロールを変更",
-      "suspend": "メンバーを停止",
-      "reactivate": "メンバーを再有効化",
-      "remove": "組織から削除",
-      "removeTitle": "{{name}} を削除しますか？",
-      "removeDescription": "この組織へのアクセスが失われます。この操作は元に戻せません。",
-      "cancel": "キャンセル",
-      "confirmRemove": "削除",
-      "rolePlaceholder": "ロール",
-      "searchPlaceholder": "メンバーを検索…",
-      "removing": "削除しています…"
-    },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
       "slugPlaceholder": "acme",

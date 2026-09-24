@@ -71,8 +71,7 @@ Convention: `page.getByTestId('…')` in `tests/e2e/`.
 | `dashboard-greeting` | Placeholder heading                                      | `DashboardPage.tsx` |
 
 > The dashboard is a placeholder stub — add widget test ids (stat cards, charts,
-> activity, team) here when the module is built. `members-table` /
-> `invitations-table` / `widget-error-*` are available from `shared/components/`
+> activity, team) here when the module is built. `widget-error-*` is available from `shared/components/`
 > for future modules.
 
 ---

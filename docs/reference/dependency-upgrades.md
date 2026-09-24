@@ -62,9 +62,14 @@ preceding menu opens and unmounts. This is a measured compatibility constraint,
 not a confirmed diagnosis of an upstream defect.
 
 ```bash
-pnpm exec vitest run --project unit src/shared/components/OrganizationSwitcher/OrganizationSwitcher.test.tsx src/shared/components/MembersTable/MembersTable.test.tsx src/shared/components/DateTimePrefsCard/DateTimePrefsCard.test.tsx
+pnpm exec vitest run --project unit src/shared/components/OrganizationSwitcher/OrganizationSwitcher.test.tsx src/shared/components/SettingsModal/organization/OrganizationMembersPanel.test.tsx src/shared/components/DataTable/DataTable.test.tsx src/shared/components/DateTimePrefsCard/DateTimePrefsCard.test.tsx
 pnpm test:ci
 ```
+
+PR #290 ran the shared `MembersTable` suite; that component was removed as dead code.
+Its menus now live in `OrganizationMembersPanel` (row actions) and the `DataTable` kit
+suite (column sort), so those two stand in for it. They were not re-run against
+`30.1.0`.
 
 Before removing the pin, run these commands on the actual regenerated lockfile,
 without a module-resolution hook or test-only dependency substitution. Preserve
