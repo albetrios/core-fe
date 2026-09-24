@@ -206,7 +206,7 @@ export function AuthForm() {
        * `captchaReady` precondition below and never reaches this branch without
        * a token.
        */
-      if (!options?.auto && !(await ensureToken(oauthChallengeKey(provider)))) {
+      if (!(options?.auto || (await ensureToken(oauthChallengeKey(provider))))) {
         setPending(null);
         return;
       }

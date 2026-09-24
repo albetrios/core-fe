@@ -87,6 +87,37 @@ const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
+ * Keeps a Tab keypress inside `card`: pulls focus back in when it escaped, and wraps it at the
+ * first and last focusable element.
+ */
+function trapTabWithin(card: HTMLElement, event: KeyboardEvent): void {
+  const focusable = card.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+  if (focusable.length === 0) return;
+
+  const first = focusable[0]!;
+  const last = focusable[focusable.length - 1]!;
+  const active = document.activeElement;
+
+  // Focus escaped the card entirely (or never got in) — the scrim blocks
+  // every pointer route to the page behind, so Tab must not be a way there.
+  if (!(active instanceof HTMLElement && card.contains(active))) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+    return;
+  }
+
+  // Wrap at the ends. In between, the browser's own tab order is already
+  // correct and inside the card, so leave it alone.
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+/**
  * The overlay's failure surface. Module-level on purpose: a component defined
  * inside its parent's render gets a fresh type identity on every parent render,
  * so React remounts the whole subtree instead of updating it, and any state in
@@ -193,32 +224,7 @@ function LazyOverlayError({
         dismiss();
         return;
       }
-      if (event.key !== 'Tab') return;
-
-      const focusable = card.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-      if (focusable.length === 0) return;
-
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      const active = document.activeElement;
-
-      // Focus escaped the card entirely (or never got in) — the scrim blocks
-      // every pointer route to the page behind, so Tab must not be a way there.
-      if (!(active instanceof HTMLElement && card.contains(active))) {
-        event.preventDefault();
-        (event.shiftKey ? last : first).focus();
-        return;
-      }
-
-      // Wrap at the ends. In between, the browser's own tab order is already
-      // correct and inside the card, so leave it alone.
-      if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      if (event.key === 'Tab') trapTabWithin(card, event);
     };
 
     document.addEventListener('keydown', onKeyDown);
