@@ -21,7 +21,7 @@ describe('ConsentBannerLazy', () => {
 
   afterEach(() => {
     vi.doUnmock('./ConsentBanner.tsx');
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('loads and shows the card for a visitor who has not decided', async () => {

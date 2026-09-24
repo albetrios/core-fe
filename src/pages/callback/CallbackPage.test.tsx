@@ -15,8 +15,8 @@ const {
 } = vi.hoisted(() => ({
   notifyErrorMock: vi.fn(),
   captureAnalyticsMock: vi.fn(),
-  establishSessionMock: vi.fn().mockResolvedValue(undefined),
-  silentRefreshMock: vi.fn().mockResolvedValue(undefined),
+  establishSessionMock: vi.fn(async () => undefined),
+  silentRefreshMock: vi.fn(async () => undefined),
   stashMfaHandoffMock: vi.fn(),
   skipAutoGoogleSignInMock: vi.fn(),
   routeParamsHolder: { value: {} as Record<string, string> },
@@ -69,7 +69,7 @@ import { authApi, MfaRequiredError } from '@/shared/api/auth-api.ts';
 import { CallbackPage } from './CallbackPage.tsx';
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   routeParamsHolder.value = {};
   window.history.pushState({}, '', '/callback/google');
 });

@@ -382,7 +382,7 @@ describe('organization-api api-keys (live)', () => {
 
 describe('organization-api permissions', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('toOrganizationPermissions drops codes this build does not know', () => {
@@ -427,7 +427,7 @@ describe('organization-api permissions', () => {
 });
 
 describe('organization-api permission catalog', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.resetAllMocks());
 
   it('reads the catalog core-be enforces', async () => {
     getMock.mockResolvedValue({

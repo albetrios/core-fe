@@ -153,7 +153,7 @@ function setCanManage(value: boolean) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   // Here, not on a test's last line: three tests drive the panel through the URL,
   // and a trailing reset never runs when its test FAILS — the next test then
   // inherits `?payment_intent_client_secret=…` and fails for a reason that has

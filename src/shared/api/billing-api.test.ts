@@ -58,7 +58,7 @@ const SUB_WIRE = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 
 describe('billing-api', () => {

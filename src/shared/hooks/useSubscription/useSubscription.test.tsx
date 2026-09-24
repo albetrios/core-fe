@@ -54,7 +54,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   // The read is gated on `subscription:read` — a workspace without it can only
   // be answered 403, so the query is not sent at all. `useCan` also requires a
   // signed-in user, so both halves of the check have to be seeded.

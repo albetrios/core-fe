@@ -80,7 +80,7 @@ describe('SessionTimeoutDialog', () => {
 
   afterEach(() => {
     useAuthStore.getState().clearAuth();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('renders when not shown (open=false)', () => {

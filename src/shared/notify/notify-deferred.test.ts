@@ -26,7 +26,7 @@ const clickUndo = () => notifySuccess.mock.calls[0]?.[1]?.action?.onClick();
 
 describe('notifyDeferredCommit', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     vi.useFakeTimers();
   });
 

@@ -40,7 +40,7 @@ function catalog(overrides: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useWebhookEventsMock.mockReturnValue(catalog());
 });
 

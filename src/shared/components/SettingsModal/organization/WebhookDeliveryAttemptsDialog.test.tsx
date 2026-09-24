@@ -42,7 +42,7 @@ function attempts(overrides: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useDeliveryAttemptsMock.mockReturnValue(attempts());
 });
 

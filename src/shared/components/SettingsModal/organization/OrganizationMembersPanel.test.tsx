@@ -196,7 +196,7 @@ function setCanManage(value: boolean) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   // `clearAllMocks` keeps implementations, so a per-test `mockReturnValue` for
   // the write would leak into the next case.
   removeMutate.mockReset();

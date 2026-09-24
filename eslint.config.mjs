@@ -167,6 +167,33 @@ export default defineConfig([
     },
   },
 
+  // Tests reset mocks; they do not merely clear them.
+  //
+  // `vi.clearAllMocks()` clears call history but keeps any implementation a test
+  // installed, so one test's `mockResolvedValue(...)` / `mockImplementation(...)`
+  // silently becomes the next test's starting state. It broke
+  // `AuthForm.test.tsx`: a test left `emailVerificationCodeSend` pending forever
+  // and a later one never saw the code step. `vi.resetAllMocks()` restores each
+  // mock to the implementation it was created with, so defaults belong in
+  // `vi.fn(impl)` (a bare `vi.fn()` resets to returning `undefined`).
+  // `no-restricted-properties` is set nowhere else in this config, so this block
+  // replaces nothing (flat config REPLACES rule options, it does not merge them;
+  // `no-restricted-syntax` would have collided with the e2e `.catch()` ban).
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx', 'tests/**/*.ts', 'tests/**/*.tsx'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'vi',
+          property: 'clearAllMocks',
+          message:
+            'Use vi.resetAllMocks(): clearAllMocks keeps implementations a test installed, so they leak into later tests. Put mock defaults in vi.fn(impl) so the reset restores them.',
+        },
+      ],
+    },
+  },
+
   // E2E test utilities — fixtures, unique IDs for isolation.
   // no-skipped-tests: Playwright's conditional `test.skip(condition, reason)`
   // is the sanctioned environment-dependent skip (org switcher hidden, no

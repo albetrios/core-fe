@@ -49,7 +49,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   listMock.mockResolvedValue([WEBHOOK]);
   createMock.mockResolvedValue(WEBHOOK);
   deleteMock.mockResolvedValue(undefined);

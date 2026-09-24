@@ -107,7 +107,7 @@ const ORGS = [
 ];
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   deploymentFlagsMock.personalOrganizations = true;
   deploymentFlagsMock.teamOrganizations = true;
   switchToPersonalMock.mockResolvedValue(undefined);

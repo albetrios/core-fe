@@ -42,12 +42,13 @@ describe('toCsv', () => {
 describe('downloadCsv', () => {
   const createObjectURL = vi.fn(() => 'blob:csv');
   const revokeObjectURL = vi.fn();
-  const anchorClick = vi
-    .spyOn(HTMLAnchorElement.prototype, 'click')
-    .mockImplementation(() => undefined);
+  const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click');
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    // After the reset, which puts a spy back on the real method: a real anchor
+    // click would try to navigate.
+    anchorClick.mockImplementation(() => undefined);
     URL.createObjectURL = createObjectURL;
     URL.revokeObjectURL = revokeObjectURL;
   });

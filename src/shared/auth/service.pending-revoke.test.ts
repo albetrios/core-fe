@@ -94,7 +94,7 @@ describe('auth/service — sign-outs that stay signed out', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     localStorage.clear();
     sessionStorage.clear();
     fetchMock = vi.fn();

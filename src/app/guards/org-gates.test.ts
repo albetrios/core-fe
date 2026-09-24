@@ -31,7 +31,7 @@ vi.mock('./route-guards.ts', () => ({
 
 describe('org gates — thin wrappers stay faithful to the underlying guards', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('resolveActiveOrg forwards the slug param (empty string when absent)', async () => {

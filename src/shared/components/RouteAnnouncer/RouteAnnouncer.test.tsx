@@ -21,7 +21,7 @@ import { RouteAnnouncer } from './RouteAnnouncer.tsx';
 
 describe('RouteAnnouncer', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     resolvedHandler = null;
     document.title = '';
   });

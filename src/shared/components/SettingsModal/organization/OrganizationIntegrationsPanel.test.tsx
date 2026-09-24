@@ -145,7 +145,7 @@ function setCanManage(value: boolean) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   revokeMutateAsync.mockResolvedValue(undefined);
   deleteWebhookMutateAsync.mockResolvedValue(undefined);
   useApiKeysMock.mockReturnValue(apiKeysResult({ rows: [KEY] }));

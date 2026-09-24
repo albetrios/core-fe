@@ -24,7 +24,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   useOrganizationStore.setState({ organizationId: 'org_acme' });
   updateMock.mockResolvedValue({
     id: 'org_acme',

@@ -21,7 +21,7 @@ function logoFile(name = 'logo.png') {
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
   vi.stubGlobal('fetch', fetchMock);
 });

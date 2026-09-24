@@ -42,7 +42,7 @@ describe('initSentry', () => {
   const originalDsn = config.sentryDsn;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     useAuthStore.setState({ user: null });
     useOrganizationStore.getState().clearOrganization();
   });

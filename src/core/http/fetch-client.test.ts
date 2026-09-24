@@ -47,7 +47,7 @@ describe('fetch-client', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
   });

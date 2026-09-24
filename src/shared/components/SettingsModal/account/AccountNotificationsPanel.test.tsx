@@ -51,7 +51,7 @@ function openPermissionPrompt(): (permission: string) => void {
 import { AccountNotificationsPanel } from './AccountNotificationsPanel.tsx';
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   usePrefsMock.mockReturnValue({
     data: DEFAULT_NOTIFICATION_PREFERENCES,
     isLoading: false,

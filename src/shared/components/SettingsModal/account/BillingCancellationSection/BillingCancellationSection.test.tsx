@@ -77,7 +77,7 @@ function renderSection(canManage = true, subscription: BillingSubscription = SUB
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   ctl.finish = null;
 });
 

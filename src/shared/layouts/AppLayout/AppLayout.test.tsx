@@ -3,7 +3,7 @@ import { axe } from 'vitest-axe';
 
 vi.mock('@/core/http/fetch-client.ts', () => ({
   apiClient: {
-    get: vi.fn().mockResolvedValue({ data: [] }),
+    get: vi.fn(async () => ({ data: [] })),
     post: vi.fn(),
   },
 }));
@@ -85,7 +85,7 @@ describe('AppLayout', () => {
   });
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     useThemeStore.setState({ appVariant: 0 });
     useOrganizationStore.setState({ deploymentFlags: DEFAULT_DEPLOYMENT_FLAGS });
     quickLinksMock.mockReturnValue(<div data-testid="sidebar-quick-links" />);

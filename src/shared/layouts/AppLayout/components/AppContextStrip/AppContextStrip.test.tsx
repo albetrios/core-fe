@@ -26,7 +26,7 @@ vi.mock('@/shared/components/CommandPalette/index.ts', () => ({
 
 describe('AppContextStrip', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     deploymentModeMock.mockReturnValue('personal-and-team');
     useUIStore.setState({
       commandPaletteOpen: false,

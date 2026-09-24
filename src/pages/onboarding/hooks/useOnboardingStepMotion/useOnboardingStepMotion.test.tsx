@@ -33,7 +33,7 @@ function MotionHarness({ index, step }: { index: number; step: OnboardingStep })
 
 describe('useOnboardingStepMotion', () => {
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('plays card entrance and step timeline when motion is allowed', () => {

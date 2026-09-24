@@ -34,7 +34,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   listMock.mockResolvedValue([SESSION]);
   revokeMock.mockResolvedValue(undefined);
 });
