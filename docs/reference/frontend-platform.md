@@ -148,6 +148,11 @@ write path for API calls.
   banner when `navigator.onLine` is false.
 - TanStack Query retries skip 401 (auth interceptor owns refresh); other failures
   surface via `QueryBoundary` / `RetryError` on read paths.
+- Below that, `apiClient` retries idempotent requests (GET, HEAD, OPTIONS, PUT,
+  DELETE) after a dropped connection or a 5xx, with exponential backoff (1 s, 2 s,
+  4 s) that never undercuts a 5xx `Retry-After`: core-be's 503s send 1 s (overload
+  guard) or 5 s (pooled-connection deadline). A `Retry-After` beyond
+  `HTTP.MAX_RETRY_AFTER_MS` (5 s) surfaces the error instead, as a 429's does.
 - Users should not lose in-progress **local** drafts: onboarding uses
   `useUnsavedChangesGuard` + persisted `useOnboardingStore`; settings panels
   register dirty state via `SettingsDirtyProvider`.

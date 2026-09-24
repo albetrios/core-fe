@@ -181,6 +181,19 @@ function parseRetryAfterMs(response: Response): number | null {
 }
 
 /**
+ * Backoff before retrying a 5xx or a dropped connection. A 5xx can say when to come back —
+ * core-be's 503s carry `Retry-After` (the overload guard and the pooled-connection deadline) — so
+ * the wait is never shorter than that; a `Retry-After` beyond the cap surfaces the error instead.
+ */
+function backoffDelay(attempt: number, response?: Response): number | null {
+  const retryAfter = response ? parseRetryAfterMs(response) : null;
+  if (retryAfter === null) return exponentialDelay(attempt);
+  return retryAfter <= HTTP.MAX_RETRY_AFTER_MS
+    ? Math.max(exponentialDelay(attempt), retryAfter)
+    : null;
+}
+
+/**
  * One unified retry budget for a logical request (audit 3.1–3.3): the delay (ms)
  * before the next attempt, or `null` to stop and surface the error. A single
  * `attempt` counter spans BOTH connection-error and bad-status retries, so the
@@ -189,7 +202,8 @@ function parseRetryAfterMs(response: Response): number | null {
  * - **429** → honor `Retry-After` at most ONCE and only within the cap; never
  *   exponential-spam the limiter — otherwise surface to `RateLimitNotice` now.
  * - **timeouts / other errors** → never retried.
- * - **connection errors + 5xx** → exponential backoff, idempotent methods only.
+ * - **connection errors + 5xx** → exponential backoff, idempotent methods only; a 5xx
+ *   `Retry-After` sets the floor of the wait (see {@link backoffDelay}).
  */
 function nextRetryDelay(args: {
   method: string;
@@ -209,7 +223,9 @@ function nextRetryDelay(args: {
   }
   if (errorKind === 'timeout' || errorKind === 'other') return null;
   const retryable = errorKind === 'connection' || (status !== null && status >= 500);
-  return retryable && IDEMPOTENT_METHODS.has(method) ? exponentialDelay(attempt) : null;
+  return retryable && IDEMPOTENT_METHODS.has(method)
+    ? backoffDelay(attempt, response)
+    : null;
 }
 
 function buildRequestUrl(path: string): string {
