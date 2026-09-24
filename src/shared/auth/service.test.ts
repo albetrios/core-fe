@@ -29,7 +29,13 @@ const { fetchMeContextMock, setQueryDataMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/core/http/queryClient.ts', () => ({
-  queryClient: { clear: vi.fn(), setQueryData: setQueryDataMock, removeQueries: vi.fn() },
+  queryClient: {
+    clear: vi.fn(),
+    setQueryData: setQueryDataMock,
+    removeQueries: vi.fn(),
+    // Session hydration also starts the organization list (a cache-first read).
+    query: vi.fn(() => Promise.resolve([])),
+  },
 }));
 
 vi.mock('@/shared/tenancy/me-context.ts', () => ({

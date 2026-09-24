@@ -5,11 +5,12 @@ import { billingQueryKeys } from '@/shared/api/billing-query-keys.ts';
 import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
-import { type MeContext, meContextQueryKey } from './me-context.ts';
 import {
-  myOrganizationsQueryKey,
-  type MyOrganizationSummary,
-} from './my-organization-summaries.ts';
+  type MeContext,
+  meContextQueryKey,
+  type OrganizationSummary,
+} from './me-context.ts';
+import { myOrganizationsQueryKey } from './my-organization-summaries.ts';
 
 const { postMock, setAccessTokenMock, captureMock } = vi.hoisted(() => ({
   postMock: vi.fn(),
@@ -28,10 +29,11 @@ const PERSONAL_ID = 'org_personalij0123456789x';
 const TS = '2026-01-01T00:00:00.000Z';
 
 /**
- * The organization list is its own cache now, not part of the context — so a
- * switch has to re-derive each row's `isActive` there. These rows seed it.
+ * The organization list is its own cache, not part of the context, and a switch
+ * must leave it alone: which row is active is derived from the org store when
+ * the list is read. These rows seed it.
  */
-const BASE_ORGS: MyOrganizationSummary[] = [
+const BASE_ORGS: OrganizationSummary[] = [
   {
     id: TEAM_ID,
     name: 'Acme',
@@ -41,7 +43,6 @@ const BASE_ORGS: MyOrganizationSummary[] = [
     logoUrl: null,
     createdAt: TS,
     updatedAt: TS,
-    isActive: true,
   },
   {
     id: PERSONAL_ID,
@@ -52,7 +53,6 @@ const BASE_ORGS: MyOrganizationSummary[] = [
     logoUrl: null,
     createdAt: TS,
     updatedAt: TS,
-    isActive: false,
   },
 ];
 
@@ -120,6 +120,8 @@ describe('tenancy/switch', () => {
       },
     });
 
+    const orgsBefore = queryClient.getQueryData(myOrganizationsQueryKey);
+
     const result = await switchToPersonal();
 
     expect(postMock).toHaveBeenCalledWith(
@@ -129,17 +131,12 @@ describe('tenancy/switch', () => {
     expect(setAccessTokenMock).toHaveBeenCalledWith('new_tok');
     expect(result?.activeOrganization?.id).toBe(PERSONAL_ID);
     expect(result?.myPermissions).toEqual(['organization:read']);
-    // Every row's `isActive` is derived from the context this switch just
-    // changed, so the list cache must be re-derived in place — not left stale,
-    // and not refetched: the membership set did not change, only which is active.
-    const orgs = queryClient.getQueryData<MyOrganizationSummary[]>(
-      myOrganizationsQueryKey,
-    );
-    expect(orgs?.find((o) => o.id === PERSONAL_ID)?.isActive).toBe(true);
-    expect(orgs?.find((o) => o.id === TEAM_ID)?.isActive).toBe(false);
-    // user + org list are stable across a switch
+    // A switch changes which organization is active, not who belongs to what:
+    // the list cache is left exactly as it was. Readers take "active" from the
+    // org store, asserted below.
+    expect(queryClient.getQueryData(myOrganizationsQueryKey)).toBe(orgsBefore);
+    // user is stable across a switch
     expect(result?.user.email).toBe('ada@acme.test');
-    expect(orgs).toHaveLength(2);
     // org store is derived from the switched context
     expect(useOrganizationStore.getState().organizationType).toBe('PERSONAL');
     expect(useOrganizationStore.getState().organizationId).toBe(PERSONAL_ID);

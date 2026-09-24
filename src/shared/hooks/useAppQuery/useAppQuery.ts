@@ -12,11 +12,15 @@ import {
  * The additions exist so a rejected fetch is loud BY DEFAULT: `notifyOnError`
  * opts a caller out only when it renders the failure itself, which is what
  * keeps a dead query from sitting silently behind an empty state.
+ *
+ * `TData` is what the hook hands back: the fetched `TQueryFnData` itself, or
+ * whatever `select` makes of it.
  */
-export interface AppQueryOptions<TData, TError = Error> extends Omit<
-  UseQueryOptions<TData, TError, TData, QueryKey>,
-  'meta'
-> {
+export interface AppQueryOptions<
+  TQueryFnData,
+  TError = Error,
+  TData = TQueryFnData,
+> extends Omit<UseQueryOptions<TQueryFnData, TError, TData, QueryKey>, 'meta'> {
   /**
    * Toast the mapped error on failure (default: **true**). Pass `false` only
    * when this query's failure is already visible in place — a `QueryBoundary`,
@@ -48,9 +52,9 @@ export interface AppQueryOptions<TData, TError = Error> extends Omit<
  *   // quiet: the panel renders <RetryError> for exactly this failure
  *   const sessions = useAppQuery({ …, notifyOnError: false });
  */
-export function useAppQuery<TData, TError = Error>({
+export function useAppQuery<TQueryFnData, TError = Error, TData = TQueryFnData>({
   notifyOnError = true,
   ...options
-}: AppQueryOptions<TData, TError>): UseQueryResult<TData, TError> {
+}: AppQueryOptions<TQueryFnData, TError, TData>): UseQueryResult<TData, TError> {
   return useQuery({ ...options, meta: { notifyOnError } });
 }
