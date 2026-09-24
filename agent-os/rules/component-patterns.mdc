@@ -183,6 +183,11 @@ Use the animation kit from `@/lib/animations/` (everything here respects
   `data-slot="skeleton"` (like `ui/skeleton`), so the Shape axis squares them: a
   placeholder must have the corners of the thing it stands in for. A new placeholder
   component needs the same slot.
+- Spinners are not part of this kit. A busy button uses `Button`'s `isLoading`; any
+  other spinning glyph (a busy row, chip or overlay) is `<Spinner />` from
+  `@/shared/components/Spinner/index.ts`, which follows the Icon library setting and is
+  `aria-hidden` because the text or `aria-busy` control beside it does the announcing.
+  Never hand-roll `animate-spin` on an icon.
 - `useAnimeCountUp` — Anime.js number count-up (dashboard stats).
 - `prefersReducedMotion` — gate custom motion on the user's setting.
 

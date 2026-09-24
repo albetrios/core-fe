@@ -6,6 +6,7 @@ import { iconOnSidebarSurface } from '@/lib/icon-surface.ts';
 import { organizationDashboard } from '@/lib/routes/index.ts';
 import { cn } from '@/lib/utils.ts';
 import { CreateOrganizationDialog } from '@/shared/components/CreateOrganizationDialog/index.ts';
+import { Spinner } from '@/shared/components/Spinner/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   DropdownMenu,
@@ -18,7 +19,7 @@ import {
 import { mapApiError, reportError } from '@/shared/errors/errorHandler.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
-import { Check, ChevronsUpDown, Loader, Plus } from '@/shared/icons/index.ts';
+import { Check, ChevronsUpDown, Plus } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
@@ -309,11 +310,7 @@ export function OrganizationSwitcher({
         className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center text-xs font-semibold"
       >
         {switchingId === org.id ? (
-          <Loader
-            className="size-4 animate-spin"
-            aria-hidden
-            data-testid="organization-switcher-option-spinner"
-          />
+          <Spinner data-testid="organization-switcher-option-spinner" />
         ) : (
           initialOf(org.name)
         )}
