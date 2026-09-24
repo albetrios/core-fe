@@ -23,10 +23,10 @@ case "$lower" in *validate:tokens*)
   HINTS+=("raw color token → use semantic tokens (bg-background/text-success/bg-brand), never raw palette; vendored components/ui/ is exempt (frontend-design)") ;;
 esac
 case "$lower" in *validate:structure*)
-  HINTS+=("route-island structure → every page needs <page>.route.tsx + .manifest.ts + <Page>Page.tsx + OVERVIEW.md, and every component/hook a colocated *.test.ts(x) (route-island / test-generation)") ;;
+  HINTS+=("route-island structure → every page needs <page>.route.tsx + .manifest.ts + <Page>Page.tsx + OVERVIEW.md, and every component/hook a colocated *.test.ts(x) (fe-route-island / fe-test-generation)") ;;
 esac
 case "$lower" in *docs:lint*)
-  HINTS+=("markdown lint → fix MD0xx (ordered-list prefixes, fenced-code language); emphasis style follows Prettier (documentation-maintenance)") ;;
+  HINTS+=("markdown lint → fix MD0xx (ordered-list prefixes, fenced-code language); emphasis style follows Prettier (fe-documentation-maintenance)") ;;
 esac
 case "$lower" in *tsdoc*)
   HINTS+=("TSDoc budget → add a summary to new exports; budget tooling/tsdoc-coverage/budget.json is a raise-only ratchet") ;;
@@ -37,7 +37,7 @@ if printf '%s' "$lower" | grep -Eq 'pnpm tsc|tsc -b|tsc --noemit|type-check|type
 fi
 # eslint / biome lint
 if printf '%s' "$lower" | grep -Eq '\blint\b|biome[: ]check|eslint'; then
-  HINTS+=("lint → pnpm lint:fix for autofixable; warnings via lint-guard / code-smells-best-practices")
+  HINTS+=("lint → pnpm lint:fix for autofixable; warnings via fe-lint-guard / fe-code-smells-best-practices")
 fi
 # prettier / format
 if printf '%s' "$lower" | grep -Eq 'format|prettier'; then
@@ -45,15 +45,15 @@ if printf '%s' "$lower" | grep -Eq 'format|prettier'; then
 fi
 # vitest / tests / coverage
 if printf '%s' "$lower" | grep -Eq 'vitest|pnpm test|coverage'; then
-  HINTS+=("tests → fix the failing spec; coverage is a raise-only ratchet (vitest.config.ts) — add tests, don't lower it (test-generation)")
+  HINTS+=("tests → fix the failing spec; coverage is a raise-only ratchet (vitest.config.ts) — add tests, don't lower it (fe-test-generation)")
 fi
 # playwright e2e
 if printf '%s' "$lower" | grep -Eq 'playwright| e2e'; then
-  HINTS+=("e2e → check the trace; visual baselines update with --update-snapshots after an intentional UI change (e2e-testids)")
+  HINTS+=("e2e → check the trace; visual baselines update with --update-snapshots after an intentional UI change (fe-e2e-testids)")
 fi
 # full health gate
 if printf '%s' "$lower" | grep -Eq 'pnpm health'; then
-  HINTS+=("health = all phases — run the failing phase alone (tsc / lint / test / validate:*) for detail; pnpm health:fix auto-fixes (project-health-check)")
+  HINTS+=("health = all phases — run the failing phase alone (tsc / lint / test / validate:*) for detail; pnpm health:fix auto-fixes (fe-project-health-check)")
 fi
 
 [[ "${#HINTS[@]}" -eq 0 ]] && exit 0

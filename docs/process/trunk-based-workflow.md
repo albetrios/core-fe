@@ -57,7 +57,7 @@ boots on a platform-generated `claude/<slug>` that carries no meaning; rename it
 refuse every form of branch **delete** (403), so a `claude/*` branch that has already been pushed
 cannot be removed from inside the session. One-off bypass of the name check:
 `SKIP_BRANCH_CHECK=1 git push`. Enforced by [`.husky/pre-push`](../../.husky/pre-push) and the
-[`git-branch-naming`](../../agent-os/rules/git-branch-naming.mdc) rule (parity with core-be).
+[`fe-git-branch-naming`](../../agent-os/rules/fe-git-branch-naming.mdc) rule (parity with core-be).
 
 Hotfixes are **fix-forward on `main`** (no release branches) — see below.
 
@@ -108,7 +108,7 @@ git commit -m "feat: add AI streaming response"
 Unfinished? Hide it behind a **named schema flag** and merge anyway — do **not** hold it on a
 long-lived branch. The env schema is a closed set (an undeclared `VITE_` key fails
 `pnpm validate:env-example`), so declare the flag properly via
-`agent-os/skills/env-schema-add/SKILL.md` — or keep the work on the (short-lived) PR until
+`agent-os/skills/fe-env-schema-add/SKILL.md` — or keep the work on the (short-lived) PR until
 it is ready.
 
 ### 3. Push and open a PR to `main`

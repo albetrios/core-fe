@@ -3,7 +3,7 @@
 All files here are copied as-is to the build output (`dist/`). Required and optional assets are listed below.
 
 **Manifest / icon rules:** `docs/reference/pwa-manifest-and-app-icon.md`  
-**Skill:** `agent-os/skills/pwa-manifest/SKILL.md`
+**Skill:** `agent-os/skills/fe-pwa-manifest/SKILL.md`
 
 ## Required (app or build expects them)
 

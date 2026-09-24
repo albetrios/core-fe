@@ -95,9 +95,9 @@ budgets and coverage thresholds, regenerate affected docs, run normal hooks, and
 report any existing skipped test separately from verified fixes.
 
 The shared procedures are maintained in the
-[dependency-management](../../agent-os/skills/dependency-management/SKILL.md),
-[platform-hygiene](../../agent-os/skills/platform-hygiene/SKILL.md), and
-[bundle-performance](../../agent-os/skills/bundle-performance/SKILL.md) skills.
+[fe-dependency-management](../../agent-os/skills/fe-dependency-management/SKILL.md),
+[fe-platform-hygiene](../../agent-os/skills/fe-platform-hygiene/SKILL.md), and
+[fe-bundle-performance](../../agent-os/skills/fe-bundle-performance/SKILL.md) skills.
 
 ### Dependency Constraints
 

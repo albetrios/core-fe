@@ -14,7 +14,7 @@ const MAPPING_COMMENT = `//# source${'MappingURL'}=/assets/index-abc123.js.map`;
 
 /**
  * Run the tripwire against a throwaway `dist/assets`. A gate nobody has watched
- * fail is a green checkmark (agent-os/skills/guard-authoring), and a fixture
+ * fail is a green checkmark (agent-os/skills/fe-guard-authoring), and a fixture
  * that makes it fail cannot live in the real `dist/`.
  *
  * `files === null` omits `dist/assets` entirely (the "did you build?" case).

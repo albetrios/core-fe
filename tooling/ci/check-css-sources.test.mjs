@@ -12,7 +12,7 @@ const TRIPWIRE = join(ROOT, 'tooling/ci/check-css-sources.mjs');
 /**
  * Run the tripwire against a throwaway tree: one built stylesheet, plus whatever
  * app files the case needs. A gate nobody has watched fail is a green checkmark
- * (agent-os/skills/guard-authoring) — and a fixture that makes it fail cannot
+ * (agent-os/skills/fe-guard-authoring) — and a fixture that makes it fail cannot
  * live in the real `src/`.
  */
 function run(css, files = {}) {

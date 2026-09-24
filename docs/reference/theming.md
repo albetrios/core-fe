@@ -140,13 +140,13 @@ density, etc.), follow the repeatable procedure in
 **[theme-axis-audit-playbook.md](theme-axis-audit-playbook.md)** — full preset catalog,
 status tracker, grep cheatsheet, and the steps used for the radius/shape pass.
 
-**Agents:** read **`agent-os/skills/theme-axis-audit/SKILL.md`** and
-**`agent-os/rules/theme-axis-audit.mdc`** before any axis cycle (one axis per cycle,
+**Agents:** read **`agent-os/skills/fe-theme-axis-audit/SKILL.md`** and
+**`agent-os/rules/fe-theme-axis-audit.mdc`** before any axis cycle (one axis per cycle,
 detailed report required).
 
 **Product-design floors (typography, density, touch, motion):**
 **[preset-product-design-rules.md](preset-product-design-rules.md)** — industry-backed
-rules mapped to every axis; **`agent-os/rules/preset-product-design.mdc`** for agents.
+rules mapped to every axis; **`agent-os/rules/fe-preset-product-design.mdc`** for agents.
 
 ## Expanded catalog (2025-06 audit)
 
@@ -254,7 +254,7 @@ These rules prevent “invisible UI” when themes or motion settings change:
 | Rule                                                                   | Where enforced                                                 |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `text-card-foreground` on card surfaces                                | `Card` primitive + custom dashboard/card markup                |
-| Minimum `text-xs` for product labels/hints                             | `agent-os/rules/tailwind-styling.mdc`, `design.md` §2          |
+| Minimum `text-xs` for product labels/hints                             | `agent-os/rules/fe-tailwind-styling.mdc`, `design.md` §2          |
 | Page transitions use **transform-only** `route-rise` (no opacity fade) | `src/index.css` (`--animate-fade-in-up`), `PageTransition.tsx` |
 
 Do not add opacity-based entrance animations to layout outlets or `PageTransition` —

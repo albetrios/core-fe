@@ -22,7 +22,7 @@ a guest never sees it.
 4. Switch to the organization and refresh the session, then land on its dashboard.
 5. If that follow-up fails, the membership still stands: report the error, warn the user
    (`partial` state + `notify.warning`), and hand off to `/` — the resolver — never to
-   `/login` (INV-1). See `agent-os/rules/resilient-interactions.mdc` section 6.
+   `/login` (INV-1). See `agent-os/rules/fe-resilient-interactions.mdc` section 6.
 
 ## Gotcha — the `aliveRef` is set on every mount
 

@@ -1,0 +1,27 @@
+---
+description: Non-negotiables distilled from findings that reached human PR review — prove gates fire, finish sweeps, complete deletions, and keep the PR body true
+alwaysApply: true
+---
+
+# PR Review Prevention — Ship It Right The First Time
+
+Each line below exists because a real core-fe PR shipped without it and a human
+reviewer had to catch it. Treat them as part of "done", not as review feedback.
+
+This rule is always loaded, so it stays **short**: one sentence per
+non-negotiable, and the owning skill holds the procedure. Do not restate the
+detail here — read the skill.
+
+| Non-negotiable | Owner |
+| -------------- | ----- |
+| **A gate you have not watched fail is not a gate.** Probe both directions, from every layer glob, and wire it into `pr-ci.yml` — `health-check.sh` is local-only. | `fe-guard-authoring` |
+| **Never read an exit code through a pipe.** `pnpm lint \| tail -5` reports `tail`'s status; this already produced a false "all passing" here. Capture it or `set -o pipefail`. | `fe-guard-authoring` |
+| **Finish the sweep, or scope it to whole units.** Grep the sibling forms, not the list you started with. A half-converted component is a bug; an untouched one is a known gap declared in the PR body. | `fe-pre-pr-sweep` |
+| **Deleting a surface means deleting its registrations** — route mount, precache, chunk list, analytics event, store slice, locale keys, test ids, docs. `knip` sees none of those, and a test is not a consumer. | `fe-pre-pr-sweep` |
+| **A staleness guard must cover every path.** Extract a helper, route every call site through it, and put the check at the mutation boundary — not in the caller, which cannot protect side effects behind an `await`. | `fe-pre-pr-sweep` |
+| **Module-scope `import()` is eager** and defeats the split; use `onceAsync()`. `pnpm build:check` will not catch it. | `fe-bundle-performance` |
+| **Regenerate derived artifacts last.** `pnpm sync:check` runs after the final file exists, and again after any new one. | `fe-pre-pr-sweep` |
+| **Keep the PR body true to the branch.** Reconcile against `git diff --name-only origin/main...HEAD`; do not overclaim in the title. | `fe-documentation-maintenance` |
+
+Skills live at `agent-os/skills/<owner>/SKILL.md`. Before opening a PR, run the
+full checklist in `fe-pre-pr-sweep`.

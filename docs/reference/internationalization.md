@@ -93,7 +93,7 @@ CLDR category (an exact-0 lookup is honoured in every language), so it is always
 1. Add the key to `<page>.constants.ts` under `*_KEYS`.
 2. Add the English value to `src/locales/en/<page>.json`.
 3. Use `t(key)` in components or `i18n.t(key, { ns })` elsewhere.
-4. Agent workflow: **`agent-os/skills/i18n-constants/SKILL.md`**.
+4. Agent workflow: **`agent-os/skills/fe-i18n-constants/SKILL.md`**.
 
 ---
 

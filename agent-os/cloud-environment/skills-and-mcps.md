@@ -28,7 +28,7 @@ if the browser is missing). Full template:
 
 The full project skill catalog (41 skills, grouped in
 [`agent-os/skills/groups.json`](../skills/groups.json)) starts at the
-[skill registry](../skills/skill-registry/SKILL.md). Chains that sequence them
+[skill registry](../skills/fe-skill-registry/SKILL.md). Chains that sequence them
 live in [`agent-os/skills/chains.json`](../skills/chains.json). Routing by file
 pattern: [`agent-os/docs/skill-triggers.md`](../docs/skill-triggers.md).
 

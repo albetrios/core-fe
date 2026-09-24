@@ -51,47 +51,47 @@ The project uses **Cursor rules** (`agent-os/rules/*.mdc`) and **skills** (`agen
 
 These are applied automatically (no need to mention them):
 
-- **project-conventions.mdc** — Architecture, imports, state, file conventions.
-- **file-structure.mdc** — Route marker, page directory shape, dialog vs full page.
-- **context7-libraries.mdc** — Use Context7 MCP for up-to-date library docs.
-- **skill-router.mdc** — Routes your request to the right skill; complete all steps without asking.
-- **agent-behavior.mdc** — Complete tests, route registration, RBAC, docs as part of the work; never ask "Do you want me to add tests?" etc.
-- **testing-requirements.mdc** — Auto-generate colocated tests when creating/changing source files; no user confirmation.
+- **fe-project-conventions.mdc** — Architecture, imports, state, file conventions.
+- **fe-file-structure.mdc** — Route marker, page directory shape, dialog vs full page.
+- **fe-context7-libraries.mdc** — Use Context7 MCP for up-to-date library docs.
+- **fe-skill-router.mdc** — Routes your request to the right skill; complete all steps without asking.
+- **fe-agent-behavior.mdc** — Complete tests, route registration, RBAC, docs as part of the work; never ask "Do you want me to add tests?" etc.
+- **fe-testing-requirements.mdc** — Auto-generate colocated tests when creating/changing source files; no user confirmation.
 
 ### Skills (invoked by task type)
 
-When you ask for something (e.g. "add a settings page"), the **skill-router** matches your request to a skill. The master **auto-implement** skill orchestrates the full pipeline: parse requirement → implement → route → RBAC → test → lint → docs → verify. Everything happens **without asking** "Do you need tests?" or "Should I register the route?"
+When you ask for something (e.g. "add a settings page"), the **fe-skill-router** matches your request to a skill. The master **fe-auto-implement** skill orchestrates the full pipeline: parse requirement → implement → route → RBAC → test → lint → docs → verify. Everything happens **without asking** "Do you need tests?" or "Should I register the route?"
 
 | You say / do                                   | Skill used                       | What gets done (no confirmation asked)                                                                               |
 | ---------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Any requirement** (feature, page, component) | **auto-implement** (master)      | Full pipeline: code-structure → page-scaffolding → test-generation → lint-guard → docs → verify acceptance criteria. |
-| Add a page, implement a feature                | code-structure, page-scaffolding | Placement, route.tsx, page, contracts, api, hooks, **tests**, route registration, RBAC if protected, data-testid.    |
-| Add a new component/file under src/            | test-generation                  | Colocated test file created automatically.                                                                           |
-| Move component to shared                       | component-promotion              | Move file + test, update imports; create test if missing.                                                            |
+| **Any requirement** (feature, page, component) | **fe-auto-implement** (master)      | Full pipeline: fe-code-structure → fe-page-scaffolding → fe-test-generation → fe-lint-guard → docs → verify acceptance criteria. |
+| Add a page, implement a feature                | fe-code-structure, fe-page-scaffolding | Placement, route.tsx, page, contracts, api, hooks, **tests**, route registration, RBAC if protected, data-testid.    |
+| Add a new component/file under src/            | fe-test-generation                  | Colocated test file created automatically.                                                                           |
+| Move component to shared                       | fe-component-promotion              | Move file + test, update imports; create test if missing.                                                            |
 | Optimize performance, re-renders               | react-best-practices             | Applied during implementation.                                                                                       |
 | UI review, accessibility                       | web-design-guidelines            | Review against a11y/form/typography rules.                                                                           |
-| Lint/CI/security changes                       | code-quality-security            | Consistency with existing pipeline.                                                                                  |
-| _(after every code change)_                    | **lint-guard** (auto)            | Fix all ESLint + TypeScript errors silently before responding.                                                       |
+| Lint/CI/security changes                       | fe-code-quality-security            | Consistency with existing pipeline.                                                                                  |
+| _(after every code change)_                    | **fe-lint-guard** (auto)            | Fix all ESLint + TypeScript errors silently before responding.                                                       |
 
-Full skill list and triggers: **agent-os/skills/skill-registry/SKILL.md**.
+Full skill list and triggers: **agent-os/skills/fe-skill-registry/SKILL.md**.
 
 ---
 
 ## What Happens Without You Asking
 
-When you request a change, the agent runs the **auto-implement** pipeline:
+When you request a change, the agent runs the **fe-auto-implement** pipeline:
 
 1. **Parse your requirement** — extract What, Where, Acceptance criteria, API, UI, Constraints.
 2. **Implement** — place code in the correct layer, scaffold pages, create components/hooks/forms.
 3. **Register routes** in `src/app/routes/routeTree.tsx` and add **RBAC** in `src/core/rbac/policies.ts`.
 4. **Add or update tests** — colocated test files with vitest-axe and data-testid.
-5. **Fix lint + types** — lint-guard ensures zero ESLint errors and zero TypeScript errors.
+5. **Fix lint + types** — fe-lint-guard ensures zero ESLint errors and zero TypeScript errors.
 6. **Update docs** — README.md / CLAUDE.md when the change affects structure or conventions.
 7. **Verify acceptance criteria** — each criterion checked before responding.
 
 **None of these steps require confirmation.** The user provides only the requirement.
 
-If you ever see the agent asking for confirmation on tests, routes, RBAC, lint, or docs, point it to **agent-os/rules/agent-behavior.mdc** and **agent-os/skills/auto-implement/SKILL.md**.
+If you ever see the agent asking for confirmation on tests, routes, RBAC, lint, or docs, point it to **agent-os/rules/fe-agent-behavior.mdc** and **agent-os/skills/fe-auto-implement/SKILL.md**.
 
 ---
 
@@ -125,7 +125,7 @@ If you prefer to do it yourself or verify after AI:
 2. Register the route in `src/app/routes/routeTree.tsx` (lazy import) and add a row in `docs/reference/routes-and-ui.md`.
 3. Add permissions in `src/core/rbac/policies.ts` if the route is protected.
 4. Add colocated tests — every component and hook ships a `*.test.ts(x)` (validator-enforced).
-5. Use `data-testid` per the convention in testing-requirements, then run `pnpm validate:testids` and `pnpm validate:structure`.
+5. Use `data-testid` per the convention in fe-testing-requirements, then run `pnpm validate:testids` and `pnpm validate:structure`.
 
 ---
 
@@ -142,9 +142,9 @@ Full matrix: **[docs/reference/testing.md](docs/reference/testing.md)** and **[t
 | Test ID contracts                  | `pnpm validate:testids` |
 
 - Tests are **colocated** under `src/` (`*.test.ts(x)`); strict colocation is `pnpm validate:structure`.
-- **E2E** uses hybrid selectors — `data-testid` for actions, `getByRole`/`getByLabel` for a11y guards (`agent-os/skills/playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`).
+- **E2E** uses hybrid selectors — `data-testid` for actions, `getByRole`/`getByLabel` for a11y guards (`agent-os/skills/fe-playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`).
 - Component tests must include **vitest-axe**; dialog tests use **`axeForDialog`** (`tests/utils/axe-for-dialog.ts`).
-- Templates: **agent-os/skills/test-generation/SKILL.md**.
+- Templates: **agent-os/skills/fe-test-generation/SKILL.md**.
 
 ---
 
@@ -181,5 +181,5 @@ Full matrix: **[docs/reference/testing.md](docs/reference/testing.md)** and **[t
 
 - **README.md** and **CLAUDE.md** are the main docs; **CONTRIBUTING.md** is for humans working on the project.
 - **Rules and skills** in `agent-os/rules/` and `agent-os/skills/` drive AI behavior and are **invoked automatically** when your request matches.
-- The **auto-implement** skill is the master pipeline: requirement → implement → route → RBAC → test → lint → docs → verify. All dependent tasks (tests, routes, RBAC, lint, docs) are completed **without asking you**.
+- The **fe-auto-implement** skill is the master pipeline: requirement → implement → route → RBAC → test → lint → docs → verify. All dependent tasks (tests, routes, RBAC, lint, docs) are completed **without asking you**.
 - **You provide only the requirement.** Everything else is handled in the background.

@@ -194,7 +194,7 @@ export function StepUpDialog({
    * from state, which only lands a render later — a double-press (or Enter held
    * for a beat) fires the handler twice before that. One is a second step-up
    * attempt against a rate-limited endpoint; the other is a second email
-   * (SET-9). See agent-os/rules/resilient-interactions section 1.
+   * (SET-9). See agent-os/rules/fe-resilient-interactions.mdc section 1.
    */
   const submittingRef = useRef(false);
   const sendingRef = useRef(false);

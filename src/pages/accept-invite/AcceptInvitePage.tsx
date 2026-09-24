@@ -134,7 +134,7 @@ function InviteStatusCard({
  * - **It never fires two accepts for one gesture.** `acceptInvitation` is a write;
  *   the in-flight ref below is the single-flight guard, flipped synchronously so a
  *   double-click on Try again cannot get past it (`disabled` only lands a render
- *   later). See `agent-os/rules/resilient-interactions.mdc` section 1.
+ *   later). See `agent-os/rules/fe-resilient-interactions.mdc` section 1.
  */
 export function AcceptInvitePage() {
   const { t } = useTranslation(AUTH_NS);

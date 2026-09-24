@@ -385,7 +385,7 @@ export function AuthEmailPanel({
 
   // `pending` is React state: two clicks in the same frame both read the stale
   // value and both get through. These flip synchronously inside the handler, so a
-  // double click cannot start a second request (agent-os/rules/resilient-interactions).
+  // double click cannot start a second request (agent-os/rules/fe-resilient-interactions.mdc).
   const sendingRef = useRef(false);
   const verifyingRef = useRef(false);
 

@@ -13,27 +13,27 @@ FILE=$(echo "$INPUT" | python3 -c \
 REMINDERS=()
 
 [[ "$FILE" == *".route.tsx" || "$FILE" == *".manifest.ts" ]] && \
-  REMINDERS+=("route island → route-island (path, RBAC permission, head; register in routeTree + docs/reference/routes-and-ui.md)")
+  REMINDERS+=("route island → fe-route-island (path, RBAC permission, head; register in routeTree + docs/reference/routes-and-ui.md)")
 
 [[ "$FILE" == *".contracts.ts" ]] && \
-  REMINDERS+=("contracts → Zod schema + inferred type; never hand-write the TS type (api-data-patterns)")
+  REMINDERS+=("contracts → Zod schema + inferred type; never hand-write the TS type (fe-api-data-patterns)")
 
 [[ "$FILE" == *".api.ts" || "$FILE" == */hooks/use*/*.ts? ]] && \
   REMINDERS+=("data layer → react-best-practices (TanStack Query owns server state; mock + live branch)")
 
 case "$FILE" in
   */components/ui/*) REMINDERS+=("vendored shadcn primitive → shadcn (add/compose via CLI; don't hand-edit)") ;;
-  */components/*.tsx | */forms/*.tsx) REMINDERS+=("component/form → composition-patterns + frontend-design + test-generation (colocate a *.test.tsx)") ;;
+  */components/*.tsx | */forms/*.tsx) REMINDERS+=("component/form → composition-patterns + frontend-design + fe-test-generation (colocate a *.test.tsx)") ;;
 esac
 
 [[ "$FILE" == *"index.css" || "$FILE" == *.css ]] && \
   REMINDERS+=("styles → semantic tokens only (bg-background/text-success/bg-brand); pnpm validate:tokens (frontend-design)")
 
 [[ "$FILE" == *".test.tsx" || "$FILE" == *".test.ts" ]] && \
-  REMINDERS+=("tests → test-generation; E2E flows → e2e-testids (tests/e2e/*.e2e.test.ts)")
+  REMINDERS+=("tests → fe-test-generation; E2E flows → fe-e2e-testids (tests/e2e/*.e2e.test.ts)")
 
 [[ "$FILE" == *".env.example" ]] && \
-  REMINDERS+=("env → documentation-maintenance (VITE_ = public/bundled; secrets via environment, never committed)")
+  REMINDERS+=("env → fe-documentation-maintenance (VITE_ = public/bundled; secrets via environment, never committed)")
 
 if [[ "${#REMINDERS[@]}" -gt 0 ]]; then
   echo ""

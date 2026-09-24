@@ -2,8 +2,8 @@
 
 Self-contained folders under `pages/<page-name>/` with page-prefixed role files, folder-per-unit sub-units, **direct child folders** for nested routes (the pages tree mirrors the URL tree), **`<page>.manifest.ts`** for the layout/leaf manifest, and colocated tests.
 
-**Rule (contract):** [`agent-os/rules/file-structure.mdc`](../../agent-os/rules/file-structure.mdc)
-**Skill (workflow):** [`agent-os/skills/route-island/SKILL.md`](../../agent-os/skills/route-island/SKILL.md)
+**Rule (contract):** [`agent-os/rules/fe-file-structure.mdc`](../../agent-os/rules/fe-file-structure.mdc)
+**Skill (workflow):** [`agent-os/skills/fe-route-island/SKILL.md`](../../agent-os/skills/fe-route-island/SKILL.md)
 **Template:** [`docs/getting-started/route-island-template.md`](../getting-started/route-island-template.md)
 
 ---

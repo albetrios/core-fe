@@ -1,0 +1,171 @@
+---
+description: Route tasks to the correct skill; auto-invoke skills for requirements, pages, tests, promotion; complete all steps without asking
+alwaysApply: true
+---
+
+# Skill Router
+
+When a task matches a pattern below, read the corresponding SKILL.md **before** starting work. Complete every step in that skill (including tests, route registration, RBAC, data-testid) **without asking the user for confirmation**. See `agent-os/rules/fe-agent-behavior.mdc` for the no-confirmation rule. Skills contain step-by-step instructions, conventions, and checklists specific to this project.
+
+| Task Pattern | Skill | Path |
+|---|---|---|
+| **Any requirement** (feature, page, component, API) — master orchestrator | fe-auto-implement | `agent-os/skills/fe-auto-implement/SKILL.md` |
+| Implement requirement, add feature, where to put code | fe-code-structure | `agent-os/skills/fe-code-structure/SKILL.md` |
+| Vague/feature-sized request; requirement in standard format; "use requirement format" | fe-requirement-format | `agent-os/skills/fe-requirement-format/SKILL.md` |
+| New page, route, scaffold, nested sub-route, self-contained path | fe-route-island | `agent-os/skills/fe-route-island/SKILL.md` |
+| Org-scoped routes, guard chains, gatewayFromManifest, session context, settings hash, `/` resolver | fe-routing-tenancy | `agent-os/skills/fe-routing-tenancy/SKILL.md` |
+| Backend resource CRUD — list, URL dialogs, `*.resource.ts`, L7 registry | fe-resource-crud | `agent-os/skills/fe-resource-crud/SKILL.md` |
+| Form mutations, 422 field mapping, 429 rate limit, QueryBoundary error UX | fe-http-forms-errors | `agent-os/skills/fe-http-forms-errors/SKILL.md` |
+| Platform config, env read paths, knip, validate:vite-env, validate:client-env | fe-platform-hygiene | `agent-os/skills/fe-platform-hygiene/SKILL.md` |
+| Add/update/remove/pin npm deps, lockfile sync, `pnpm.overrides`, audit fix, vulnerability | fe-dependency-management | `agent-os/skills/fe-dependency-management/SKILL.md` |
+| Bundle size budget, code splitting, dynamic import, first-paint regression, `pnpm size` | fe-bundle-performance | `agent-os/skills/fe-bundle-performance/SKILL.md` |
+| New page, route, scaffold | fe-page-scaffolding | `agent-os/skills/fe-page-scaffolding/SKILL.md` |
+| Move component to shared, promote | fe-component-promotion | `agent-os/skills/fe-component-promotion/SKILL.md` |
+| React performance, re-renders, bundle size | react-best-practices | `agent-os/skills/react-best-practices/SKILL.md` |
+| UI review, accessibility, focus, forms | web-design-guidelines | `agent-os/skills/web-design-guidelines/SKILL.md` |
+| Build/style/beautify a UI, page, component, or interface; make it distinctive/polished | frontend-design | `agent-os/skills/frontend-design/SKILL.md` |
+| Redesign, audit, polish, or reshape product UI (dashboard, settings, dense admin surfaces) — user says "impeccable" or full UX pass | impeccable | `agent-os/skills/impeccable/SKILL.md` |
+| Implement JavaScript animations (count-up, timelines, stagger) with Anime.js | animejs | `agent-os/skills/animejs/SKILL.md` |
+| Motion craft philosophy — why/when/how to animate (Emil Kowalski bar) | emil-design-eng | `agent-os/skills/emil-design-eng/SKILL.md` |
+| Review animation/motion code in a PR or diff (read-only) | review-animations | `agent-os/skills/review-animations/SKILL.md` |
+| Look up design intelligence — styles, color palettes, font pairings, UX/stack guidelines (incl. shadcn), chart choice | ui-ux-pro-max | `agent-os/skills/ui-ux-pro-max/SKILL.md` |
+| Component API, compound components, boolean props | composition-patterns | `agent-os/skills/composition-patterns/SKILL.md` |
+| Lint rules, security scan, pre-commit, CI pipeline | fe-code-quality-security | `agent-os/skills/fe-code-quality-security/SKILL.md` |
+| Commit checks, before-commit guard, pre-commit failures | fe-before-commit-guard | `agent-os/skills/fe-before-commit-guard/SKILL.md` |
+| Adding a validate gate, lint restriction, or static-sync CI step | fe-guard-authoring | `agent-os/skills/fe-guard-authoring/SKILL.md` |
+| Opening a PR, "ready for review", final pre-push sweep | fe-pre-pr-sweep | `agent-os/skills/fe-pre-pr-sweep/SKILL.md` |
+| RTL mirroring, logical properties, physical ml/mr/left/right | fe-rtl-logical-css | `agent-os/skills/fe-rtl-logical-css/SKILL.md` |
+| Dates, timezones, numbers, currency, calendars | fe-locale-formatting | `agent-os/skills/fe-locale-formatting/SKILL.md` |
+| Locale/direction preferences, apply path, FOUC init, build mode | fe-locale-preferences | `agent-os/skills/fe-locale-preferences/SKILL.md` |
+| Codemod, sweep, bulk rename, editing many locale/config files | fe-safe-bulk-edits | `agent-os/skills/fe-safe-bulk-edits/SKILL.md` |
+| Adding, renaming or removing an agent-os skill or rule | fe-agent-os-authoring | `agent-os/skills/fe-agent-os-authoring/SKILL.md` |
+| Addressing a review report or PR review threads | fe-review-response | `agent-os/skills/fe-review-response/SKILL.md` |
+| Lint/type-check failures after implementation | fe-lint-guard | `agent-os/skills/fe-lint-guard/SKILL.md` |
+| Code smells, best practices, live-code review when code added/changed | fe-code-smells-best-practices | `agent-os/skills/fe-code-smells-best-practices/SKILL.md` |
+| New test, add test, test coverage, missing tests | fe-test-generation | `agent-os/skills/fe-test-generation/SKILL.md` |
+| E2E selectors, data-testid, test ids for Playwright, audit test hooks | fe-e2e-testids | `agent-os/skills/fe-e2e-testids/SKILL.md` |
+| Write/refactor Playwright E2E specs (hybrid selectors) | fe-playwright-e2e | `agent-os/skills/fe-playwright-e2e/SKILL.md` |
+| Visual regression, screenshot baseline, snapshot test, route × theme-axis matrix | fe-visual-regression | `agent-os/skills/fe-visual-regression/SKILL.md` |
+| Bug, test failure, or unexpected behavior — root-cause before fixing | systematic-debugging | `agent-os/skills/systematic-debugging/SKILL.md` |
+| **Any shadcn/ui work** — adding, fixing, debugging, styling, composing, CLI, `components.json`, presets, **and choosing which component/block** to use | shadcn (single skill) | `agent-os/skills/shadcn/SKILL.md` |
+| (merged) "which component for X", use shadcn only — now folded into the single skill above | shadcn (pointer) | `agent-os/skills/shadcn/SKILL.md` |
+| Which skill to use, list skills, help me find | fe-skill-registry | `agent-os/skills/fe-skill-registry/SKILL.md` |
+| "Is there a skill for X", discover/install a new skill from the ecosystem | find-skills | `agent-os/skills/find-skills/SKILL.md` |
+| Add/change docs, where to document, keep README/CLAUDE in sync | fe-documentation-maintenance | `agent-os/skills/fe-documentation-maintenance/SKILL.md` |
+| Extract static values to constants, i18n keys, locale JSON, move copy out of components | fe-i18n-constants | `agent-os/skills/fe-i18n-constants/SKILL.md` |
+| Add/rename/remove env var — schema, `.env.example`, GitHub sync, Secret vs Variable | fe-env-schema-add | `agent-os/skills/fe-env-schema-add/SKILL.md` |
+| Extension/settings recommendations, productivity setup, recommend extensions, new tooling | fe-extension-settings-recommendations | `agent-os/skills/fe-extension-settings-recommendations/SKILL.md` |
+| Full project health check, verify everything works, post-major-change audit | fe-project-health-check | `agent-os/skills/fe-project-health-check/SKILL.md` |
+| Full code review report, generate code review | fe-full-code-review | `agent-os/skills/fe-full-code-review/SKILL.md` |
+| **Theme axis audit** — appearance/shuffle compliance, "do elevation", one-by-one axis fixes | fe-theme-axis-audit | `agent-os/skills/fe-theme-axis-audit/SKILL.md` |
+| **Preset product rules** — type scale/density/contrast/motion floors, shuffle policy, WCAG | preset-product-design doc + fe-preset-product-design rule | `docs/reference/preset-product-design-rules.md` · `agent-os/rules/fe-preset-product-design.mdc` |
+| **PWA manifest / app icon / favicon / theme_color** — install surface, Boxes icon, manifest sync | fe-pwa-manifest | `agent-os/skills/fe-pwa-manifest/SKILL.md` |
+| **Local production perf** — bundle size, Lighthouse on built app (not dev server) | local-production-perf (doc) · fe-project-health-check | `docs/reference/local-production-perf.md` |
+| **Naming a git branch** — creating a branch, renaming a `claude/*` session branch before pushing | fe-git-branch-naming (rule) · fe-code-quality-security | `agent-os/rules/fe-git-branch-naming.mdc` · `docs/process/trunk-based-workflow.md` |
+| **Resilient interactions** — single-flight writes, contained component crashes, honest loading/empty/error states, timers and listeners | fe-resilient-interactions (rule + skill) · fe-http-forms-errors | `agent-os/rules/fe-resilient-interactions.mdc` · `agent-os/skills/fe-resilient-interactions/SKILL.md` · `agent-os/skills/fe-http-forms-errors/SKILL.md` |
+
+## Auto-Invocation Rules
+
+0. **Auto-Implement (Master)**: When the user provides **any** requirement (short sentence, standard format, or feature-sized request), invoke the `fe-auto-implement` skill. It orchestrates the full pipeline: parse → implement → route → RBAC → test → lint → docs → verify. The user provides only the requirement; everything else is background work.
+
+1. **Code Structure**: When implementing any requirement (new feature, page, component, API), read the `fe-code-structure` skill first for placement and dependency rules; then add or update tests automatically (do not wait for the user to ask for tests).
+
+2. **Test Generation**: When a new `.tsx` or `.ts` source file is created under `src/`, check if a colocated test file exists. If not, invoke the `fe-test-generation` skill to create one. Exceptions: `types.ts`, `branded.ts`, `index.ts` (barrel), `<page>.contracts.ts`, `<page>.constants.ts`, `<page>.route.tsx`, `<page>.manifest.ts`, `<PAGE>.OVERVIEW.md`. Do not ask the user whether to add tests — generate them as part of the implementation.
+
+2b. **E2E Test IDs**: When adding or changing interactive UI, or when the user wants Playwright-ready selectors, invoke the `fe-e2e-testids` skill: apply naming conventions, add `data-testid` on pages/forms/nav, and update `docs/reference/e2e-testids-inventory.md`.
+
+2c. **Playwright E2E**: When writing or refactoring `tests/e2e/*.e2e.test.ts`, invoke **`fe-playwright-e2e`**: hybrid selectors (`data-testid` actions + `getByRole`/`getByLabel` guards) via `tests/utils/e2e-hybrid.ts`.
+
+3. **Route island**: When creating or refactoring any route or sub-route, invoke `fe-route-island` first: identical directory tree, `<PAGE>.OVERVIEW.md`, imports stay inside the island (+ core/shared/lib/stores only).
+
+3b. **Routing & tenancy**: When adding or changing routes under `organization/$organizationSlug/`, root `/dashboard`, `routeTree.tsx` guards, `gatewayFromManifest`, session hydrate/invalidate, or settings hash behavior, invoke **`fe-routing-tenancy`** after `fe-route-island`. See **`agent-os/rules/fe-routing-tenancy-sync.mdc`**.
+
+3c. **Resource CRUD**: When scaffolding a backend resource (list + URL-driven create/edit dialogs, `*.resource.ts`, L7 bootstrap), invoke **`fe-resource-crud`** after `fe-route-island` (+ **`fe-routing-tenancy`** when org-scoped).
+
+3d. **HTTP / forms / errors**: When wiring form mutations to `apiClient`, mapping 422 to RHF, handling 429, or wrapping read panels in `QueryBoundary`, invoke **`fe-http-forms-errors`** (with `composition-patterns` for form structure).
+
+3e. **Platform hygiene**: When touching env schema, `platformConfig`, `build-env.ts`, knip, or platform validators, invoke **`fe-platform-hygiene`** (env key add/rename/remove chains **`fe-env-schema-add`** first). See **`agent-os/rules/fe-platform-hygiene-sync.mdc`**.
+
+3f. **New machine-enforced invariant**: When adding or editing anything under `tooling/validate/`, a `no-restricted-imports` entry in `eslint.config.mjs`, or a static-sync step in `pr-ci.yml`, invoke **`fe-guard-authoring`** — a gate must be probed in both directions and wired into CI, not just `health-check.sh`.
+
+3g. **Before opening a PR**: invoke **`fe-pre-pr-sweep`** — half-converted sweeps, incomplete deletions, ungated race paths, eager module-scope `import()`, stale derived artifacts, and a drifted PR body. See **`agent-os/rules/fe-pr-review-prevention.mdc`**.
+
+3h. **i18n surface**: When rendering user-facing copy invoke **`fe-i18n-constants`**; for any date/number/money value invoke **`fe-locale-formatting`** (never bare `Intl`); when styling any component invoke **`fe-rtl-logical-css`**; when touching the locale store, apply path, `locale-init.js` or `BUILD_I18N_MODE` invoke **`fe-locale-preferences`**.
+
+3i. **Agent-os changes**: When creating or editing anything under `agent-os/skills/` or `agent-os/rules/`, invoke **`fe-agent-os-authoring`** — eight registration surfaces, and the tree regenerates last.
+
+3j. **Review response**: When handed a review report or PR review threads, invoke **`fe-review-response`** — verify every claim against the code, including the ones the review marked resolved.
+
+3k. **Resilient interactions**: When adding or changing any mutating control, composed surface, success toast, optimistic edit, multi-step flow that ends in a redirect, or screen whose shape comes from a query, follow **`agent-os/rules/fe-resilient-interactions.mdc`** — 30 standing rules, `alwaysApply`, one line each. The failure each came from and the code that holds are in **`agent-os/skills/fe-resilient-interactions/SKILL.md`**; read it before applying an unfamiliar rule or arguing with one. Writes are single-flight through **`useAppMutation`** (§1, §20), a component crash stays inside its own boundary (§2), and every query renders all three of its states (§8, §19). Pair with **`fe-http-forms-errors`** for the mutation/error wiring itself.
+
+4. **Page Scaffolding**: When creating a new page, invoke `fe-page-scaffolding` (after `fe-route-island`) to ensure all standard files are created and `data-testid` attributes are placed (via `fe-e2e-testids` skill).
+
+5. **Component Promotion**: When importing a page-specific component into a second page, invoke the `fe-component-promotion` skill to move it to `shared/`.
+
+6. **Code Quality**: When modifying `eslint.config.mjs`, `.husky/*`, or `.github/workflows/pr-ci.yml`, invoke the `fe-code-quality-security` skill for consistency checks — and **`fe-guard-authoring`** whenever the change adds or edits an enforced rule.
+
+7. **Lint Guard**: After every implementation that adds or changes source files, invoke the `fe-lint-guard` skill to fix all ESLint and TypeScript errors before responding. Do not announce this step — just ensure zero errors.
+
+8. **Code Smells / Best Practices**: When any code is added or changed under `src/`, invoke the `fe-code-smells-best-practices` skill on the **modified/live code only**. Check dependency rules (app not importing from pages), import formatting, no inline styles, no `any`, apiClient from fetch-client, form-error testid consistency. Fix issues in the same change set without asking.
+
+9. **Requirement Format**: When the user's request is vague or feature-sized (e.g. "we need notifications", "add the billing feature") and they have **not** provided a requirement doc in the standard format (What, Where, Acceptance criteria), invoke the `fe-requirement-format` skill: ask them to fill the template from `docs/getting-started/requirement-format.md` (or paste it) and point to `docs/getting-started/requirements/sample-requirement.md`. Full intake (types, skills, rules): **docs/getting-started/requirement-intake.md**. When they **do** provide a requirement in that format, parse it and implement fully (fe-code-structure + fe-page-scaffolding + tests + route + RBAC) without asking.
+
+10. **Documentation Maintenance**: When adding a new doc, moving/renaming docs, or changing project structure that affects README/CLAUDE or doc links, invoke the `fe-documentation-maintenance` skill to place the doc correctly and keep README, CLAUDE, and docs/README.md in sync.
+
+11. **Extension/Settings Recommendations**: When the user asks about extensions, IDE setup, or productivity, invoke the `fe-extension-settings-recommendations` skill. When adding or changing tooling that affects the IDE (new test framework, new linter, new language, new config file), consider invoking it to suggest or update workspace extensions and settings; apply updates if clearly beneficial and non-intrusive.
+
+12. **Project Health Check**: When the user asks to "check everything", "run health check", "verify the project", "make sure everything works", or after a major code change involving 10+ files, invoke the `fe-project-health-check` skill to audit docs, tests, lint, build, and bundle.
+
+13. **Full Code Review**: When the user asks to "run code review", "generate code review report", "full code review", or "code review report", invoke the `fe-full-code-review` skill. Run `pnpm report:code-review` to generate the report; the skill guides the AI when the user wants the AI to produce it.
+
+14. **shadcn/ui (single skill)**: For **any** shadcn/ui work — building, adding, fixing, debugging, styling, composing, running the CLI, touching `components.json`/presets, **and choosing which component/block to use** — read **`agent-os/skills/shadcn/SKILL.md`** first and follow its workflow + Critical Rules + its **"Project rules — core-fe"** section (allowed 20 sources + selection flow). This is now the **one canonical shadcn skill** (the former `shadcn-component-selection` is merged into it). Use the project runner (`pnpm dlx shadcn@latest …`); check installed components and `search`/`docs` before writing custom markup. Enforce semantic tokens, `gap-*` not `space-*`, `size-*` for equal w/h, `cn()`, `data-icon` on button icons, full Card/Tabs/Avatar composition. Do not announce reading it — just follow it.
+
+15. **frontend-design (installed skill)**: When **building, styling, or beautifying any UI** (page, component, layout, interface), read **`agent-os/skills/frontend-design/SKILL.md`** for design-thinking and aesthetic quality (typography hierarchy, color/theme intent, motion on high-impact moments, spatial composition, depth/atmosphere, memorable details — avoid generic "AI slop"). **Apply it *within* this project's guardrails — those take precedence:** components come from shadcn via `agent-os/skills/shadcn/SKILL.md` + the 20 allowed sources (`agent-os/rules/fe-ui-sources.mdc`); colors use the neutral semantic tokens in `src/index.css` (no raw colors, no purple-on-white); fonts and brand stay as configured unless the user asks to change them; accessibility/UX follows `web-design-guidelines`. Use `frontend-design` to elevate craft and polish, **not** to override the component library, design tokens, or brand. For ad-hoc standalone artifacts the user may grant more creative latitude.
+
+16. **find-skills (installed skill)**: When the user asks "is there a skill for X", wants to discover/install new capabilities, or a task has **no matching skill in this router or fe-skill-registry**, read **`agent-os/skills/find-skills/SKILL.md`** and use the Skills CLI (`npx skills find <query>`, `npx skills add <owner/repo@skill>`). Prefer reputable, high-install skills; present options before installing. Install into `agent-os/skills/` (tracked in `skills-lock.json`), then **wire the new skill into this router, `fe-skill-registry`, and docs** (as done for `shadcn`, `frontend-design`, `find-skills`).
+
+17. **ui-ux-pro-max (installed skill)**: A searchable design-intelligence DB (50+ styles, 161 palettes, 57 font pairings, 161 product types, 99 UX guidelines, charts, and per-stack rules incl. shadcn). When making design decisions or reviewing UI, **query it for guidance** via Python: `python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --domain <style|color|ux|typography|chart|product|icons> [--stack shadcn]` (requires `python3`; scripts are local-only — BM25 over bundled CSVs, no network). Use its `--stack shadcn` and `ux` guidance most. **Project guardrails win:** do **not** apply its palette/font/style suggestions in a way that overrides our neutral semantic tokens (`src/index.css`), configured fonts/brand, or shadcn component choices — treat it as advisory; the authoritative skills remain `shadcn` (components/tokens), `frontend-design` (craft), and `web-design-guidelines` (a11y). Don't run `--persist` (writes `design-system/` files) unless the user asks.
+
+18. **fe-i18n-constants**: When extracting inline strings, test ids, analytics events, or defaults into `<page>.constants.ts` + locale JSON, or when adding user-facing copy to a route island, read **`agent-os/skills/fe-i18n-constants/SKILL.md`**. One island or module per change; wire react-i18next namespace; manifest `testId` imports from constants.
+
+18b. **fe-env-schema-add**: When adding, renaming, or removing env vars (`env-schema.ts`, `.env.example`), read **`agent-os/skills/fe-env-schema-add/SKILL.md`**. Run `pnpm tool:sync-env-example`; follow **`agent-os/rules/fe-env-schema-add-sync.mdc`**.
+
+19. **fe-theme-axis-audit (mandatory for axis work)**: When the user asks to audit/fix Appearance or Shuffle axes, continue **"one by one"**, or name a specific axis (`elevation`, `density`, …), read **`agent-os/skills/fe-theme-axis-audit/SKILL.md`** + **`docs/reference/theme-axis-audit-playbook.md`**. Complete Phases 0–4 in one cycle, deliver the detailed report, update the playbook status tracker. See **`agent-os/rules/fe-theme-axis-audit.mdc`**.
+
+19b. **Preset product-design rules**: When changing **`presets.ts`**, Appearance pickers, `applyGeneratedTheme`, default axes, or dense product UI under Shuffle, read **`docs/reference/preset-product-design-rules.md`** and follow **`agent-os/rules/fe-preset-product-design.mdc`** (typography floor 12px, density≠font size, touch targets, no opacity page fades).
+
+19c. **PWA manifest sync**: When changing **`app-manifest.ts`**, **`manifest.webmanifest`**, **`app-icon.svg`**, PWA PNGs, favicon, or install **`theme_color`**, read **`agent-os/skills/fe-pwa-manifest/SKILL.md`** + **`docs/reference/pwa-manifest-and-app-icon.md`**. Edit `app-manifest.ts` first; sync JSON, `index.html`, `page-head.ts`, and PNGs; run **`app-manifest.test.ts`**. See **`agent-os/rules/fe-pwa-manifest-sync.mdc`**.
+
+19d. **Local production perf**: When measuring bundle size or Lighthouse, **`pnpm build`** then **`pnpm preview`** (or static `serve dist`) — never Lighthouse on **`pnpm dev`**. See **`docs/reference/local-production-perf.md`**.
+
+20. **UI & craft stack (precedence — no conflicting taste skills):**
+    - **Default** (any UI build/style): **`shadcn`** → **`frontend-design`** → **`web-design-guidelines`**. Query **`ui-ux-pro-max`** for advisory UX/style/chart hints only; never override semantic tokens (`src/index.css`), Lucide icons, or shadcn choices.
+    - **Full redesign / audit / “impeccable”** (user explicitly asks): add **`impeccable`** after `shadcn`, still within project guardrails (`fe-ui-sources.mdc`, tokens, fe-route-island).
+    - **Motion implementation:** **`animejs`** (this repo’s animation library). Read **`emil-design-eng`** for when/why motion; **`review-animations`** for PR review of motion code only.
+    - **Removed / do not invoke:** `high-end-visual-design`, `redesign-existing-projects`, `shadcn-ui-blocks`, `image-to-code`, `motion-framer`, `full-output-enforcement` — they conflict with core-fe guardrails or duplicate `shadcn` / `frontend-design`.
+
+## Orchestration manifests (machine-readable cross-refs)
+
+The routes above are the human-readable map; the same relationships are declared
+as data for tooling and the eval gates:
+
+- **Skill chains** — `agent-os/skills/chains.json`: named, ordered sequences for
+  multi-skill work (`page-change`, `fe-component-promotion`, `fe-resource-crud`,
+  `ui-review`, `form-mutation`, `data-hook`, `styling`, `env-change`). Each
+  `trigger` mirrors a row in `agent-os/docs/skill-triggers.md`.
+- **Skill groups** — `agent-os/skills/groups.json`: every skill in exactly one
+  group (ui-design, routing-pages, testing, quality, docs, i18n, platform,
+  workflow, external).
+- **Review pipelines** — `agent-os/agents/pipelines.json`: read-only reviewer
+  agents run by `/fe-pre-merge-review` (`fe-verifier` → `fe-docs-auditor`) and
+  `/fe-prod-readiness` (`fe-dependency-auditor` → `fe-bundle-size-reviewer` →
+  `fe-perf-auditor`); each finding hands off to the skill that fixes it. Catalog:
+  `agent-os/docs/agents-catalog.md`.
+- **File-pattern routing** — `agent-os/docs/skill-triggers.md` is the source for
+  "which skill(s) when file X changes"; add a row (and a `triggers.json` case)
+  when wiring a new route.
+
+`agent-os/evals/check.ts` asserts every chain step, group member, pipeline step,
+and handoff resolves to a real skill/agent, so these manifests cannot drift.
+
+If multiple skills match, read the most specific one first.

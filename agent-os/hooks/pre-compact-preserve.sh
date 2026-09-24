@@ -19,7 +19,7 @@ changed_count="$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
 card="$(
   echo "RESUME CARD (preserve across compaction)"
   echo "- Branch: ${branch} · uncommitted files: ${changed_count}"
-  echo "- agent-os: consult agent-os/skills/skill-registry/SKILL.md + agent-os/docs/skill-triggers.md FIRST for any file you change."
+  echo "- agent-os: consult agent-os/skills/fe-skill-registry/SKILL.md + agent-os/docs/skill-triggers.md FIRST for any file you change."
   echo "- Definition of done: pnpm health green (tsc + lint + biome + format + validate:tokens + validate:structure + tests + docs)."
 )"
 

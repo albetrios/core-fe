@@ -20,7 +20,7 @@ export type RolesListParams = OrgListKeyParams;
 
 /**
  * Roles of the active organization — windowed list query + create/update/delete
- * mutations. Server state only — never mirrored into Zustand (file-structure.mdc).
+ * mutations. Server state only — never mirrored into Zustand (fe-file-structure.mdc).
  */
 export function useRoles(params: RolesListParams = {}): CursorListResult<RoleSummary> {
   const orgId = useOrganizationStore((s) => s.organizationId);

@@ -13,7 +13,7 @@ const SUBSCRIPTION_LIFECYCLE_TOAST = 'subscription-lifecycle';
 
 /**
  * Active subscription for the current organization — query + plan mutations.
- * Server state only — never mirrored into Zustand (file-structure.mdc).
+ * Server state only — never mirrored into Zustand (fe-file-structure.mdc).
  */
 export function useSubscription() {
   const orgId = useOrganizationStore((s) => s.organizationId);

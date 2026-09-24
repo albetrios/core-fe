@@ -234,7 +234,7 @@ export function NotificationCenter({
   // One row, one PATCH. `markRead.isPending` is React state and is shared by
   // every row anyway, so it can neither stop a double-click on one row nor
   // allow a legitimate click on another. The ref is per id and flips
-  // synchronously (agent-os/rules/resilient-interactions section 1).
+  // synchronously (agent-os/rules/fe-resilient-interactions.mdc section 1).
   const markingRef = useRef(new Set<string>());
 
   function handleItemClick(item: Notification) {

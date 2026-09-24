@@ -48,9 +48,10 @@ There is intentionally **no** `.claude/rules` symlink — Claude Code follows `C
 ## Where to start
 
 - **Project conventions:** [CLAUDE.md](CLAUDE.md)
-- **Skill router (what skill for what task):** [agent-os/rules/skill-router.mdc](agent-os/rules/skill-router.mdc)
-- **Skill registry (catalog):** [agent-os/skills/skill-registry/SKILL.md](agent-os/skills/skill-registry/SKILL.md)
-- **Engineering principles:** [agent-os/rules/engineering-principles.mdc](agent-os/rules/engineering-principles.mdc)
+- **Agent-os naming:** items this repo owns start with `fe-`; see [CLAUDE.md → Agent-os naming](CLAUDE.md#agent-os-naming)
+- **Skill router (what skill for what task):** [agent-os/rules/fe-skill-router.mdc](agent-os/rules/fe-skill-router.mdc)
+- **Skill registry (catalog):** [agent-os/skills/fe-skill-registry/SKILL.md](agent-os/skills/fe-skill-registry/SKILL.md)
+- **Engineering principles:** [agent-os/rules/fe-engineering-principles.mdc](agent-os/rules/fe-engineering-principles.mdc)
 - **MCP setup:** [agent-os/docs/cursor-mcp-setup.md](agent-os/docs/cursor-mcp-setup.md)
 - **Platform wiring:** [agent-os/docs/platform-access.md](agent-os/docs/platform-access.md)
 
@@ -69,7 +70,7 @@ and subagents** for cloud sessions:
 ## Adding a new agent skill or rule
 
 1. Place the file directly in `agent-os/skills/<name>/SKILL.md` or `agent-os/rules/<name>.mdc`.
-2. Wire it into [agent-os/rules/skill-router.mdc](agent-os/rules/skill-router.mdc) and [agent-os/skills/skill-registry/SKILL.md](agent-os/skills/skill-registry/SKILL.md).
+2. Wire it into [agent-os/rules/fe-skill-router.mdc](agent-os/rules/fe-skill-router.mdc) and [agent-os/skills/fe-skill-registry/SKILL.md](agent-os/skills/fe-skill-registry/SKILL.md).
 3. All three tools (Cursor, Claude, Codex) pick it up automatically via their symlinks — no per-tool duplication.
 
 ## Adding a new AI coding agent

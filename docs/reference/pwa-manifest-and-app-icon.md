@@ -4,8 +4,8 @@ Single source of truth for install surface metadata, browser chrome colors, and
 brand icons. Keeps the PWA manifest aligned with the default theme preset and
 `index.html` meta tags.
 
-**Skill:** `agent-os/skills/pwa-manifest/SKILL.md`  
-**Rule:** `agent-os/rules/pwa-manifest-sync.mdc` (auto-attaches on matched paths)
+**Skill:** `agent-os/skills/fe-pwa-manifest/SKILL.md`  
+**Rule:** `agent-os/rules/fe-pwa-manifest-sync.mdc` (auto-attaches on matched paths)
 
 ---
 

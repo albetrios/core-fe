@@ -46,7 +46,7 @@ System prompt and behavior guidance for the agent.
 ## Adding a new agent
 
 1. Drop the file here as `<agent-name>.md`.
-2. Wire it into [`agent-os/rules/skill-router.mdc`](../rules/skill-router.mdc) if it's part of a task pipeline.
+2. Wire it into [`agent-os/rules/fe-skill-router.mdc`](../rules/fe-skill-router.mdc) if it's part of a task pipeline.
 3. Both Cursor and Claude pick it up automatically — no per-tool duplication.
 
 ## Related

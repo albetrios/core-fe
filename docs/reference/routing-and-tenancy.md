@@ -3,7 +3,7 @@
 **Status: ratified AND implemented 2026-06-11** (phases 0–2: rename sweep, URL-based tenancy +
 guards + picker/shell/suspended islands, hash settings modal). Phase 3 — domain islands
 (patients, appointments, billing, reports) — is product work scaffolded against these rules
-when requirements land. `agent-os/rules/file-structure.mdc` and CLAUDE.md reflect this spec.
+when requirements land. `agent-os/rules/fe-file-structure.mdc` and CLAUDE.md reflect this spec.
 
 ---
 
@@ -168,7 +168,7 @@ Frontend guards are UX only; the backend/RLS enforces authority.
 
 ## 6. Tenancy module — `src/shared/tenancy/` (not core)
 
-`core/` stays the app-state-free kernel (`file-structure.mdc` rule). Tenancy needs the Zustand
+`core/` stays the app-state-free kernel (`fe-file-structure.mdc` rule). Tenancy needs the Zustand
 store, organization APIs, and storage — so it lives in `shared/`, exactly like `shared/auth/`:
 
 ```text
@@ -233,9 +233,9 @@ is the separate `AppearanceDialog` on the root route.)
   onto first paint) + `settings-hash.ts` (registry-dependent `parseSettingsHash`) +
   `settings-sections.ts` + `settings-permissions.ts`, and panels as **flat files** under
   `account/` + `organization/` (the one sanctioned cohesive flat group —
-  exempt from folder-per-unit; see file-structure.mdc).
+  exempt from folder-per-unit; see fe-file-structure.mdc).
 - **Migration:** delete the 8 inline `/settings/*` routes in `routeTree.tsx`; update the
-  "Chrome routes" section in `file-structure.mdc` to describe hash-modal chrome.
+  "Chrome routes" section in `fe-file-structure.mdc` to describe hash-modal chrome.
 - **Escape hatch:** members / roles / billing / integrations may later be promoted to real pages
   (they are table-heavy admin surfaces — expect it). When promoted, keep a
   `#settings/organization/members` → path redirect shim so old links survive.
@@ -268,7 +268,7 @@ Executed as phase 0 of the epic:
 
 | Today                                                         | Becomes                                                                                |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `useOrganizationStore` (`shared/store/useOrganizationStore/`) | `useOrganizationStore` (+ eslint runtime-trio config + `file-structure.mdc` trio text) |
+| `useOrganizationStore` (`shared/store/useOrganizationStore/`) | `useOrganizationStore` (+ eslint runtime-trio config + `fe-file-structure.mdc` trio text) |
 | `OrgPermission` (`core/types/permissions.ts`)                 | `OrganizationPermission`                                                               |
 | `shared/api/my-orgs.ts`                                       | `shared/tenancy/my-organizations.ts`                                                   |
 | `OrgSwitcher`, `OrgBadges` (`shared/components/`)             | `OrganizationSwitcher`, `OrganizationBadges`                                           |
@@ -282,7 +282,7 @@ Executed as phase 0 of the epic:
    `$organizationSlug` layout island, move dashboard under it, update e2e + every `navigate({ to: '/' })`.
 2. **Settings**: hash modal replaces `/settings/*` chrome routes.
 3. **Domain islands**: patients / appointments / billing / reports (product work, scaffolded by
-   the page-scaffolding skill under the rules above).
+   the fe-page-scaffolding skill under the rules above).
 
 ## 12. Decision summary
 

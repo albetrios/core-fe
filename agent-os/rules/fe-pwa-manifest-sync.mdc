@@ -1,0 +1,22 @@
+---
+description: When changing PWA manifest, app icon, favicon, or install-surface colors, read the fe-pwa-manifest skill and keep app-manifest.ts, manifest.webmanifest, index.html, and PNG icons in sync.
+globs: src/core/config/app-manifest.ts, src/core/config/app-manifest.test.ts, public/manifest.webmanifest, public/app-icon.svg, public/pwa-192x192.png, public/pwa-512x512.png, index.html, src/lib/routes/page-head.ts, vite.config.ts
+alwaysApply: false
+---
+
+# PWA manifest sync (mandatory procedure)
+
+When the user asks to change app name, favicon, PWA icons, `theme_color`,
+`background_color`, or install shortcuts:
+
+1. Read **`agent-os/skills/fe-pwa-manifest/SKILL.md`** first.
+2. Read **`docs/reference/pwa-manifest-and-app-icon.md`** (rules + checklist).
+3. Edit **`src/core/config/app-manifest.ts`** before `public/manifest.webmanifest`.
+4. Sync **`index.html`**, **`page-head.ts`** (`APP_DESCRIPTION`), and PNGs (if SVG changed).
+5. Run **`pnpm test:unit src/core/config/app-manifest.test.ts`** and **`pnpm validate:public`**.
+
+**Do not** hand-edit manifest JSON without updating `buildWebManifest()` — the drift test will fail CI.
+
+**Colors** must stay aligned with the default preset (`#ffffff` background, `#0a0a0a` theme/shell).
+
+**Icons:** Lucide Boxes on `#0a0a0a` tile; regenerate PNGs with `rsvg-convert`, not `sips`.

@@ -1,7 +1,7 @@
 # Theme axis audit playbook
 
-> **Mandatory skill:** `agent-os/skills/theme-axis-audit/SKILL.md`  
-> **Mandatory rule:** `agent-os/rules/theme-axis-audit.mdc`  
+> **Mandatory skill:** `agent-os/skills/fe-theme-axis-audit/SKILL.md`  
+> **Mandatory rule:** `agent-os/rules/fe-theme-axis-audit.mdc`  
 > Agents MUST read both before any axis cycle.
 
 Repeatable process for making **every UI surface respect Appearance / Shuffle config**.

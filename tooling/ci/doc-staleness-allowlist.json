@@ -3,7 +3,7 @@
   "paths": [
     {
       "value": "docs/american-spelling-organization",
-      "reason": "Illustrative Git branch name in the branch-naming tables in CLAUDE.md, agent-os/rules/git-branch-naming.mdc, and docs/process/trunk-based-workflow.md; not a filesystem path."
+      "reason": "Illustrative Git branch name in the branch-naming tables in CLAUDE.md, agent-os/rules/fe-git-branch-naming.mdc, and docs/process/trunk-based-workflow.md; not a filesystem path."
     },
     {
       "value": "docs/branch-naming-guidance",
@@ -31,7 +31,7 @@
     },
     {
       "value": "src/pages/notifications",
-      "reason": "Illustrative example page (e.g. /notifications) in requirement-format SKILL.md."
+      "reason": "Illustrative example page (e.g. /notifications) in fe-requirement-format SKILL.md."
     },
     {
       "value": "agent-os/mcp/mcp.json",

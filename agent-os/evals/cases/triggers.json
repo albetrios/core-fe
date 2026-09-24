@@ -3,32 +3,32 @@
   "cases": [
     {
       "file": "src/pages/login/login.route.tsx",
-      "expectSkills": ["route-island"],
-      "why": "Route marker files must run the route-island skill."
+      "expectSkills": ["fe-route-island"],
+      "why": "Route marker files must run the fe-route-island skill."
     },
     {
       "file": "src/app/routes/routeTree.tsx",
-      "expectSkills": ["routing-tenancy"],
+      "expectSkills": ["fe-routing-tenancy"],
       "why": "Org guard chains and gatewayFromManifest live in routeTree."
     },
     {
       "file": "src/core/resources/members.resource.ts",
-      "expectSkills": ["resource-crud"],
-      "why": "Resource manifests follow the resource-crud skill."
+      "expectSkills": ["fe-resource-crud"],
+      "why": "Resource manifests follow the fe-resource-crud skill."
     },
     {
       "file": "src/pages/login/forms/LoginForm/LoginForm.tsx",
-      "expectSkills": ["http-forms-errors", "composition-patterns"],
+      "expectSkills": ["fe-http-forms-errors", "composition-patterns"],
       "why": "Forms with API mutations need error-mapping checklist."
     },
     {
       "file": "src/core/config/env-schema.ts",
-      "expectSkills": ["platform-hygiene", "env-schema-add"],
-      "why": "Env schema changes require platform hygiene and env-schema-add."
+      "expectSkills": ["fe-platform-hygiene", "fe-env-schema-add"],
+      "why": "Env schema changes require platform hygiene and fe-env-schema-add."
     },
     {
       "file": "src/pages/dashboard/components/ActivityFeed/ActivityFeed.tsx",
-      "expectSkills": ["composition-patterns", "test-generation"],
+      "expectSkills": ["composition-patterns", "fe-test-generation"],
       "why": "Page components need composition + colocated tests."
     },
     {
@@ -43,7 +43,7 @@
     },
     {
       "file": "tests/e2e/login.e2e.test.ts",
-      "expectSkills": ["e2e-testids"],
+      "expectSkills": ["fe-e2e-testids"],
       "why": "E2E specs require stable data-testid conventions."
     },
     {
@@ -53,28 +53,28 @@
     },
     {
       "file": ".env.example",
-      "expectSkills": ["platform-hygiene", "env-schema-add"],
+      "expectSkills": ["fe-platform-hygiene", "fe-env-schema-add"],
       "why": "Env template changes must stay documented and secret-free."
     },
     {
       "file": "src/pages/login/login.constants.ts",
-      "expectSkills": ["i18n-constants", "code-structure"],
-      "why": "Constants files hold keys/IDs/defaults and route to i18n-constants."
+      "expectSkills": ["fe-i18n-constants", "fe-code-structure"],
+      "why": "Constants files hold keys/IDs/defaults and route to fe-i18n-constants."
     },
     {
       "file": "src/core/config/app-manifest.ts",
-      "expectSkills": ["pwa-manifest"],
-      "why": "The PWA manifest source of truth routes to pwa-manifest."
+      "expectSkills": ["fe-pwa-manifest"],
+      "why": "The PWA manifest source of truth routes to fe-pwa-manifest."
     },
     {
       "file": "docs/reference/routes-and-ui.md",
-      "expectSkills": ["documentation-maintenance"],
-      "why": "Docs changes route to documentation-maintenance."
+      "expectSkills": ["fe-documentation-maintenance"],
+      "why": "Docs changes route to fe-documentation-maintenance."
     },
     {
       "file": "tests/e2e/visual.e2e.test.ts",
-      "expectSkills": ["visual-regression"],
-      "why": "Screenshot-baseline spec edits follow the visual-regression skill (baseline discipline, snapshot matrix)."
+      "expectSkills": ["fe-visual-regression"],
+      "why": "Screenshot-baseline spec edits follow the fe-visual-regression skill (baseline discipline, snapshot matrix)."
     }
   ]
 }

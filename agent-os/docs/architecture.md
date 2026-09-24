@@ -2,8 +2,8 @@
 
 A condensed map of how the frontend is layered, for agents and humans who need
 the shape of the system before touching code. The authoritative, detailed
-contracts live in [`agent-os/rules/file-structure.mdc`](../rules/file-structure.mdc)
-and [`agent-os/rules/project-conventions.mdc`](../rules/project-conventions.mdc);
+contracts live in [`agent-os/rules/fe-file-structure.mdc`](../rules/fe-file-structure.mdc)
+and [`agent-os/rules/fe-project-conventions.mdc`](../rules/fe-project-conventions.mdc);
 this is the orientation pass.
 
 ## Stack
@@ -42,7 +42,7 @@ Every URL maps to a folder under `src/pages/` carrying the same four files:
 permission/kind/children), `<Page>Page.tsx` or `<Page>Layout.tsx` (top-level UI),
 and `<PAGE>.OVERVIEW.md` (entry doc). Sub-units (components/forms/hooks/dialogs/
 store) are folder-per-unit with a colocated test and `index.ts` barrel. Full
-spec: [`route-island` skill](../skills/route-island/SKILL.md).
+spec: [`fe-route-island` skill](../skills/fe-route-island/SKILL.md).
 
 ## State
 

@@ -58,11 +58,11 @@ is signed regardless). The ruleset content is pinned by `tests/ci/rulesets.polic
 `pnpm-lock.yaml` regeneration are **one atomic commit** — run `pnpm install` and stage both.
 A desynced lockfile fails every frozen-install CI job (`ERR_PNPM_LOCKFILE_CONFIG_MISMATCH`) and
 also reds any open release-please PR, so it must never reach main; the before-commit guard blocks
-it locally via `pnpm run validate:lockfile` (see `agent-os/skills/platform-hygiene/SKILL.md`).
+it locally via `pnpm run validate:lockfile` (see `agent-os/skills/fe-platform-hygiene/SKILL.md`).
 
 ## Documentation
 
-- **Engineering principles:** `agent-os/rules/engineering-principles.mdc` (auto-applied in Cursor; the same rules bind every agent). First among them — **reuse before you create**: use the helper, hook, component, service or env var that already does the job, and create something new only when nothing fits; if an existing one is close but not right, improve it (or say in the PR why new is better) **in the same PR**, never leaving old and new side by side.
+- **Engineering principles:** `agent-os/rules/fe-engineering-principles.mdc` (auto-applied in Cursor; the same rules bind every agent). First among them — **reuse before you create**: use the helper, hook, component, service or env var that already does the job, and create something new only when nothing fits; if an existing one is close but not right, improve it (or say in the PR why new is better) **in the same PR**, never leaving old and new side by side.
 - **Index by use case:** docs/README.md
 - **Derive a NEW product from this repo:** docs/getting-started/new-project.md — fork path, `pnpm rebrand` (a **total** rename, prose included; `core-be` and `CHANGELOG.md` excluded), `previousNames` guard, upstream sync
 - **Local setup:** docs/getting-started/setup.md
@@ -76,6 +76,15 @@ it locally via `pnpm run validate:lockfile` (see `agent-os/skills/platform-hygie
 - **Routing & tenancy (implemented spec):** docs/reference/routing-and-tenancy.md
 - **SonarQube local quality gate:** docs/reference/quality/sonarqube-local.md
 - **Reference:** docs/reference/tools-and-usage.md, docs/reference/routes-and-ui.md, docs/reference/frontend-platform.md (platform kernel), docs/reference/pwa-manifest-and-app-icon.md (PWA install surface), docs/reference/local-production-perf.md (build + preview perf), docs/reference/cross-browser-support.md (Chrome/Firefox/Safari), docs/reference/design.md (design language), docs/reference/theming.md, docs/reference/theme-axis-audit-playbook.md (axis audit procedure), docs/reference/dependency-upgrades.md, docs/reference/internationalization.md, docs/reference/scheduled-jobs.md (scheduled + periodic jobs registry)
+
+## Agent-os naming
+
+Every agent-os item this repo owns (skill folder, agent file, command file, rule file) starts
+with `fe-`, so names stay unique when core-fe and core-be (whose items start with `be-`) are
+loaded in one session. Skills installed from upstream keep their upstream names: every
+`agent-os/skills-lock.json` entry, plus the three Vercel skills (`composition-patterns`,
+`react-best-practices`, `web-design-guidelines`). A skill's frontmatter `name` always equals its
+folder name. `pnpm agent-os:check` enforces both.
 
 ## Architecture Overview
 
@@ -113,7 +122,7 @@ src/
 
 All Zustand stores live in **`src/shared/store/<X>Store/`** (folder-per-unit) — `useAuthStore`, `useOrganizationStore`, `useThemeStore`, `useUIStore`, `useOnboardingStore`, `useConsentStore`, `useLocaleStore`. Cross-page API helpers (auth-screen schemas + fetchers `auth-api.ts`/`auth-contracts.ts`, organization-domain schemas + fetchers) live in **`src/shared/api/`**. Organization/tenancy runtime (URL-driven context, membership, `/` resolver, my-organizations) lives in **`src/shared/tenancy/`** — the URL is the single source of truth for organization context. Auth infrastructure (token, refresh-timer, idle-timeout, login/logout service) lives in **`src/shared/auth/`**.
 
-**Dependency rule (one-way, importer → importee):** `app → pages → shared → core → lib`; `shared/components/ui` is a leaf that imports only `lib` and other ui primitives, and `lib` may reach only `core/types`. Pages never import from other pages. One documented exception: the core kernel (`core/http`, `core/rbac`) may import the shared runtime trio — `shared/auth`, `shared/errors`, `useAuthStore`/`useOrganizationStore` (see `agent-os/rules/file-structure.mdc` → Import Rules; enforced in `eslint.config.mjs`).
+**Dependency rule (one-way, importer → importee):** `app → pages → shared → core → lib`; `shared/components/ui` is a leaf that imports only `lib` and other ui primitives, and `lib` may reach only `core/types`. Pages never import from other pages. One documented exception: the core kernel (`core/http`, `core/rbac`) may import the shared runtime trio — `shared/auth`, `shared/errors`, `useAuthStore`/`useOrganizationStore` (see `agent-os/rules/fe-file-structure.mdc` → Import Rules; enforced in `eslint.config.mjs`).
 
 ## Route Marker Convention (`<page>.route.tsx`)
 
@@ -125,7 +134,7 @@ Every directory under `src/pages/` that corresponds to a frontend URL path **mus
 2. **Every page folder maintains the same 4 files** — `<page>.route.tsx`, `<page>.manifest.ts`, `<Page>Page.tsx` (or `Layout`), `<PAGE>.OVERVIEW.md` — plus 2 registrations: `routeTree.tsx` and `docs/reference/routes-and-ui.md`. In `$param` folders the prefix derives mechanically: strip `$`, kebab-case (`$organizationSlug/` → `organization-slug.route.tsx`, `ORGANIZATION_SLUG.OVERVIEW.md`).
 3. **Page shells live in `shared/layouts/`** — AuthLayout via the pathless `auth-shell` route; AppLayout via the `pages/organization/$organizationSlug/` layout island (the org guard boundary). No grouping directories under `pages/`.
 4. **Code used by 2+ page islands lives in `shared/`** (e.g. `shared/api/auth-api.ts`, `shared/tenancy/`).
-5. **Settings is a global hash modal, not a route space** — `#settings/<scope>/<section>` opens `shared/components/SettingsModal/` over any page (see `agent-os/rules/file-structure.mdc` → Settings hash modal). Full spec: `docs/reference/routing-and-tenancy.md`.
+5. **Settings is a global hash modal, not a route space** — `#settings/<scope>/<section>` opens `shared/components/SettingsModal/` over any page (see `agent-os/rules/fe-file-structure.mdc` → Settings hash modal). Full spec: `docs/reference/routing-and-tenancy.md`.
 
 **Source of truth for what is live today:** [`src/app/routes/routeTree.tsx`](src/app/routes/routeTree.tsx) and [`docs/reference/routes-and-ui.md`](docs/reference/routes-and-ui.md). The tree below mixes **implemented** routes with **common examples** (same shapes as new features).
 
@@ -157,7 +166,7 @@ src/pages/
 
 ### Page Directory Shape (route island)
 
-Every route uses a **route island** ([`agent-os/skills/route-island/SKILL.md`](agent-os/skills/route-island/SKILL.md), [`docs/reference/route-island-structure.md`](docs/reference/route-island-structure.md)). Layout parents nest children **directly** as `<segment>/` (or `$param/`). **`<page>.manifest.ts`** is the layout + leaf manifest; top-level UI is `<Page>Page.tsx` / `<Page>Layout.tsx` at island root; tests are colocated next to source (sub-units use folder-per-unit).
+Every route uses a **route island** ([`agent-os/skills/fe-route-island/SKILL.md`](agent-os/skills/fe-route-island/SKILL.md), [`docs/reference/route-island-structure.md`](docs/reference/route-island-structure.md)). Layout parents nest children **directly** as `<segment>/` (or `$param/`). **`<page>.manifest.ts`** is the layout + leaf manifest; top-level UI is `<Page>Page.tsx` / `<Page>Layout.tsx` at island root; tests are colocated next to source (sub-units use folder-per-unit).
 
 ```text
 src/pages/<page>/                          ← folder = URL segment
@@ -276,7 +285,7 @@ src/shared component needs it       → src/shared/              (root shared)
 platform-level                      → src/core/ or src/lib/
 ```
 
-Family-shared is importable by the parent island and its descendants only — never by sibling families. Full rules: `agent-os/rules/file-structure.mdc` → Promotion ladder.
+Family-shared is importable by the parent island and its descendants only — never by sibling families. Full rules: `agent-os/rules/fe-file-structure.mdc` → Promotion ladder.
 
 ## Import Conventions
 
@@ -285,7 +294,7 @@ Family-shared is importable by the parent island and its descendants only — ne
 - Use `type` imports for type-only imports: `import type { User } from './types.ts'`
 - **Icons:** import from `@/shared/icons/index.ts` — never `lucide-react` directly (eslint-enforced; vendored `components/ui/` is exempt). One-file icon-library swap.
 - **Heavy deferred modules** (`@sentry/react`, `posthog-js`, the SettingsModal/CommandPalette trees) are **dynamic-import only** — a single static import drags their chunk onto the first-paint preload path (`pnpm build:check` tripwires this).
-- **`routeTree.tsx` IS the entry chunk.** A surface the root route mounts exports **only its lazy shell** from its barrel (`SettingsModalLazy`, `AppearanceDialogLazy`, `ConsentBannerLazy`), and an entry-resident module never imports a large constants table for a few keys — declare them locally and pin them with a drift test. Attribution method + the other levers: `agent-os/skills/bundle-performance/SKILL.md`.
+- **`routeTree.tsx` IS the entry chunk.** A surface the root route mounts exports **only its lazy shell** from its barrel (`SettingsModalLazy`, `AppearanceDialogLazy`, `ConsentBannerLazy`), and an entry-resident module never imports a large constants table for a few keys — declare them locally and pin them with a drift test. Attribution method + the other levers: `agent-os/skills/fe-bundle-performance/SKILL.md`.
 
 ```tsx
 // Good
@@ -302,7 +311,7 @@ import { User } from './contracts';
 - Strict mode: `strict: true`, `noUncheckedIndexedAccess: true`, `noUnusedLocals: true`
 - Define data shapes as **Zod schemas** in `contracts.ts`; infer TS types from them.
 - Never use `any` — use `unknown` and narrow with type guards.
-- **No digits in names we own** — components, variables, functions, hooks, stores, types, files, test ids, translation keys. A digit is a version, a duplicate, or a shrug; state the distinction in words (`InlineLoader`, not `Loader2`). A third-party export name is the one exemption and stays **on the import side**, renamed immediately: `import { Loader2 as LuLoader } from 'lucide-react'` so app code only ever writes `Loader`. Values keep their numbers (`size-8`, `z-[70]`, `401`). Rule: `agent-os/rules/no-digits-in-names.mdc`.
+- **No digits in names we own** — components, variables, functions, hooks, stores, types, files, test ids, translation keys. A digit is a version, a duplicate, or a shrug; state the distinction in words (`InlineLoader`, not `Loader2`). A third-party export name is the one exemption and stays **on the import side**, renamed immediately: `import { Loader2 as LuLoader } from 'lucide-react'` so app code only ever writes `Loader`. Values keep their numbers (`size-8`, `z-[70]`, `401`). Rule: `agent-os/rules/fe-no-digits-in-names.mdc`.
 
 ## State Management
 
@@ -320,7 +329,7 @@ import { User } from './contracts';
 
 ## Component Patterns
 
-- **shadcn skill (single source of truth):** for all shadcn/ui work — adding, fixing, styling, composing, CLI, **and choosing which component to use** — follow **`agent-os/skills/shadcn/SKILL.md`** (installed via `pnpm dlx skills add shadcn/ui`). It contains the CLI workflow, Critical Rules, and the project's allowed-sources/selection policy (the former `shadcn-component-selection` skill is merged into it). Add components with `pnpm dlx shadcn@latest add …`; the always-applied rule is `agent-os/rules/ui-sources.mdc`.
+- **shadcn skill (single source of truth):** for all shadcn/ui work — adding, fixing, styling, composing, CLI, **and choosing which component to use** — follow **`agent-os/skills/shadcn/SKILL.md`** (installed via `pnpm dlx skills add shadcn/ui`). It contains the CLI workflow, Critical Rules, and the project's allowed-sources/selection policy (the former `shadcn-component-selection` skill is merged into it). Add components with `pnpm dlx shadcn@latest add …`; the always-applied rule is `agent-os/rules/fe-ui-sources.mdc`.
 - Functional components only (no class components).
 - shadcn/ui components use **plain functions** (not `React.forwardRef`) — React 19 forwards refs automatically — with `data-slot` attributes. Two deliberate exceptions keep `React.forwardRef`: `input.tsx` and `textarea.tsx` (for react-hook-form `register()`).
 - shadcn/ui imports from `radix-ui` monorepo (not individual `@radix-ui/react-*` packages).
@@ -464,7 +473,7 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
 ## PWA manifest and icons
 
 - **Source of truth:** `src/core/config/app-manifest.ts` → `public/manifest.webmanifest` (drift test: `app-manifest.test.ts`).
-- **Icons:** `public/app-icon.svg` (Lucide Boxes on `#0a0a0a`); PNGs via `rsvg-convert`. Skill: `agent-os/skills/pwa-manifest/SKILL.md`.
+- **Icons:** `public/app-icon.svg` (Lucide Boxes on `#0a0a0a`); PNGs via `rsvg-convert`. Skill: `agent-os/skills/fe-pwa-manifest/SKILL.md`.
 - **Local perf audit:** `pnpm build && pnpm preview` — see `docs/reference/local-production-perf.md` (never Lighthouse on dev server).
 
 ## Testing
@@ -477,7 +486,7 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
   - **Performance:** `tests/performance/` (optional) — Lighthouse, bundle-size
 - **Colocated unit tests:** `src/**/*.test.{ts,tsx}` (+ `pages/**/__tests__/integration/` for cross-component flows)
 - **E2E:** `tests/e2e/*.e2e.test.ts` (Playwright) — requires **core-be** on `:3000` (`global-setup.ts` fails if down). Never `.spec.ts`.
-- **Hybrid E2E selectors:** `data-testid` for actions, `getByRole`/`getByLabel` for a11y guards — `agent-os/skills/playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`. A control mounted per breakpoint shares one test id, so reach it with `byTestId()` (visible + first); never `.catch()` an `isVisible()` / `isEnabled()` feature check (ESLint-enforced) — it can only hide a strict-mode violation and turn the spec into a silent skip. **Read the skipped count.**
+- **Hybrid E2E selectors:** `data-testid` for actions, `getByRole`/`getByLabel` for a11y guards — `agent-os/skills/fe-playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`. A control mounted per breakpoint shares one test id, so reach it with `byTestId()` (visible + first); never `.catch()` an `isVisible()` / `isEnabled()` feature check (ESLint-enforced) — it can only hide a strict-mode violation and turn the spec into a silent skip. **Read the skipped count.**
 - **Gates:** `pnpm validate:structure` (colocation), `pnpm validate:testids` (page/form/shell testids), `pnpm validate:theme-axis`, `pnpm coverage:patch` (PR changed-lines ≥ 90%)
 - Unit/security: Vitest; E2E: Playwright (Chromium). Component tests require `vitest-axe`; portaled dialogs use `axeForDialog`.
 
@@ -485,7 +494,7 @@ read via `platformConfig.testMode`), the single home for any test-only behavior.
 
 ## Git branch naming
 
-Working branches are `<type>/<short-description>`; `main` is the only long-lived branch. Enforced by [`.husky/pre-push`](.husky/pre-push) (rule: `agent-os/rules/git-branch-naming.mdc`, owner: **code-quality-security**).
+Working branches are `<type>/<short-description>`; `main` is the only long-lived branch. Enforced by [`.husky/pre-push`](.husky/pre-push) (rule: `agent-os/rules/fe-git-branch-naming.mdc`, owner: **fe-code-quality-security**).
 
 **AI web sessions start on a throwaway name.** Claude Code web assigns `claude/<platform-slug>` (e.g. `claude/session-request-wx3euu`) before the container boots. The slug is generated platform-side and is **not configurable from this repo** — no file here changes it. Rename it to a meaningful name rather than shipping it.
 

@@ -132,7 +132,7 @@ After large perf changes (10+ files):
 pnpm health
 ```
 
-Skill: `agent-os/skills/project-health-check/SKILL.md`.
+Skill: `agent-os/skills/fe-project-health-check/SKILL.md`.
 
 ---
 

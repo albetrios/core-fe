@@ -390,10 +390,10 @@ JSON.parse(localStorage.getItem('theme-preference') ?? '{}')?.state?.customTheme
 
 | Task                     | Read first                                          |
 | ------------------------ | --------------------------------------------------- |
-| Axis audit cycle         | `agent-os/skills/theme-axis-audit/SKILL.md`         |
+| Axis audit cycle         | `agent-os/skills/fe-theme-axis-audit/SKILL.md`         |
 | New dashboard / dense UI | This doc § Type scale + Density                     |
-| Styling components       | `agent-os/rules/tailwind-styling.mdc`               |
+| Styling components       | `agent-os/rules/fe-tailwind-styling.mdc`               |
 | Catalog change           | Update `presets.ts` + `pnpm validate:theme-catalog` |
 
-**Cursor rule:** `agent-os/rules/preset-product-design.mdc` (auto-attached for
+**Cursor rule:** `agent-os/rules/fe-preset-product-design.mdc` (auto-attached for
 theme/preset files).

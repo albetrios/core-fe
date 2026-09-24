@@ -1,0 +1,33 @@
+---
+description: Git branch naming policy — working branches use <type>/<short-description>; main is the only long-lived branch; claude/* is a fallback for AI web sessions that should be renamed before the first push. Enforced by .husky/pre-push.
+globs:
+alwaysApply: true
+---
+
+# Git branch naming
+
+Working branches: `<type>/<short-description>` (`feat`/`feature`/`fix`/`hotfix`/`chore`/`ci`/`docs`/`refactor`/`test`/`perf`/`build`/`style`/`revert`). Single trunk: `main` is the only long-lived branch. Hotfixes are ordinary short-lived `fix/*` (or `hotfix/*`) branches that fix-forward to `main` — there is no protected `release/*` branch. `claude/*` is allowlisted as a fallback for AI web sessions. Enforced by `.husky/pre-push` (owner: **[fe-code-quality-security](../skills/fe-code-quality-security/SKILL.md)**).
+
+## Deriving the name
+
+`<type>` is the change's conventional-commit type, matching the accepted-prefix regex in `.husky/pre-push`. `<short-description>` is kebab-case, 2–5 words, ≤ 40 chars, naming the change itself — never a ticket id, a date, or a session slug. Keep it aligned with the commit subject and the PR title.
+
+| Change | Branch |
+| ------ | ------ |
+| Fix British spelling in a doc | `docs/american-spelling-organization` |
+| Add the billing invoices route island | `feat/billing-invoice-route` |
+| Org guard drops the slug on refresh | `fix/org-slug-guard-refresh` |
+| Bump Vite to 8.1 | `chore/bump-vite-8-1` |
+
+## AI web sessions: rename before the first push
+
+Claude Code web assigns `claude/<platform-slug>` (e.g. `claude/session-request-wx3euu`) before the container boots. That slug is generated platform-side and **cannot be configured from this repo** — no file here changes it.
+
+The cloud git proxy accepts a push to *any* branch name, but **rejects every form of delete** (`git push --delete`, `git push :ref`, and `DELETE /git/refs/...` → 403, even for a ref that does not exist). So a `claude/*` branch that has already been pushed cannot be cleaned up from inside the session. Rename before the first push and the throwaway name never reaches the remote:
+
+```sh
+git branch -m <type>/<short-description>      # rename in place, BEFORE any push
+git push -u origin <type>/<short-description>
+```
+
+If it is already pushed as `claude/*`, leave it — it disappears when the PR squash-merges. Never open a second PR just to correct a branch name.

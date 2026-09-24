@@ -101,7 +101,7 @@ def tree(
         collapsed: list[str] = []
         for entry in entries:
             if entry.name == "skills":
-                collapsed.append((entry, f"skills/  ({skill_count} skills: auto-implement, shadcn, route-island, …)", True))
+                collapsed.append((entry, f"skills/  ({skill_count} skills: fe-auto-implement, shadcn, fe-route-island, …)", True))
             elif entry.is_dir():
                 collapsed.append((entry, f"{entry.name}/", False))
             else:

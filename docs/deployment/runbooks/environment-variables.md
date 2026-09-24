@@ -15,7 +15,7 @@ Related: [`docs/integrations/credentials-and-env.md`](../../integrations/credent
 | Pre-commit / CI parity gate           | `pnpm validate:env-example`                    |
 | Bootstrap local env files             | `pnpm github:sync`                             |
 | Verify GitHub Environment secrets     | `CONFIG=<env> pnpm validate:deploy-env`        |
-| Add a new env var (skill)             | read `agent-os/skills/env-schema-add/SKILL.md` |
+| Add a new env var (skill)             | read `agent-os/skills/fe-env-schema-add/SKILL.md` |
 
 ## 1. Mental model
 
@@ -156,7 +156,7 @@ repo — the Netlify deploy serves the static file as-built unless you edit it):
 
 ## 5. Adding or changing a key
 
-Follow **`agent-os/skills/env-schema-add/SKILL.md`** end-to-end:
+Follow **`agent-os/skills/fe-env-schema-add/SKILL.md`** end-to-end:
 
 1. Add field to `src/core/config/env-schema.ts`
 2. Wire resolver in `env-resolvers.ts` / `platform-config.ts` if platform-facing

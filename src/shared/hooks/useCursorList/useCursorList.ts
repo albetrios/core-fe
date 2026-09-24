@@ -72,7 +72,7 @@ export function useCursorList<T>(args: {
    * Single-flight `Load more`. `disabled={isFetchingNextPage}` is React state
    * and only lands a render later, so a double-click fires the handler twice and
    * appends the same page twice. The ref flips inside the first call
-   * (agent-os/rules/resilient-interactions section 1).
+   * (agent-os/rules/fe-resilient-interactions.mdc section 1).
    */
   const loadNextPage = useCallback(() => {
     if (nextPageInFlight.current) return;

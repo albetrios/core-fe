@@ -88,41 +88,41 @@ core-fe/
 │   │   ├── marketplace.json
 │   │   └── plugin.json
 │   ├── agents/
-│   │   ├── a11y-auditor.md
-│   │   ├── bundle-size-reviewer.md
-│   │   ├── changelog-reviewer.md
-│   │   ├── ci-investigator.md
-│   │   ├── dependency-auditor.md
-│   │   ├── docs-auditor.md
-│   │   ├── i18n-auditor.md
-│   │   ├── perf-auditor.md
+│   │   ├── fe-a11y-auditor.md
+│   │   ├── fe-bundle-size-reviewer.md
+│   │   ├── fe-changelog-reviewer.md
+│   │   ├── fe-ci-investigator.md
+│   │   ├── fe-dependency-auditor.md
+│   │   ├── fe-docs-auditor.md
+│   │   ├── fe-i18n-auditor.md
+│   │   ├── fe-perf-auditor.md
+│   │   ├── fe-production-hardening-reviewer.md
+│   │   ├── fe-tsdoc-coverage-reviewer.md
+│   │   ├── fe-verifier.md
 │   │   ├── pipelines.json
-│   │   ├── production-hardening-reviewer.md
-│   │   ├── README.md
-│   │   ├── tsdoc-coverage-reviewer.md
-│   │   └── verifier.md
+│   │   └── README.md
 │   ├── cloud-environment/
 │   │   ├── agents-cloud.md
 │   │   ├── environment.json
 │   │   ├── install.sh
 │   │   └── skills-and-mcps.md
 │   ├── commands/
-│   │   ├── agent-os-sync.md
-│   │   ├── build-requirement.md
-│   │   ├── ci-local.md
-│   │   ├── merge-pr.md
-│   │   ├── open-pr.md
-│   │   ├── pre-merge-review.md
-│   │   ├── prod-readiness.md
-│   │   ├── README.md
-│   │   ├── routes-sync.md
-│   │   ├── ship.md
-│   │   ├── validate.md
-│   │   ├── watch-pr.md
-│   │   └── worker-complete.md
+│   │   ├── fe-agent-os-sync.md
+│   │   ├── fe-build-requirement.md
+│   │   ├── fe-ci-local.md
+│   │   ├── fe-merge-pr.md
+│   │   ├── fe-open-pr.md
+│   │   ├── fe-pre-merge-review.md
+│   │   ├── fe-prod-readiness.md
+│   │   ├── fe-routes-sync.md
+│   │   ├── fe-ship.md
+│   │   ├── fe-validate.md
+│   │   ├── fe-watch-pr.md
+│   │   └── fe-worker-complete.md
 │   ├── docs/
 │   │   ├── agents-catalog.md
 │   │   ├── architecture.md
+│   │   ├── commands.md
 │   │   ├── cursor-agent-environments.md
 │   │   ├── cursor-backend-mcp.md
 │   │   ├── cursor-mcp-setup.md
@@ -165,29 +165,29 @@ core-fe/
 │   │   │   └── hooks.json
 │   │   └── targets.json
 │   ├── rules/
-│   │   ├── agent-behavior.mdc
-│   │   ├── api-data-patterns.mdc
-│   │   ├── change-completeness.mdc
-│   │   ├── component-patterns.mdc
-│   │   ├── context7-libraries.mdc
-│   │   ├── engineering-principles.mdc
-│   │   ├── env-schema-add-sync.mdc
-│   │   ├── file-structure.mdc
-│   │   ├── git-branch-naming.mdc
-│   │   ├── no-digits-in-names.mdc
-│   │   ├── platform-hygiene-sync.mdc
-│   │   ├── pr-review-prevention.mdc
-│   │   ├── preset-product-design.mdc
-│   │   ├── project-conventions.mdc
-│   │   ├── pwa-manifest-sync.mdc
-│   │   ├── resilient-interactions.mdc
-│   │   ├── routing-tenancy-sync.mdc
-│   │   ├── skill-router.mdc
-│   │   ├── tailwind-styling.mdc
-│   │   ├── testing-requirements.mdc
-│   │   ├── theme-axis-audit.mdc
-│   │   └── ui-sources.mdc
-│   ├── skills/  (50 skills: auto-implement, shadcn, route-island, …)
+│   │   ├── fe-agent-behavior.mdc
+│   │   ├── fe-api-data-patterns.mdc
+│   │   ├── fe-change-completeness.mdc
+│   │   ├── fe-component-patterns.mdc
+│   │   ├── fe-context7-libraries.mdc
+│   │   ├── fe-engineering-principles.mdc
+│   │   ├── fe-env-schema-add-sync.mdc
+│   │   ├── fe-file-structure.mdc
+│   │   ├── fe-git-branch-naming.mdc
+│   │   ├── fe-no-digits-in-names.mdc
+│   │   ├── fe-platform-hygiene-sync.mdc
+│   │   ├── fe-pr-review-prevention.mdc
+│   │   ├── fe-preset-product-design.mdc
+│   │   ├── fe-project-conventions.mdc
+│   │   ├── fe-pwa-manifest-sync.mdc
+│   │   ├── fe-resilient-interactions.mdc
+│   │   ├── fe-routing-tenancy-sync.mdc
+│   │   ├── fe-skill-router.mdc
+│   │   ├── fe-tailwind-styling.mdc
+│   │   ├── fe-testing-requirements.mdc
+│   │   ├── fe-theme-axis-audit.mdc
+│   │   └── fe-ui-sources.mdc
+│   ├── skills/  (50 skills: fe-auto-implement, shadcn, fe-route-island, …)
 │   └── skills-lock.json
 ├── docs/
 │   ├── deployment/

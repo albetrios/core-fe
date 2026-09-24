@@ -77,4 +77,4 @@ Provider: `I18nProvider` in `AppProviders`.
 
 ## Skill
 
-Agents: read **`agent-os/skills/i18n-constants/SKILL.md`** before extracting constants or adding copy to any island.
+Agents: read **`agent-os/skills/fe-i18n-constants/SKILL.md`** before extracting constants or adding copy to any island.

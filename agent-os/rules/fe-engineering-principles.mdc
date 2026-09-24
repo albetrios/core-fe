@@ -1,0 +1,91 @@
+---
+description: Generic engineering principles, anti-patterns, PR review, and dependency policy. Does not define project layout, routes, or skills — see other rules.
+alwaysApply: true
+---
+
+# Engineering Principles
+
+Cross-cutting guidance for all work in this repo. For **architecture, routes, file layout, and stack specifics**, follow `agent-os/rules/fe-project-conventions.mdc` and `agent-os/rules/fe-file-structure.mdc` as the source of truth.
+
+## Before Writing Code
+
+- Understand existing architecture and patterns before adding code.
+- **Reuse before you create.** Before adding a helper, hook, component, service, env var or pattern, search for the one that already does the job and use it. Create something new only when nothing existing fits.
+  - **Close but not quite right?** Improve the existing one instead of forking a parallel version — or, if new is genuinely the better design, say why in the PR description. Either way, do it **in the same PR**: never leave old and new side by side behind a "consolidate later".
+  - **Recognize the miss:** a second fetch wrapper beside `apiClient` (`@/core/http/fetch-client.ts`), or a page-local list/CRUD hook that re-implements `useList` / `useOne` / `useCreate` / `useUpdate` / `useDelete` (`src/shared/hooks/`), is the parallel-version smell — as is any duplicate abstraction.
+- Keep changes minimal and focused; preserve naming and style consistency.
+- Prefer simple solutions over clever ones.
+
+## Code Quality
+
+- Keep functions small and single-purpose; use descriptive names.
+- Avoid magic numbers and hardcoded values — use named constants or config.
+- Add comments only when logic is non-obvious.
+- Remove dead code, unused imports, `console.log`, and commented-out code.
+- Avoid unnecessary dependencies (see Dependency Policy below).
+
+## Architecture Habits
+
+- Keep business logic out of UI — use `api.ts`, hooks, and `core/` services.
+- Prefer composition over inheritance; avoid deeply nested components and conditionals.
+- Split large files into focused modules when they grow hard to navigate.
+- Keep APIs and interfaces clean and minimal.
+- Write testable, deterministic, loosely coupled code (detailed test rules: `agent-os/rules/fe-testing-requirements.mdc`).
+
+## Type Safety
+
+- Strict typing always; never use `any` — use `unknown` and narrow, or proper types.
+- Validate external API data with Zod (see `agent-os/rules/fe-api-data-patterns.mdc`).
+
+## Git and Refactoring
+
+- Make minimal, focused changes; do not rewrite unrelated code.
+- Preserve behavior unless instructed otherwise.
+- When refactoring: improve clarity, reduce duplication, keep diffs clean.
+
+## Dependency Policy
+
+Before adding a package:
+
+1. Check whether existing code or platform APIs already solve the problem.
+2. Prefer lightweight, maintained libraries; justify large or new dependencies.
+3. When adding a dependency, update `docs/reference/tools-and-usage.md` (see fe-documentation-maintenance skill).
+
+## Strict Anti-Patterns
+
+Avoid introducing:
+
+- Massive files or giant catch-all utility modules
+- Deeply nested conditionals or components
+- Unnecessary hooks, context, or global mutable state
+- Premature `memo` / `useMemo` / `useCallback` without profiling evidence
+- Duplicated logic across components or pages
+- Tight coupling between unrelated features
+- Vague naming (`data`, `handler`, `item` without context)
+- Hidden side effects in render or shared utilities
+
+## PR Review Mode
+
+When the user asks for a **code review**, **PR review**, or invokes the fe-full-code-review skill:
+
+1. Analyze the current implementation first.
+2. Identify: bugs, architecture issues, performance problems, security risks, unnecessary complexity, bad naming, dead code, DX issues.
+3. Suggest cleaner alternatives; prefer maintainability over cleverness.
+4. Note tradeoffs when relevant; keep the response concise and engineering-focused.
+
+For a full-repo audit, run `pnpm report:code-review` or follow `agent-os/skills/fe-full-code-review/SKILL.md`.
+
+## Output Behavior
+
+| Task type | Behavior |
+|-----------|----------|
+| **Implementation** (features, fixes, refactors) | Follow `agent-os/rules/fe-agent-behavior.mdc`: complete tests, routes, RBAC, data-testid, lint/type-check silently; do not ask for confirmation on dependent work. |
+| **Review / explain** | Analyze first → problems → cleanest solution → tradeoffs if relevant. |
+
+## Documentation
+
+Update docs only when behavior, routes, or dependencies change — per fe-documentation-maintenance skill. Do not add README noise for every small change.
+
+## Final Rule
+
+Always leave the codebase **cleaner, simpler, safer, and easier to maintain** than before your change.

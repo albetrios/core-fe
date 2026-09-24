@@ -33,4 +33,4 @@ pnpm agent-os:triggers:strict    # Tier 2 gate
 pnpm agent-os:generate:check     # Platform wiring drift
 ```
 
-Sync workflow: `agent-os/commands/agent-os-sync.md`.
+Sync workflow: `agent-os/commands/fe-agent-os-sync.md`.

@@ -1,0 +1,94 @@
+---
+description: Auto-generate colocated tests when new source files are created; no user input required
+globs: src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# Testing Requirements
+
+**Automatic test generation:** When creating or modifying source files under `src/`, always create or update the corresponding colocated test file(s) **without waiting for the user to ask**. Use the fe-test-generation skill (`agent-os/skills/fe-test-generation/SKILL.md`) for templates. The fe-code-structure skill (`agent-os/skills/fe-code-structure/SKILL.md`) also requires tests to be added as part of any requirement implementation.
+
+When a NEW `.ts` or `.tsx` file is created under `src/`, automatically check if a colocated test file exists. If not, create one using the fe-test-generation skill.
+
+## Rules
+
+1. Every component (`*.tsx`) in `src/shared/components/`, `src/shared/forms/`, `src/shared/layouts/` MUST have a colocated `*.test.tsx` file
+2. Every component/hook/form under **`src/pages/**` route islands** MUST ship a colocated `*.test.ts(x)` **beside its source** (folder-per-unit: `components/<X>/<X>.tsx` + `<X>.test.tsx`). The island's top-level `<Page>Page.tsx`/`<Page>Layout.tsx` ships `<Page>Page.test.tsx` next to it.
+3. Every service/utility (`*.ts`) in `src/core/`, `src/lib/`, `src/shared/store/` MUST have a colocated `*.test.ts` file
+4. Every TanStack Query hook MUST ship a colocated `*.test.ts` beside its source (`hooks/use<X>/use<X>.test.ts`) — in both shared and page islands
+5. Component tests MUST include `vitest-axe` accessibility assertions (`toHaveNoViolations()`)
+6. **Colocated beside source everywhere** — `shared/`, `core/`, `lib/`, AND `pages/` islands (global stores live under `shared/store/`). Cross-component *integration* flows for a page may additionally live in `pages/<page>/__tests__/integration/`
+7. All interactive UI MUST have `data-testid` on **test contracts** (pages, forms, primary actions, nav, dialogs) — not every DOM node. `pnpm validate:testids` enforces manifest ↔ page root, form root/submit, and shell surfaces.
+8. Coverage thresholds: 80% branches, functions, lines, statements (enforced in `vitest.config.ts`)
+9. Vitest runs colocated `src/**/*.test.{ts,tsx}` (plus `src/**/__tests__/**`); it **excludes** `tests/e2e` (Playwright owns those)
+
+## data-testid Convention
+
+| Element        | Pattern          | Example                        |
+| -------------- | ---------------- | ------------------------------ |
+| Page container | `<name>-page`    | `data-testid="dashboard-page"` |
+| Form           | `<name>-form`    | `data-testid="login-form"`     |
+| Form input     | `<form>-<field>` | `data-testid="login-email"`    |
+| Submit button  | `<form>-submit`  | `data-testid="login-submit"`   |
+| Error message  | `form-error`     | `data-testid="form-error"`     |
+
+## Naming Convention
+
+Colocated beside source **everywhere** (shared/core/lib AND pages islands):
+
+| Source File         | Colocated test (same folder)   |
+| ------------------- | ------------------------------ |
+| `Button.tsx`        | `Button.test.tsx`              |
+| `useMeContext.ts`   | `useMeContext.test.ts`         |
+| `DashboardPage.tsx` | `DashboardPage.test.tsx`       |
+
+## E2E tests (`tests/e2e/`)
+
+All Playwright specs use **`*.e2e.test.ts`** — one suite, one command (`pnpm test:e2e`).
+
+- **`<name>.e2e.test.ts`** — browser UI flows
+- **`<name>-api.e2e.test.ts`** — HTTP contract checks via `playwright.request` → `:3000`
+
+Server-dependent E2E specs require **core-be** on `:3000`. `tests/e2e/global-setup.ts` probes `GET /readyz` and fails the run if core-be is down — no skip path. CI does **not** boot core-be — these server-dependent specs run locally only (CLAUDE.md: Playwright E2E is local-only).
+
+Vitest excludes `tests/e2e`. **Never** use `.spec.ts`, or the words "real"/"live", in test file names.
+
+**Hybrid Playwright selectors** (`agent-os/skills/fe-playwright-e2e/SKILL.md`): use `getByTestId` / `tests/utils/e2e-hybrid.ts` for clicks and fills; use `getByRole` / `getByLabel` for visibility and a11y guards. Full matrix: `docs/reference/testing.md`.
+
+## Test kinds (summary)
+
+| Kind | Location | Pattern |
+| ---- | -------- | ------- |
+| Unit / component | Colocated `src/` | `*.test.ts(x)` — no server; `vi.mock()` only |
+| Security | `tests/security/` | `*.security.test.ts` |
+| E2E | `tests/e2e/` | `*.e2e.test.ts` — needs API on `:3000` when gated |
+| Visual regression | `tests/e2e/visual.e2e.test.ts` | screenshots |
+| Mutation | Stryker (CI scheduled) | `stryker.config.json` |
+
+## Exceptions (no test required)
+
+- Type definition files (`types.ts`, `contracts.ts`)
+- Re-export barrel files (`index.ts`)
+- Route marker files (`<page>.route.tsx`, `<page>.manifest.ts`)
+- Configuration files (`constants.ts`)
+- CSS files
+- Branded type definition files (e.g., `branded.ts`)
+
+## Test Infrastructure
+
+| Tool                        | Purpose                                              |
+| --------------------------- | ---------------------------------------------------- |
+| Vitest                      | Unit test runner (globals enabled)                   |
+| React Testing Library       | Component rendering + queries                        |
+| vitest-axe                  | Accessibility assertions (auto-extended in setup)    |
+| @testing-library/user-event | Realistic user interactions                          |
+| @axe-core/playwright        | E2E accessibility scanning                           |
+| Playwright                  | E2E browser tests (Chromium — the single maintained project) |
+| Stryker                     | Mutation testing (CI-only, weekly)                   |
+
+## Auto-Trigger (No User Input Required)
+
+- When creating a **new** source file under `src/`, **immediately** generate the corresponding test file using the fe-test-generation skill (`agent-os/skills/fe-test-generation/SKILL.md`). Do not ask the user whether to add tests.
+- When implementing any requirement (new page, component, hook, service), add or update tests as part of the same change set. See `agent-os/skills/fe-code-structure/SKILL.md` for the full implementation checklist.
+- Tests are mandatory for all non-exception files; generating them is part of the implementation, not an optional follow-up.
+- **Strict colocation is validator-enforced** (`pnpm validate:structure`): every unit folder (`components/`, `forms/`, `hooks/`, `dialogs/`, `store/` — in pages, family-shared, and root shared), every island's top-level `<Page>Page/Layout.tsx`, and every flat-group component file MUST contain/ship a colocated `*.test.*`, or validation fails. Exemptions: route/manifest/contracts/search/fixtures/constants role files, barrels, OVERVIEW docs.

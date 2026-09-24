@@ -8,60 +8,60 @@
       "impeccable",
       "web-design-guidelines",
       "composition-patterns",
-      "theme-axis-audit",
-      "pwa-manifest",
-      "rtl-logical-css"
+      "fe-theme-axis-audit",
+      "fe-pwa-manifest",
+      "fe-rtl-logical-css"
     ],
     "routing-pages": [
-      "page-scaffolding",
-      "route-island",
-      "routing-tenancy",
-      "resource-crud",
-      "http-forms-errors",
-      "resilient-interactions"
+      "fe-page-scaffolding",
+      "fe-route-island",
+      "fe-routing-tenancy",
+      "fe-resource-crud",
+      "fe-http-forms-errors",
+      "fe-resilient-interactions"
     ],
     "testing": [
-      "test-generation",
-      "e2e-testids",
-      "playwright-e2e",
-      "visual-regression"
+      "fe-test-generation",
+      "fe-e2e-testids",
+      "fe-playwright-e2e",
+      "fe-visual-regression"
     ],
     "quality": [
-      "lint-guard",
-      "code-smells-best-practices",
-      "code-quality-security",
-      "full-code-review",
-      "before-commit-guard",
-      "project-health-check",
+      "fe-lint-guard",
+      "fe-code-smells-best-practices",
+      "fe-code-quality-security",
+      "fe-full-code-review",
+      "fe-before-commit-guard",
+      "fe-project-health-check",
       "react-best-practices",
-      "code-structure",
-      "component-promotion",
+      "fe-code-structure",
+      "fe-component-promotion",
       "systematic-debugging",
-      "guard-authoring",
-      "pre-pr-sweep",
-      "safe-bulk-edits",
-      "review-response"
+      "fe-guard-authoring",
+      "fe-pre-pr-sweep",
+      "fe-safe-bulk-edits",
+      "fe-review-response"
     ],
     "docs": [
-      "documentation-maintenance",
-      "requirement-format"
+      "fe-documentation-maintenance",
+      "fe-requirement-format"
     ],
     "i18n": [
-      "i18n-constants",
-      "locale-formatting",
-      "locale-preferences"
+      "fe-i18n-constants",
+      "fe-locale-formatting",
+      "fe-locale-preferences"
     ],
     "platform": [
-      "env-schema-add",
-      "platform-hygiene",
-      "extension-settings-recommendations",
-      "dependency-management",
-      "bundle-performance"
+      "fe-env-schema-add",
+      "fe-platform-hygiene",
+      "fe-extension-settings-recommendations",
+      "fe-dependency-management",
+      "fe-bundle-performance"
     ],
     "workflow": [
-      "auto-implement",
-      "skill-registry",
-      "agent-os-authoring"
+      "fe-auto-implement",
+      "fe-skill-registry",
+      "fe-agent-os-authoring"
     ],
     "external": [
       "animejs",

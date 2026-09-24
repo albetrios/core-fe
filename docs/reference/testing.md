@@ -22,7 +22,7 @@ Single reference for **every test kind** in this repo: where it lives, how to ru
 - `renderWithProviders` from `tests/utils/`
 - `vitest-axe` required on components (`toHaveNoViolations()`)
 
-Details: `agent-os/rules/testing-requirements.mdc`, `agent-os/skills/test-generation/SKILL.md`.
+Details: `agent-os/rules/fe-testing-requirements.mdc`, `agent-os/skills/fe-test-generation/SKILL.md`.
 
 ## E2E tests (Playwright)
 
@@ -118,7 +118,7 @@ loosens local Docker.
 
 **Naming:** UI flows → `<feature>.e2e.test.ts`; HTTP contract suites → `<feature>-api.e2e.test.ts`.
 
-Hybrid selectors: `data-testid` for actions, `getByRole`/`getByLabel` for a11y — `agent-os/skills/playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`.
+Hybrid selectors: `data-testid` for actions, `getByRole`/`getByLabel` for a11y — `agent-os/skills/fe-playwright-e2e/SKILL.md`, `tests/utils/e2e-hybrid.ts`.
 
 Helpers: `tests/utils/e2e-auth.ts`, `tests/utils/axe-for-dialog.ts`.
 

@@ -23,13 +23,13 @@ match() { printf '%s\n' "$changed" | grep -Eq "$1"; }
 match '\.(tsx?)$' && \
   REMINDERS+=("source changed → pnpm tsc + pnpm lint (and a colocated *.test.tsx for new components/hooks)")
 match '\.route\.tsx$|\.manifest\.ts$' && \
-  REMINDERS+=("routes changed → pnpm validate:structure + sync routeTree & docs/reference/routes-and-ui.md (route-island)")
+  REMINDERS+=("routes changed → pnpm validate:structure + sync routeTree & docs/reference/routes-and-ui.md (fe-route-island)")
 match '\.css$|index\.css$' && \
   REMINDERS+=("styles changed → pnpm validate:tokens (semantic tokens only)")
 match '\.test\.(tsx?)$|tests/e2e/' && \
-  REMINDERS+=("tests changed → pnpm test (unit) / pnpm exec playwright test (e2e); coverage ratchet (test-generation)")
+  REMINDERS+=("tests changed → pnpm test (unit) / pnpm exec playwright test (e2e); coverage ratchet (fe-test-generation)")
 match '\.env\.example$' && \
-  REMINDERS+=("env changed → keep VITE_ vars documented; secrets stay out of source (documentation-maintenance)")
+  REMINDERS+=("env changed → keep VITE_ vars documented; secrets stay out of source (fe-documentation-maintenance)")
 match '\.md$|/docs/' && \
   REMINDERS+=("docs changed → pnpm docs:lint")
 

@@ -1,29 +1,29 @@
 {
-  "description": "Read-only agent review pipelines — named sequences of diagnostic agents that fan out and aggregate into one report. Consumed by the /pre-merge-review command. Every step references a real agent in agent-os/agents/ and every handoff target references a real skill in agent-os/skills/ (both eval-enforced). Diagnostic→procedural handoff: each finding names the procedural skill that fixes it (agent finds, skill fixes).",
+  "description": "Read-only agent review pipelines — named sequences of diagnostic agents that fan out and aggregate into one report. Consumed by the /fe-pre-merge-review command. Every step references a real agent in agent-os/agents/ and every handoff target references a real skill in agent-os/skills/ (both eval-enforced). Diagnostic→procedural handoff: each finding names the procedural skill that fixes it (agent finds, skill fixes).",
   "pipelines": {
     "pre-merge-review": {
       "description": "Read-only review of the current diff before merge.",
-      "steps": ["verifier", "docs-auditor"],
+      "steps": ["fe-verifier", "fe-docs-auditor"],
       "aggregate": "one prioritized report — blocking gaps first, then optional improvements",
       "handoff": {
-        "verifier": "test-generation",
-        "docs-auditor": "documentation-maintenance"
+        "fe-verifier": "fe-test-generation",
+        "fe-docs-auditor": "fe-documentation-maintenance"
       }
     },
     "prod-readiness": {
       "description": "Production-readiness sweep before a release/deploy — dependencies, bundle, runtime performance, and client-security hardening.",
       "steps": [
-        "dependency-auditor",
-        "bundle-size-reviewer",
-        "perf-auditor",
-        "production-hardening-reviewer"
+        "fe-dependency-auditor",
+        "fe-bundle-size-reviewer",
+        "fe-perf-auditor",
+        "fe-production-hardening-reviewer"
       ],
       "aggregate": "satisfied items, blocking gaps, optional improvements",
       "handoff": {
-        "dependency-auditor": "dependency-management",
-        "bundle-size-reviewer": "bundle-performance",
-        "perf-auditor": "bundle-performance",
-        "production-hardening-reviewer": "code-quality-security"
+        "fe-dependency-auditor": "fe-dependency-management",
+        "fe-bundle-size-reviewer": "fe-bundle-performance",
+        "fe-perf-auditor": "fe-bundle-performance",
+        "fe-production-hardening-reviewer": "fe-code-quality-security"
       }
     }
   }

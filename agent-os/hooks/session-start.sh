@@ -95,7 +95,7 @@ map_file="$ROOT/agent-os/docs/skill-triggers.md"
 map_section=""
 [ -f "$map_file" ] && map_section="$(cat "$map_file")"
 
-context="$(printf 'core-fe session ready — environment provisioned: %s.\n- Node %s (need >=%s) · deps %s · gh %s · mcp %s · gitleaks %s%s\n- Dev: pnpm dev (Vite :5173) + core-be on :3000. Bootstrap: pnpm setup:local. Gates: pnpm health (all phases) · pnpm tsc · pnpm lint · pnpm validate:tokens · pnpm validate:structure · pnpm validate:testids · pnpm validate:theme-axis · pnpm test\n- Skill-first: consult agent-os/skills/skill-registry/SKILL.md, then the listed skill(s) for the files you change.\n\n%s' \
+context="$(printf 'core-fe session ready — environment provisioned: %s.\n- Node %s (need >=%s) · deps %s · gh %s · mcp %s · gitleaks %s%s\n- Dev: pnpm dev (Vite :5173) + core-be on :3000. Bootstrap: pnpm setup:local. Gates: pnpm health (all phases) · pnpm tsc · pnpm lint · pnpm validate:tokens · pnpm validate:structure · pnpm validate:testids · pnpm validate:theme-axis · pnpm test\n- Skill-first: consult agent-os/skills/fe-skill-registry/SKILL.md, then the listed skill(s) for the files you change.\n\n%s' \
   "$provisioned" "$node_version" "$required_major" "$deps" "$gh_cli" "$mcp_status" "$gitleaks_status" "$node_note" "$map_section")"
 
 # Prefer the structured additionalContext envelope; fall back to plain stdout

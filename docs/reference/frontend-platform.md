@@ -75,8 +75,8 @@ src/lib/i18n/build-env.ts         — allowlisted Vite build injections (buildId
 **Validators:** `pnpm validate:vite-env` (no env/mode sniffing — `import.meta.env.VITE_*`/`DEV`/`PROD`/`MODE` outside the allowlist, or `.environment`/`.MODE ===` compares),
 `pnpm validate:client-env --env <development|production>` (per-environment required + forbidden + strict `allowed` value sets).
 **Operators:** [environment-variables runbook](../deployment/runbooks/environment-variables.md).
-**Adding keys:** `agent-os/skills/env-schema-add/SKILL.md`.  
-**Platform read paths & validators:** `agent-os/skills/platform-hygiene/SKILL.md`.
+**Adding keys:** `agent-os/skills/fe-env-schema-add/SKILL.md`.  
+**Platform read paths & validators:** `agent-os/skills/fe-platform-hygiene/SKILL.md`.
 
 ---
 
@@ -259,8 +259,8 @@ and mobile production builds, and record remaining gaps in the PR. Preserve the
 bundle budgets and measure actual startup work, including eager dynamic imports.
 
 For implementation guidance, see the
-[resilient-interactions skill](../../agent-os/skills/resilient-interactions/SKILL.md)
-and [bundle-performance skill](../../agent-os/skills/bundle-performance/SKILL.md).
+[fe-resilient-interactions skill](../../agent-os/skills/fe-resilient-interactions/SKILL.md)
+and [fe-bundle-performance skill](../../agent-os/skills/fe-bundle-performance/SKILL.md).
 
 ## Resource registry (L7)
 

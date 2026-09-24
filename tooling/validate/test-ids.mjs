@@ -362,7 +362,7 @@ function main() {
     console.error(`Test ID contract: ${failures.length} violation(s):\n`);
     for (const f of failures) console.error(`  FAIL  ${f}`);
     console.error(
-      '\nSee docs/reference/e2e-testids-inventory.md and agent-os/skills/e2e-testids/SKILL.md',
+      '\nSee docs/reference/e2e-testids-inventory.md and agent-os/skills/fe-e2e-testids/SKILL.md',
     );
     process.exit(1);
   }
