@@ -25,6 +25,7 @@ import { Plus } from '@/shared/icons/index.ts';
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
+import { myOrganizationsQueryKey } from '@/shared/tenancy/my-organization-summaries.ts';
 import {
   createOrganization,
   type CreateOrganizationInput,
@@ -131,7 +132,7 @@ export function CreateOrganizationDialog({
         beginSwitch(org.name);
         await hydrateSessionContext();
         await switchToOrganization(org.id);
-        await queryClient.invalidateQueries({ queryKey: ['organizations'] });
+        await queryClient.invalidateQueries({ queryKey: myOrganizationsQueryKey });
         // PUSH, never replace. This dialog is a plain modal opened from inside an
         // organization (the switcher) as well as from the picker; replacing
         // overwrote the organization the user was in, so Back from the new one

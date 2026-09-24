@@ -20,7 +20,7 @@ For each **modified or new** file, verify and fix:
 
 ### 1. Architecture and dependencies
 
-- **App must not import from pages.** If `src/app/` imports from `@/pages/`, move the used API or type to `src/shared/` or `src/core/` (an allowed layer) and have app import from there. Example: the route tree uses `listMyOrganizations` from `@/shared/tenancy/my-organizations.ts`, not `createOrganizationApi` from a page.
+- **App must not import from pages.** If `src/app/` imports from `@/pages/`, move the used API or type to `src/shared/` or `src/core/` (an allowed layer) and have app import from there. Example: the route tree uses `resolveRootRedirect` from `@/shared/tenancy/organization-resolver.ts`, not a helper from a page.
 - **Pages never import from other pages.** If a page imports from another page, promote shared code to `shared/` or `core/` and update imports.
 - **Shared and core never import from pages.** Fix by moving the dependency to core or shared.
 

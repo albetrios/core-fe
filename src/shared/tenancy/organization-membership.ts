@@ -13,7 +13,7 @@ import {
   type MyOrganizationSummary,
 } from './my-organization-summaries.ts';
 import type { Organization } from './my-organizations.ts';
-import { listMyOrganizations, organizationSchema } from './my-organizations.ts';
+import { organizationSchema } from './my-organizations.ts';
 
 /**
  * Membership + per-organization permission loading.
@@ -23,21 +23,6 @@ import { listMyOrganizations, organizationSchema } from './my-organizations.ts';
  * cached set belongs to and invalidates on change (a once-if-empty check is
  * not enough; it would leak org A's permissions into org B's UI).
  */
-
-/**
- * The organization, if the signed-in user is a member; otherwise `null`.
- *
- * Perf note: `listMyOrganizations()` is the live tenancy API, but this runs on
- * EVERY org-route navigation (guard chain). A future optimization is to put it
- * behind the query cache (staleTime) so per-nav guard checks reuse the list
- * instead of refetching it.
- */
-export async function findMembership(
-  organizationId: string,
-): Promise<Organization | null> {
-  const organizations = await listMyOrganizations();
-  return organizations.find((o) => o.id === organizationId) ?? null;
-}
 
 /**
  * The organization whose **slug** matches, if the user is a member; else `null`.

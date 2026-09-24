@@ -43,14 +43,14 @@ a PostHog `onboarding_completed` segmentation event) and never block dashboard e
 
 The stored org id is re-checked against the user's real organizations before it is
 trusted — a persisted id from an earlier session can name an org the user no longer
-belongs to, and navigating to its slug 404s. That check reads `['organizations']`
-**through the query cache** (`readMyOrganizations`, `staleTime` 10s) instead of calling
-`listMyOrganizations()` bare, so the stale-created-org effect and the finish path share
-one response and the result lands where the picker and Settings read it (ONB-10). A
+belongs to, and navigating to its slug 404s. That check reads the organization list
+**through the query cache** (`readMyOrganizations`, `staleTime` 10s) under
+`myOrganizationsQueryKey`, so the stale-created-org effect and the finish path share one
+response, in the one cache the picker, the switcher and Settings read (ONB-10). A
 `staleTime` rather than `ensureQueryData`, because answering "does this org still exist"
 from an arbitrarily old cache entry would drop a real organization and create a duplicate.
-An org created inside that window is appended to the cached list on the spot, so a retry
-is never told the org it just made does not exist.
+An org created inside that window marks the cached list stale on the spot, so a retry
+re-reads it from the server and is never told the org it just made does not exist.
 
 Two latches keep a repeat click from re-running the writes. `finishingRef` is the
 synchronous twin of `submitting`: `disabled` only lands a render later, so a double-click

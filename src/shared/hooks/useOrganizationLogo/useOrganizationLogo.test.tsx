@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
+import { myOrganizationsQueryKey } from '@/shared/tenancy/my-organization-summaries.ts';
 
 import {
   useRemoveOrganizationLogo,
@@ -73,6 +74,20 @@ describe('useUploadOrganizationLogo', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
+
+  // Regression: a new logo refreshed `['organizations']`, a key only the General
+  // panel read, so the switcher and dashboard kept showing the old logo.
+  it('refreshes the organization list the switcher reads', async () => {
+    useOrganizationStore.setState({ organizationId: 'org_acme' });
+    uploadOrganizationLogo.mockResolvedValue(undefined);
+    client.setQueryData(myOrganizationsQueryKey, [{ id: 'org_acme', logoUrl: null }]);
+
+    const { result } = renderHook(() => useUploadOrganizationLogo(), { wrapper });
+    result.current.mutate(logo());
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(client.getQueryState(myOrganizationsQueryKey)?.isInvalidated).toBe(true);
+  });
 });
 
 describe('useRemoveOrganizationLogo', () => {
@@ -83,5 +98,16 @@ describe('useRemoveOrganizationLogo', () => {
     result.current.mutate();
 
     await waitFor(() => expect(removeOrganizationLogo).toHaveBeenCalled());
+  });
+
+  it('refreshes the organization list the switcher reads', async () => {
+    removeOrganizationLogo.mockResolvedValue(undefined);
+    client.setQueryData(myOrganizationsQueryKey, [{ id: 'org_acme', logoUrl: 'x' }]);
+
+    const { result } = renderHook(() => useRemoveOrganizationLogo(), { wrapper });
+    result.current.mutate();
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(client.getQueryState(myOrganizationsQueryKey)?.isInvalidated).toBe(true);
   });
 });

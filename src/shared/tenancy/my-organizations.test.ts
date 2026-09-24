@@ -12,76 +12,10 @@ import { apiClient } from '@/core/http/fetch-client.ts';
 
 import {
   createOrganization,
-  listMyOrganizations,
   organizationSchema,
   updateOrganization,
   updateOrganizationSchema,
 } from './my-organizations.ts';
-
-describe('listMyOrganizations', () => {
-  it('returns parsed organizations from API response', async () => {
-    const mockData = [
-      { id: 'org-1', name: 'Acme', slug: 'acme', logo_url: 'https://cdn.test/acme.png' },
-      { id: 'org-2', name: 'Beta', slug: 'beta' },
-    ];
-    vi.mocked(apiClient.get).mockResolvedValue({ data: mockData });
-
-    const result = await listMyOrganizations();
-    expect(result).toHaveLength(2);
-    // snake_case logo_url maps to logoUrl; absent → null (FE-33).
-    expect(result[0]).toEqual({
-      id: 'org-1',
-      name: 'Acme',
-      slug: 'acme',
-      status: 'active',
-      logoUrl: 'https://cdn.test/acme.png',
-    });
-    expect(result[1]?.logoUrl).toBeNull();
-  });
-
-  it('returns empty array when API returns non-array', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue({ data: null });
-
-    const result = await listMyOrganizations();
-    expect(result).toEqual([]);
-  });
-
-  it('drops an invalid org row instead of failing the whole list (tolerant)', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    vi.mocked(apiClient.get).mockResolvedValue({
-      data: [
-        { id: 'org-1', name: 'Acme', slug: 'acme' },
-        { id: 'org-bad' }, // missing name + slug → dropped, not fatal
-      ],
-    });
-
-    const result = await listMyOrganizations();
-    expect(result).toHaveLength(1);
-    expect(result[0]?.id).toBe('org-1');
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
-  });
-
-  it('follows cursor pagination so a user in >25 orgs sees them all (no truncation)', async () => {
-    vi.mocked(apiClient.get).mockReset();
-    vi.mocked(apiClient.get)
-      .mockResolvedValueOnce({
-        data: [{ id: 'org-1', name: 'A', slug: 'a' }],
-        meta: { pagination: { has_more: true, next: 'cur1' } },
-      })
-      .mockResolvedValueOnce({
-        data: [{ id: 'org-2', name: 'B', slug: 'b' }],
-        meta: { pagination: { has_more: false, next: null } },
-      });
-
-    const result = await listMyOrganizations();
-
-    expect(result.map((o) => o.id)).toEqual(['org-1', 'org-2']);
-    expect(apiClient.get).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(apiClient.get).mock.calls[0]?.[0]).toContain('limit=100');
-    expect(vi.mocked(apiClient.get).mock.calls[1]?.[0]).toContain('after=cur1');
-  });
-});
 
 describe('createOrganization', () => {
   it('posts name and explicit slug, returns the parsed organization', async () => {

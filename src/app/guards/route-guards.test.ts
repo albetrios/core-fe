@@ -6,7 +6,6 @@ import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { type MeContext, meContextQueryKey } from '@/shared/tenancy/me-context.ts';
 import type * as MyOrganizationSummariesModule from '@/shared/tenancy/my-organization-summaries.ts';
-import type * as MyOrganizationsModule from '@/shared/tenancy/my-organizations.ts';
 import { resetPermissionCacheForTests } from '@/shared/tenancy/organization-membership.ts';
 
 import {
@@ -33,16 +32,6 @@ vi.mock('@/core/config/env.ts', () => ({
 
 import { platformConfig } from '@/core/config/env.ts';
 import { ensureSessionContext } from '@/shared/tenancy/session-context.ts';
-
-vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
-  const actual = await importOriginal<typeof MyOrganizationsModule>();
-  return {
-    ...actual,
-    listMyOrganizations: vi
-      .fn()
-      .mockResolvedValue([{ id: 'org_acme', name: 'Acme Inc.', slug: 'acme' }]),
-  };
-});
 
 /*
  * The guard chain resolves the caller's organizations from
