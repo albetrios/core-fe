@@ -1,15 +1,24 @@
 import '@testing-library/jest-dom/vitest';
 import '@/lib/i18n/i18n.ts';
 
-import { beforeAll, beforeEach, expect } from 'vitest';
+import { afterEach, beforeAll, beforeEach, expect } from 'vitest';
 import * as matchers from 'vitest-axe/matchers';
 
 import { ensureLocale } from '@/lib/i18n/load-namespace.ts';
+import { resetNotifyForTests } from '@/shared/notify/notify.ts';
 
 expect.extend(matchers);
 
 beforeAll(async () => {
   await ensureLocale('en');
+});
+
+// A toast queued before its renderer mounts holds a real `setTimeout`. Left
+// running past the end of a test, it fires after jsdom is torn down
+// (`requestAnimationFrame is not defined`) and fails whichever file is running
+// then. It only showed up under load, which is when that gap got long enough.
+afterEach(() => {
+  resetNotifyForTests();
 });
 
 // jsdom >= 30.1 parks the focus pointer on the Document when the focused node is

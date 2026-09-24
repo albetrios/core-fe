@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { OrganizationPermission } from '@/core/rbac/policies.ts';
 import type { AuthUser } from '@/shared/auth/types.ts';
@@ -58,6 +58,28 @@ const meCtxLoading = {
 };
 
 describe('SettingsModal', () => {
+  // Every section is `lazy(() => import(...))`. Without this, the first case to
+  // open a panel paid its cold transform (React Compiler pass included) inside
+  // its 1 s `findByTestId` wait, and a busy machine overran it: account/account
+  // and account/security, first in the table below, failed 3 runs out of 3 under
+  // full CPU load. Importing the panels here moves that cost out of the assertions.
+  beforeAll(async () => {
+    await Promise.all([
+      import('./account/AccountProfilePanel.tsx'),
+      import('./account/AccountPanel.tsx'),
+      import('./account/AccountSecurityPanel.tsx'),
+      import('./account/AccountNotificationsPanel.tsx'),
+      import('./account/AccountSessionsPanel.tsx'),
+      import('./account/AccountBillingPanel.tsx'),
+      import('./organization/OrganizationGeneralPanel.tsx'),
+      import('./organization/OrganizationMembersPanel.tsx'),
+      import('./organization/OrganizationRolesPanel.tsx'),
+      import('./organization/OrganizationIntegrationsPanel.tsx'),
+    ]);
+    // Ten cold transforms at once, on a loaded machine, can outlast the 10 s
+    // default hook timeout.
+  }, 30_000);
+
   beforeEach(() => {
     useAuthStore.setState({ user: USER, isAuthenticated: true });
     useOrganizationStore.getState().clearOrganization();

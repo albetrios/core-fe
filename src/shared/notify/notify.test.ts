@@ -5,7 +5,7 @@ const { runtimeMock } = vi.hoisted(() => ({
 }));
 vi.mock('./notify-runtime.tsx', () => runtimeMock);
 
-import { notificationBridge, notify } from './notify.ts';
+import { notificationBridge, notify, resetNotifyForTests } from './notify.ts';
 
 let release: (() => void) | undefined;
 async function activate() {
@@ -21,6 +21,22 @@ afterEach(() => {
   release?.();
   release = undefined;
   vi.useRealTimers();
+});
+
+describe('resetNotifyForTests', () => {
+  // The shared test setup runs this after every test. Without it, a queued
+  // toast's timer outlived its test file and fired into a torn-down jsdom.
+  it('drops queued toasts and the auto-dismiss timers they hold', () => {
+    vi.useFakeTimers();
+    notify.info('Still queued', { duration: 4000 });
+    expect(vi.getTimerCount()).toBe(1);
+    expect(notificationBridge.getSnapshot().pending).toHaveLength(1);
+
+    resetNotifyForTests();
+
+    expect(vi.getTimerCount()).toBe(0);
+    expect(notificationBridge.getSnapshot().pending).toEqual([]);
+  });
 });
 
 describe('notify', () => {

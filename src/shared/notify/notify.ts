@@ -175,3 +175,22 @@ export const notificationBridge = {
     };
   },
 };
+
+/**
+ * Test-only: drop every queued toast, and the auto-dismiss timer each one holds.
+ *
+ * @remarks
+ * A toast queued before the renderer mounts keeps a real `setTimeout` (see
+ * `enqueue`). A test that ends inside that window leaves it running, and it later
+ * fires into a torn-down environment: `dismiss()` reaches sonner, sonner calls
+ * `requestAnimationFrame`, which is gone, and the uncaught error fails whichever
+ * test file is running at the time. How long the gap lasts depends on the machine,
+ * so it only surfaced under load. The shared test setup calls this after every
+ * test. It deliberately calls neither sonner nor the subscribers: at teardown,
+ * nothing should render or schedule work.
+ */
+export function resetNotifyForTests(): void {
+  for (const item of queued.values()) clearTimeout(item.timer);
+  queued.clear();
+  snapshot = { runtime, pending: [] };
+}
