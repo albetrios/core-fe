@@ -24,7 +24,6 @@ import {
 import {
   Bell,
   BellOff,
-  type LucideIcon,
   Settings,
   ShieldCheck,
   UserPlus,
@@ -33,11 +32,17 @@ import {
 import { LAYOUT_KEYS, LAYOUT_NS } from '@/shared/layouts/layout.constants.ts';
 
 /** Category → glyph, so the inbox is scannable at a glance. */
-function categoryIcon(category: Notification['category']): LucideIcon {
-  if (category === 'member') return UserPlus;
-  if (category === 'billing') return Zap;
-  if (category === 'security') return ShieldCheck;
-  return Bell;
+function CategoryIcon({
+  category,
+  className,
+}: {
+  category: Notification['category'];
+  className: string;
+}) {
+  if (category === 'member') return <UserPlus className={className} />;
+  if (category === 'billing') return <Zap className={className} />;
+  if (category === 'security') return <ShieldCheck className={className} />;
+  return <Bell className={className} />;
 }
 
 /** Mark-all-read header action — hidden entirely when the inbox is empty. */
@@ -65,6 +70,133 @@ function MarkAllReadButton({
     >
       {t(LAYOUT_KEYS.app.notifications.markAllRead)}
     </Button>
+  );
+}
+
+/** The bell's unread count — nothing at zero, capped at "9+". */
+function UnreadBadge({ unread }: { unread: number }) {
+  if (unread <= 0) return null;
+  return (
+    <span
+      data-slot="pill"
+      className="bg-primary text-primary-foreground absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
+      data-testid="notification-badge"
+    >
+      {unread > 9 ? '9+' : unread}
+    </span>
+  );
+}
+
+/** One inbox row: category glyph (tinted while unread), title, body and relative time. */
+function NotificationRow({
+  item,
+  onClick,
+}: {
+  item: Notification;
+  onClick: (item: Notification) => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        data-slot="menu-item"
+        onClick={() => onClick(item)}
+        className={cn(
+          'flex w-full min-w-0 items-start gap-3 px-4 py-3 text-start transition-colors',
+          'hover:bg-muted/50 focus-visible:bg-muted/50 outline-none',
+          !item.isRead && 'bg-muted/30',
+        )}
+        data-testid={`notification-${item.id}`}
+      >
+        <span
+          data-slot="icon-chip"
+          className={cn(
+            'flex size-9 shrink-0 items-center justify-center',
+            item.isRead ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary',
+          )}
+          aria-hidden="true"
+        >
+          <CategoryIcon category={item.category} className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">
+              {item.title}
+            </span>
+            {item.isRead ? null : (
+              <span
+                className="bg-primary size-1.5 shrink-0 rounded-full"
+                aria-hidden="true"
+              />
+            )}
+          </span>
+          <span className="text-muted-foreground line-clamp-2 block text-xs">
+            {item.body}
+          </span>
+          <span className="text-muted-foreground/70 mt-1 block text-[11px]">
+            <FormattedDate value={item.createdAt} relative />
+          </span>
+        </span>
+      </button>
+    </li>
+  );
+}
+
+/** The popover's scrolling body: loading, error (with retry), empty, or the list. */
+function NotificationInbox({
+  items,
+  isLoading,
+  isError,
+  isFetching,
+  onRetry,
+  onItemClick,
+}: {
+  items: Notification[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  isFetching: boolean;
+  onRetry: () => void;
+  onItemClick: (item: Notification) => void;
+}) {
+  const { t } = useTranslation(LAYOUT_NS);
+  return (
+    <div className="max-h-[24rem] overflow-y-auto overscroll-contain">
+      {isLoading ? (
+        <div className="space-y-2 p-3" data-testid="notifications-loading">
+          {['a', 'b', 'c'].map((key) => (
+            <Skeleton key={key} className="h-14 w-full" />
+          ))}
+        </div>
+      ) : null}
+
+      {isError ? (
+        <div className="p-4" data-testid="notifications-query-error">
+          <RetryError
+            message={t(LAYOUT_KEYS.app.notifications.loadError)}
+            onRetry={onRetry}
+            isRetrying={isFetching}
+          />
+        </div>
+      ) : null}
+
+      {items && items.length === 0 ? (
+        <div className="p-4">
+          <EmptyState
+            icon={<BellOff />}
+            title={t(LAYOUT_KEYS.app.notifications.emptyTitle)}
+            description={t(LAYOUT_KEYS.app.notifications.emptyDescription)}
+          />
+        </div>
+      ) : null}
+
+      {items && items.length > 0 ? (
+        <ul className="divide-border divide-y" data-testid="notifications-list">
+          {items.map((item) => (
+            <NotificationRow key={item.id} item={item} onClick={onItemClick} />
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -133,15 +265,7 @@ export function NotificationCenter({
           data-testid="notification-bell"
         >
           <Bell className="h-4 w-4" />
-          {unread > 0 ? (
-            <span
-              data-slot="pill"
-              className="bg-primary text-primary-foreground absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
-              data-testid="notification-badge"
-            >
-              {unread > 9 ? '9+' : unread}
-            </span>
-          ) : null}
+          <UnreadBadge unread={unread} />
         </Button>
       </PopoverTrigger>
 
@@ -175,92 +299,16 @@ export function NotificationCenter({
           />
         </div>
 
-        <div className="max-h-[24rem] overflow-y-auto overscroll-contain">
-          {isLoading ? (
-            <div className="space-y-2 p-3" data-testid="notifications-loading">
-              {['a', 'b', 'c'].map((key) => (
-                <Skeleton key={key} className="h-14 w-full" />
-              ))}
-            </div>
-          ) : null}
-
-          {isError ? (
-            <div className="p-4" data-testid="notifications-query-error">
-              <RetryError
-                message={t(LAYOUT_KEYS.app.notifications.loadError)}
-                onRetry={() => {
-                  void refetch();
-                }}
-                isRetrying={isFetching}
-              />
-            </div>
-          ) : null}
-
-          {items && items.length === 0 ? (
-            <div className="p-4">
-              <EmptyState
-                icon={<BellOff />}
-                title={t(LAYOUT_KEYS.app.notifications.emptyTitle)}
-                description={t(LAYOUT_KEYS.app.notifications.emptyDescription)}
-              />
-            </div>
-          ) : null}
-
-          {items && items.length > 0 ? (
-            <ul className="divide-border divide-y" data-testid="notifications-list">
-              {items.map((item) => {
-                const Icon = categoryIcon(item.category);
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      data-slot="menu-item"
-                      onClick={() => handleItemClick(item)}
-                      className={cn(
-                        'flex w-full min-w-0 items-start gap-3 px-4 py-3 text-start transition-colors',
-                        'hover:bg-muted/50 focus-visible:bg-muted/50 outline-none',
-                        !item.isRead && 'bg-muted/30',
-                      )}
-                      data-testid={`notification-${item.id}`}
-                    >
-                      <span
-                        data-slot="icon-chip"
-                        className={cn(
-                          'flex size-9 shrink-0 items-center justify-center',
-                          item.isRead
-                            ? 'bg-muted text-muted-foreground'
-                            : 'bg-primary/10 text-primary',
-                        )}
-                        aria-hidden="true"
-                      >
-                        <Icon className="size-4" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-2">
-                          <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                            {item.title}
-                          </span>
-                          {item.isRead ? null : (
-                            <span
-                              className="bg-primary size-1.5 shrink-0 rounded-full"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </span>
-                        <span className="text-muted-foreground line-clamp-2 block text-xs">
-                          {item.body}
-                        </span>
-                        <span className="text-muted-foreground/70 mt-1 block text-[11px]">
-                          <FormattedDate value={item.createdAt} relative />
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-        </div>
+        <NotificationInbox
+          items={items}
+          isLoading={isLoading}
+          isError={isError}
+          isFetching={isFetching}
+          onRetry={() => {
+            void refetch();
+          }}
+          onItemClick={handleItemClick}
+        />
 
         {items && items.length > 0 ? (
           <button
