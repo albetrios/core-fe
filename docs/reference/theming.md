@@ -254,7 +254,7 @@ These rules prevent “invisible UI” when themes or motion settings change:
 | Rule                                                                   | Where enforced                                                 |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `text-card-foreground` on card surfaces                                | `Card` primitive + custom dashboard/card markup                |
-| Minimum `text-xs` for product labels/hints                             | `agent-os/rules/fe-tailwind-styling.mdc`, `design.md` §2          |
+| Minimum `text-xs` for product labels/hints                             | `agent-os/rules/fe-tailwind-styling.mdc`, `design.md` §2       |
 | Page transitions use **transform-only** `route-rise` (no opacity fade) | `src/index.css` (`--animate-fade-in-up`), `PageTransition.tsx` |
 
 Do not add opacity-based entrance animations to layout outlets or `PageTransition` —

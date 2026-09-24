@@ -6,11 +6,11 @@ directory is the **single source of truth**; each tool reads it through a symlin
 
 ## How each tool picks them up
 
-| Tool            | Path                | Wiring                                       | Invoke                                |
-| --------------- | ------------------- | -------------------------------------------- | ------------------------------------- |
+| Tool            | Path                | Wiring                                       | Invoke                                      |
+| --------------- | ------------------- | -------------------------------------------- | ------------------------------------------- |
 | **Claude Code** | `.claude/commands/` | symlink → `../agent-os/commands` (committed) | `/fe-validate`, `/fe-build-requirement ...` |
-| **Cursor**      | `.cursor/commands/` | symlink → `../agent-os/commands` (committed) | type `/` in chat (Cursor ≥ 1.6)       |
-| **Codex**       | `~/.codex/prompts/` | user-global — see setup below                | `/<name>` in the TUI                  |
+| **Cursor**      | `.cursor/commands/` | symlink → `../agent-os/commands` (committed) | type `/` in chat (Cursor ≥ 1.6)             |
+| **Codex**       | `~/.codex/prompts/` | user-global — see setup below                | `/<name>` in the TUI                        |
 
 > Cursor ignores the YAML frontmatter and uses the markdown body as the prompt;
 > Claude Code and Codex read `description` / `argument-hint` and expand
@@ -32,45 +32,45 @@ Granular procedures live in **skills** (invoked by name); these commands are **w
 
 **Core gates**
 
-| Command        | Purpose                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Command           | Purpose                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/fe-validate`    | Run `pnpm lint`, `pnpm type-check`, `pnpm validate:structure`, `pnpm validate:tokens`, `pnpm validate:testids`, `pnpm validate:theme-axis`; fix introduced issues. |
 | `/fe-ci-local`    | Run `pnpm health` (local PR gate) and map failures to `.github/workflows/pr-ci.yml` lanes.                                                                         |
 | `/fe-routes-sync` | Re-sync `routeTree.tsx`, RBAC, and `docs/reference/routes-and-ui.md` after route changes.                                                                          |
 
 **Autonomous build**
 
-| Command              | Purpose                                                                                                                                    |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Command                 | Purpose                                                                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/fe-build-requirement` | Draft FE requirement → full production-ready slice (route island → tests → lint → docs) + reports bundle. Orchestrates **fe-auto-implement**. |
 
 **Review**
 
-| Command             | Purpose                                                                                                                          |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `/fe-pre-merge-review` | Read-only pipeline (steps from `agent-os/agents/pipelines.json`: verifier → fe-docs-auditor); one aggregated report.                |
+| Command                | Purpose                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/fe-pre-merge-review` | Read-only pipeline (steps from `agent-os/agents/pipelines.json`: verifier → fe-docs-auditor); one aggregated report.                         |
 | `/fe-prod-readiness`   | Read-only production-readiness sweep (fe-dependency-auditor → fe-bundle-size-reviewer → fe-perf-auditor → fe-production-hardening-reviewer). |
 
 **PR lifecycle**
 
-| Command            | Purpose                                                                                                                                                                               |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Command               | Purpose                                                                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/fe-open-pr [title]` | Push the branch + open a PR to **`main`** (explicit PR opt-in).                                                                                                                       |
 | `/fe-watch-pr <n>`    | Triage CI + review comments until both required contexts — **`Quality gate`** + **`Checks`** — are green.                                                                             |
 | `/fe-merge-pr <n>`    | Squash-merge once CI is green.                                                                                                                                                        |
 | `/fe-ship [title]`    | Full flow: open-pr → watch-pr → merge-pr.                                                                                                                                             |
-| _Release_          | Trunk-based (single `main`): merge the standing release-please **Release PR** to ship → tag + prod deploy. See [trunk-based-workflow.md](../../docs/process/trunk-based-workflow.md). |
+| _Release_             | Trunk-based (single `main`): merge the standing release-please **Release PR** to ship → tag + prod deploy. See [trunk-based-workflow.md](../../docs/process/trunk-based-workflow.md). |
 
 **Maintenance**
 
-| Command          | Purpose                                                       |
-| ---------------- | ------------------------------------------------------------- |
+| Command             | Purpose                                                       |
+| ------------------- | ------------------------------------------------------------- |
 | `/fe-agent-os-sync` | Regenerate platform adapters + run agent-os gates; fix drift. |
 
 **Backend-only (stub)**
 
-| Command            | Purpose                                                 |
-| ------------------ | ------------------------------------------------------- |
+| Command               | Purpose                                                 |
+| --------------------- | ------------------------------------------------------- |
 | `/fe-worker-complete` | Stub — points to core-be; no worker runtime in core-fe. |
 
 ## Not imported from core-be

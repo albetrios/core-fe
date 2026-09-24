@@ -8,8 +8,8 @@ symlinks. Agents are read-only validators/investigators — for task instruction
 
 ## Catalog (11 agents)
 
-| Agent                           | Purpose                                                                                                                                            | Tools (read-only)                            |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Agent                              | Purpose                                                                                                                                            | Tools (read-only)                            |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
 | `fe-ci-investigator`               | Diagnoses a single failing PR CI check and returns a short root-cause summary with a fix plan.                                                     | Read, Grep, Glob, Bash                       |
 | `fe-verifier`                      | Skeptical independent validator — runs health/tests, checks edge cases, reports pass vs incomplete after a task is marked done.                    | Read, Grep, Glob, Bash                       |
 | `fe-docs-auditor`                  | Audits `docs/` for index completeness, naming, Mermaid, and cross-links after large doc changes.                                                   | Read, Grep, Glob, Bash                       |

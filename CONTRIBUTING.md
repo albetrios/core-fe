@@ -62,16 +62,16 @@ These are applied automatically (no need to mention them):
 
 When you ask for something (e.g. "add a settings page"), the **fe-skill-router** matches your request to a skill. The master **fe-auto-implement** skill orchestrates the full pipeline: parse requirement → implement → route → RBAC → test → lint → docs → verify. Everything happens **without asking** "Do you need tests?" or "Should I register the route?"
 
-| You say / do                                   | Skill used                       | What gets done (no confirmation asked)                                                                               |
-| ---------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Any requirement** (feature, page, component) | **fe-auto-implement** (master)      | Full pipeline: fe-code-structure → fe-page-scaffolding → fe-test-generation → fe-lint-guard → docs → verify acceptance criteria. |
-| Add a page, implement a feature                | fe-code-structure, fe-page-scaffolding | Placement, route.tsx, page, contracts, api, hooks, **tests**, route registration, RBAC if protected, data-testid.    |
-| Add a new component/file under src/            | fe-test-generation                  | Colocated test file created automatically.                                                                           |
-| Move component to shared                       | fe-component-promotion              | Move file + test, update imports; create test if missing.                                                            |
-| Optimize performance, re-renders               | react-best-practices             | Applied during implementation.                                                                                       |
-| UI review, accessibility                       | web-design-guidelines            | Review against a11y/form/typography rules.                                                                           |
-| Lint/CI/security changes                       | fe-code-quality-security            | Consistency with existing pipeline.                                                                                  |
-| _(after every code change)_                    | **fe-lint-guard** (auto)            | Fix all ESLint + TypeScript errors silently before responding.                                                       |
+| You say / do                                   | Skill used                             | What gets done (no confirmation asked)                                                                                           |
+| ---------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Any requirement** (feature, page, component) | **fe-auto-implement** (master)         | Full pipeline: fe-code-structure → fe-page-scaffolding → fe-test-generation → fe-lint-guard → docs → verify acceptance criteria. |
+| Add a page, implement a feature                | fe-code-structure, fe-page-scaffolding | Placement, route.tsx, page, contracts, api, hooks, **tests**, route registration, RBAC if protected, data-testid.                |
+| Add a new component/file under src/            | fe-test-generation                     | Colocated test file created automatically.                                                                                       |
+| Move component to shared                       | fe-component-promotion                 | Move file + test, update imports; create test if missing.                                                                        |
+| Optimize performance, re-renders               | react-best-practices                   | Applied during implementation.                                                                                                   |
+| UI review, accessibility                       | web-design-guidelines                  | Review against a11y/form/typography rules.                                                                                       |
+| Lint/CI/security changes                       | fe-code-quality-security               | Consistency with existing pipeline.                                                                                              |
+| _(after every code change)_                    | **fe-lint-guard** (auto)               | Fix all ESLint + TypeScript errors silently before responding.                                                                   |
 
 Full skill list and triggers: **agent-os/skills/fe-skill-registry/SKILL.md**.
 

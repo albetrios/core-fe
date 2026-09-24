@@ -519,7 +519,9 @@ const vendoredSkills = new Set<string>([
 ]);
 if (existsSync(skillsLockFile)) {
   try {
-    const lock = JSON.parse(readText(skillsLockFile)) as { skills?: Record<string, unknown> };
+    const lock = JSON.parse(readText(skillsLockFile)) as {
+      skills?: Record<string, unknown>;
+    };
     for (const vendored of Object.keys(lock.skills ?? {})) vendoredSkills.add(vendored);
   } catch {
     // The skills-lock check above reports a malformed lock file.

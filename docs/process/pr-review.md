@@ -10,7 +10,7 @@
 | Item                    | Reference                                                                                    |
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | **Required CI checks**  | `Quality gate` + `unit / Unit + global` (pr-ci.yml) + `Checks` (pr-governance.yml)           |
-| **Author gate (local)** | `pnpm health` or the `/fe-ci-local` command                                                     |
+| **Author gate (local)** | `pnpm health` or the `/fe-ci-local` command                                                  |
 | **PR template**         | [`.github/PULL_REQUEST_TEMPLATE.md`](../../.github/PULL_REQUEST_TEMPLATE.md)                 |
 | **New work intake**     | [requirement-intake.md](../getting-started/requirement-intake.md)                            |
 | **Severity**            | **Blocker** = must fix before merge · **Major** = should fix or justify · **Nit** = optional |
@@ -64,7 +64,7 @@ Check only what the PR touches.
 | Check           | What to look for                                                                                    | Typical severity |
 | --------------- | --------------------------------------------------------------------------------------------------- | ---------------- |
 | Semantic tokens | No raw palette classes (`bg-blue-500`, `text-white`) — `pnpm validate:tokens` clean                 | Blocker          |
-| shadcn sources  | Components from allowed sources only (`agent-os/rules/fe-ui-sources.mdc`)                              | Major            |
+| shadcn sources  | Components from allowed sources only (`agent-os/rules/fe-ui-sources.mdc`)                           | Major            |
 | Dark surfaces   | Icons on `bg-brand` / `bg-sidebar` / `bg-primary` use foreground tokens (`src/lib/icon-surface.ts`) | Major            |
 | Deferred chunks | No static import of `@sentry/react`, `posthog-js`, SettingsModal/CommandPalette trees               | Blocker          |
 | A11y            | Interactive elements have ARIA; component tests use vitest-axe (`axeForDialog` for portals)         | Major            |
@@ -122,10 +122,10 @@ Check only what the PR touches.
 
 ### Dependencies
 
-| Check         | What to look for                                                                 | Typical severity |
-| ------------- | -------------------------------------------------------------------------------- | ---------------- |
-| Audit         | `pnpm deps:audit` / CI security audit green                                      | Blocker          |
-| Atomic lock   | `package.json` change and `pnpm-lock.yaml` regen land in the SAME commit         | Blocker          |
+| Check         | What to look for                                                                    | Typical severity |
+| ------------- | ----------------------------------------------------------------------------------- | ---------------- |
+| Audit         | `pnpm deps:audit` / CI security audit green                                         | Blocker          |
+| Atomic lock   | `package.json` change and `pnpm-lock.yaml` regen land in the SAME commit            | Blocker          |
 | Justification | New packages necessary; bundle impact considered (`fe-dependency-management` skill) | Major            |
 
 ---
@@ -207,19 +207,19 @@ What stays in sync automatically vs what reviewers must verify.
 
 ### Soft-enforced (reviewer / agent should verify)
 
-| Item                                   | How it stays in sync                                  |
-| -------------------------------------- | ----------------------------------------------------- |
-| `docs/README.md` index completeness    | **fe-documentation-maintenance** when docs change        |
-| `routes-and-ui.md` prose accuracy      | Author + reviewer on route changes                    |
+| Item                                   | How it stays in sync                                        |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `docs/README.md` index completeness    | **fe-documentation-maintenance** when docs change           |
+| `routes-and-ui.md` prose accuracy      | Author + reviewer on route changes                          |
 | Locale key parity across languages     | **fe-i18n-auditor** (finds) → **fe-i18n-constants** (fixes) |
-| Whole-page a11y beyond component axe   | **fe-a11y-auditor** sweep                                |
-| Review snapshots under `docs/reviews/` | Dated files; do not rewrite history                   |
+| Whole-page a11y beyond component axe   | **fe-a11y-auditor** sweep                                   |
+| Review snapshots under `docs/reviews/` | Dated files; do not rewrite history                         |
 
 ### Periodic maintenance
 
-| Cadence              | Action                                                        |
-| -------------------- | ------------------------------------------------------------- |
-| After renaming gates | Grep `docs/` + skills for old script/workflow names           |
+| Cadence              | Action                                                           |
+| -------------------- | ---------------------------------------------------------------- |
+| After renaming gates | Grep `docs/` + skills for old script/workflow names              |
 | Per theme-axis work  | Update visual baselines (`fe-visual-regression` skill)           |
 | Before releases      | `/fe-prod-readiness` pipeline (deps → bundle → perf → hardening) |
 

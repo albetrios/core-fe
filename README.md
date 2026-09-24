@@ -293,13 +293,13 @@ This repo uses **Cursor rules** and **skills** so the AI follows project convent
 
 ### Skills (invoked by task type)
 
-| Skill                     | When to use                               | What it does                                                                                          |
-| ------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Skill                        | When to use                               | What it does                                                                                          |
+| ---------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **fe-page-scaffolding**      | New page/route, “scaffold page”           | Creates `route.tsx`, page component, `contracts.ts`, `api.ts`, hooks, registers route, can add tests. |
 | **fe-component-promotion**   | “Move to shared”, “make reusable”         | Moves a page component to `shared/` when used by 2+ page groups; updates imports and tests.           |
-| **react-best-practices**  | Performance, re-renders, bundle size      | Applies Vercel-style React/Next.js performance rules (waterfalls, memo, lazy, etc.).                  |
-| **web-design-guidelines** | “Review UI”, “check a11y”, “audit design” | Reviews code against accessibility, focus, forms, typography, dark mode, WCAG.                        |
-| **composition-patterns**  | “Compound component”, “too many props”    | Refactors component API (compound components, fewer booleans, state lifting).                         |
+| **react-best-practices**     | Performance, re-renders, bundle size      | Applies Vercel-style React/Next.js performance rules (waterfalls, memo, lazy, etc.).                  |
+| **web-design-guidelines**    | “Review UI”, “check a11y”, “audit design” | Reviews code against accessibility, focus, forms, typography, dark mode, WCAG.                        |
+| **composition-patterns**     | “Compound component”, “too many props”    | Refactors component API (compound components, fewer booleans, state lifting).                         |
 | **fe-code-quality-security** | Lint rules, pre-commit, CI, security      | ESLint, Husky, Gitleaks, Semgrep, CI workflows, bundle size.                                          |
 | **fe-test-generation**       | “Add test”, “coverage”, “generate test”   | Generates/updates unit/integration tests (Vitest, RTL, vitest-axe, data-testid).                      |
 | **fe-skill-registry**        | “Which skill?”, “list skills”             | Points you to the right skill and file locations.                                                     |
