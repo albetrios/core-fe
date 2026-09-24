@@ -103,4 +103,49 @@ describe('NotificationCenter', () => {
     await user.click(await screen.findByTestId('notification-mark-all'));
     expect(markAllMutate).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ['member', 'lucide-user-plus'],
+    ['billing', 'lucide-zap'],
+    ['security', 'lucide-shield-check'],
+    ['system', 'lucide-bell'],
+  ])('marks a %s notification with its own icon', async (category, iconClass) => {
+    useNotificationsMock.mockReturnValue({
+      data: [{ ...ITEM, category }],
+      isLoading: false,
+      isError: false,
+    });
+    const user = userEvent.setup();
+    render(<NotificationCenter />);
+    await user.click(screen.getByTestId('notification-bell'));
+    const row = await screen.findByTestId('notification-ntf_x');
+    expect(row.querySelector(`svg.${iconClass}`)).not.toBeNull();
+  });
+
+  it('shows placeholders while the inbox loads', async () => {
+    useNotificationsMock.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+    const user = userEvent.setup();
+    render(<NotificationCenter />);
+    await user.click(screen.getByTestId('notification-bell'));
+    expect((await screen.findByTestId('notifications-loading')).children).toHaveLength(3);
+  });
+
+  it('retries a failed inbox load in place', async () => {
+    const refetch = vi.fn();
+    useNotificationsMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    });
+    const user = userEvent.setup();
+    render(<NotificationCenter />);
+    await user.click(screen.getByTestId('notification-bell'));
+    await user.click(await screen.findByTestId('retry-button'));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
 });
