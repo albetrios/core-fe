@@ -25,7 +25,6 @@ import {
 } from '@/shared/components/ui/card.tsx';
 import { Input } from '@/shared/components/ui/input.tsx';
 import { Label } from '@/shared/components/ui/label.tsx';
-import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { useCan } from '@/shared/hooks/useCan/index.ts';
 import {
   useRemoveOrganizationLogo,
@@ -34,7 +33,10 @@ import {
 import { useUpdateOrganization } from '@/shared/hooks/useUpdateOrganization/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
-import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
+import {
+  type MyOrganizationSummary,
+  useMyOrganizationSummaries,
+} from '@/shared/tenancy/my-organization-summaries.ts';
 
 /** Matches core-be's `organization-logo` ceiling; a larger file is refused at presign. */
 const MAX_LOGO_BYTES = UPLOAD_MAX_BYTES['organization-logo'];
@@ -171,12 +173,9 @@ export function OrganizationGeneralPanel() {
   });
   const update = useUpdateOrganization();
 
-  const orgsQuery = useAppQuery({
-    queryKey: ['organizations'],
-    queryFn: listMyOrganizations,
-    // The panel wraps this in a QueryBoundary.
-    notifyOnError: false,
-  });
+  // The same list and cache the switcher reads, so a rename or logo change here
+  // refreshes both. The hook raises no toast; the panel wraps it in a QueryBoundary.
+  const orgsQuery = useMyOrganizationSummaries();
 
   return (
     <div className="space-y-6" data-testid="settings-section-org-general">
@@ -209,7 +208,7 @@ function OrganizationGeneralForm({
   canManage,
   update,
 }: {
-  orgs: Awaited<ReturnType<typeof listMyOrganizations>>;
+  orgs: readonly MyOrganizationSummary[];
   organizationId: string | null;
   organizationSlug: string | null;
   canManage: boolean;

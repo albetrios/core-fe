@@ -35,13 +35,11 @@ import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/
 import type { MeContext, OrganizationType } from '@/shared/tenancy/me-context.ts';
 import {
   fetchMyOrganizationSummaries,
+  myOrganizationsQueryKey,
+  type MyOrganizationSummary,
   useMyOrganizationSummaries,
 } from '@/shared/tenancy/my-organization-summaries.ts';
-import {
-  createOrganization,
-  listMyOrganizations,
-  type Organization,
-} from '@/shared/tenancy/my-organizations.ts';
+import { createOrganization } from '@/shared/tenancy/my-organizations.ts';
 import { resolveRootTarget } from '@/shared/tenancy/organization-resolver.ts';
 import { hydrateSessionContext } from '@/shared/tenancy/session-context.ts';
 import { switchToOrganization, switchToPersonal } from '@/shared/tenancy/switch.ts';
@@ -85,21 +83,21 @@ const ORGANIZATIONS_STALE_MS = 10_000;
 /**
  * Read the user's organizations THROUGH the query cache.
  *
- * `listMyOrganizations()` was called bare from two places on the finish path —
- * the stale-created-org effect and `resolveOrganizationForFinish` — so a resumed
- * session fetched the identical list twice, back to back, and neither response
- * reached the cache the picker and Settings read from (ONB-10). `query()`
- * under the SAME `['organizations']` key collapses those two into one request
- * and leaves the result where the next screen can use it.
+ * The finish path reads this list from two places — the stale-created-org
+ * effect and `resolveOrganizationForFinish` — and a resumed session once fetched
+ * it twice, back to back, with neither response reaching the cache the picker
+ * and Settings read (ONB-10). `query()` under {@link myOrganizationsQueryKey}
+ * collapses those into one request and leaves the result in the one cache every
+ * surface reads, this wizard's own step list included.
  *
  * `staleTime` rather than `ensureQueryData`: this list decides whether a
  * persisted created-org id still exists, and answering that from an arbitrarily
  * old cache entry would drop a real organization and create a duplicate.
  */
-function readMyOrganizations(): Promise<Organization[]> {
+function readMyOrganizations(): Promise<MyOrganizationSummary[]> {
   return queryClient.query({
-    queryKey: ['organizations'],
-    queryFn: listMyOrganizations,
+    queryKey: myOrganizationsQueryKey,
+    queryFn: fetchMyOrganizationSummaries,
     staleTime: ORGANIZATIONS_STALE_MS,
   });
 }
@@ -220,16 +218,20 @@ async function resolveOrganizationForFinish(input: {
     /*
      * Keep the cache honest about an org WE just created.
      *
-     * The existence check above reads `['organizations']` through the cache
+     * The existence check above reads the organization list through the cache
      * (ONB-10), and its window can now span this create — a retry after a
      * partial failure would otherwise be told the org does not exist, drop the
-     * stored id and create a SECOND workspace. Appending here means the next
-     * read inside that window sees the truth; the finish path still invalidates
-     * the key for real once it is done.
+     * stored id and create a SECOND workspace. Marking the list stale sends the
+     * next read inside that window back to the server, which knows the new org.
+     * Not an optimistic append: the cached rows are full summaries, and the
+     * created `Organization` has no `type` or timestamps to make one from.
+     * `refetchType: 'none'` because nothing needs the list before then, and the
+     * finish path invalidates it for real once it is done.
      */
-    queryClient.setQueryData<Organization[]>(['organizations'], (previous) =>
-      previous ? [...previous, org] : previous,
-    );
+    void queryClient.invalidateQueries({
+      queryKey: myOrganizationsQueryKey,
+      refetchType: 'none',
+    });
   }
 
   return { organizationId, organizationSlug };
@@ -862,12 +864,17 @@ export function OnboardingPage() {
       if (accessToken) await authApi.completeOnboarding(accessToken);
 
       /*
-       * `['organizations']` has a 5-minute staleTime, so without this the org
-       * picker and Settings → Organization served a cached list from before the
-       * workspace existed — for five minutes after creating it (ONB-7). The
-       * create dialog already does this; the wizard did not.
+       * The organization list has a 5-minute staleTime, so without this the org
+       * picker, the switcher and Settings → Organization served a cached list from
+       * before the workspace existed — for five minutes after creating it (ONB-7).
+       * The create dialog does the same. Marked stale, not refetched: the screens
+       * that read it refetch as they mount, and this wizard is about to leave —
+       * activation below reads the list itself.
        */
-      await queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      await queryClient.invalidateQueries({
+        queryKey: myOrganizationsQueryKey,
+        refetchType: 'none',
+      });
 
       const refreshedContext = await refreshSessionAfterOnboardingFinish();
       const activatedContext = await activateWorkspaceAfterOnboardingFinish({

@@ -2,7 +2,6 @@ import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { queryClient } from '@/core/http/queryClient.ts';
 import { organizationDashboard } from '@/lib/routes/index.ts';
 import { AUTH_KEYS, AUTH_NS } from '@/shared/auth/auth-shell.constants.ts';
 import { CreateOrganizationDialog } from '@/shared/components/CreateOrganizationDialog/index.ts';
@@ -10,13 +9,11 @@ import { Button } from '@/shared/components/ui/button.tsx';
 import { Card, CardContent } from '@/shared/components/ui/card.tsx';
 import { Skeleton } from '@/shared/components/ui/skeleton.tsx';
 import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/index.ts';
-import { useAppQuery } from '@/shared/hooks/useAppQuery/index.ts';
 import { AlertCircle, Building, ChevronRight, Plus } from '@/shared/icons/index.ts';
 import {
-  myOrganizationsQueryKey,
   type MyOrganizationSummary,
+  useMyOrganizationSummaries,
 } from '@/shared/tenancy/my-organization-summaries.ts';
-import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
 
 /**
  * The organization list. Split out so the boundary below wraps a real unit: a
@@ -27,40 +24,18 @@ import { listMyOrganizations } from '@/shared/tenancy/my-organizations.ts';
  */
 function OrganizationList() {
   const { t } = useTranslation(AUTH_NS);
-  const {
-    data: organizations = [],
-    isLoading,
-    isError,
-    refetch,
-  } = useAppQuery({
-    queryKey: ['organizations'],
-    queryFn: listMyOrganizations,
-    // The picker renders its own error card with a retry for this failure.
-    notifyOnError: false,
-    /*
-     * The guard chain that decided the user belongs here already resolved their
-     * organization list, so seeding from that cache renders the real list on the
-     * FIRST paint instead of flashing two skeletons for the length of a 40ms
-     * cached response (PICK-2). Placeholder data is not cached, so the real
-     * fetch still runs and replaces this the moment it lands.
-     *
-     * Read off the list's OWN cache rather than me/context: the list no longer
-     * rides along with the context.
-     */
-    placeholderData: () =>
-      queryClient
-        .getQueryData<MyOrganizationSummary[]>(myOrganizationsQueryKey)
-        // A personal org has no slug, so it has no row to link to.
-        ?.filter((org) => org.slug !== null)
-        .map((org) => ({
-          id: org.id,
-          name: org.name,
-          slug: org.slug ?? '',
-          status:
-            org.status === 'SUSPENDED' ? ('suspended' as const) : ('active' as const),
-          logoUrl: org.logoUrl,
-        })),
-  });
+  /*
+   * The same list, under the same cache key, that the guard chain, the switcher
+   * and the dashboard read. The guard that sent the user here already resolved
+   * it, so the FIRST paint shows the real list instead of flashing two skeletons
+   * for the length of a cached response (PICK-2). The hook raises no toast; this
+   * list renders its own error card with a retry.
+   */
+  const { data, isLoading, isError, refetch } = useMyOrganizationSummaries();
+  // A personal organization has no slug, so it has no row to link to.
+  const organizations = (data ?? []).filter(
+    (org): org is MyOrganizationSummary & { slug: string } => org.slug !== null,
+  );
 
   const isEmpty = !(isLoading || isError) && organizations.length === 0;
 

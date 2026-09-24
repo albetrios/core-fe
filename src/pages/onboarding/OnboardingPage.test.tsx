@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { queryClient } from '@/core/http/queryClient.ts';
+import { myOrganizationsQueryKey } from '@/shared/tenancy/my-organization-summaries.ts';
 import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 
 vi.mock('@/shared/hooks/useUnsavedChangesGuard/index.ts', () => ({
@@ -108,7 +109,7 @@ vi.mock('@/shared/hooks/useDeploymentFlags/index.ts', () => ({
 }));
 
 const createOrganization = vi.fn();
-const listMyOrganizations = vi.fn();
+const fetchSummaries = vi.fn();
 
 /*
  * The wizard derives its step list from the caller's ORGANIZATIONS, which come
@@ -126,9 +127,10 @@ vi.mock('@/shared/tenancy/my-organization-summaries.ts', async (importOriginal) 
     isPending: false,
     isError: false,
   }),
-  // The finish path refetches deliberately: onboarding may have just created the
-  // organization it is about to activate, so a cached read would miss it.
-  fetchMyOrganizationSummaries: () => Promise.resolve(organizationsRef.value),
+  // What `GET /users/me/organizations` answers. The finish path reads it through
+  // the cache to check a stored created-org id still exists, and directly to
+  // activate the workspace it may just have created.
+  fetchMyOrganizationSummaries: (...args: unknown[]) => fetchSummaries(...args),
 }));
 vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => ({
   // Spread the real module so the REAL schema is used: the wizard validates the
@@ -136,7 +138,6 @@ vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => ({
   // would make that test prove nothing.
   ...(await importOriginal<Record<string, unknown>>()),
   createOrganization: (...args: unknown[]) => createOrganization(...args),
-  listMyOrganizations: (...args: unknown[]) => listMyOrganizations(...args),
 }));
 
 const inviteMember = vi.fn();
@@ -339,7 +340,8 @@ describe('OnboardingPage', () => {
     };
     switchToOrganization.mockImplementation(async () => ctxWithActive(teamOrg('acme')));
     switchToPersonal.mockImplementation(async () => ctxWithActive(personalOrg()));
-    listMyOrganizations.mockResolvedValue([]);
+    // The server list starts as the orgs the test begins with…
+    fetchSummaries.mockImplementation(async () => organizationsRef.value);
     createOrganization.mockImplementation(async () => {
       const org = {
         id: 'org_new',
@@ -348,7 +350,11 @@ describe('OnboardingPage', () => {
         status: 'active' as const,
         logoUrl: null,
       };
-      listMyOrganizations.mockResolvedValue([org]);
+      // …and includes a created org from then on.
+      fetchSummaries.mockImplementation(async () => [
+        ...organizationsRef.value,
+        { ...org, type: 'TEAM', status: 'ACTIVE' },
+      ]);
       return org;
     });
     // A just-activated org already has an assignable role, so invites reuse it.
@@ -448,8 +454,15 @@ describe('OnboardingPage', () => {
   it('does NOT re-create the org on a retry after a partial failure', async () => {
     const user = userEvent.setup();
     seedDoneStep(['a@acme.com']);
-    listMyOrganizations.mockResolvedValue([
-      { id: 'org_existing', name: 'Existing', slug: 'existing-slug', status: 'active' },
+    fetchSummaries.mockResolvedValue([
+      {
+        id: 'org_existing',
+        name: 'Existing',
+        slug: 'existing-slug',
+        type: 'TEAM',
+        status: 'ACTIVE',
+        logoUrl: null,
+      },
     ]);
     // Simulate a prior attempt that already created the org (id + slug stored).
     useOnboardingStore.getState().setCreatedOrganizationId('org_existing');
@@ -580,7 +593,7 @@ describe('OnboardingPage', () => {
   it('creates the org when persisted createdOrganizationId is stale (404 guard)', async () => {
     const user = userEvent.setup();
     seedDoneStep();
-    listMyOrganizations.mockResolvedValue([]);
+    fetchSummaries.mockResolvedValue([]);
     useOnboardingStore.getState().setCreatedOrganizationId('org_stale');
     useOnboardingStore.getState().setCreatedOrganizationSlug('acme');
     renderWithProviders(<OnboardingPage />);
@@ -1048,8 +1061,15 @@ describe('OnboardingPage', () => {
     // The resume shape both readers care about: a created-org id is persisted,
     // so the mount effect checks it still exists AND resolveOrganizationForFinish
     // checks again a moment later. Both used to call the API directly.
-    listMyOrganizations.mockResolvedValue([
-      { id: 'org_existing', name: 'Existing', slug: 'existing-slug', status: 'active' },
+    fetchSummaries.mockResolvedValue([
+      {
+        id: 'org_existing',
+        name: 'Existing',
+        slug: 'existing-slug',
+        type: 'TEAM',
+        status: 'ACTIVE',
+        logoUrl: null,
+      },
     ]);
     seedDoneStep();
     useOnboardingStore.getState().setCreatedOrganizationId('org_existing');
@@ -1060,14 +1080,15 @@ describe('OnboardingPage', () => {
     renderWithProviders(<OnboardingPage />);
 
     await screen.findByTestId('onboarding-finish');
-    await waitFor(() => expect(listMyOrganizations).toHaveBeenCalled());
+    await waitFor(() => expect(fetchSummaries).toHaveBeenCalled());
     await user.click(screen.getByTestId('onboarding-finish'));
     await waitFor(() => expect(navigate).toHaveBeenCalled());
 
-    // Two readers, one request — and it is in the cache the picker reads.
-    expect(listMyOrganizations).toHaveBeenCalledTimes(1);
-    expect(queryClient.getQueryData(['organizations'])).toEqual([
-      { id: 'org_existing', name: 'Existing', slug: 'existing-slug', status: 'active' },
+    // Two readers, one request — and it is in the cache the picker and the
+    // switcher read. (Activation fetches the list directly and never writes it.)
+    expect(queryClient.getQueryState(myOrganizationsQueryKey)?.dataUpdateCount).toBe(1);
+    expect(queryClient.getQueryData(myOrganizationsQueryKey)).toEqual([
+      expect.objectContaining({ id: 'org_existing', slug: 'existing-slug' }),
     ]);
   });
 

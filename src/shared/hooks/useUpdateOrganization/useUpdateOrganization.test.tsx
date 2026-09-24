@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 import { meContextQueryKey } from '@/shared/tenancy/me-context.ts';
+import { myOrganizationsQueryKey } from '@/shared/tenancy/my-organization-summaries.ts';
 
 import { useUpdateOrganization } from './useUpdateOrganization.ts';
 
@@ -44,12 +45,12 @@ describe('useUpdateOrganization', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
 
-  it('invalidates BOTH the organizations list and me/context on success', async () => {
-    // Regression: renaming only refreshed the General panel (['organizations']),
-    // leaving the org switcher + dashboard header (me/context) on the old name.
-    const client = new QueryClient({
-      defaultOptions: { queries: { retry: false, gcTime: 0 } },
-    });
+  it('refreshes the organization list the switcher reads, and me/context', async () => {
+    // Regression: the rename invalidated `['organizations']`, a key only the
+    // General panel read. The switcher, dashboard panel and command palette read
+    // the summaries list, which kept the old name for up to five minutes.
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(myOrganizationsQueryKey, [{ id: 'org_acme', name: 'Acme Inc.' }]);
     const invalidate = vi.spyOn(client, 'invalidateQueries');
     const { result } = renderHook(() => useUpdateOrganization(), {
       wrapper: ({ children }: { children: ReactNode }) => (
@@ -60,7 +61,7 @@ describe('useUpdateOrganization', () => {
     result.current.mutate({ name: 'Acme Co.' });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['organizations'] });
+    expect(client.getQueryState(myOrganizationsQueryKey)?.isInvalidated).toBe(true);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: meContextQueryKey });
   });
 });

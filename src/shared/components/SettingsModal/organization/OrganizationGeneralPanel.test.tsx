@@ -14,8 +14,8 @@ import { renderWithProviders } from '@/tests/utils/renderWithProviders.tsx';
 /** The panel's copy as the bundle renders it — never the English literal. */
 const copy = (key: string, lng = 'en') => i18n.t(key, { ns: SETTINGS_NS, lng });
 
-const { listMock, updateMock, uploadLogoMock, removeLogoMock } = vi.hoisted(() => ({
-  listMock: vi.fn(),
+const { fetchPagesMock, updateMock, uploadLogoMock, removeLogoMock } = vi.hoisted(() => ({
+  fetchPagesMock: vi.fn(),
   updateMock: vi.fn(),
   uploadLogoMock: vi.fn(),
   removeLogoMock: vi.fn(),
@@ -28,13 +28,32 @@ vi.mock('@/shared/api/organization-logo-api.ts', () => ({
 }));
 vi.mock('@/shared/tenancy/my-organizations.ts', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
-  return { ...actual, listMyOrganizations: listMock, updateOrganization: updateMock };
+  return { ...actual, updateOrganization: updateMock };
 });
+// Only the paginated fetch is stubbed: the list goes through the same fetcher
+// and cache the switcher reads.
+vi.mock('@/shared/api/fetch-all-pages.ts', () => ({ fetchAllPages: fetchPagesMock }));
 vi.mock('@/shared/notify/index.ts', () => ({
   notify: { success: vi.fn(), error: vi.fn() },
 }));
 
 import { OrganizationGeneralPanel } from './OrganizationGeneralPanel.tsx';
+
+const ACME_ID = `org_${'a'.repeat(21)}`;
+
+function orgRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: ACME_ID,
+    name: 'Acme Inc.',
+    slug: 'acme',
+    type: 'TEAM',
+    status: 'ACTIVE',
+    logo_url: null,
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
 
 function setCanManage(value: boolean) {
   useAuthStore.setState({
@@ -42,7 +61,7 @@ function setCanManage(value: boolean) {
     isAuthenticated: true,
   });
   useOrganizationStore.setState({
-    organizationId: 'org_acme',
+    organizationId: ACME_ID,
     organizationType: value ? 'TEAM' : 'PERSONAL',
     // `PATCH /tenancy/organization` and the logo routes enforce `organization:update`.
     permissions: value ? ['organization:update'] : [],
@@ -52,11 +71,9 @@ function setCanManage(value: boolean) {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  listMock.mockResolvedValue([
-    { id: 'org_acme', name: 'Acme Inc.', slug: 'acme', status: 'active' },
-  ]);
+  fetchPagesMock.mockResolvedValue([orgRow()]);
   updateMock.mockResolvedValue({
-    id: 'org_acme',
+    id: ACME_ID,
     name: 'Acme Co.',
     slug: 'acme',
     status: 'active',
@@ -81,7 +98,7 @@ describe('OrganizationGeneralPanel', () => {
     await user.type(input, 'Acme Co.');
     await user.click(screen.getByTestId('org-general-save'));
     await waitFor(() =>
-      expect(updateMock).toHaveBeenCalledWith('org_acme', { name: 'Acme Co.' }),
+      expect(updateMock).toHaveBeenCalledWith(ACME_ID, { name: 'Acme Co.' }),
     );
   });
 
@@ -101,7 +118,7 @@ describe('OrganizationGeneralPanel', () => {
     const file = new File(['logo-bytes'], 'logo.png', { type: 'image/png' });
     await user.upload(screen.getByTestId('org-logo-input'), file);
     await waitFor(() =>
-      expect(uploadLogoMock).toHaveBeenCalledWith({ file, organizationId: 'org_acme' }),
+      expect(uploadLogoMock).toHaveBeenCalledWith({ file, organizationId: ACME_ID }),
     );
     // The rename PATCH must not be dragged into a logo change.
     expect(updateMock).not.toHaveBeenCalled();
@@ -121,14 +138,8 @@ describe('OrganizationGeneralPanel', () => {
   });
 
   it('removes an existing logo (FE-33)', async () => {
-    listMock.mockResolvedValue([
-      {
-        id: 'org_acme',
-        name: 'Acme Inc.',
-        slug: 'acme',
-        status: 'active',
-        logoUrl: 'data:image/png;base64,AAAA',
-      },
+    fetchPagesMock.mockResolvedValue([
+      orgRow({ logo_url: 'data:image/png;base64,AAAA' }),
     ]);
     const user = userEvent.setup();
     renderWithProviders(<OrganizationGeneralPanel />);
