@@ -240,6 +240,16 @@ describe('OrganizationSwitcher', () => {
     expect(screen.getByTestId('organization-switcher-create')).toBeInTheDocument();
   });
 
+  it('opens the create-organization dialog from the menu', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<OrganizationSwitcher />);
+    await user.click(await screen.findByTestId('organization-switcher-trigger'));
+    await user.click(await screen.findByTestId('organization-switcher-create'));
+    expect(
+      await screen.findByTestId('create-organization-dialog-form'),
+    ).toBeInTheDocument();
+  });
+
   it('reports a failed me/context instead of passing in silence (X-1)', async () => {
     // A rejected fetch used to leave the trigger reading "Select organization"
     // over an empty list. It now toasts — and NOT `throwOnError`, because
