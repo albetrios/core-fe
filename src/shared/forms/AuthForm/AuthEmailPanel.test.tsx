@@ -6,7 +6,7 @@ import {
   Outlet,
   RouterProvider,
 } from '@tanstack/react-router';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type ReactElement, type ReactNode, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -67,6 +67,7 @@ import { queryClient } from '@/core/http/queryClient.ts';
 // The real auth-shell form slot the panel lives inside — see LOGIN-7 below.
 import { AuthForm as AuthFormSlot } from '@/shared/layouts/AuthLayout/AuthLayout.shared.tsx';
 
+import { AUTH_EMAIL_VERIFICATION_CODE_RESEND_COOLDOWN_MS } from './auth-form.constants.ts';
 import type { AuthContinuePending } from './auth-form-pending.ts';
 import { AuthEmailPanel } from './AuthEmailPanel.tsx';
 
@@ -147,6 +148,14 @@ async function verifyWith(router: ReturnType<typeof createDestinationRouter>) {
   await user.click(screen.getByTestId('auth-email-submit'));
   await screen.findByTestId('auth-email-verify-panel');
   await user.type(await screen.findByTestId('auth-email-code'), '123456');
+}
+
+// `pending` is owned by AuthForm, not the panel — rendering the panel bare
+// means onPendingChange goes nowhere and the button can never lock. This
+// mirrors the parent's contract so the real lock is under test.
+function PanelWithPending() {
+  const [pending, setPending] = useState<AuthContinuePending | null>(null);
+  return <AuthEmailPanel pending={pending} onPendingChange={setPending} />;
 }
 
 describe('AuthEmailPanel', () => {
@@ -472,6 +481,96 @@ describe('AuthEmailPanel', () => {
     expect(banner).toHaveAttribute('role', 'alert');
   });
 
+  it('shakes the code on a rejected attempt, then settles', async () => {
+    emailLogin.mockRejectedValueOnce(new Error('Bad code'));
+    const user = userEvent.setup();
+    const router = createTestRouter();
+    render(<RouterProvider router={router} />);
+
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+    await screen.findByTestId('auth-email-verify-panel');
+    await user.type(await screen.findByTestId('auth-email-code'), '123456');
+
+    await waitFor(() =>
+      expect(document.querySelector('.animate-otp-shake')).not.toBeNull(),
+    );
+    // …and lets go once the keyframes have run, so the next failure can replay it.
+    await waitFor(() => expect(document.querySelector('.animate-otp-shake')).toBeNull());
+  });
+
+  it('restarts the shake when a second rejection lands before the first one painted', async () => {
+    emailLogin.mockRejectedValue(new Error('Bad code'));
+    // Frames are held, so the first shake is still waiting for its frame when the
+    // second rejection arrives.
+    let nextFrame = 1000;
+    const requestFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation(() => nextFrame++);
+    const cancelFrame = vi
+      .spyOn(window, 'cancelAnimationFrame')
+      .mockImplementation(() => {});
+    try {
+      const user = userEvent.setup();
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+      await user.click(screen.getByTestId('auth-email-submit'));
+      await screen.findByTestId('auth-email-verify-panel');
+      await user.type(await screen.findByTestId('auth-email-code'), '123456');
+      await waitFor(() => expect(requestFrame).toHaveBeenCalled());
+      const firstShakeFrame = requestFrame.mock.results.at(-1)?.value;
+
+      await user.type(screen.getByTestId('auth-email-code'), '654321');
+      await waitFor(() => expect(emailLogin).toHaveBeenCalledTimes(2));
+      expect(cancelFrame).toHaveBeenCalledWith(firstShakeFrame);
+    } finally {
+      requestFrame.mockRestore();
+      cancelFrame.mockRestore();
+    }
+  });
+
+  it('offers the resend link once the cooldown ends, and says so while it re-sends', async () => {
+    const user = userEvent.setup();
+    const router = createTestRouter(PanelWithPending);
+    render(<RouterProvider router={router} />);
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+    await screen.findByTestId('auth-email-verify-panel');
+
+    // Past the cooldown: the countdown's next one-second tick reads this clock.
+    const clock = vi
+      .spyOn(Date, 'now')
+      .mockReturnValue(
+        Date.now() + AUTH_EMAIL_VERIFICATION_CODE_RESEND_COOLDOWN_MS + 1_000,
+      );
+    try {
+      const resend = await screen.findByTestId(
+        'auth-email-resend',
+        {},
+        { timeout: 3_000 },
+      );
+      let finishSend: (value: object) => void = () => {};
+      emailVerificationCodeSend.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishSend = resolve;
+          }),
+      );
+      await user.click(resend);
+
+      expect(emailVerificationCodeSend).toHaveBeenCalledTimes(2);
+      expect(emailVerificationCodeSend).toHaveBeenLastCalledWith('user@example.com');
+      expect(await screen.findByText('Sending…')).toBeInTheDocument();
+      await act(async () => {
+        finishSend({});
+      });
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
   // ── LOGIN-5 ───────────────────────────────────────────────────────────────
   // navigateAfterEmailLogin was fire-and-forget and `pending` was cleared in a
   // `finally`, so the moment the code was ACCEPTED the verify screen handed the
@@ -479,14 +578,6 @@ describe('AuthEmailPanel', () => {
   // guards were only just starting. A second click then re-sent an already-used
   // code and painted a red error over a screen that was about to disappear.
   describe('post-login handoff (LOGIN-5)', () => {
-    // `pending` is owned by AuthForm, not the panel — rendering the panel bare
-    // means onPendingChange goes nowhere and the button can never lock. This
-    // mirrors the parent's contract so the real lock is under test.
-    function PanelWithPending() {
-      const [pending, setPending] = useState<AuthContinuePending | null>(null);
-      return <AuthEmailPanel pending={pending} onPendingChange={setPending} />;
-    }
-
     // The default mocked context routes a fresh user to /onboarding, and that
     // branch is taken before any saved redirect — so that is the guard to hold.
     const pendingRouter = () =>
