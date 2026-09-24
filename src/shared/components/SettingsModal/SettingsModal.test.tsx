@@ -1,4 +1,5 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -12,16 +13,21 @@ import { SettingsModal } from './SettingsModal.tsx';
 
 vi.mock('posthog-js', () => ({ default: { capture: vi.fn() } }));
 
-const { useMeContextMock, notificationsPanelThrows } = vi.hoisted(() => ({
-  useMeContextMock: vi.fn(),
-  notificationsPanelThrows: { value: false },
-}));
+const { useMeContextMock, notificationsPanelThrows, notificationsPanelDirty } =
+  vi.hoisted(() => ({
+    useMeContextMock: vi.fn(),
+    notificationsPanelThrows: { value: false },
+    // Stands in for a panel holding unsaved edits, through the real registration hook.
+    notificationsPanelDirty: { value: false },
+  }));
 vi.mock('./account/AccountNotificationsPanel.tsx', async (importOriginal) => {
   const actual = await importOriginal<{ AccountNotificationsPanel: () => ReactNode }>();
+  const { useRegisterSettingsDirty } = await import('./settings-dirty.tsx');
   return {
     ...actual,
     AccountNotificationsPanel: () => {
       if (notificationsPanelThrows.value) throw new Error('Notifications panel crashed');
+      useRegisterSettingsDirty('notifications-test', notificationsPanelDirty.value);
       return actual.AccountNotificationsPanel();
     },
   };
@@ -59,6 +65,7 @@ const meCtxLoading = {
 
 describe('SettingsModal', () => {
   beforeEach(() => {
+    notificationsPanelDirty.value = false;
     useAuthStore.setState({ user: USER, isAuthenticated: true });
     useOrganizationStore.getState().clearOrganization();
     useMeContextMock.mockReturnValue({
@@ -444,5 +451,53 @@ describe('SettingsModal', () => {
     expect(
       screen.queryByTestId('settings-nav-organization-members'),
     ).not.toBeInTheDocument();
+  });
+
+  it('asks before leaving unsaved changes, and switches section on Leave', async () => {
+    notificationsPanelDirty.value = true;
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/notifications'],
+    });
+    await screen.findByTestId('settings-section-notifications');
+
+    fireEvent.click(screen.getByTestId('settings-nav-account-security'));
+    expect(await screen.findByTestId('settings-discard-dialog')).toBeInTheDocument();
+    expect(router.state.location.hash).toBe('settings/account/notifications');
+
+    fireEvent.click(screen.getByTestId('settings-discard-leave'));
+    await waitFor(() =>
+      expect(router.state.location.hash).toBe('settings/account/security'),
+    );
+  });
+
+  it('switches sections from the mobile picker', async () => {
+    const user = userEvent.setup();
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+    await user.click(await screen.findByTestId('settings-mobile-section'));
+    await user.click(await screen.findByRole('option', { name: 'Security' }));
+    await waitFor(() =>
+      expect(router.state.location.hash).toBe('settings/account/security'),
+    );
+  });
+
+  it('closes by going back when Settings was opened over another page', async () => {
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/', '/#settings/account/profile'],
+    });
+    const back = vi.spyOn(router.history, 'back');
+    fireEvent.click(await screen.findByRole('button', { name: 'Close', exact: true }));
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes by clearing the hash in place when there is nothing to go back to', async () => {
+    const { router } = renderWithProviders(<SettingsModal />, {
+      initialEntries: ['/#settings/account/profile'],
+    });
+    const back = vi.spyOn(router.history, 'back');
+    fireEvent.click(await screen.findByRole('button', { name: 'Close', exact: true }));
+    await waitFor(() => expect(router.state.location.hash).toBe(''));
+    expect(back).not.toHaveBeenCalled();
   });
 });
