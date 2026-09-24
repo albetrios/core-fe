@@ -33,10 +33,10 @@ Re-mints the global access token and re-points every derived surface at the new 
 2. `liveSwitch` bumps `switchGeneration`, POSTs, and **discards** the response if a
    newer switch superseded it in flight (stale generation → return `undefined`).
 3. On the winning switch: `setAccessToken` + `scheduleTokenRefresh` +
-   `applyActiveOrg` (updates `me/context` cache: active org, permissions, role,
-   `isActive` flags).
-4. `deriveOrgContext(result)` syncs the store; an analytics `organizationSwitched`
-   event fires.
+   `applyActiveOrg` (updates `me/context` cache: active org, permissions, role).
+4. `deriveOrgContext(result)` syncs the store, which also moves the organization
+   list's `isActive` (derived from the store on read, never cached); an analytics
+   `organizationSwitched` event fires.
 
 Entry points: `switch.ts` (`switchToOrganization` / `switchToPersonal`) ·
 Guard: monotonic `switchGeneration` · Ends at: new token + derived context.

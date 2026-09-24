@@ -5,12 +5,15 @@ import {
 } from '@/shared/api/organization-api.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
-import { type MeContext, meContextQueryKey } from './me-context.ts';
+import {
+  type MeContext,
+  meContextQueryKey,
+  type OrganizationSummary,
+} from './me-context.ts';
 import {
   ensureMyOrganizationSummaries,
   fetchMyOrganizationSummaries,
   myOrganizationsQueryKey,
-  type MyOrganizationSummary,
 } from './my-organization-summaries.ts';
 import type { Organization } from './my-organizations.ts';
 import { organizationSchema } from './my-organizations.ts';
@@ -31,7 +34,7 @@ import { organizationSchema } from './my-organizations.ts';
  * non-member slug resolves to `null` → 404, identical to an unknown slug.
  */
 export async function findMembershipBySlug(slug: string): Promise<Organization | null> {
-  const toOrganization = (row: MyOrganizationSummary): Organization | null =>
+  const toOrganization = (row: OrganizationSummary): Organization | null =>
     row.slug
       ? organizationSchema.parse({
           id: row.id,

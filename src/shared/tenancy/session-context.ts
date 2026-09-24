@@ -1,30 +1,51 @@
 import { queryClient } from '@/core/http/queryClient.ts';
 
 import { fetchMeContext, type MeContext, meContextQueryKey } from './me-context.ts';
+import {
+  myOrganizationsQueryKey,
+  prefetchMyOrganizationSummaries,
+} from './my-organization-summaries.ts';
 import { deriveOrgContext } from './organization-context.ts';
 import { resetPermissionCacheForTests } from './organization-membership.ts';
 
 let contextGeneration = 0;
 
 /**
- * Drop cached `me/context` so the next read refetches from the API. Call after
- * logout, org switch side-effects that bypass the switch endpoint, or any
- * mutation that changes session context server-side.
+ * Drop the cached `me/context`, and the organization list loaded with it, so the
+ * next read refetches from the API. Call after logout, org switch side-effects
+ * that bypass the switch endpoint, or any mutation that changes session context
+ * server-side.
+ *
+ * @remarks
+ * The list goes too because {@link hydrateSessionContext} sends it alongside
+ * me/context, and it is cached with `staleTime: 'static'`. Left behind — by a
+ * cold load whose me/context failed after the list arrived, say — it would be
+ * served to the next sign-in in this tab, whoever signs in. Removing the query
+ * also cancels a list request still in flight.
  */
 export function invalidateSessionContext(): void {
   contextGeneration += 1;
   queryClient.removeQueries({ queryKey: meContextQueryKey });
+  queryClient.removeQueries({ queryKey: myOrganizationsQueryKey });
 }
 
 /**
  * Load the authoritative session context and seed the React Query cache +
  * derived org store — shared by `/` resolution, workspace guards, and auth
  * bootstrap.
+ *
+ * @remarks
+ * Also sends the organization list request, alongside me/context rather than
+ * after it: the organization guard needs both answers, and neither request reads
+ * the other's. On a cold load or a sign-in that is one round trip fewer before
+ * the first route renders. Cache-first, so a session that already holds the list
+ * sends nothing.
  */
 export async function hydrateSessionContext(
   isCurrent: () => boolean = () => true,
 ): Promise<MeContext> {
   const generation = contextGeneration;
+  prefetchMyOrganizationSummaries();
   const ctx = await fetchMeContext();
   if (generation !== contextGeneration || !isCurrent()) {
     throw new DOMException('Session context superseded', 'AbortError');

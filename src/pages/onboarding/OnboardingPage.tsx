@@ -32,11 +32,14 @@ import { notify } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
 import { useWorkspaceSwitchStore } from '@/shared/store/useWorkspaceSwitchStore/index.ts';
-import type { MeContext, OrganizationType } from '@/shared/tenancy/me-context.ts';
+import type {
+  MeContext,
+  OrganizationSummary,
+  OrganizationType,
+} from '@/shared/tenancy/me-context.ts';
 import {
   fetchMyOrganizationSummaries,
   myOrganizationsQueryKey,
-  type MyOrganizationSummary,
   useMyOrganizationSummaries,
 } from '@/shared/tenancy/my-organization-summaries.ts';
 import { createOrganization } from '@/shared/tenancy/my-organizations.ts';
@@ -94,7 +97,7 @@ const ORGANIZATIONS_STALE_MS = 10_000;
  * persisted created-org id still exists, and answering that from an arbitrarily
  * old cache entry would drop a real organization and create a duplicate.
  */
-function readMyOrganizations(): Promise<MyOrganizationSummary[]> {
+function readMyOrganizations(): Promise<OrganizationSummary[]> {
   return queryClient.query({
     queryKey: myOrganizationsQueryKey,
     queryFn: fetchMyOrganizationSummaries,

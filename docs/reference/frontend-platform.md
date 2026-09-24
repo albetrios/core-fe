@@ -15,6 +15,7 @@ main.tsx
   2. bootstrapResources()                   — register resource manifests (L7)
   3. React mount (App → RouterProvider)
   4. startAuthBootstrap()                   — silent refresh + hydrateSessionContext
+                                              (me/context ∥ organization list)
   5. initObservabilityWhenIdle()            — Sentry + consented analytics
   6. startVersionCheck()                    — new-deployment reload (prod)
   7. subscribeToAuthBroadcast()               — cross-tab logout
@@ -22,14 +23,15 @@ main.tsx
 
 **Session context** (`shared/tenancy/session-context.ts`):
 
-| API                             | When                                                      |
-| ------------------------------- | --------------------------------------------------------- |
-| `hydrateSessionContext()`       | Fetch `me/context`, seed React Query + derived org store  |
-| `invalidateSessionContext()`    | Drop cached context (logout side-effects, forced refresh) |
-| `invalidateMembershipContext()` | Session + per-org permission cache reset                  |
+| API                          | When                                                                                                                  |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `hydrateSessionContext()`    | Fetch `me/context`, seed React Query + derived org store; sends the organization list request alongside (cache-first) |
+| `invalidateSessionContext()` | Drop cached context and the organization list (logout side-effects, forced refresh)                                   |
 
 Auth bootstrap (`shared/auth/service.ts`) calls `hydrateSessionContext()` after
-token refresh. Workspace guards and `/` resolver share the same helper.
+token refresh. Workspace guards and `/` resolver share the same helper. The
+organization guard needs the list as well as me/context; sending both at once
+keeps a cold load to one round trip after the refresh instead of two.
 
 Logout and a newer login invalidate the auth generation and session-context
 generation before publishing new state. Delayed refresh results must not restore
