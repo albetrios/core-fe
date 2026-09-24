@@ -146,6 +146,7 @@ export function AuthEmailPanel({
   const [verificationCode, setVerificationCode] = useState('');
   const [codeShake, setCodeShake] = useState(false);
   const codeShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const codeShakeFrameRef = useRef<number | null>(null);
   // Inline error surface — the reliable one. Toasts fired from this submit's
   // async catch can be dropped by sonner (created into history but never made
   // active), so a failed send/verify would otherwise give the user NO feedback.
@@ -187,13 +188,20 @@ export function AuthEmailPanel({
    * it can be released on unmount — previously a bare `window.setTimeout` fired
    * `setCodeShake` on an unmounted component when the user left inside the
    * 450ms window (LOGIN-8).
+   *
+   * The frame that re-adds the class is owned too: releasing only the timer let
+   * a frame still pending at unmount run afterwards and start a timer nobody
+   * owned.
    */
   const startCodeShake = () => {
+    if (codeShakeFrameRef.current !== null)
+      cancelAnimationFrame(codeShakeFrameRef.current);
     if (codeShakeTimerRef.current) clearTimeout(codeShakeTimerRef.current);
     setCodeShake(false);
     // Next frame, so the class is genuinely removed and re-added — otherwise a
     // second failure re-sets an already-true flag and the animation never replays.
-    requestAnimationFrame(() => {
+    codeShakeFrameRef.current = requestAnimationFrame(() => {
+      codeShakeFrameRef.current = null;
       setCodeShake(true);
       codeShakeTimerRef.current = setTimeout(() => {
         codeShakeTimerRef.current = null;
@@ -204,6 +212,10 @@ export function AuthEmailPanel({
 
   useEffect(
     () => () => {
+      if (codeShakeFrameRef.current !== null) {
+        cancelAnimationFrame(codeShakeFrameRef.current);
+        codeShakeFrameRef.current = null;
+      }
       if (codeShakeTimerRef.current) {
         clearTimeout(codeShakeTimerRef.current);
         codeShakeTimerRef.current = null;

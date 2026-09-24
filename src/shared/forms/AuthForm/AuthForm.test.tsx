@@ -43,11 +43,14 @@ vi.mock('@/shared/hooks/useAuthMethods/index.ts', () => ({
   useAuthMethods: vi.fn(() => authMethodsRef.value),
 }));
 
+// Defaults live in `vi.fn(impl)`, not `.mockResolvedValue()`: `vi.resetAllMocks()`
+// (below) puts a mock back to the implementation it was created with, and a bare
+// `vi.fn()` would reset to returning `undefined`.
 vi.mock('@/shared/api/auth-api.ts', () => ({
   authApi: {
-    oauthStart: vi.fn().mockResolvedValue('https://oauth.example/redirect'),
-    emailVerificationCodeSend: vi.fn().mockResolvedValue({}),
-    emailLogin: vi.fn().mockResolvedValue({ accessToken: 'mock-token' }),
+    oauthStart: vi.fn(async () => 'https://oauth.example/redirect'),
+    emailVerificationCodeSend: vi.fn(async () => ({})),
+    emailLogin: vi.fn(async () => ({ accessToken: 'mock-token' })),
   },
   MfaRequiredError: class MfaRequiredError extends Error {
     mfaSessionToken = '';
@@ -55,14 +58,14 @@ vi.mock('@/shared/api/auth-api.ts', () => ({
 }));
 
 vi.mock('@/shared/auth/passkey-sign-in.ts', () => ({
-  signInWithPasskey: vi.fn().mockResolvedValue(undefined),
+  signInWithPasskey: vi.fn(async () => undefined),
   // The suite exercises the passkey method, so it stands in for a wired
   // backend. Production returns false until /auth/webauthn/login/* exists.
   isPasskeySignInAvailable: vi.fn(() => true),
 }));
 
 vi.mock('@/shared/auth/service.ts', () => ({
-  establishSession: vi.fn().mockResolvedValue(undefined),
+  establishSession: vi.fn(async () => undefined),
 }));
 
 function createTestRouter() {
@@ -84,7 +87,10 @@ describe('AuthForm', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Reset, not clear. `clearAllMocks` keeps whatever implementation a test
+    // installed, so one test leaving `emailVerificationCodeSend` pending forever, or
+    // `oauthStart` rejecting, leaked into every test after it.
+    vi.resetAllMocks();
     turnstileReadyRef.value = true;
     authMethodsRef.value = {
       ...authMethodsRef.defaults,
@@ -172,6 +178,92 @@ describe('AuthForm', () => {
     await waitFor(() =>
       expect(screen.getByTestId('auth-email-verify-panel')).toBeInTheDocument(),
     );
+  });
+
+  // LOGIN-8: the shake used to be a bare setTimeout, so a rapid second wrong code
+  // re-set an already-true flag and the animation never replayed.
+  it('replays the code shake on a second wrong code instead of swallowing it', async () => {
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    vi.mocked(authApi.emailLogin)
+      .mockRejectedValueOnce(new Error('bad code'))
+      .mockRejectedValueOnce(new Error('bad code'));
+    const shaking = () => Boolean(document.querySelector('.animate-otp-shake'));
+
+    renderForm();
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+    await user.type(await screen.findByTestId('auth-email-code'), 'ABC123');
+    await waitFor(() => expect(shaking()).toBe(true));
+
+    // Second failure inside the window: the class must come off and go back on,
+    // which is what makes the animation restart.
+    await waitFor(() => expect(screen.getByTestId('auth-email-code')).not.toBeDisabled());
+    await user.type(screen.getByTestId('auth-email-code'), 'DEF456');
+    await waitFor(() => expect(authApi.emailLogin).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(shaking()).toBe(true));
+  });
+
+  // LOGIN-8's shake owns its timer, and now the frame that starts it: a frame still
+  // pending when the form goes away must not run afterwards and start a timer
+  // nobody owns.
+  it('cancels a code-shake frame that has not run yet when the form goes away', async () => {
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    // Held open, so the frame queue is ours before the failure lands.
+    let rejectLogin: (reason: unknown) => void = () => {};
+    vi.mocked(authApi.emailLogin).mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectLogin = reject;
+        }),
+    );
+
+    const { unmount } = renderForm();
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+    await user.type(await screen.findByTestId('auth-email-code'), 'ABC123');
+    await waitFor(() => expect(authApi.emailLogin).toHaveBeenCalled());
+
+    const frames = new Map<number, FrameRequestCallback>();
+    const requested: number[] = [];
+    const requestFrame = vi
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        const handle = requested.length + 1;
+        requested.push(handle);
+        frames.set(handle, callback);
+        return handle;
+      });
+    const cancelFrame = vi
+      .spyOn(globalThis, 'cancelAnimationFrame')
+      .mockImplementation((handle) => {
+        frames.delete(handle);
+      });
+    try {
+      await act(async () => {
+        rejectLogin(new Error('bad code'));
+      });
+      // The first frame requested after the failure is the shake's.
+      const shakeFrame = requested[0];
+      expect(shakeFrame).toBeDefined();
+
+      unmount();
+
+      // Run it if it survived, as the browser would on its next paint.
+      const timer = vi
+        .spyOn(globalThis, 'setTimeout')
+        .mockImplementation((() => 0) as unknown as typeof setTimeout);
+      try {
+        frames.get(shakeFrame ?? -1)?.(performance.now());
+        expect(timer).not.toHaveBeenCalled();
+      } finally {
+        timer.mockRestore();
+      }
+    } finally {
+      requestFrame.mockRestore();
+      cancelFrame.mockRestore();
+    }
   });
 
   it('invokes passkey sign-in and disables other methods while loading', async () => {

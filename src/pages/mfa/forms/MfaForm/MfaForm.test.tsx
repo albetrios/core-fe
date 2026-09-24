@@ -272,5 +272,66 @@ describe('MfaForm', () => {
       expect(cleared.length).toBeGreaterThan(0);
       vi.mocked(globalThis.clearTimeout).mockRestore();
     });
+
+    // The frame that re-adds the class is owned too. Releasing only the timer left
+    // a gap: leave while the frame was still pending and it ran afterwards, starting
+    // a timer nobody owned. That timer fired after this file's teardown and failed
+    // whole runs with `window is not defined`.
+    it('cancels a shake frame that has not run yet when the screen goes away', async () => {
+      mockUseLocation.mockReturnValue({ state: { mfaToken: 'temp-token' } });
+      // Held open, so the frame queue is ours before the failure lands.
+      let rejectVerify: (reason: unknown) => void = () => {};
+      mfaVerifyMock.mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectVerify = reject;
+          }),
+      );
+      const user = userEvent.setup();
+      const { unmount } = renderWithRouter();
+      await user.type(await screen.findByTestId('mfa-code'), '111111');
+      await waitFor(() => expect(mfaVerifyMock).toHaveBeenCalled());
+
+      const frames = new Map<number, FrameRequestCallback>();
+      const requested: number[] = [];
+      const requestFrame = vi
+        .spyOn(globalThis, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          const handle = requested.length + 1;
+          requested.push(handle);
+          frames.set(handle, callback);
+          return handle;
+        });
+      const cancelFrame = vi
+        .spyOn(globalThis, 'cancelAnimationFrame')
+        .mockImplementation((handle) => {
+          frames.delete(handle);
+        });
+      try {
+        await act(async () => {
+          rejectVerify(new Error('bad code'));
+        });
+        // The first frame requested after the failure is the shake's.
+        const shakeFrame = requested[0];
+        expect(shakeFrame).toBeDefined();
+
+        unmount();
+
+        // Run it if it survived, as the browser would on its next paint: it must
+        // not start a timer for a screen that is gone.
+        const timer = vi
+          .spyOn(globalThis, 'setTimeout')
+          .mockImplementation((() => 0) as unknown as typeof setTimeout);
+        try {
+          frames.get(shakeFrame ?? -1)?.(performance.now());
+          expect(timer).not.toHaveBeenCalled();
+        } finally {
+          timer.mockRestore();
+        }
+      } finally {
+        requestFrame.mockRestore();
+        cancelFrame.mockRestore();
+      }
+    });
   });
 });
