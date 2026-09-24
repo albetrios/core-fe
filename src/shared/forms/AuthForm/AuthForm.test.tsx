@@ -43,11 +43,14 @@ vi.mock('@/shared/hooks/useAuthMethods/index.ts', () => ({
   useAuthMethods: vi.fn(() => authMethodsRef.value),
 }));
 
+// Defaults live in `vi.fn(impl)`, not `.mockResolvedValue()`: `vi.resetAllMocks()`
+// (below) puts a mock back to the implementation it was created with, and a bare
+// `vi.fn()` would reset to returning `undefined`.
 vi.mock('@/shared/api/auth-api.ts', () => ({
   authApi: {
-    oauthStart: vi.fn().mockResolvedValue('https://oauth.example/redirect'),
-    emailVerificationCodeSend: vi.fn().mockResolvedValue({}),
-    emailLogin: vi.fn().mockResolvedValue({ accessToken: 'mock-token' }),
+    oauthStart: vi.fn(async () => 'https://oauth.example/redirect'),
+    emailVerificationCodeSend: vi.fn(async () => ({})),
+    emailLogin: vi.fn(async () => ({ accessToken: 'mock-token' })),
   },
   MfaRequiredError: class MfaRequiredError extends Error {
     mfaSessionToken = '';
@@ -55,14 +58,14 @@ vi.mock('@/shared/api/auth-api.ts', () => ({
 }));
 
 vi.mock('@/shared/auth/passkey-sign-in.ts', () => ({
-  signInWithPasskey: vi.fn().mockResolvedValue(undefined),
+  signInWithPasskey: vi.fn(async () => undefined),
   // The suite exercises the passkey method, so it stands in for a wired
   // backend. Production returns false until /auth/webauthn/login/* exists.
   isPasskeySignInAvailable: vi.fn(() => true),
 }));
 
 vi.mock('@/shared/auth/service.ts', () => ({
-  establishSession: vi.fn().mockResolvedValue(undefined),
+  establishSession: vi.fn(async () => undefined),
 }));
 
 function createTestRouter() {
@@ -84,7 +87,10 @@ describe('AuthForm', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Reset, not clear. `clearAllMocks` keeps whatever implementation a test
+    // installed, so one test leaving `emailVerificationCodeSend` pending forever, or
+    // `oauthStart` rejecting, leaked into every test after it.
+    vi.resetAllMocks();
     turnstileReadyRef.value = true;
     authMethodsRef.value = {
       ...authMethodsRef.defaults,
@@ -179,7 +185,6 @@ describe('AuthForm', () => {
   it('replays the code shake on a second wrong code instead of swallowing it', async () => {
     const user = userEvent.setup();
     const { authApi } = await import('@/shared/api/auth-api.ts');
-    vi.mocked(authApi.emailVerificationCodeSend).mockResolvedValueOnce({});
     vi.mocked(authApi.emailLogin)
       .mockRejectedValueOnce(new Error('bad code'))
       .mockRejectedValueOnce(new Error('bad code'));
@@ -205,9 +210,6 @@ describe('AuthForm', () => {
   it('cancels a code-shake frame that has not run yet when the form goes away', async () => {
     const user = userEvent.setup();
     const { authApi } = await import('@/shared/api/auth-api.ts');
-    // Stated, not inherited: `vi.clearAllMocks()` keeps implementations, and the
-    // test above leaves `emailVerificationCodeSend` pending forever.
-    vi.mocked(authApi.emailVerificationCodeSend).mockResolvedValueOnce({});
     // Held open, so the frame queue is ours before the failure lands.
     let rejectLogin: (reason: unknown) => void = () => {};
     vi.mocked(authApi.emailLogin).mockImplementationOnce(
