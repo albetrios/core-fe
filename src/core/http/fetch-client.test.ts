@@ -408,6 +408,47 @@ describe('fetch-client', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
+    it('a 503 with Retry-After waits at least that long before retrying', async () => {
+      vi.useFakeTimers();
+      try {
+        fetchMock
+          .mockResolvedValueOnce(errJson(503, { 'Retry-After': '5' }))
+          .mockResolvedValueOnce(ok());
+        const request = apiClient.get<{ ok: boolean }>('/x');
+        // The exponential backoff alone would retry after 1 s.
+        await vi.advanceTimersByTimeAsync(4_999);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        const { data } = await request;
+        expect(data).toEqual({ ok: true });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('a 5xx without Retry-After keeps the exponential backoff', async () => {
+      vi.useFakeTimers();
+      try {
+        fetchMock.mockResolvedValueOnce(errJson(503)).mockResolvedValueOnce(ok());
+        const request = apiClient.get<{ ok: boolean }>('/x');
+        await vi.advanceTimersByTimeAsync(999);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        const { data } = await request;
+        expect(data).toEqual({ ok: true });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('a 503 with a Retry-After beyond the cap is not auto-retried', async () => {
+      fetchMock.mockResolvedValueOnce(errJson(503, { 'Retry-After': '60' }));
+      await expect(apiClient.get('/x')).rejects.toBeInstanceOf(HttpError);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
     it('a timeout (AbortError) is not retried (3.3)', async () => {
       const abort = Object.assign(new Error('timeout'), { name: 'AbortError' });
       fetchMock.mockRejectedValueOnce(abort);
