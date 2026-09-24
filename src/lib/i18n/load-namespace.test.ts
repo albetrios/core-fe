@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as buildEnv from '@/lib/i18n/build-env.ts';
 import * as buildRuntime from '@/lib/i18n/build-runtime.ts';
 import i18n from '@/lib/i18n/i18n.ts';
+import { I18N_BUILD_UI_LOCALE } from '@/lib/i18n/i18n-resources.ts';
 import {
   ensureLocale,
   ensureNamespace,
@@ -14,9 +15,30 @@ import { I18N_NAMESPACES } from '@/lib/i18n/namespaces.ts';
 
 const ALL_NAMESPACES = Object.values(I18N_NAMESPACES);
 
+/**
+ * Wait for every load a stubbed loader started, including any a settling load
+ * starts. `vi.resetModules()` gives a test a fresh load-namespace module but
+ * not a fresh i18next, so a load released at the end of a test still installs
+ * its bundle, and without this it lands inside whichever test runs next.
+ */
+async function settleLoads(loader: { mock: { results: Array<{ value: unknown }> } }) {
+  let settled = 0;
+  while (settled < loader.mock.results.length) {
+    const started = loader.mock.results.slice(settled).map(({ value }) => value);
+    settled += started.length;
+    await Promise.allSettled(started);
+  }
+}
+
 describe('load-namespace', () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.restoreAllMocks();
+    // Some tests commit a language on the shared i18next instance. Put the
+    // build UI locale back, or the next test's ensureNamespace also fetches
+    // copy for that language.
+    if (i18n.language !== I18N_BUILD_UI_LOCALE) {
+      await i18n.changeLanguage(I18N_BUILD_UI_LOCALE);
+    }
   });
 
   it('coalesces simultaneous requests for the same locale and namespace', async () => {
@@ -247,13 +269,15 @@ describe('load-namespace', () => {
     const delayed = new Promise<void>((resolve) => {
       release = resolve;
     });
-    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
-      if (locale === 'fr') {
-        if (ns === I18N_NAMESPACES.auth) reached();
-        await delayed;
-      }
-      return original(locale, ns);
-    });
+    const loader = vi
+      .spyOn(resources, 'loadLocaleNamespace')
+      .mockImplementation(async (locale, ns) => {
+        if (locale === 'fr') {
+          if (ns === I18N_NAMESPACES.auth) reached();
+          await delayed;
+        }
+        return original(locale, ns);
+      });
     const fresh = await import('@/lib/i18n/load-namespace.ts');
     const commit = vi.fn(async () => {});
     const switching = fresh.ensureActiveLocale('fr', commit);
@@ -263,6 +287,7 @@ describe('load-namespace', () => {
     await Promise.all([switching, navigation]);
     expect(commit).not.toHaveBeenCalled();
     release();
+    await settleLoads(loader);
   });
   it('releases destination waiters when another namespace fails the transition', async () => {
     vi.resetModules();
@@ -280,14 +305,16 @@ describe('load-namespace', () => {
     const reached = new Promise<void>((resolve) => {
       reachedDashboard = resolve;
     });
-    vi.spyOn(resources, 'loadLocaleNamespace').mockImplementation(async (locale, ns) => {
-      if (locale === 'es' && ns === I18N_NAMESPACES.layout) await layout;
-      if (locale === 'es' && ns === I18N_NAMESPACES.dashboard) {
-        reachedDashboard();
-        await dashboard;
-      }
-      return original(locale, ns);
-    });
+    const loader = vi
+      .spyOn(resources, 'loadLocaleNamespace')
+      .mockImplementation(async (locale, ns) => {
+        if (locale === 'es' && ns === I18N_NAMESPACES.layout) await layout;
+        if (locale === 'es' && ns === I18N_NAMESPACES.dashboard) {
+          reachedDashboard();
+          await dashboard;
+        }
+        return original(locale, ns);
+      });
     const fresh = await import('@/lib/i18n/load-namespace.ts');
     const { default: instance } = await import('@/lib/i18n/i18n.ts');
     const switching = fresh.ensureActiveLocale('es', async () => {
@@ -308,6 +335,7 @@ describe('load-namespace', () => {
     } finally {
       releaseDashboard();
       await Promise.allSettled([switching, navigation]);
+      await settleLoads(loader);
     }
   });
 

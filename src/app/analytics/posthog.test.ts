@@ -1,32 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('posthog-js', () => ({
-  default: {
-    init: vi.fn(),
-    reset: vi.fn(),
-    register: vi.fn(),
-    identify: vi.fn(),
-    group: vi.fn(),
-    capture: vi.fn(),
-    __loaded: false,
-  },
-}));
-
-vi.mock('@/core/config/env.ts', () => ({
-  platformConfig: {
-    posthogKey: 'phc_test_key',
-    posthogHost: 'https://us.i.posthog.com',
-  },
-}));
-
-// Consent defaults to granted for these tests; the gate itself is asserted in
-// the dedicated "no consent" case below (and in useConsentStore.test.ts).
-vi.mock('@/shared/store/useConsentStore/index.ts', () => ({
-  hasAnalyticsConsent: vi.fn(() => true),
-}));
-
-import posthogModule from 'posthog-js';
-
 import type { AuthUser } from '@/shared/auth/types.ts';
 
 const TEST_USER: AuthUser = {
@@ -37,24 +10,37 @@ const TEST_USER: AuthUser = {
   name: 'Test User',
 };
 
+type PostHogWorld = {
+  /** Overrides for the env config; a key set to `undefined` stays unset. */
+  config?: { posthogKey?: string; posthogHost?: string };
+  /** Analytics consent: granted unless the test says otherwise. */
+  consent?: boolean;
+  /** What `posthog.init` does when it is called. */
+  init?: () => void;
+};
+
 /**
- * Self-contained fresh world: vi.doMock from earlier tests persists across
- * resetModules, and resetModules splits module instances — so each test
- * here re-mocks and re-imports everything it touches (store included).
+ * Self-contained fresh world. vi.doMock persists across tests and across
+ * resetModules, and resetModules splits module instances — so every test here
+ * declares its whole world through this (env, consent and posthog-js together)
+ * and asserts on the instances imported from the same fresh registry. A test
+ * that skips any of it inherits whatever the previous test happened to mock.
  */
-async function loadFreshPostHog() {
+async function loadFreshPostHog({
+  config = {},
+  consent = true,
+  init = () => undefined,
+}: PostHogWorld = {}) {
   vi.resetModules();
   vi.doMock('@/core/config/env.ts', () => ({
-    platformConfig: { posthogKey: 'phc_test', posthogHost: undefined },
+    platformConfig: { posthogKey: 'phc_test', posthogHost: undefined, ...config },
   }));
-  // Consent granted — re-mocked here so a lingering doMock from the
-  // "no consent" case (doMock persists across resetModules) can't leak in.
   vi.doMock('@/shared/store/useConsentStore/index.ts', () => ({
-    hasAnalyticsConsent: () => true,
+    hasAnalyticsConsent: () => consent,
   }));
   vi.doMock('posthog-js', () => ({
     default: {
-      init: vi.fn(),
+      init: vi.fn(init),
       reset: vi.fn(),
       register: vi.fn(),
       identify: vi.fn(),
@@ -76,9 +62,11 @@ describe('initPostHog', () => {
   });
 
   it('calls posthog.init when key is provided', async () => {
-    const { initPostHog } = await import('./posthog.ts');
+    const { initPostHog, phMock } = await loadFreshPostHog({
+      config: { posthogKey: 'phc_test_key', posthogHost: 'https://us.i.posthog.com' },
+    });
     initPostHog();
-    expect(posthogModule.init).toHaveBeenCalledWith(
+    expect(phMock.init).toHaveBeenCalledWith(
       'phc_test_key',
       expect.objectContaining({
         api_host: 'https://us.i.posthog.com',
@@ -88,51 +76,17 @@ describe('initPostHog', () => {
   });
 
   it('does NOT initialize without analytics consent', async () => {
-    // Fully isolated: fresh modules + its own mocks, so neither the shared
-    // posthog mock nor posthog.ts's `initialized` flag leaks in from prior tests.
-    vi.resetModules();
-    vi.doMock('@/shared/store/useConsentStore/index.ts', () => ({
-      hasAnalyticsConsent: () => false,
-    }));
-    vi.doMock('@/core/config/env.ts', () => ({
-      platformConfig: { posthogKey: 'phc_test', posthogHost: undefined },
-    }));
-    vi.doMock('posthog-js', () => ({
-      default: {
-        init: vi.fn(),
-        reset: vi.fn(),
-        register: vi.fn(),
-        identify: vi.fn(),
-        group: vi.fn(),
-        __loaded: false,
-      },
-    }));
-
-    const { initPostHog } = await import('./posthog.ts');
-    const phMock = (await import('posthog-js')).default;
+    const { initPostHog, phMock } = await loadFreshPostHog({ consent: false });
     initPostHog();
 
     expect(phMock.init).not.toHaveBeenCalled();
   });
 
   it('does not call init when key is missing', async () => {
-    vi.resetModules();
-    vi.doMock('@/core/config/env.ts', () => ({
-      platformConfig: { posthogKey: undefined, posthogHost: undefined },
-    }));
-    vi.doMock('posthog-js', () => ({
-      default: {
-        init: vi.fn(),
-        reset: vi.fn(),
-        register: vi.fn(),
-        identify: vi.fn(),
-        group: vi.fn(),
-        __loaded: false,
-      },
-    }));
-
-    const { initPostHog } = await import('./posthog.ts');
-    const phMock = (await import('posthog-js')).default;
+    // Consent is granted, so the missing key is the only reason not to init.
+    const { initPostHog, phMock } = await loadFreshPostHog({
+      config: { posthogKey: undefined },
+    });
     initPostHog();
     expect(phMock.init).not.toHaveBeenCalled();
   });
@@ -178,20 +132,13 @@ describe('initPostHog', () => {
   });
 
   it('does not crash when init throws', async () => {
-    vi.resetModules();
-    vi.doMock('@/core/config/env.ts', () => ({
-      platformConfig: { posthogKey: 'phc_test', posthogHost: undefined },
-    }));
-    vi.doMock('posthog-js', () => ({
-      default: {
-        init: vi.fn(() => {
-          throw new Error('PostHog init failed');
-        }),
-        __loaded: false,
+    const { initPostHog, phMock } = await loadFreshPostHog({
+      init: () => {
+        throw new Error('PostHog init failed');
       },
-    }));
-
-    const { initPostHog } = await import('./posthog.ts');
+    });
     expect(() => initPostHog()).not.toThrow();
+    // Proves init was reached: a test that never calls it would pass too.
+    expect(phMock.init).toHaveBeenCalled();
   });
 });

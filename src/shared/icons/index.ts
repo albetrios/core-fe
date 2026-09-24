@@ -77,76 +77,20 @@ import type { IconName } from './icon-names.ts';
 import { useIconSet } from './icon-registry.ts';
 import type { AppIcon, IconProps } from './icon-types.ts';
 
-/** Default set — Lucide, in the main bundle (tree-shaken to these icons). */
-const lucideIcons = {
-  AlertCircle: LuAlertCircle,
-  AlertTriangle: LuAlertTriangle,
-  ArrowDown: LuArrowDown,
-  ArrowUp: LuArrowUp,
-  Bell: LuBell,
-  BellOff: LuBellOff,
-  Boxes: LuBoxes,
-  Building: LuBuilding,
-  CalendarDays: LuCalendarDays,
-  Check: LuCheck,
-  CheckCircle: LuCheckCircle,
-  ChevronLeft: LuChevronLeft,
-  ChevronRight: LuChevronRight,
-  ChevronsLeft: LuChevronsLeft,
-  ChevronsRight: LuChevronsRight,
-  ChevronsUpDown: LuChevronsUpDown,
-  Copy: LuCopy,
-  CreditCard: LuCreditCard,
-  Download: LuDownload,
-  Eye: LuEye,
-  EyeOff: LuEyeOff,
-  Fingerprint: LuFingerprint,
-  GitBranch: LuGitBranch,
-  Github: LuGithub,
-  Globe: LuGlobe,
-  Laptop: LuLaptop,
-  Languages: LuLanguages,
-  LayoutDashboard: LuLayoutDashboard,
-  Loader: LuLoader,
-  LogOut: LuLogOut,
-  Mail: LuMail,
-  Menu: LuMenu,
-  Minus: LuMinus,
-  Monitor: LuMonitor,
-  MonitorSmartphone: LuMonitorSmartphone,
-  Moon: LuMoon,
-  MoreHorizontal: LuMoreHorizontal,
-  Palette: LuPalette,
-  Plus: LuPlus,
-  Plug: LuPlug,
-  Rocket: LuRocket,
-  RotateCw: LuRotateCw,
-  Search: LuSearch,
-  Settings: LuSettings,
-  ShieldAlert: LuShieldAlert,
-  Shield: LuShield,
-  ShieldCheck: LuShieldCheck,
-  SlidersHorizontal: LuSlidersHorizontal,
-  Smartphone: LuSmartphone,
-  Sparkles: LuSparkles,
-  Sun: LuSun,
-  Trash: LuTrash,
-  TriangleAlert: LuTriangleAlert,
-  User: LuUser,
-  UserCog: LuUserCog,
-  UserPlus: LuUserPlus,
-  Users: LuUsers,
-  X: LuX,
-  XCircle: LuXCircle,
-  Zap: LuZap,
-} satisfies Record<IconName, AppIcon>;
-
-/** A swappable icon: renders the active library's version, Lucide as fallback. */
-function makeIcon(name: IconName): AppIcon {
+/**
+ * A swappable icon: renders the active library's version, Lucide as fallback.
+ *
+ * The Lucide component is passed in, not looked up by name in a map: a lookup
+ * keeps every icon in the map live the moment any one icon renders, so icons
+ * nothing imports still shipped. Marked side-effect free so a bundler drops the
+ * export (and its Lucide icon) when nothing imports it.
+ */
+/* @__NO_SIDE_EFFECTS__ */
+function makeIcon(name: IconName, lucide: AppIcon): AppIcon {
   function Icon(props: IconProps) {
     const lib = useThemeStore((s) => s.iconLibrary);
     const set = useIconSet(lib);
-    const Component = set?.[name] ?? lucideIcons[name];
+    const Component = set?.[name] ?? lucide;
     return createElement(Component, props);
   }
   Icon.displayName = name;
@@ -157,63 +101,63 @@ export type { AppIcon, IconProps } from './icon-types.ts';
 /** Alias for {@link AppIcon} — the type used by `icon` props across the app. */
 export type LucideIcon = AppIcon;
 
-export const AlertCircle = makeIcon('AlertCircle');
-export const AlertTriangle = makeIcon('AlertTriangle');
-export const ArrowDown = makeIcon('ArrowDown');
-export const ArrowUp = makeIcon('ArrowUp');
-export const Bell = makeIcon('Bell');
-export const BellOff = makeIcon('BellOff');
-export const Boxes = makeIcon('Boxes');
-export const Building = makeIcon('Building');
-export const CalendarDays = makeIcon('CalendarDays');
-export const Check = makeIcon('Check');
-export const CheckCircle = makeIcon('CheckCircle');
-export const ChevronLeft = makeIcon('ChevronLeft');
-export const ChevronRight = makeIcon('ChevronRight');
-export const ChevronsLeft = makeIcon('ChevronsLeft');
-export const ChevronsRight = makeIcon('ChevronsRight');
-export const ChevronsUpDown = makeIcon('ChevronsUpDown');
-export const Copy = makeIcon('Copy');
-export const CreditCard = makeIcon('CreditCard');
-export const Download = makeIcon('Download');
-export const Eye = makeIcon('Eye');
-export const EyeOff = makeIcon('EyeOff');
-export const Fingerprint = makeIcon('Fingerprint');
-export const GitBranch = makeIcon('GitBranch');
-export const Github = makeIcon('Github');
-export const Globe = makeIcon('Globe');
-export const Laptop = makeIcon('Laptop');
-export const Languages = makeIcon('Languages');
-export const LayoutDashboard = makeIcon('LayoutDashboard');
-export const Loader = makeIcon('Loader');
-export const LogOut = makeIcon('LogOut');
-export const Mail = makeIcon('Mail');
-export const Menu = makeIcon('Menu');
-export const Minus = makeIcon('Minus');
-export const Monitor = makeIcon('Monitor');
-export const MonitorSmartphone = makeIcon('MonitorSmartphone');
-export const Moon = makeIcon('Moon');
-export const MoreHorizontal = makeIcon('MoreHorizontal');
-export const Palette = makeIcon('Palette');
-export const Plus = makeIcon('Plus');
-export const Plug = makeIcon('Plug');
-export const Rocket = makeIcon('Rocket');
-export const RotateCw = makeIcon('RotateCw');
-export const Search = makeIcon('Search');
-export const Settings = makeIcon('Settings');
-export const ShieldAlert = makeIcon('ShieldAlert');
-export const Shield = makeIcon('Shield');
-export const ShieldCheck = makeIcon('ShieldCheck');
-export const SlidersHorizontal = makeIcon('SlidersHorizontal');
-export const Smartphone = makeIcon('Smartphone');
-export const Sparkles = makeIcon('Sparkles');
-export const Sun = makeIcon('Sun');
-export const Trash = makeIcon('Trash');
-export const TriangleAlert = makeIcon('TriangleAlert');
-export const User = makeIcon('User');
-export const UserCog = makeIcon('UserCog');
-export const UserPlus = makeIcon('UserPlus');
-export const Users = makeIcon('Users');
-export const X = makeIcon('X');
-export const XCircle = makeIcon('XCircle');
-export const Zap = makeIcon('Zap');
+export const AlertCircle = makeIcon('AlertCircle', LuAlertCircle);
+export const AlertTriangle = makeIcon('AlertTriangle', LuAlertTriangle);
+export const ArrowDown = makeIcon('ArrowDown', LuArrowDown);
+export const ArrowUp = makeIcon('ArrowUp', LuArrowUp);
+export const Bell = makeIcon('Bell', LuBell);
+export const BellOff = makeIcon('BellOff', LuBellOff);
+export const Boxes = makeIcon('Boxes', LuBoxes);
+export const Building = makeIcon('Building', LuBuilding);
+export const CalendarDays = makeIcon('CalendarDays', LuCalendarDays);
+export const Check = makeIcon('Check', LuCheck);
+export const CheckCircle = makeIcon('CheckCircle', LuCheckCircle);
+export const ChevronLeft = makeIcon('ChevronLeft', LuChevronLeft);
+export const ChevronRight = makeIcon('ChevronRight', LuChevronRight);
+export const ChevronsLeft = makeIcon('ChevronsLeft', LuChevronsLeft);
+export const ChevronsRight = makeIcon('ChevronsRight', LuChevronsRight);
+export const ChevronsUpDown = makeIcon('ChevronsUpDown', LuChevronsUpDown);
+export const Copy = makeIcon('Copy', LuCopy);
+export const CreditCard = makeIcon('CreditCard', LuCreditCard);
+export const Download = makeIcon('Download', LuDownload);
+export const Eye = makeIcon('Eye', LuEye);
+export const EyeOff = makeIcon('EyeOff', LuEyeOff);
+export const Fingerprint = makeIcon('Fingerprint', LuFingerprint);
+export const GitBranch = makeIcon('GitBranch', LuGitBranch);
+export const Github = makeIcon('Github', LuGithub);
+export const Globe = makeIcon('Globe', LuGlobe);
+export const Laptop = makeIcon('Laptop', LuLaptop);
+export const Languages = makeIcon('Languages', LuLanguages);
+export const LayoutDashboard = makeIcon('LayoutDashboard', LuLayoutDashboard);
+export const Loader = makeIcon('Loader', LuLoader);
+export const LogOut = makeIcon('LogOut', LuLogOut);
+export const Mail = makeIcon('Mail', LuMail);
+export const Menu = makeIcon('Menu', LuMenu);
+export const Minus = makeIcon('Minus', LuMinus);
+export const Monitor = makeIcon('Monitor', LuMonitor);
+export const MonitorSmartphone = makeIcon('MonitorSmartphone', LuMonitorSmartphone);
+export const Moon = makeIcon('Moon', LuMoon);
+export const MoreHorizontal = makeIcon('MoreHorizontal', LuMoreHorizontal);
+export const Palette = makeIcon('Palette', LuPalette);
+export const Plus = makeIcon('Plus', LuPlus);
+export const Plug = makeIcon('Plug', LuPlug);
+export const Rocket = makeIcon('Rocket', LuRocket);
+export const RotateCw = makeIcon('RotateCw', LuRotateCw);
+export const Search = makeIcon('Search', LuSearch);
+export const Settings = makeIcon('Settings', LuSettings);
+export const ShieldAlert = makeIcon('ShieldAlert', LuShieldAlert);
+export const Shield = makeIcon('Shield', LuShield);
+export const ShieldCheck = makeIcon('ShieldCheck', LuShieldCheck);
+export const SlidersHorizontal = makeIcon('SlidersHorizontal', LuSlidersHorizontal);
+export const Smartphone = makeIcon('Smartphone', LuSmartphone);
+export const Sparkles = makeIcon('Sparkles', LuSparkles);
+export const Sun = makeIcon('Sun', LuSun);
+export const Trash = makeIcon('Trash', LuTrash);
+export const TriangleAlert = makeIcon('TriangleAlert', LuTriangleAlert);
+export const User = makeIcon('User', LuUser);
+export const UserCog = makeIcon('UserCog', LuUserCog);
+export const UserPlus = makeIcon('UserPlus', LuUserPlus);
+export const Users = makeIcon('Users', LuUsers);
+export const X = makeIcon('X', LuX);
+export const XCircle = makeIcon('XCircle', LuXCircle);
+export const Zap = makeIcon('Zap', LuZap);
