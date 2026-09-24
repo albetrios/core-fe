@@ -443,9 +443,9 @@ Output is in `dist/`. **Build runs on GitHub** (CI and Release workflows). Deplo
 
 - **Step-by-step runbook:** [docs/deployment/runbook-local-to-production.md](docs/deployment/runbook-local-to-production.md).
 - **CLI setup (connect and go):** [docs/deployment/netlify-cli-setup.md](docs/deployment/netlify-cli-setup.md) — all steps via CLI. One-time connect repo in Netlify UI for push-to-deploy.
-- **CI/CD & Deployment runbook:** [docs/deployment/cicd-and-netlify.md](docs/deployment/cicd-and-netlify.md) — production API (`https://core-api.albetrios.com`), Netlify env vars, deploy commands, and GitHub Actions summary.
+- **CI/CD & Deployment runbook:** [docs/deployment/cicd-and-netlify.md](docs/deployment/cicd-and-netlify.md) — Netlify env vars (including the API URL), deploy commands, and GitHub Actions summary.
 - **Full path-to-production guide:** [docs/deployment/deployment-and-pre-launch.md](docs/deployment/deployment-and-pre-launch.md) — build, env vars, Netlify + GitHub, release workflow, Sentry source maps, and pre-launch checklist.
-- Set `VITE_API_BASE_URL` (e.g. `https://core-api.albetrios.com`) in production; see [Environment variables](#environment-variables) and `.env.example`.
+- Set `VITE_API_BASE_URL` to the API's public URL in production; see [Environment variables](#environment-variables) and `.env.example`.
 - Configure backend CORS and subdomain DNS for multi-tenancy. The app is built with `assetsInlineLimit: 0` for CSP-friendly delivery.
 
 ---
