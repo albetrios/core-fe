@@ -17,6 +17,7 @@ import {
   SETTINGS_NS,
 } from '@/shared/components/SettingsModal/settings.constants.ts';
 import { SectionHeader } from '@/shared/components/SettingsModal/SettingsPanelShell.tsx';
+import { Spinner } from '@/shared/components/Spinner/index.ts';
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar.tsx';
 import { Badge } from '@/shared/components/ui/badge.tsx';
 import { Button } from '@/shared/components/ui/button.tsx';
@@ -42,7 +43,7 @@ import {
   useUpdateMemberStatus,
 } from '@/shared/hooks/useMembers/index.ts';
 import { useRoles } from '@/shared/hooks/useRoles/index.ts';
-import { Loader, MoreHorizontal, UserPlus, Users } from '@/shared/icons/index.ts';
+import { MoreHorizontal, UserPlus, Users } from '@/shared/icons/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
 
 import {
@@ -129,11 +130,7 @@ function MemberRowActions({
         >
           {/* Radix closes the menu on select, so the disabled items are out of
               sight while the write runs. The row keeps the busy state visible. */}
-          {isWriting ? (
-            <Loader className="size-4 animate-spin" aria-hidden />
-          ) : (
-            <MoreHorizontal className="size-4" />
-          )}
+          {isWriting ? <Spinner /> : <MoreHorizontal className="size-4" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

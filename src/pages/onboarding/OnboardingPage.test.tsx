@@ -842,6 +842,36 @@ describe('OnboardingPage', () => {
     expect(inviteMember).toHaveBeenCalledTimes(1);
   });
 
+  it('marks Finish busy, not just disabled, while the workspace is set up', async () => {
+    // Held open so the in-flight frame can be inspected, then released.
+    let releaseCreate: () => void = () => {};
+    const createForReal = createOrganization.getMockImplementation();
+    createOrganization.mockImplementationOnce(
+      (...args: unknown[]) =>
+        new Promise((resolve) => {
+          releaseCreate = () => resolve(createForReal?.(...args));
+        }),
+    );
+    const user = userEvent.setup();
+    seedDoneStep();
+    renderWithProviders(<OnboardingPage />);
+    const finishButton = await screen.findByTestId('onboarding-finish');
+
+    await user.click(finishButton);
+
+    // `Button isLoading`, like every other busy button: it disables the button, tells
+    // assistive tech the button is busy and draws the spinner — a hand-placed spinner
+    // with only `disabled` left screen readers with a dead button and no reason.
+    await waitFor(() => expect(finishButton).toHaveAttribute('aria-busy', 'true'));
+    expect(finishButton).toBeDisabled();
+    expect(finishButton.querySelector('svg.animate-spin')).toBeInTheDocument();
+
+    await act(async () => {
+      releaseCreate();
+    });
+    await waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+  });
+
   it('drops a Finish click made while the post-finish navigation is in flight', async () => {
     /*
      * The window `finishingRef` alone did not cover. Its `finally` releases the

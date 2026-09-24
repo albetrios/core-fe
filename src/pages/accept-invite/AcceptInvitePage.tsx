@@ -8,6 +8,7 @@ import { captureAnalyticsEvent } from '@/shared/analytics/capture.ts';
 import { acceptInvitation } from '@/shared/api/organization-api.ts';
 import { silentRefresh } from '@/shared/auth/service.ts';
 import { getAccessToken } from '@/shared/auth/token.ts';
+import { Spinner } from '@/shared/components/Spinner/index.ts';
 import { Button } from '@/shared/components/ui/button.tsx';
 import {
   Card,
@@ -21,7 +22,7 @@ import { reportError } from '@/shared/errors/errorHandler.ts';
 import { HttpError } from '@/shared/errors/HttpError.ts';
 import { mapFrontendError } from '@/shared/errors/map-frontend-error.ts';
 import { useConsumedSearchToken } from '@/shared/hooks/useConsumedSearchToken/index.ts';
-import { CheckCircle, Loader, XCircle } from '@/shared/icons/index.ts';
+import { CheckCircle, XCircle } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { switchToOrganization } from '@/shared/tenancy/switch.ts';
 
@@ -74,8 +75,8 @@ function InviteStatusCard({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         {status === 'accepting' && (
-          <Loader
-            className="text-muted-foreground h-10 w-10 animate-spin"
+          <Spinner
+            className="text-muted-foreground size-10"
             data-testid={ACCEPT_INVITE_TEST_IDS.loading}
           />
         )}
