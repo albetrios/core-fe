@@ -14,7 +14,15 @@ import { i18nBuild } from './plugins/i18n-build.ts';
 import { productIdentityHtml } from './plugins/product-identity-html.ts';
 import { versionJson } from './plugins/version-json.ts';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
+  // A build is always a production build. With NODE_ENV=development exported in
+  // the shell (cloud dev containers do this), `vite build` resolves React's
+  // development export condition instead: ~67 kB gz more on first paint, and
+  // `pnpm size` red on that machine for a reason unrelated to the change being
+  // measured. Vite reads NODE_ENV after loading this config, so this is early
+  // enough; a `NODE_ENV=… vite build` script prefix would break in Windows' cmd.
+  if (command === 'build') process.env.NODE_ENV = 'production';
+
   // Env files at project root (gitignored; only .env.example is committed): .env.local
   // (local dev) · .env.development / .env.production (the two deploy envs). Vite's `mode` is a
   // mechanism detail (dev → `development`, build → `production`); the app's environment identity

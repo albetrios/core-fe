@@ -17,13 +17,13 @@ Applies to **every identifier this codebase declares**: components, variables, c
 const Loader2 = …
 function handleSubmit2() {}
 const config2 = …
-export const Building2 = makeIcon('Building2');
+export const Building2 = makeIcon('Building2', Building2);
 
 // ✓ the distinction, stated
 const InlineLoader = …
 function handleResubmit() {}
 const fallbackConfig = …
-export const Building = makeIcon('Building');
+export const Building = makeIcon('Building', LuBuilding);
 ```
 
 ## The one exemption: third-party names, at the boundary only
@@ -35,7 +35,7 @@ A library's exported name is not ours to rename, and misquoting it breaks the im
 import { Loader2 as LuLoader, Building2 as LuBuilding } from 'lucide-react';
 
 // ✓ so app code only ever sees the clean name
-export const Loader = makeIcon('Loader');
+export const Loader = makeIcon('Loader', LuLoader);
 ```
 
 The same applies to `@tabler/icons-react` (`IconLoader2`), any SDK, and any wire field a third party defines. Vendored code (`src/shared/components/ui/**`, shadcn primitives) imports its library directly and keeps that library's names — it is not code we author.
