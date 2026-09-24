@@ -12,7 +12,6 @@ export const organizationSchema = z.object({
 });
 
 export type Organization = z.infer<typeof organizationSchema>;
-export type OrganizationStatus = z.infer<typeof organizationSchema>['status'];
 
 export const createOrganizationSchema = z.object({
   name: z.string().trim().min(1, 'Organization name is required').max(100),
