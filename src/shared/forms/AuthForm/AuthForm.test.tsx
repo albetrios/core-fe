@@ -174,6 +174,31 @@ describe('AuthForm', () => {
     );
   });
 
+  // LOGIN-8: the shake used to be a bare setTimeout, so a rapid second wrong code
+  // re-set an already-true flag and the animation never replayed.
+  it('replays the code shake on a second wrong code instead of swallowing it', async () => {
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    vi.mocked(authApi.emailVerificationCodeSend).mockResolvedValueOnce({});
+    vi.mocked(authApi.emailLogin)
+      .mockRejectedValueOnce(new Error('bad code'))
+      .mockRejectedValueOnce(new Error('bad code'));
+    const shaking = () => Boolean(document.querySelector('.animate-otp-shake'));
+
+    renderForm();
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+    await user.type(await screen.findByTestId('auth-email-code'), 'ABC123');
+    await waitFor(() => expect(shaking()).toBe(true));
+
+    // Second failure inside the window: the class must come off and go back on,
+    // which is what makes the animation restart.
+    await waitFor(() => expect(screen.getByTestId('auth-email-code')).not.toBeDisabled());
+    await user.type(screen.getByTestId('auth-email-code'), 'DEF456');
+    await waitFor(() => expect(authApi.emailLogin).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(shaking()).toBe(true));
+  });
+
   // LOGIN-8's shake owns its timer, and now the frame that starts it: a frame still
   // pending when the form goes away must not run afterwards and start a timer
   // nobody owns.
