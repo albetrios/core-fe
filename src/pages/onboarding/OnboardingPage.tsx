@@ -28,7 +28,6 @@ import { FormError } from '@/shared/forms/FormError/index.ts';
 import { useDeploymentFlags } from '@/shared/hooks/useDeploymentFlags/index.ts';
 import { useMeContext } from '@/shared/hooks/useMeContext/index.ts';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard/index.ts';
-import { Loader } from '@/shared/icons/index.ts';
 import { notify } from '@/shared/notify/index.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOnboardingStore } from '@/shared/store/useOnboardingStore/index.ts';
@@ -489,17 +488,12 @@ function WizardActions(props: {
       {props.isDoneStep ? (
         <Button
           onClick={props.onFinish}
-          disabled={props.submitting}
+          isLoading={props.submitting}
           data-testid={ONBOARDING_TEST_IDS.finish}
         >
-          {props.submitting ? (
-            <>
-              <Loader className="me-2 h-4 w-4 animate-spin" />
-              {t(ONBOARDING_KEYS.actions.settingUp)}
-            </>
-          ) : (
-            t(ONBOARDING_KEYS.actions.enterDashboard)
-          )}
+          {props.submitting
+            ? t(ONBOARDING_KEYS.actions.settingUp)
+            : t(ONBOARDING_KEYS.actions.enterDashboard)}
         </Button>
       ) : (
         <Button

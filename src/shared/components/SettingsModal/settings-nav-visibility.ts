@@ -29,9 +29,10 @@ export function visibleSettingsNavGroups(
 
   // An unknown org type allows every section on purpose — for the command
   // palette, where a missing row is worse than an extra one. The settings modal
-  // must NOT call this in that state: it renders `SettingsNavSkeleton` until
-  // `me/context` resolves, because a rail that deletes half of itself a beat
-  // after it paints is worse than a rail that arrives a beat late (SET-15).
+  // must NOT trust that answer: until `me/context` resolves it keeps only the
+  // account groups and adds the organization group once the org type is known,
+  // because a rail that deletes half of itself a beat after it paints is worse
+  // than a rail that arrives a beat late (SET-15).
   const allowedForOrgType = (section: OrganizationSettingsSection) =>
     !ctx.orgType || sectionsForOrgType(ctx.orgType).includes(section);
 

@@ -2,7 +2,7 @@ import { Command } from 'cmdk';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils.ts';
-import { Loader } from '@/shared/icons/index.ts';
+import { Spinner } from '@/shared/components/Spinner/index.ts';
 
 export function CommandItem({
   children,
@@ -41,11 +41,7 @@ export function CommandItem({
       data-slot="menu-item"
     >
       {busy ? (
-        <Loader
-          className="h-4 w-4 animate-spin"
-          aria-hidden
-          data-testid="command-palette-item-spinner"
-        />
+        <Spinner data-testid="command-palette-item-spinner" />
       ) : (
         <Icon className="h-4 w-4" />
       )}
