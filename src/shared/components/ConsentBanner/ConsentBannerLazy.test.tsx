@@ -56,18 +56,8 @@ describe('ConsentBannerLazy', () => {
     expect(useConsentStore.getState().analyticsConsent).toBe('denied');
   });
 
-  it('reserves no space while the chunk is in flight', async () => {
-    // A fixed-position card has no layout slot to hold: a spinner or a skeleton
-    // in the corner would be louder than the thing it stands in for. A fresh
-    // module registry, so the chunk really is still loading on first render.
-    vi.resetModules();
-    const fresh = await import('./ConsentBannerLazy.tsx');
-
-    const { container } = render(<fresh.ConsentBannerLazy />);
-
-    expect(container.textContent).toBe('');
-    expect(await screen.findByTestId('consent-banner')).toBeInTheDocument();
-  });
+  // The chunk-in-flight case lives in ConsentBannerLazy.in-flight.test.tsx: it
+  // needs a module registry that nothing in this file has touched.
 });
 
 describe('ConsentBannerLazy — the entry chunk', () => {
