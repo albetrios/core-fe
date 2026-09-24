@@ -131,6 +131,128 @@ function TriggerIdentity({
   );
 }
 
+/** The trigger's layout and surface classes: field or lockup, on the default or sidebar surface. */
+function triggerAppearance(
+  surface: 'default' | 'sidebar',
+  leading: ReactNode | undefined,
+) {
+  const onSidebar = surface === 'sidebar';
+  return {
+    layout: TRIGGER_LAYOUTS[leading === undefined ? 'field' : 'lockup'],
+    onSidebar,
+    surfaceClass: onSidebar
+      ? 'border-sidebar-border bg-transparent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+      : undefined,
+    chevronClass: onSidebar ? iconOnSidebarSurface : undefined,
+  };
+}
+
+/**
+ * One organization in the menu: its initial — or a spinner while a switch to it is in flight —
+ * name, slug, and a check on the active one.
+ */
+function OrganizationOption({
+  org,
+  isActive,
+  isSwitching,
+  isDisabled,
+  onChoose,
+}: {
+  org: OrganizationSummary;
+  isActive: boolean;
+  isSwitching: boolean;
+  isDisabled: boolean;
+  onChoose: (org: OrganizationSummary) => void;
+}) {
+  return (
+    <DropdownMenuItem
+      onSelect={(event) => {
+        // Re-picking the active org is a no-op — let Radix close the menu.
+        if (isActive) return;
+        // Otherwise KEEP THE MENU OPEN. Radix closes on select, which is what
+        // made a switch look like nothing at all: the menu vanished and the
+        // screen sat unchanged for a round trip. Held open, this row is the
+        // progress indicator — and a failure has somewhere to land other than a
+        // screen the user has already been handed back.
+        event.preventDefault();
+        onChoose(org);
+      }}
+      disabled={isDisabled}
+      data-testid={`organization-switcher-option-${org.slug ?? 'personal'}`}
+      className="gap-2"
+    >
+      <span
+        data-slot="icon-chip"
+        className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center text-xs font-semibold"
+      >
+        {isSwitching ? (
+          <Spinner data-testid="organization-switcher-option-spinner" />
+        ) : (
+          initialOf(org.name)
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium">{org.name}</span>
+        {org.slug ? (
+          <span className="text-muted-foreground block truncate text-xs">{org.slug}</span>
+        ) : null}
+      </span>
+      {isActive ? (
+        <Check className="text-primary ms-auto size-4 shrink-0" aria-hidden />
+      ) : null}
+    </DropdownMenuItem>
+  );
+}
+
+/** The menu's body: the personal section (when there is one), the organizations, and "Add". */
+function OrganizationMenuSections({
+  personalOptions,
+  teamOptions,
+  teamOnly,
+  showCreateTeam,
+  onCreate,
+}: {
+  personalOptions: ReactNode[];
+  teamOptions: ReactNode[];
+  teamOnly: boolean;
+  showCreateTeam: boolean;
+  onCreate: () => void;
+}) {
+  const { t } = useTranslation(LAYOUT_NS);
+  return (
+    <>
+      {personalOptions.length > 0 ? (
+        <>
+          <DropdownMenuLabel className="text-muted-foreground text-xs font-medium">
+            {t(LAYOUT_KEYS.app.orgSwitcher.personal)}
+          </DropdownMenuLabel>
+          {personalOptions}
+          <DropdownMenuSeparator />
+        </>
+      ) : null}
+
+      <DropdownMenuLabel className="text-muted-foreground text-xs font-medium">
+        {teamOnly
+          ? t(LAYOUT_KEYS.app.orgSwitcher.yourOrganizations)
+          : t(LAYOUT_KEYS.app.orgSwitcher.organizations)}
+      </DropdownMenuLabel>
+      {teamOptions}
+      {showCreateTeam ? (
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            onCreate();
+          }}
+          data-testid="organization-switcher-create"
+        >
+          <Plus className="me-2 h-4 w-4" />
+          {t(LAYOUT_KEYS.app.orgSwitcher.addOrganization)}
+        </DropdownMenuItem>
+      ) : null}
+    </>
+  );
+}
+
 /**
  * Active-organization switcher (dual-URL aware, FE-24). Lists the user's
  * organizations from `me/context`, split into **Personal** and **Organizations**
@@ -288,53 +410,22 @@ export function OrganizationSwitcher({
   }
 
   const renderOrg = (org: OrganizationSummary) => (
-    <DropdownMenuItem
+    <OrganizationOption
       key={org.id}
-      onSelect={(event) => {
-        // Re-picking the active org is a no-op — let Radix close the menu.
-        if (org.id === activeId) return;
-        // Otherwise KEEP THE MENU OPEN. Radix closes on select, which is what
-        // made a switch look like nothing at all: the menu vanished and the
-        // screen sat unchanged for a round trip. Held open, this row is the
-        // progress indicator — and a failure has somewhere to land other than a
-        // screen the user has already been handed back.
-        event.preventDefault();
-        selectOrg(org);
-      }}
-      disabled={switchingId !== null && switchingId !== org.id}
-      data-testid={`organization-switcher-option-${org.slug ?? 'personal'}`}
-      className="gap-2"
-    >
-      <span
-        data-slot="icon-chip"
-        className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center text-xs font-semibold"
-      >
-        {switchingId === org.id ? (
-          <Spinner data-testid="organization-switcher-option-spinner" />
-        ) : (
-          initialOf(org.name)
-        )}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium">{org.name}</span>
-        {org.slug ? (
-          <span className="text-muted-foreground block truncate text-xs">{org.slug}</span>
-        ) : null}
-      </span>
-      {org.id === activeId ? (
-        <Check className="text-primary ms-auto size-4 shrink-0" aria-hidden />
-      ) : null}
-    </DropdownMenuItem>
+      org={org}
+      isActive={org.id === activeId}
+      isSwitching={switchingId === org.id}
+      isDisabled={switchingId !== null && switchingId !== org.id}
+      onChoose={selectOrg}
+    />
   );
 
-  const triggerLayout = TRIGGER_LAYOUTS[leading === undefined ? 'field' : 'lockup'];
-  const onSidebar = surface === 'sidebar';
-
-  const triggerSurfaceClass = onSidebar
-    ? 'border-sidebar-border bg-transparent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-    : undefined;
-
-  const chevronClass = onSidebar ? iconOnSidebarSurface : undefined;
+  const {
+    layout: triggerLayout,
+    onSidebar,
+    surfaceClass: triggerSurfaceClass,
+    chevronClass,
+  } = triggerAppearance(surface, leading);
 
   return (
     <>
@@ -372,34 +463,13 @@ export function OrganizationSwitcher({
           // lockup a fixed 16rem menu stopped short of the trigger's end edge.
           className="w-[max(16rem,var(--radix-dropdown-menu-trigger-width))]"
         >
-          {personalOrgs.length > 0 ? (
-            <>
-              <DropdownMenuLabel className="text-muted-foreground text-xs font-medium">
-                {t(LAYOUT_KEYS.app.orgSwitcher.personal)}
-              </DropdownMenuLabel>
-              {personalOrgs.map(renderOrg)}
-              <DropdownMenuSeparator />
-            </>
-          ) : null}
-
-          <DropdownMenuLabel className="text-muted-foreground text-xs font-medium">
-            {mode === 'team-only'
-              ? t(LAYOUT_KEYS.app.orgSwitcher.yourOrganizations)
-              : t(LAYOUT_KEYS.app.orgSwitcher.organizations)}
-          </DropdownMenuLabel>
-          {teamOrgs.map(renderOrg)}
-          {showCreateTeam ? (
-            <DropdownMenuItem
-              onSelect={(e) => {
-                e.preventDefault();
-                setCreateOpen(true);
-              }}
-              data-testid="organization-switcher-create"
-            >
-              <Plus className="me-2 h-4 w-4" />
-              {t(LAYOUT_KEYS.app.orgSwitcher.addOrganization)}
-            </DropdownMenuItem>
-          ) : null}
+          <OrganizationMenuSections
+            personalOptions={personalOrgs.map(renderOrg)}
+            teamOptions={teamOrgs.map(renderOrg)}
+            teamOnly={mode === 'team-only'}
+            showCreateTeam={showCreateTeam}
+            onCreate={() => setCreateOpen(true)}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
 
