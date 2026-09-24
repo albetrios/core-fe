@@ -553,6 +553,206 @@ function renderStep(
 }
 
 /**
+ * The hand-off to the user's workspace, with the screen saying so.
+ *
+ * The writes are done by the time this runs; what is left is the destination's
+ * own guard chain (session, org context, permissions) and its data — several
+ * hundred milliseconds of network on a good connection, and the router keeps
+ * the CURRENT screen up for up to 3s while it runs (IN_APP_PENDING_POLICY).
+ * That screen is this wizard. Clearing `submitting` the moment `navigate()`
+ * was *called* then put the Continue/Enter button back to its idle label, so
+ * the finished wizard sat there looking untouched, a success toast beside it
+ * and the URL already reading `/dashboard` — indistinguishable from a click
+ * that did nothing, and reliably "fixed" by a manual reload (QA-V3-1).
+ *
+ * Covering it with the same overlay the organization switcher uses says what
+ * is actually happening, and awaiting the navigation keeps `submitting` true
+ * for the whole hop so the button cannot look idle underneath.
+ */
+function useWorkspaceHandoff(): (context: MeContext) => Promise<void> {
+  const navigate = useNavigate();
+  // Deep link the workspace guards carried here (?redirect=…) — consumed at
+  // finish so the user lands on the page they originally asked for. The
+  // non-strict search is untyped here; validateOnboardingSearch (routeTree)
+  // guarantees `redirect` is a string when present.
+  const search: OnboardingSearch = useSearch({ strict: false });
+  const redirectSearch = search.redirect;
+  const beginSwitch = useWorkspaceSwitchStore((s) => s.beginSwitch);
+  const endSwitch = useWorkspaceSwitchStore((s) => s.endSwitch);
+
+  return async (context: MeContext) => {
+    beginSwitch(
+      resolveHandoffWorkspaceName(
+        context,
+        useOnboardingStore.getState().data.organizationName,
+      ),
+    );
+    try {
+      await navigateAfterOnboarding(navigate, context, redirectSearch);
+    } finally {
+      endSwitch();
+    }
+  };
+}
+
+/**
+ * Forgets a persisted created organization the user no longer belongs to.
+ *
+ * Persisted wizard state can carry a created-org id from a prior session while
+ * fresh signup with an empty membership list skips duplicate org creation
+ * and navigates to a slug the user no longer belongs to → 404.
+ */
+function useForgetStaleCreatedOrganization({
+  createdOrganizationId,
+  setCreatedOrganizationId,
+  setCreatedOrganizationSlug,
+}: {
+  createdOrganizationId: string | null;
+  setCreatedOrganizationId: (id: string | null) => void;
+  setCreatedOrganizationSlug: (slug: string | null) => void;
+}): void {
+  useEffect(() => {
+    if (!createdOrganizationId) return;
+    let cancelled = false;
+    readMyOrganizations()
+      .then((organizations) => {
+        if (cancelled) return;
+        if (organizations.some((o) => o.id === createdOrganizationId)) return;
+        setCreatedOrganizationId(null);
+        setCreatedOrganizationSlug(null);
+      })
+      .catch(() => {
+        /* membership check is best-effort */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [createdOrganizationId, setCreatedOrganizationId, setCreatedOrganizationSlug]);
+}
+
+/**
+ * The finish toast: a warning naming the invitations that could not be sent,
+ * otherwise a success that names how many went out.
+ */
+function announceOnboardingFinish({
+  failed,
+  invitesSent,
+}: {
+  failed: number;
+  invitesSent: number;
+}): void {
+  if (failed > 0) {
+    notify.warning(
+      i18n.t(ONBOARDING_KEYS.toast.invitePartialFailure, {
+        ns: ONBOARDING_NS,
+        count: failed,
+      }),
+    );
+  } else {
+    notify.success(
+      invitesSent > 0
+        ? i18n.t(ONBOARDING_KEYS.toast.finishSuccessWithInvites, {
+            ns: ONBOARDING_NS,
+            count: invitesSent,
+          })
+        : i18n.t(ONBOARDING_KEYS.toast.finishSuccess, { ns: ONBOARDING_NS }),
+    );
+  }
+}
+
+/**
+ * The wizard once its context has loaded: the step indicator and the step's
+ * title, its body, the finish error and the Back / Continue / Finish actions.
+ */
+function OnboardingCard({
+  clampedIndex,
+  effectiveSteps,
+  step,
+  headerRef,
+  stepBodyRef,
+  finishError,
+  submitting,
+  canProceed,
+  onStepIndexChange,
+  onFinish,
+}: {
+  clampedIndex: number;
+  effectiveSteps: readonly OnboardingStep[];
+  step: ReturnType<typeof stepAtIndex>;
+  headerRef: RefObject<HTMLDivElement | null>;
+  stepBodyRef: RefObject<HTMLDivElement | null>;
+  finishError: string | null;
+  submitting: boolean;
+  canProceed: boolean;
+  onStepIndexChange: (index: number) => void;
+  onFinish: () => void;
+}) {
+  const { t } = useTranslation(ONBOARDING_NS);
+  const metaKeys = getStepMetaKeys(step);
+  return (
+    <Card className="w-full">
+      <CardHeader className="space-y-4">
+        <StepIndicator current={clampedIndex} steps={effectiveSteps} />
+        <div ref={headerRef} className="transform-gpu">
+          <CardTitle data-testid={ONBOARDING_TEST_IDS.stepTitle}>
+            {t(metaKeys.title)}
+          </CardTitle>
+          <CardDescription>{t(metaKeys.description)}</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 overflow-hidden">
+        <div
+          ref={stepBodyRef}
+          className="transform-gpu"
+          data-testid={ONBOARDING_TEST_IDS.stepMotion}
+        >
+          {/*
+                  A throw inside one step body must not take the wizard with it:
+                  uncontained it escalates to the route boundary, which replaces
+                  the whole screen with a generic error page and strands a
+                  brand-new user mid-signup. Contained here, the card, the step
+                  indicator and Back/Continue survive and the fallback offers a
+                  retry in place. Keyed by step so moving on mounts a fresh
+                  boundary instead of carrying the error to the next one.
+                */}
+          <SectionErrorBoundary
+            key={step}
+            title={t(metaKeys.title)}
+            testId={ONBOARDING_TEST_IDS.stepError}
+          >
+            {renderStep(step, effectiveSteps)}
+          </SectionErrorBoundary>
+        </div>
+
+        {/*
+                  The same FormError banner the auth screens use, rather than a
+                  bare paragraph: one error surface across the product, and it
+                  carries the icon, the destructive tokens and role="alert"
+                  without this page re-deciding any of it.
+                */}
+        <FormError
+          message={finishError}
+          className="mt-4"
+          data-testid={ONBOARDING_TEST_IDS.finishError}
+        />
+
+        <WizardActions
+          isFirstStep={clampedIndex === 0}
+          isDoneStep={step === 'done'}
+          submitting={submitting}
+          canProceed={canProceed}
+          onBack={() => onStepIndexChange(Math.max(clampedIndex - 1, 0))}
+          onNext={() =>
+            onStepIndexChange(Math.min(clampedIndex + 1, effectiveSteps.length - 1))
+          }
+          onFinish={onFinish}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
  * Multi-step, resumable onboarding wizard. Progress is persisted in
  * {@link useOnboardingStore}; the final step creates the organization, sends any
  * invitations, and navigates to the new organization's dashboard (the
@@ -561,13 +761,6 @@ function renderStep(
  */
 export function OnboardingPage() {
   const { t } = useTranslation(ONBOARDING_NS);
-  const navigate = useNavigate();
-  // Deep link the workspace guards carried here (?redirect=…) — consumed at
-  // finish so the user lands on the page they originally asked for. The
-  // non-strict search is untyped here; validateOnboardingSearch (routeTree)
-  // guarantees `redirect` is a string when present.
-  const search: OnboardingSearch = useSearch({ strict: false });
-  const redirectSearch = search.redirect;
   /*
    * Slices, not the whole store. `useOnboardingStore()` with no selector
    * subscribes to every field, and `patch` replaces the whole `data` object — so
@@ -656,8 +849,7 @@ export function OnboardingPage() {
     : EMPTY_STEPS;
   const [submitting, setSubmitting] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
-  const beginSwitch = useWorkspaceSwitchStore((s) => s.beginSwitch);
-  const endSwitch = useWorkspaceSwitchStore((s) => s.endSwitch);
+  const handOffToWorkspace = useWorkspaceHandoff();
   // Synchronous twin of `submitting` — see finish().
   const finishingRef = useRef(false);
   /*
@@ -701,7 +893,6 @@ export function OnboardingPage() {
    */
   const clampedIndex = clampStepIndex(stepIndex, effectiveSteps);
   const step = stepAtIndex(clampedIndex, effectiveSteps);
-  const metaKeys = getStepMetaKeys(step);
   const { cardRef, headerRef, stepBodyRef } = useOnboardingStepMotion(clampedIndex);
   const dirty = isOnboardingDirty({
     completed,
@@ -732,26 +923,11 @@ export function OnboardingPage() {
    * which React does not allow anyway.
    */
 
-  // Persisted wizard state can carry a created-org id from a prior session while
-  // fresh signup with an empty membership list skips duplicate org creation
-  // and navigates to a slug the user no longer belongs to → 404.
-  useEffect(() => {
-    if (!createdOrganizationId) return;
-    let cancelled = false;
-    readMyOrganizations()
-      .then((organizations) => {
-        if (cancelled) return;
-        if (organizations.some((o) => o.id === createdOrganizationId)) return;
-        setCreatedOrganizationId(null);
-        setCreatedOrganizationSlug(null);
-      })
-      .catch(() => {
-        /* membership check is best-effort */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [createdOrganizationId, setCreatedOrganizationId, setCreatedOrganizationSlug]);
+  useForgetStaleCreatedOrganization({
+    createdOrganizationId,
+    setCreatedOrganizationId,
+    setCreatedOrganizationSlug,
+  });
 
   /*
    * The slug is checked HERE, against the same schema `createOrganization` uses.
@@ -763,37 +939,6 @@ export function OnboardingPage() {
   const canProceed =
     (step !== 'workspace' || (organizationName.trim().length > 0 && slugValid)) &&
     (step !== 'profile' || firstName.trim().length > 0);
-
-  /**
-   * Hand the user over to their workspace, with the screen saying so.
-   *
-   * The writes are done by the time this runs; what is left is the destination's
-   * own guard chain (session, org context, permissions) and its data — several
-   * hundred milliseconds of network on a good connection, and the router keeps
-   * the CURRENT screen up for up to 3s while it runs (IN_APP_PENDING_POLICY).
-   * That screen is this wizard. Clearing `submitting` the moment `navigate()`
-   * was *called* then put the Continue/Enter button back to its idle label, so
-   * the finished wizard sat there looking untouched, a success toast beside it
-   * and the URL already reading `/dashboard` — indistinguishable from a click
-   * that did nothing, and reliably "fixed" by a manual reload (QA-V3-1).
-   *
-   * Covering it with the same overlay the organization switcher uses says what
-   * is actually happening, and awaiting the navigation keeps `submitting` true
-   * for the whole hop so the button cannot look idle underneath.
-   */
-  const handOffToWorkspace = async (context: MeContext) => {
-    beginSwitch(
-      resolveHandoffWorkspaceName(
-        context,
-        useOnboardingStore.getState().data.organizationName,
-      ),
-    );
-    try {
-      await navigateAfterOnboarding(navigate, context, redirectSearch);
-    } finally {
-      endSwitch();
-    }
-  };
 
   const finish = async () => {
     // `submitting` only disables the button after React re-renders, so the
@@ -912,23 +1057,7 @@ export function OnboardingPage() {
       const invitesSent = inviteEmails.length - failed;
 
       complete();
-      if (failed > 0) {
-        notify.warning(
-          i18n.t(ONBOARDING_KEYS.toast.invitePartialFailure, {
-            ns: ONBOARDING_NS,
-            count: failed,
-          }),
-        );
-      } else {
-        notify.success(
-          invitesSent > 0
-            ? i18n.t(ONBOARDING_KEYS.toast.finishSuccessWithInvites, {
-                ns: ONBOARDING_NS,
-                count: invitesSent,
-              })
-            : i18n.t(ONBOARDING_KEYS.toast.finishSuccess, { ns: ONBOARDING_NS }),
-        );
-      }
+      announceOnboardingFinish({ failed, invitesSent });
       // Armed BEFORE control passes to the router: every write above has
       // landed, so from this point a repeat click must navigate, not re-submit.
       finishedContextRef.current = activatedContext ?? refreshedContext;
@@ -967,65 +1096,18 @@ export function OnboardingPage() {
       >
         <div ref={cardRef} className="w-full max-w-lg transform-gpu">
           {contextReady ? (
-            <Card className="w-full">
-              <CardHeader className="space-y-4">
-                <StepIndicator current={clampedIndex} steps={effectiveSteps} />
-                <div ref={headerRef} className="transform-gpu">
-                  <CardTitle data-testid={ONBOARDING_TEST_IDS.stepTitle}>
-                    {t(metaKeys.title)}
-                  </CardTitle>
-                  <CardDescription>{t(metaKeys.description)}</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 overflow-hidden">
-                <div
-                  ref={stepBodyRef}
-                  className="transform-gpu"
-                  data-testid={ONBOARDING_TEST_IDS.stepMotion}
-                >
-                  {/*
-                  A throw inside one step body must not take the wizard with it:
-                  uncontained it escalates to the route boundary, which replaces
-                  the whole screen with a generic error page and strands a
-                  brand-new user mid-signup. Contained here, the card, the step
-                  indicator and Back/Continue survive and the fallback offers a
-                  retry in place. Keyed by step so moving on mounts a fresh
-                  boundary instead of carrying the error to the next one.
-                */}
-                  <SectionErrorBoundary
-                    key={step}
-                    title={t(metaKeys.title)}
-                    testId={ONBOARDING_TEST_IDS.stepError}
-                  >
-                    {renderStep(step, effectiveSteps)}
-                  </SectionErrorBoundary>
-                </div>
-
-                {/*
-                  The same FormError banner the auth screens use, rather than a
-                  bare paragraph: one error surface across the product, and it
-                  carries the icon, the destructive tokens and role="alert"
-                  without this page re-deciding any of it.
-                */}
-                <FormError
-                  message={finishError}
-                  className="mt-4"
-                  data-testid={ONBOARDING_TEST_IDS.finishError}
-                />
-
-                <WizardActions
-                  isFirstStep={clampedIndex === 0}
-                  isDoneStep={step === 'done'}
-                  submitting={submitting}
-                  canProceed={canProceed}
-                  onBack={() => setStepIndex(Math.max(clampedIndex - 1, 0))}
-                  onNext={() =>
-                    setStepIndex(Math.min(clampedIndex + 1, effectiveSteps.length - 1))
-                  }
-                  onFinish={finish}
-                />
-              </CardContent>
-            </Card>
+            <OnboardingCard
+              clampedIndex={clampedIndex}
+              effectiveSteps={effectiveSteps}
+              step={step}
+              headerRef={headerRef}
+              stepBodyRef={stepBodyRef}
+              finishError={finishError}
+              submitting={submitting}
+              canProceed={canProceed}
+              onStepIndexChange={setStepIndex}
+              onFinish={finish}
+            />
           ) : (
             <SessionContextGate query={meContextQuery} />
           )}
