@@ -442,6 +442,84 @@ function useCanInviteMembers(): boolean {
   return canManageMembers && canReadRoles;
 }
 
+/** The list area: loading, a retryable error, the empty state, or the members and "Load more". */
+function MembersList({
+  members,
+  isSearching,
+  isStale,
+  canManageMembers,
+  canManageInvitations,
+  onRemove,
+  onCancelInvitation,
+}: {
+  members: ReturnType<typeof useMembers>;
+  isSearching: boolean;
+  isStale: boolean;
+  canManageMembers: boolean;
+  canManageInvitations: boolean;
+  onRemove: (member: Member) => void;
+  onCancelInvitation: (member: Member, invitation: MemberInvitation) => void;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const panels = SETTINGS_KEYS.panels.members;
+  return (
+    <>
+      {members.isPending ? <MembersLoading /> : null}
+
+      {members.isError ? (
+        <RetryError
+          message={t(panels.loadFailed)}
+          onRetry={members.refetch}
+          isRetrying={members.isFetching}
+        />
+      ) : null}
+
+      {!(members.isPending || members.isError) && members.rows.length === 0 ? (
+        <EmptyState
+          icon={<Users />}
+          title={isSearching ? t(panels.noResults) : t(panels.emptyTitle)}
+          description={isSearching ? '' : t(panels.emptyDescription)}
+        />
+      ) : null}
+
+      {!members.isError && members.rows.length > 0 ? (
+        <>
+          <Card
+            className={cn('gap-0 overflow-hidden py-0', listRefreshClass(isStale))}
+            aria-busy={isStale}
+          >
+            <ul className="divide-border divide-y" data-testid="members-list">
+              {members.rows.map((member) => (
+                <MemberRow
+                  key={member.id}
+                  member={member}
+                  canManageMembers={canManageMembers}
+                  canManageInvitations={canManageInvitations}
+                  onRemove={onRemove}
+                  onCancelInvitation={onCancelInvitation}
+                />
+              ))}
+            </ul>
+          </Card>
+          {members.hasNextPage ? (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={members.fetchNextPage}
+                disabled={members.isFetchingNextPage}
+                data-testid="members-load-more"
+              >
+                {t(panels.loadMore)}
+              </Button>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </>
+  );
+}
+
 /**
  * Members panel — the active organization's people. Lists members with their
  * role + status; removal is gated on the membership:manage permission (team
@@ -524,60 +602,15 @@ export function OrganizationMembersPanel() {
         {accessResolved && canInvite ? <InviteMemberDialog /> : null}
       </div>
 
-      {members.isPending ? <MembersLoading /> : null}
-
-      {members.isError ? (
-        <RetryError
-          message={t(panels.loadFailed)}
-          onRetry={members.refetch}
-          isRetrying={members.isFetching}
-        />
-      ) : null}
-
-      {!(members.isPending || members.isError) && members.rows.length === 0 ? (
-        <EmptyState
-          icon={<Users />}
-          title={isSearching ? t(panels.noResults) : t(panels.emptyTitle)}
-          description={isSearching ? '' : t(panels.emptyDescription)}
-        />
-      ) : null}
-
-      {!members.isError && members.rows.length > 0 ? (
-        <>
-          <Card
-            className={cn('gap-0 overflow-hidden py-0', listRefreshClass(isStale))}
-            aria-busy={isStale}
-          >
-            <ul className="divide-border divide-y" data-testid="members-list">
-              {members.rows.map((member) => (
-                <MemberRow
-                  key={member.id}
-                  member={member}
-                  canManageMembers={canManage}
-                  canManageInvitations={canManageInvitations}
-                  onRemove={setToRemove}
-                  onCancelInvitation={(row, invitation) =>
-                    setToCancel({ member: row, invitation })
-                  }
-                />
-              ))}
-            </ul>
-          </Card>
-          {members.hasNextPage ? (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={members.fetchNextPage}
-                disabled={members.isFetchingNextPage}
-                data-testid="members-load-more"
-              >
-                {t(panels.loadMore)}
-              </Button>
-            </div>
-          ) : null}
-        </>
-      ) : null}
+      <MembersList
+        members={members}
+        isSearching={isSearching}
+        isStale={isStale}
+        canManageMembers={canManage}
+        canManageInvitations={canManageInvitations}
+        onRemove={setToRemove}
+        onCancelInvitation={(row, invitation) => setToCancel({ member: row, invitation })}
+      />
 
       <ConfirmDialog
         open={toRemove !== null}
