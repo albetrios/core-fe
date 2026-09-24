@@ -77,11 +77,11 @@ Granular procedures live in **skills** (invoked by name); these commands are **w
 
 These core-be commands are **backend-specific** and intentionally omitted:
 
-| core-be command    | Reason                         |
-| ------------------ | ------------------------------ |
-| `/new-domain`      | Drizzle domain scaffold — N/A  |
-| `/schema-complete` | Schema → migration → RLS chain |
-| `/route-complete`  | OpenAPI route catalog chain    |
+| core-be command       | Reason                         |
+| --------------------- | ------------------------------ |
+| `/be-new-domain`      | Drizzle domain scaffold — N/A  |
+| `/be-schema-complete` | Schema → migration → RLS chain |
+| `/be-route-complete`  | OpenAPI route catalog chain    |
 
 ## Related: SessionStart + guardrails
 
