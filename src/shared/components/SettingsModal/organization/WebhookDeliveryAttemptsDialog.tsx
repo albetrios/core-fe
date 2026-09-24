@@ -90,7 +90,7 @@ export function WebhookDeliveryAttemptsDialog({
           </div>
         ) : null}
 
-        {!isError && !isLoading && rows.length === 0 ? (
+        {!(isError || isLoading) && rows.length === 0 ? (
           <EmptyState
             icon={<Boxes />}
             title={t(integrations.deliveryAttemptsEmptyTitle)}

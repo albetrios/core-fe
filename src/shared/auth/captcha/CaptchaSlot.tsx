@@ -31,7 +31,7 @@ export function CaptchaSlot({
 
   useEffect(() => {
     const element = ref.current;
-    if (!element || !active) return;
+    if (!(element && active)) return;
     setCaptchaSlot(element);
     return () => {
       if (getCaptchaSlot() === element) {

@@ -296,6 +296,62 @@ describe('LazyOverlay', () => {
       );
     });
 
+    it('wraps Shift+Tab from the first control to the last, not out of the card', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <>
+          <button type="button" data-testid="behind-the-scrim">
+            behind
+          </button>
+          <LazyOverlay
+            load={failedLoad}
+            pending={<div data-testid="pending" />}
+            title="Settings"
+            onDismiss={vi.fn()}
+          />
+        </>,
+      );
+
+      await screen.findByTestId('lazy-overlay-error');
+      const retry = screen.getByTestId('lazy-overlay-retry');
+      const dismiss = screen.getByTestId('lazy-overlay-dismiss');
+      retry.focus();
+
+      // Untrapped, Shift+Tab from the first control walks back to the button behind the scrim.
+      await user.tab({ shift: true });
+      expect(dismiss).toHaveFocus();
+    });
+
+    it('pulls focus that escaped the card back in, at the end Tab heads for', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <>
+          <button type="button" data-testid="behind-the-scrim">
+            behind
+          </button>
+          <LazyOverlay
+            load={failedLoad}
+            pending={<div data-testid="pending" />}
+            title="Settings"
+            onDismiss={vi.fn()}
+          />
+        </>,
+      );
+
+      await screen.findByTestId('lazy-overlay-error');
+      const retry = screen.getByTestId('lazy-overlay-retry');
+      const dismiss = screen.getByTestId('lazy-overlay-dismiss');
+      const behind = screen.getByTestId('behind-the-scrim');
+
+      behind.focus();
+      await user.tab();
+      expect(retry).toHaveFocus();
+
+      behind.focus();
+      await user.tab({ shift: true });
+      expect(dismiss).toHaveFocus();
+    });
+
     it('lets Escape out of the failure surface, not just the pending one', async () => {
       const onDismiss = vi.fn();
       const user = userEvent.setup();
