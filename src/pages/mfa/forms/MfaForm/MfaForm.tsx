@@ -34,6 +34,7 @@ export function MfaForm() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [otpShake, setOtpShake] = useState(false);
   const otpShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const otpShakeFrameRef = useRef<number | null>(null);
   /**
    * Synchronous single-flight latch (house rule 1). `isSubmitting` only flips on
    * the next render, so a double-click — or a second `onComplete` from the code
@@ -49,12 +50,19 @@ export function MfaForm() {
    * cleared the shake mid-way through the second attempt, and leaving the
    * screen fired `setOtpShake` on an unmounted component. Same defect as the
    * email panel's (LOGIN-8) — this is its second site.
+   *
+   * The frame that re-adds the class is owned as well as the timer. Releasing
+   * only the timer left a gap: leave while the frame was still pending and it ran
+   * afterwards, starting a timer nobody owned — in tests it fired after jsdom was
+   * torn down, failing the run with `window is not defined`.
    */
   const startOtpShake = () => {
+    if (otpShakeFrameRef.current !== null) cancelAnimationFrame(otpShakeFrameRef.current);
     if (otpShakeTimerRef.current) clearTimeout(otpShakeTimerRef.current);
     setOtpShake(false);
     // Next frame, so the class is genuinely removed and re-added.
-    requestAnimationFrame(() => {
+    otpShakeFrameRef.current = requestAnimationFrame(() => {
+      otpShakeFrameRef.current = null;
       setOtpShake(true);
       otpShakeTimerRef.current = setTimeout(() => {
         otpShakeTimerRef.current = null;
@@ -65,6 +73,10 @@ export function MfaForm() {
 
   useEffect(
     () => () => {
+      if (otpShakeFrameRef.current !== null) {
+        cancelAnimationFrame(otpShakeFrameRef.current);
+        otpShakeFrameRef.current = null;
+      }
       if (otpShakeTimerRef.current) {
         clearTimeout(otpShakeTimerRef.current);
         otpShakeTimerRef.current = null;

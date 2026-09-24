@@ -174,6 +174,71 @@ describe('AuthForm', () => {
     );
   });
 
+  // LOGIN-8's shake owns its timer, and now the frame that starts it: a frame still
+  // pending when the form goes away must not run afterwards and start a timer
+  // nobody owns.
+  it('cancels a code-shake frame that has not run yet when the form goes away', async () => {
+    const user = userEvent.setup();
+    const { authApi } = await import('@/shared/api/auth-api.ts');
+    // Stated, not inherited: `vi.clearAllMocks()` keeps implementations, and the
+    // test above leaves `emailVerificationCodeSend` pending forever.
+    vi.mocked(authApi.emailVerificationCodeSend).mockResolvedValueOnce({});
+    // Held open, so the frame queue is ours before the failure lands.
+    let rejectLogin: (reason: unknown) => void = () => {};
+    vi.mocked(authApi.emailLogin).mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectLogin = reject;
+        }),
+    );
+
+    const { unmount } = renderForm();
+    await user.type(await screen.findByTestId('auth-email'), 'user@example.com');
+    await user.click(screen.getByTestId('auth-email-submit'));
+    await user.type(await screen.findByTestId('auth-email-code'), 'ABC123');
+    await waitFor(() => expect(authApi.emailLogin).toHaveBeenCalled());
+
+    const frames = new Map<number, FrameRequestCallback>();
+    const requested: number[] = [];
+    const requestFrame = vi
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        const handle = requested.length + 1;
+        requested.push(handle);
+        frames.set(handle, callback);
+        return handle;
+      });
+    const cancelFrame = vi
+      .spyOn(globalThis, 'cancelAnimationFrame')
+      .mockImplementation((handle) => {
+        frames.delete(handle);
+      });
+    try {
+      await act(async () => {
+        rejectLogin(new Error('bad code'));
+      });
+      // The first frame requested after the failure is the shake's.
+      const shakeFrame = requested[0];
+      expect(shakeFrame).toBeDefined();
+
+      unmount();
+
+      // Run it if it survived, as the browser would on its next paint.
+      const timer = vi
+        .spyOn(globalThis, 'setTimeout')
+        .mockImplementation((() => 0) as unknown as typeof setTimeout);
+      try {
+        frames.get(shakeFrame ?? -1)?.(performance.now());
+        expect(timer).not.toHaveBeenCalled();
+      } finally {
+        timer.mockRestore();
+      }
+    } finally {
+      requestFrame.mockRestore();
+      cancelFrame.mockRestore();
+    }
+  });
+
   it('invokes passkey sign-in and disables other methods while loading', async () => {
     const user = userEvent.setup();
     let resolvePasskey: (() => void) | undefined;
