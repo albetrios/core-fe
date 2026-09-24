@@ -26,12 +26,12 @@ both (`name-prefix`), and a skill's frontmatter `name` must equal its folder.
 
 | # | Surface | What to add |
 | - | ------- | ----------- |
-| 1 | `agent-os/skills/<name>/SKILL.md` | frontmatter `name` (**must equal the directory name**) + `description` |
-| 2 | `skill-registry/SKILL.md` — heading | bump `## Skill Inventory (N skills)` |
-| 3 | `skill-registry/SKILL.md` — Decision Tree | a `- ...<when> -> **<name>**` line |
-| 4 | `skill-registry/SKILL.md` — Task → Required Skills matrix | a row naming the chain it belongs to |
-| 5 | `skill-registry/SKILL.md` — Skill Inventory | full entry: Path, Purpose, Trigger keywords, Key behaviors, Related skills |
-| 6 | `skill-registry/SKILL.md` — Cross-Reference by File Area | map the file globs that should trigger it |
+| 1 | `agent-os/skills/fe-<name>/SKILL.md` | frontmatter `name` (**must equal the directory name**, `fe-` included) + `description` |
+| 2 | `fe-skill-registry/SKILL.md` — heading | bump `## Skill Inventory (N skills)` |
+| 3 | `fe-skill-registry/SKILL.md` — Decision Tree | a `- ...<when> -> **fe-<name>**` line |
+| 4 | `fe-skill-registry/SKILL.md` — Task → Required Skills matrix | a row naming the chain it belongs to |
+| 5 | `fe-skill-registry/SKILL.md` — Skill Inventory | full entry: Path, Purpose, Trigger keywords, Key behaviors, Related skills |
+| 6 | `fe-skill-registry/SKILL.md` — Cross-Reference by File Area | map the file globs that should trigger it |
 | 7 | `agent-os/skills/groups.json` | exactly **one** group — the check asserts every skill is grouped exactly once |
 | 8 | `agent-os/rules/fe-skill-router.mdc` | routing-table row, and a numbered clause if it has an invocation trigger |
 
@@ -42,9 +42,14 @@ Plus, when the skill is part of an ordered pipeline:
 - `agent-os/docs/skill-triggers.md` — the file→skill map the hooks consult
   (by-intent table and/or file-area table).
 
-**A new rule** (`agent-os/rules/*.mdc`) needs frontmatter `description` plus
+**A new rule** (`agent-os/rules/fe-<name>.mdc`) needs frontmatter `description` plus
 `alwaysApply: true` if it should always load; reference it from the skill it
 governs and from `fe-skill-router.mdc`.
+
+**A new agent** is `agent-os/agents/fe-<name>.md` with frontmatter `name: fe-<name>`;
+the steps are in [`agent-os/agents/README.md`](../../agents/README.md). **A new command**
+is `agent-os/commands/fe-<name>.md`, listed in
+[`agent-os/docs/commands.md`](../../docs/commands.md).
 
 ## Order of operations
 
@@ -53,7 +58,7 @@ Derived artifacts are computed from the tree, so they go **last**:
 ```bash
 # 1. write SKILL.md files and edit the registration surfaces
 # 2. gates
-pnpm agent-os:check              # frontmatter, names, registry paths, groups, chains
+pnpm agent-os:check              # frontmatter, names + fe- prefix, registry paths, groups, chains
 pnpm agent-os:triggers:strict    # routing cases still resolve
 pnpm agent-os:generate:check     # per-agent wiring in sync (.claude/.cursor/.codex)
 # 3. ONLY NOW regenerate the tree — new files changed it
@@ -75,6 +80,7 @@ bundle.
 | skill not grouped / grouped twice | `groups.json` |
 | chain step references unknown skill | `chains.json` typo |
 | `project-tree.txt is out of date` | regenerate **after** the last file |
+| `skill "x" must start with "fe-"` (or agent / command / rule) | the item lacks the prefix — rename it `fe-x`; a vendored skill needs its `skills-lock.json` entry instead |
 
 A skill's frontmatter `name` must equal its folder, vendored skills included, and a
 mismatch fails `agent-os:check`. The two Vercel skills `composition-patterns` and

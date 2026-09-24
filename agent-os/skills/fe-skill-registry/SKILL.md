@@ -1069,7 +1069,7 @@ python3 agent-os/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack shadcn
 - Check the [skills.sh](https://skills.sh/) leaderboard, then `npx skills find <query>`
 - Prefer reputable, high-install skills (1K+ installs; official sources like `vercel-labs`, `anthropics`)
 - Present options (name, what it does, installs, install command) before installing
-- Install into `agent-os/skills/` (tracked in `skills-lock.json`); then **wire the new skill into `fe-skill-router.mdc`, this registry, and docs**
+- Install into `agent-os/skills/` (tracked in `skills-lock.json`). An installed skill keeps its upstream name, with no `fe-` prefix: its `skills-lock.json` entry is what exempts it from `agent-os:check`. Then **wire the new skill into `fe-skill-router.mdc`, this registry, and docs**
 - If none exists: proceed with general capabilities or suggest `npx skills init`
 
 **Related skills:** fe-skill-registry (catalog of what's already installed)

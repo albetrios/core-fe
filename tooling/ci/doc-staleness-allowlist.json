@@ -43,7 +43,7 @@
     },
     {
       "value": "src/lib/__tmp-probe.tsx",
-      "reason": "Throwaway file inside a worked example in guard-authoring/SKILL.md — the snippet creates it, runs the gate against it, then rm -f's it. Never tracked, by design."
+      "reason": "Throwaway file inside a worked example in fe-guard-authoring/SKILL.md — the snippet creates it, runs the gate against it, then rm -f's it. Never tracked, by design."
     }
   ],
   "symbols": [

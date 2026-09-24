@@ -67,10 +67,11 @@ directory.
 
 ## Adding an agent
 
-1. Drop `<agent-name>.md` into [`agent-os/agents/`](../agents/).
+1. Drop `fe-<agent-name>.md` into [`agent-os/agents/`](../agents/), with frontmatter
+   `name: fe-<agent-name>` (every agent this repo owns starts with `fe-`).
 2. Wire it into [`agent-os/rules/fe-skill-router.mdc`](../rules/fe-skill-router.mdc) if
    it belongs to a task pipeline.
-3. Add a row to the catalog above.
+3. Add a row to the catalog above and bump its `(N agents)` count.
 
 ## Related
 

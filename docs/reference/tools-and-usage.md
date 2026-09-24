@@ -166,7 +166,7 @@ Design-thinking + aesthetic-quality skill vendored at **`agent-os/skills/fronten
 Meta-skill for discovering/installing skills, vendored at **`agent-os/skills/find-skills/`** (installed via `npx skills add https://github.com/vercel-labs/skills --skill find-skills`).
 
 - **Use for:** "is there a skill for X", discovering new capabilities, or any task not covered by `fe-skill-router.mdc` / `fe-skill-registry`.
-- **Workflow:** check [skills.sh](https://skills.sh/) → `npx skills find <query>` → prefer reputable/high-install skills → present options → install into `agent-os/skills/` → **wire the new skill into router + registry + docs**.
+- **Workflow:** check [skills.sh](https://skills.sh/) → `npx skills find <query>` → prefer reputable/high-install skills → present options → install into `agent-os/skills/` (it keeps its upstream name; its `skills-lock.json` entry exempts it from the `fe-` prefix) → **wire the new skill into router + registry + docs**.
 - **Router:** `agent-os/rules/fe-skill-router.mdc` (rule 15). **Registry:** `agent-os/skills/fe-skill-registry/SKILL.md` (#14).
 
 ### Installed skills (tracked in `skills-lock.json`)

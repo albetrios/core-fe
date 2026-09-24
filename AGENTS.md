@@ -69,7 +69,7 @@ and subagents** for cloud sessions:
 
 ## Adding a new agent skill or rule
 
-1. Place the file directly in `agent-os/skills/<name>/SKILL.md` or `agent-os/rules/<name>.mdc`.
+1. Place the file directly in `agent-os/skills/fe-<name>/SKILL.md` or `agent-os/rules/fe-<name>.mdc` — every item this repo owns starts with `fe-`, while vendored skills keep their upstream names. The full checklist is [fe-agent-os-authoring](agent-os/skills/fe-agent-os-authoring/SKILL.md).
 2. Wire it into [agent-os/rules/fe-skill-router.mdc](agent-os/rules/fe-skill-router.mdc) and [agent-os/skills/fe-skill-registry/SKILL.md](agent-os/skills/fe-skill-registry/SKILL.md).
 3. All three tools (Cursor, Claude, Codex) pick it up automatically via their symlinks — no per-tool duplication.
 

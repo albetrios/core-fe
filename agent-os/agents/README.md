@@ -12,12 +12,12 @@ Both tools read the same files via their respective symlinks — author once, bo
 ## File shape
 
 ```
-agent-os/agents/<agent-name>.md
+agent-os/agents/fe-<agent-name>.md
 ```
 
 ```markdown
 ---
-name: <agent-name>
+name: fe-<agent-name>
 description: One-sentence description of when to invoke this agent. Used by the orchestrator to route tasks.
 tools: # optional — defaults to all
   - Read
@@ -45,9 +45,10 @@ System prompt and behavior guidance for the agent.
 
 ## Adding a new agent
 
-1. Drop the file here as `<agent-name>.md`.
+1. Drop the file here as `fe-<agent-name>.md`, with frontmatter `name: fe-<agent-name>`. Every agent this repo owns starts with `fe-`; `pnpm agent-os:check` enforces it.
 2. Wire it into [`agent-os/rules/fe-skill-router.mdc`](../rules/fe-skill-router.mdc) if it's part of a task pipeline.
-3. Both Cursor and Claude pick it up automatically — no per-tool duplication.
+3. Add a row to [`agent-os/docs/agents-catalog.md`](../docs/agents-catalog.md) and bump its `## Catalog (N agents)` count — `pnpm agent-os:check` fails on a missing row or a stale count.
+4. Both Cursor and Claude pick it up automatically — no per-tool duplication.
 
 ## Related
 

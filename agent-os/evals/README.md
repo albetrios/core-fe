@@ -13,7 +13,8 @@ Also run `pnpm agent-os:generate:check` after editing `hooks/hooks.json`.
 
 Deterministic, zero-token structural invariants. Each fails the gate on drift:
 
-- **Skill frontmatter & names** — every `skills/<x>/SKILL.md` has `name` + `description`.
+- **Skill frontmatter & names** — every `skills/<x>/SKILL.md` has `name` + `description`, and `name` equals the folder (vendored skills included).
+- **Repo name prefix** — every skill, agent, command and rule this repo owns starts with `fe-`; vendored skills (`skills-lock.json` entries and the three Vercel skills) are exempt.
 - **Skill-registry ↔ disk** — `**Path:**` links resolve; every skill is catalogued (error); the `## Skill Inventory (N skills)` count matches disk.
 - **Vendored skill hashes** — recompute the sha256 of every `skills-lock.json` entry; fail on mismatch.
 - **Agent frontmatter / read-only** — `name`/`description`; a `readonly: true` agent must declare a `tools` allowlist that excludes every write tool.
