@@ -82,6 +82,149 @@ function providerTestId(provider: string): string {
 }
 
 /**
+ * Arms the OAuth redirect watchdog: if the page has not left within
+ * {@link OAUTH_REDIRECT_WATCHDOG_MS}, `onNeverLeft` reports the failure.
+ *
+ * `replace` resolves nothing and throws nothing when the navigation never
+ * happens — a popup/redirect blocker, an extension, or a deferred nav all
+ * look identical to success from here. Without this the form stayed
+ * disabled behind a spinner with no way back (LOGIN-10).
+ *
+ * The original comment claimed "if the page is really leaving, this timer
+ * leaves with it". That is only true once the document is actually torn
+ * down. A redirect that is merely SLOW is still in flight at 8s, so the
+ * watchdog fired on a working sign-in: the user was shown "sign-in failed"
+ * mid-navigation, and because it also releases `methodStartedRef`, a
+ * second `oauthStart` could go out — two OAuth starts for one click.
+ *
+ * `pagehide` is the signal that the document is going away. It fires for
+ * bfcache-eligible navigations where `unload` does not, and it fires for a
+ * cross-origin redirect. Deliberately NOT `visibilitychange`: that fires
+ * when the user merely switches tab, which would disarm a watchdog that
+ * should still be armed. `beforeunload` is skipped too — it is throttled,
+ * unreliable without user interaction, and adds nothing `pagehide` misses.
+ */
+function armRedirectWatchdog(args: {
+  timerRef: { current: ReturnType<typeof setTimeout> | null };
+  disarmRef: { current: (() => void) | null };
+  onNeverLeft: () => void;
+}): void {
+  const disarmWatchdog = () => {
+    clearTimerRef(args.timerRef);
+    window.removeEventListener('pagehide', disarmWatchdog);
+    args.disarmRef.current = null;
+  };
+  window.addEventListener('pagehide', disarmWatchdog);
+  args.disarmRef.current = disarmWatchdog;
+  args.timerRef.current = setTimeout(() => {
+    // Not `disarmWatchdog()`: that clears the ref this callback is running
+    // from. Drop the listener, then report — the navigation never happened.
+    window.removeEventListener('pagehide', disarmWatchdog);
+    args.disarmRef.current = null;
+    args.timerRef.current = null;
+    args.onNeverLeft();
+  }, OAUTH_REDIRECT_WATCHDOG_MS);
+}
+
+/**
+ * The method picker above the email flow: the inline error banner, the social and passkey
+ * buttons, and the divider when an email panel follows.
+ */
+function AuthMethodPicker({
+  formError,
+  providers,
+  showPasskey,
+  showEmail,
+  pending,
+  challengeFor,
+  onProvider,
+  onPasskey,
+}: {
+  formError: string | null;
+  providers: string[];
+  showPasskey: boolean;
+  showEmail: boolean;
+  pending: AuthContinuePending | null;
+  challengeFor: ReturnType<typeof useCaptchaIntent>['challengeFor'];
+  onProvider: (provider: string) => void;
+  onPasskey: () => void;
+}) {
+  const hasSocialMethods = providers.length > 0 || showPasskey;
+  return (
+    <>
+      <FormError message={formError} data-testid={AUTH_FORM_TEST_IDS.methodErrorBanner} />
+      {hasSocialMethods ? (
+        <AuthSocialMethods
+          providers={providers}
+          showPasskey={showPasskey}
+          pending={pending}
+          challengeFor={challengeFor}
+          providerChallengeKey={oauthChallengeKey}
+          onProvider={onProvider}
+          onPasskey={onPasskey}
+          providerTestId={providerTestId}
+          passkeyTestId={AUTH_FORM_TEST_IDS.continuePasskey}
+        />
+      ) : null}
+      {hasSocialMethods && showEmail ? <AuthMethodDivider /> : null}
+    </>
+  );
+}
+
+/**
+ * The email OTP flow — or, on an OAuth-only deployment, the form-level captcha slot in its place.
+ */
+function AuthEmailSection({
+  showEmail,
+  pending,
+  onPendingChange,
+  onInteract,
+  onStepChange,
+}: {
+  showEmail: boolean;
+  pending: AuthContinuePending | null;
+  onPendingChange: (pending: AuthContinuePending | null) => void;
+  onInteract: () => void;
+  onStepChange: (step: 'email' | 'verify', email?: string) => void;
+}) {
+  const { t } = useTranslation(AUTH_NS);
+  return (
+    <>
+      {showEmail ? (
+        <div className="animate-fade-in-up">
+          {/*
+            The email OTP flow and the social methods are independent ways into
+            the same account, so they fail independently too. The page-level
+            boundary in LoginPage catches a throw anywhere in this form, but it
+            takes the WHOLE form down with it — a crash in the code input would
+            remove the working Google and GitHub buttons as well. Contained
+            here, the user keeps every method that still works.
+          */}
+          <SectionErrorBoundary
+            title={t(AUTH_KEYS.common.email)}
+            testId={AUTH_FORM_TEST_IDS.emailPanelError}
+          >
+            <AuthEmailPanel
+              pending={pending}
+              onPendingChange={onPendingChange}
+              onInteract={onInteract}
+              onStepChange={onStepChange}
+            />
+          </SectionErrorBoundary>
+        </div>
+      ) : null}
+
+      {/* The email panel owns the captcha slot (between its last field and the submit
+          button — the conventional captcha position). This form-level slot exists only for
+          OAuth-only deployments, where no email panel mounts but the provider buttons are
+          still captcha-gated. Never render both: the registry is last-mounted-wins and the
+          challenge must sit in the email flow whenever it exists. */}
+      {showEmail ? null : <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />}
+    </>
+  );
+}
+
+/**
  * Unified sign-in / sign-up entry — social methods first, then email OTP.
  * Optional `VITE_AUTH_OAUTH_AUTO_GOOGLE=true` starts Google OAuth after a short delay.
  */
@@ -228,44 +371,16 @@ export function AuthForm() {
        * consent — is the provider's own entry, and no page code can remove it.
        */
       window.location.replace(url);
-      /*
-       * `replace` resolves nothing and throws nothing when the navigation never
-       * happens — a popup/redirect blocker, an extension, or a deferred nav all
-       * look identical to success from here. Without this the form stayed
-       * disabled behind a spinner with no way back (LOGIN-10).
-       *
-       * The original comment claimed "if the page is really leaving, this timer
-       * leaves with it". That is only true once the document is actually torn
-       * down. A redirect that is merely SLOW is still in flight at 8s, so the
-       * watchdog fired on a working sign-in: the user was shown "sign-in failed"
-       * mid-navigation, and because it also releases `methodStartedRef`, a
-       * second `oauthStart` could go out — two OAuth starts for one click.
-       *
-       * `pagehide` is the signal that the document is going away. It fires for
-       * bfcache-eligible navigations where `unload` does not, and it fires for a
-       * cross-origin redirect. Deliberately NOT `visibilitychange`: that fires
-       * when the user merely switches tab, which would disarm a watchdog that
-       * should still be armed. `beforeunload` is skipped too — it is throttled,
-       * unreliable without user interaction, and adds nothing `pagehide` misses.
-       */
-      const disarmWatchdog = () => {
-        clearTimerRef(redirectWatchdogRef);
-        window.removeEventListener('pagehide', disarmWatchdog);
-        redirectWatchdogDisarmRef.current = null;
-      };
-      window.addEventListener('pagehide', disarmWatchdog);
-      redirectWatchdogDisarmRef.current = disarmWatchdog;
-      redirectWatchdogRef.current = setTimeout(() => {
-        // Not `disarmWatchdog()`: that clears the ref this callback is running
-        // from. Drop the listener, then report — the navigation never happened.
-        window.removeEventListener('pagehide', disarmWatchdog);
-        redirectWatchdogDisarmRef.current = null;
-        redirectWatchdogRef.current = null;
-        methodStartedRef.current = false;
-        setAutoGooglePending(false);
-        setPending(null);
-        setFormError(t(AUTH_KEYS.auth.errors.oauthFailed));
-      }, OAUTH_REDIRECT_WATCHDOG_MS);
+      armRedirectWatchdog({
+        timerRef: redirectWatchdogRef,
+        disarmRef: redirectWatchdogDisarmRef,
+        onNeverLeft: () => {
+          methodStartedRef.current = false;
+          setAutoGooglePending(false);
+          setPending(null);
+          setFormError(t(AUTH_KEYS.auth.errors.oauthFailed));
+        },
+      });
     } catch (err) {
       skipAutoGoogleSignIn();
       setAutoGooglePending(false);
@@ -381,8 +496,6 @@ export function AuthForm() {
 
   const hasSocialMethods = visibleProviders.length > 0 || showPasskey;
   const isEmailVerify = emailFlowStep === 'verify';
-  const showMethodPicker = !isEmailVerify;
-  const showDivider = showMethodPicker && hasSocialMethods && showEmail;
 
   const hasAnyMethod = hasSocialMethods || showEmail;
 
@@ -419,59 +532,26 @@ export function AuthForm() {
         email={isEmailVerify ? verifyEmail : undefined}
       />
 
-      {showMethodPicker ? (
-        <FormError
-          message={formError}
-          data-testid={AUTH_FORM_TEST_IDS.methodErrorBanner}
-        />
-      ) : null}
-
-      {showMethodPicker && hasSocialMethods ? (
-        <AuthSocialMethods
+      {isEmailVerify ? null : (
+        <AuthMethodPicker
+          formError={formError}
           providers={visibleProviders}
           showPasskey={showPasskey}
+          showEmail={showEmail}
           pending={pending}
           challengeFor={challengeFor}
-          providerChallengeKey={oauthChallengeKey}
           onProvider={(provider) => void startOAuth(provider)}
           onPasskey={() => void handlePasskey()}
-          providerTestId={providerTestId}
-          passkeyTestId={AUTH_FORM_TEST_IDS.continuePasskey}
         />
-      ) : null}
+      )}
 
-      {showDivider ? <AuthMethodDivider /> : null}
-
-      {showEmail ? (
-        <div className="animate-fade-in-up">
-          {/*
-            The email OTP flow and the social methods are independent ways into
-            the same account, so they fail independently too. The page-level
-            boundary in LoginPage catches a throw anywhere in this form, but it
-            takes the WHOLE form down with it — a crash in the code input would
-            remove the working Google and GitHub buttons as well. Contained
-            here, the user keeps every method that still works.
-          */}
-          <SectionErrorBoundary
-            title={t(AUTH_KEYS.common.email)}
-            testId={AUTH_FORM_TEST_IDS.emailPanelError}
-          >
-            <AuthEmailPanel
-              pending={pending}
-              onPendingChange={setPending}
-              onInteract={dismissAutoGoogle}
-              onStepChange={handleEmailStepChange}
-            />
-          </SectionErrorBoundary>
-        </div>
-      ) : null}
-
-      {/* The email panel owns the captcha slot (between its last field and the submit
-          button — the conventional captcha position). This form-level slot exists only for
-          OAuth-only deployments, where no email panel mounts but the provider buttons are
-          still captcha-gated. Never render both: the registry is last-mounted-wins and the
-          challenge must sit in the email flow whenever it exists. */}
-      {showEmail ? null : <CaptchaSlot testId={AUTH_FORM_TEST_IDS.captchaSlot} />}
+      <AuthEmailSection
+        showEmail={showEmail}
+        pending={pending}
+        onPendingChange={setPending}
+        onInteract={dismissAutoGoogle}
+        onStepChange={handleEmailStepChange}
+      />
     </div>
   );
 }
