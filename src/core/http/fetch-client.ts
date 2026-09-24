@@ -320,26 +320,30 @@ async function request<T>(
     return fetchWithTimeout(url, init, defaultConfig.timeout);
   }
 
+  /** A dropped connection: retried on the shared budget, or surfaced as a status-0 HttpError. */
+  async function retryOrThrowNetworkError(
+    err: unknown,
+    attempt: number,
+    hasRefreshed: boolean,
+  ): Promise<HttpResponse<T>> {
+    const message = (err as Error)?.message;
+    const errorKind = classifyFetchError(err);
+    const delay = nextRetryDelay({ method, attempt, status: null, errorKind });
+    if (delay === null) {
+      throw new HttpError(message ?? 'Network error', 0, url, method, undefined);
+    }
+    await new Promise((r) => setTimeout(r, delay));
+    logRetry(attempt, url, `: ${message ?? ''}`);
+    return run(attempt + 1, hasRefreshed);
+  }
+
   // Single attempt budget shared by connection-error AND bad-status retries.
   const run = async (attempt = 0, hasRefreshed = false): Promise<HttpResponse<T>> => {
     let response: Response;
     try {
       response = await fetchOnce();
     } catch (err) {
-      const errorKind = classifyFetchError(err);
-      const delay = nextRetryDelay({ method, attempt, status: null, errorKind });
-      if (delay !== null) {
-        await new Promise((r) => setTimeout(r, delay));
-        logRetry(attempt, url, `: ${(err as Error)?.message ?? ''}`);
-        return run(attempt + 1, hasRefreshed);
-      }
-      throw new HttpError(
-        (err as Error)?.message ?? 'Network error',
-        0,
-        url,
-        method,
-        undefined,
-      );
+      return retryOrThrowNetworkError(err, attempt, hasRefreshed);
     }
 
     if (response.status === 401 && !options?.skip401 && !isRefreshUrl) {
