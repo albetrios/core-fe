@@ -27,7 +27,7 @@ export function EmailVerificationBanner() {
   const [sent, setSent] = useState(false);
   // `sending` is React state: two clicks in the same frame both read the stale
   // value and both send a code. This flips synchronously inside the handler
-  // (agent-os/rules/resilient-interactions section 1).
+  // (agent-os/rules/fe-resilient-interactions.mdc section 1).
   const sendingRef = useRef(false);
   const turnstileReady = useTurnstileReady();
 

@@ -239,6 +239,6 @@ hook-specific cache shapes should be covered in the hook's own test.
 
 ## Related
 
-- `agent-os/rules/api-data-patterns.mdc` — data-layer patterns (this is the canonical detail).
-- `agent-os/skills/http-forms-errors/SKILL.md` — form mutation + error UX checklist.
+- `agent-os/rules/fe-api-data-patterns.mdc` — data-layer patterns (this is the canonical detail).
+- `agent-os/skills/fe-http-forms-errors/SKILL.md` — form mutation + error UX checklist.
 - [`reference/frontend-platform.md`](frontend-platform.md) — platform kernel (queryClient defaults).

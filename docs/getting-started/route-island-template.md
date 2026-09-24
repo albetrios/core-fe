@@ -68,7 +68,7 @@ export function Component() {
 ```
 
 Register `gatewayFromManifest(manifest)` (and org guards when applicable) on the
-route in `src/app/routes/routeTree.tsx` — see `agent-os/skills/routing-tenancy/SKILL.md`.
+route in `src/app/routes/routeTree.tsx` — see `agent-os/skills/fe-routing-tenancy/SKILL.md`.
 
 ## `components/ExamplePage.tsx`
 

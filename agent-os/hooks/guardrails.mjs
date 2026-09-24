@@ -115,7 +115,7 @@ if ((tool === 'Write' || tool === 'Edit') && filePath) {
   }
   if (/routeTree\.tsx$/.test(filePath)) {
     warnings.push(
-      `editing the route tree (${filePath}) — keep it in sync with the page manifests + docs/reference/routes-and-ui.md (route-island skill).`,
+      `editing the route tree (${filePath}) — keep it in sync with the page manifests + docs/reference/routes-and-ui.md (fe-route-island skill).`,
     );
   }
 }

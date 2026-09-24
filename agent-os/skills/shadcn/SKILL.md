@@ -22,7 +22,7 @@ The JSON above contains the project config and installed components. Use `npx sh
 ## Project rules — core-fe
 
 Project-specific policy that **overrides** anything else in this skill (referenced by
-`CLAUDE.md` and `agent-os/rules/ui-sources.mdc`; the former `shadcn-component-selection`
+`CLAUDE.md` and `agent-os/rules/fe-ui-sources.mdc`; the former `shadcn-component-selection`
 skill is merged here). Re-installing this skill (`pnpm dlx skills add shadcn/ui`)
 clobbers this section — restore it and re-run `pnpm agent-os:lock`.
 
@@ -33,7 +33,7 @@ clobbers this section — restore it and re-run `pnpm agent-os:lock`.
   `pnpm validate:tokens` fails raw palette classes. Project context: style `new-york`,
   base `radix`, Tailwind v4 CSS-first (`src/index.css`), UI alias `@/shared/components/ui`.
 - **Structure:** vendored primitives stay FLAT in `src/shared/components/ui/`; everything
-  composed on top follows folder-per-unit (`agent-os/rules/file-structure.mdc`).
+  composed on top follows folder-per-unit (`agent-os/rules/fe-file-structure.mdc`).
 
 ### Selection workflow
 

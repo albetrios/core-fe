@@ -3,5 +3,5 @@
 # All steps (env docs, public assets, lint-staged, type-check, lockfile,
 # gitleaks, env-file guard, conflict markers, large files) run as labeled
 # steps inside the guard so a failing step reliably blocks the commit.
-# See agent-os/skills/before-commit-guard/SKILL.md.
+# See agent-os/skills/fe-before-commit-guard/SKILL.md.
 ./tooling/validate/before-commit-guard.sh

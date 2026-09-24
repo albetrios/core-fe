@@ -47,4 +47,4 @@ E2E artifacts: **`test-results/`** — `pnpm test:e2e:report` to open the HTML r
 - **`page.getByTestId(...)`** — clicks, fills, navigation
 - **`getByRole` / `getByLabel`** — visibility and a11y guards
 
-See **`agent-os/skills/playwright-e2e/SKILL.md`** and **`tests/utils/e2e-hybrid.ts`**.
+See **`agent-os/skills/fe-playwright-e2e/SKILL.md`** and **`tests/utils/e2e-hybrid.ts`**.

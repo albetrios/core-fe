@@ -10,7 +10,7 @@
  *    icon import is deliberate: vendored `ui/` is exempt from the
  *    `@/shared/icons` rule, so do not "fix" it to the icon registry.
  *
- * Per `agent-os/skills/pre-pr-sweep/SKILL.md` (§9), also note this edit in the
+ * Per `agent-os/skills/fe-pre-pr-sweep/SKILL.md` (§9), also note this edit in the
  * PR body as "re-apply after a shadcn refresh".
  */
 import { Loader2 } from 'lucide-react';

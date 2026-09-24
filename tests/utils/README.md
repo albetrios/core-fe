@@ -33,7 +33,7 @@ vi.mock('@/core/http/fetch-client.ts', () => ({
 
 ### `e2e-hybrid.ts` (hybrid selectors)
 
-Playwright specs use **`data-testid` for actions** and **`getByRole` / `getByLabel` for a11y guards**. See `agent-os/skills/playwright-e2e/SKILL.md`.
+Playwright specs use **`data-testid` for actions** and **`getByRole` / `getByLabel` for a11y guards**. See `agent-os/skills/fe-playwright-e2e/SKILL.md`.
 
 ### `e2e-faker.ts`
 

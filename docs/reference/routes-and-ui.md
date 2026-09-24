@@ -46,7 +46,7 @@ To ensure **all backend routes exposed via MCP are live** in the frontend: use t
 
 ## Frontend design: component library
 
-The app uses **shadcn/ui** as the selected component library. Allowed sources are listed in `agent-os/rules/ui-sources.mdc` (e.g. ui.shadcn.com, shadcn.io, and other shadcn-style sources).
+The app uses **shadcn/ui** as the selected component library. Allowed sources are listed in `agent-os/rules/fe-ui-sources.mdc` (e.g. ui.shadcn.com, shadcn.io, and other shadcn-style sources).
 
 - **Primitives:** Implemented in `src/shared/components/ui/` and built on **Radix UI** (radix-ui monorepo). No other UI library is used for core components.
 - **Styling:** Tailwind CSS v4, `cn()` from `@/lib/utils.ts`, and design tokens in `src/index.css` (`@theme`). Dark mode via `.dark` class.

@@ -1,7 +1,7 @@
 # Engineering principles (core-fe)
 
 The condensed working agreement for any change in this repo. The always-applied
-source of truth is [`agent-os/rules/engineering-principles.mdc`](../rules/engineering-principles.mdc);
+source of truth is [`agent-os/rules/fe-engineering-principles.mdc`](../rules/fe-engineering-principles.mdc);
 this page is the quick reference.
 
 ## Before writing code
@@ -12,7 +12,7 @@ this page is the quick reference.
   only when nothing fits. If an existing one is close but not right, improve it —
   or say in the PR why new is better — **in the same PR**, never leaving old and
   new side by side. Detail and examples in the
-  [always-applied rule](../rules/engineering-principles.mdc).
+  [always-applied rule](../rules/fe-engineering-principles.mdc).
 - Keep changes minimal and focused; preserve naming and style.
 - Prefer simple over clever.
 
@@ -36,7 +36,7 @@ this page is the quick reference.
 - Semantic design tokens only (`bg-background`, `text-muted-foreground`) — never
   raw palette classes. Enforced by `pnpm validate:tokens`.
 - shadcn components come via the [`shadcn` skill](../skills/shadcn/SKILL.md) and
-  the allowed sources in [`ui-sources` rule](../rules/ui-sources.mdc).
+  the allowed sources in [`fe-ui-sources` rule](../rules/fe-ui-sources.mdc).
 
 ## Dependency policy
 
@@ -48,7 +48,7 @@ it; prefer lightweight, maintained libraries; document new deps in
 
 Every implementation includes its dependent work — tests, route registration,
 RBAC, `data-testid`, doc updates, and lint/type-check — completed silently
-without asking (see [`agent-behavior` rule](../rules/agent-behavior.mdc)). The
+without asking (see [`fe-agent-behavior` rule](../rules/fe-agent-behavior.mdc)). The
 gate is `pnpm health` (or the individual checks it runs). Patch coverage on
 changed lines must be ≥ 80% in PR CI; the TSDoc and coverage budgets are
 ratchets (lower freely, raise only via an intentional re-baseline).

@@ -1,36 +1,36 @@
 {
-  "description": "Declarative skill chains — ordered, named pipelines that capture the skill-registry 'multi-skill scenarios' as runnable sequences. Single source for: workflow commands, the routing reminder hooks, and the eventual skill planner. agent-os/evals/check.ts asserts every step (and optional step) references a real skill directory; triggers are kept consistent with agent-os/docs/skill-triggers.md. Steps run in order; each step is an existing skill invoked by name.",
+  "description": "Declarative skill chains — ordered, named pipelines that capture the fe-skill-registry 'multi-skill scenarios' as runnable sequences. Single source for: workflow commands, the routing reminder hooks, and the eventual skill planner. agent-os/evals/check.ts asserts every step (and optional step) references a real skill directory; triggers are kept consistent with agent-os/docs/skill-triggers.md. Steps run in order; each step is an existing skill invoked by name.",
   "chains": {
     "page-change": {
       "description": "Adding or changing a page / route island end-to-end.",
       "trigger": "src/pages/**/*.route.tsx",
       "steps": [
-        "page-scaffolding",
-        "route-island",
-        "e2e-testids",
-        "test-generation"
+        "fe-page-scaffolding",
+        "fe-route-island",
+        "fe-e2e-testids",
+        "fe-test-generation"
       ],
       "optional": [
-        "routing-tenancy"
+        "fe-routing-tenancy"
       ]
     },
-    "component-promotion": {
+    "fe-component-promotion": {
       "description": "Promoting a page-local component up the ladder into shared / family-shared.",
       "trigger": "src/shared/components/**/*.tsx",
       "steps": [
-        "component-promotion",
+        "fe-component-promotion",
         "composition-patterns",
-        "test-generation"
+        "fe-test-generation"
       ]
     },
-    "resource-crud": {
+    "fe-resource-crud": {
       "description": "Scaffolding a backend resource UI — list page plus URL-driven create/edit dialogs.",
       "trigger": "src/pages/**/*.resource.ts",
       "steps": [
-        "resource-crud",
-        "http-forms-errors",
-        "i18n-constants",
-        "test-generation"
+        "fe-resource-crud",
+        "fe-http-forms-errors",
+        "fe-i18n-constants",
+        "fe-test-generation"
       ]
     },
     "ui-review": {
@@ -42,8 +42,8 @@
         "review-animations"
       ],
       "optional": [
-        "theme-axis-audit",
-        "visual-regression"
+        "fe-theme-axis-audit",
+        "fe-visual-regression"
       ]
     },
     "form-mutation": {
@@ -51,8 +51,8 @@
       "trigger": "src/**/forms/**/*.tsx",
       "steps": [
         "composition-patterns",
-        "http-forms-errors",
-        "test-generation"
+        "fe-http-forms-errors",
+        "fe-test-generation"
       ]
     },
     "data-hook": {
@@ -60,7 +60,7 @@
       "trigger": "src/**/*.api.ts",
       "steps": [
         "react-best-practices",
-        "test-generation"
+        "fe-test-generation"
       ]
     },
     "styling": {
@@ -71,69 +71,69 @@
         "web-design-guidelines"
       ],
       "optional": [
-        "theme-axis-audit",
-        "visual-regression"
+        "fe-theme-axis-audit",
+        "fe-visual-regression"
       ]
     },
     "env-change": {
       "description": "Adding, renaming, or removing an env var and keeping schema + templates in sync.",
       "trigger": "src/core/config/env-schema.ts",
       "steps": [
-        "env-schema-add"
+        "fe-env-schema-add"
       ],
       "optional": [
-        "platform-hygiene"
+        "fe-platform-hygiene"
       ]
     },
     "new-guard": {
       "description": "Adding a machine-enforced invariant (validator, eslint restriction, CI static-sync step).",
       "trigger": "tooling/validate/**",
       "steps": [
-        "guard-authoring",
-        "code-quality-security",
-        "documentation-maintenance"
+        "fe-guard-authoring",
+        "fe-code-quality-security",
+        "fe-documentation-maintenance"
       ]
     },
     "pr-readiness": {
       "description": "Final pass before opening a pull request or requesting review. Intent-triggered — no file glob; a glob here would match every change.",
       "trigger": null,
       "steps": [
-        "pre-pr-sweep",
-        "before-commit-guard"
+        "fe-pre-pr-sweep",
+        "fe-before-commit-guard"
       ],
       "optional": [
-        "project-health-check",
-        "documentation-maintenance"
+        "fe-project-health-check",
+        "fe-documentation-maintenance"
       ]
     },
     "i18n-surface": {
       "description": "Adding or changing user-facing copy, dates/numbers, or locale preferences.",
       "trigger": "src/locales/**",
       "steps": [
-        "i18n-constants",
-        "locale-formatting",
-        "rtl-logical-css",
-        "test-generation"
+        "fe-i18n-constants",
+        "fe-locale-formatting",
+        "fe-rtl-logical-css",
+        "fe-test-generation"
       ],
       "optional": [
-        "locale-preferences"
+        "fe-locale-preferences"
       ]
     },
-    "review-response": {
+    "fe-review-response": {
       "description": "Working a code-review report or PR review threads to completion. Intent-triggered — no file glob; a glob here would match every change.",
       "trigger": null,
       "steps": [
-        "review-response",
-        "pre-pr-sweep",
-        "documentation-maintenance"
+        "fe-review-response",
+        "fe-pre-pr-sweep",
+        "fe-documentation-maintenance"
       ]
     },
     "agent-os-change": {
       "description": "Adding, renaming or removing an agent-os skill or rule.",
       "trigger": "agent-os/skills/**",
       "steps": [
-        "agent-os-authoring",
-        "documentation-maintenance"
+        "fe-agent-os-authoring",
+        "fe-documentation-maintenance"
       ]
     }
   }

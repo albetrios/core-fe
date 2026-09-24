@@ -8,14 +8,14 @@ Related: [`docs/integrations/credentials-and-env.md`](../../integrations/credent
 
 ## TL;DR
 
-| What                                  | Command                                        |
-| ------------------------------------- | ---------------------------------------------- |
-| Verify schema ↔ `.env.example` parity | `pnpm tool:sync-env-example`                   |
-| Auto-append missing keys to template  | `pnpm tool:sync-env-example --fix`             |
-| Pre-commit / CI parity gate           | `pnpm validate:env-example`                    |
-| Bootstrap local env files             | `pnpm github:sync`                             |
-| Verify GitHub Environment secrets     | `CONFIG=<env> pnpm validate:deploy-env`        |
-| Add a new env var (skill)             | read `agent-os/skills/env-schema-add/SKILL.md` |
+| What                                  | Command                                           |
+| ------------------------------------- | ------------------------------------------------- |
+| Verify schema ↔ `.env.example` parity | `pnpm tool:sync-env-example`                      |
+| Auto-append missing keys to template  | `pnpm tool:sync-env-example --fix`                |
+| Pre-commit / CI parity gate           | `pnpm validate:env-example`                       |
+| Bootstrap local env files             | `pnpm github:sync`                                |
+| Verify GitHub Environment secrets     | `CONFIG=<env> pnpm validate:deploy-env`           |
+| Add a new env var (skill)             | read `agent-os/skills/fe-env-schema-add/SKILL.md` |
 
 ## 1. Mental model
 
@@ -156,7 +156,7 @@ repo — the Netlify deploy serves the static file as-built unless you edit it):
 
 ## 5. Adding or changing a key
 
-Follow **`agent-os/skills/env-schema-add/SKILL.md`** end-to-end:
+Follow **`agent-os/skills/fe-env-schema-add/SKILL.md`** end-to-end:
 
 1. Add field to `src/core/config/env-schema.ts`
 2. Wire resolver in `env-resolvers.ts` / `platform-config.ts` if platform-facing
@@ -167,16 +167,16 @@ Follow **`agent-os/skills/env-schema-add/SKILL.md`** end-to-end:
 
 ## 6. Troubleshooting
 
-| Symptom                          | Check                                                               |
-| -------------------------------- | ------------------------------------------------------------------- |
-| OAuth button missing             | `VITE_AUTH_OAUTH_<PROVIDER>` not `false`; no backend provider fetch |
-| OAuth click fails                | core-be may lack provider credentials — fix both sides              |
-| Module route 404                 | Key in `VITE_DISABLED_MODULES` or manifest `module` mismatch        |
-| Production boot error on CAPTCHA | Set `VITE_TURNSTILE_SITE_KEY` or `VITE_CAPTCHA_DISABLED=true`       |
+| Symptom                                              | Check                                                                                                                                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| OAuth button missing                                 | `VITE_AUTH_OAUTH_<PROVIDER>` not `false`; no backend provider fetch                                                                                                                  |
+| OAuth click fails                                    | core-be may lack provider credentials — fix both sides                                                                                                                               |
+| Module route 404                                     | Key in `VITE_DISABLED_MODULES` or manifest `module` mismatch                                                                                                                         |
+| Production boot error on CAPTCHA                     | Set `VITE_TURNSTILE_SITE_KEY` or `VITE_CAPTCHA_DISABLED=true`                                                                                                                        |
 | `validate:client-env` warns on `VITE_CSP_REPORT_URI` | Expected with no CSP collector. Set it to start the violation stream the [Trusted Types runbook](./csp-trusted-types-production.md) needs, or leave it — `warn` never fails the gate |
-| `validate:env-example` fails     | Run `pnpm tool:sync-env-example --fix`                              |
-| MCP servers missing in Cursor    | Run `pnpm setup:local --no-start` or `pnpm mcp:setup`               |
-| Context7 MCP fails               | Set `CONTEXT7_API_KEY` in `.env.local` and reload Cursor            |
+| `validate:env-example` fails                         | Run `pnpm tool:sync-env-example --fix`                                                                                                                                               |
+| MCP servers missing in Cursor                        | Run `pnpm setup:local --no-start` or `pnpm mcp:setup`                                                                                                                                |
+| Context7 MCP fails                                   | Set `CONTEXT7_API_KEY` in `.env.local` and reload Cursor                                                                                                                             |
 
 ## 7. Related files
 

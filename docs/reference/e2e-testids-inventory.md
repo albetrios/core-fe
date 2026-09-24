@@ -1,6 +1,6 @@
 # E2E `data-testid` inventory
 
-Living catalog of stable Playwright selectors. **When you add or rename a testid, update this file** (see `agent-os/skills/e2e-testids/SKILL.md`).
+Living catalog of stable Playwright selectors. **When you add or rename a testid, update this file** (see `agent-os/skills/fe-e2e-testids/SKILL.md`).
 
 **Gate:** `pnpm validate:testids` checks page manifests, forms, and shell surfaces against this contract (not every DOM node).
 

@@ -344,7 +344,7 @@ export default defineConfig([
   },
 
   // ── Layer boundaries: ui → lib → core → shared → pages → app ──
-  // One-way dependency rule from agent-os/rules/file-structure.mdc, enforced on
+  // One-way dependency rule from agent-os/rules/fe-file-structure.mdc, enforced on
   // production code (test files may cross layers for mocks/fixtures).
   // KNOWN DEBT files are exempted explicitly — shrink these lists by relocating
   // the code; never extend them.
@@ -365,7 +365,7 @@ export default defineConfig([
               // lib may reach core ONLY for shared type definitions
               regex: '^@/core/(?!types/)',
               message:
-                'src/lib may import from core only @/core/types (see file-structure.mdc → Import Rules).',
+                'src/lib may import from core only @/core/types (see fe-file-structure.mdc → Import Rules).',
             },
           ],
         },
@@ -388,10 +388,10 @@ export default defineConfig([
               // Baseline: core never imports shared. The runtime-trio exception
               // is scoped to the kernel (core/http + core/rbac) in the next
               // block — a later flat-config block overrides this rule for its
-              // narrower file set (file-structure.mdc → Import Rules).
+              // narrower file set (fe-file-structure.mdc → Import Rules).
               group: ['@/shared/**'],
               message:
-                'src/core must not import from shared — only the kernel (core/http, core/rbac) may reach the runtime trio (see file-structure.mdc → Import Rules).',
+                'src/core must not import from shared — only the kernel (core/http, core/rbac) may reach the runtime trio (see fe-file-structure.mdc → Import Rules).',
             },
           ],
         },
@@ -399,7 +399,7 @@ export default defineConfig([
     },
   },
   {
-    // Kernel exception (file-structure.mdc → Import Rules): core/http and
+    // Kernel exception (fe-file-structure.mdc → Import Rules): core/http and
     // core/rbac may read the auth runtime, error reporting, and the
     // auth/tenant stores. Everything else in shared stays off-limits.
     files: ['src/core/http/**/*.{ts,tsx}', 'src/core/rbac/**/*.{ts,tsx}'],
@@ -417,7 +417,7 @@ export default defineConfig([
               regex:
                 '^@/shared/(?!auth/|errors/|store/useAuthStore/|store/useOrganizationStore/)',
               message:
-                'The core kernel may import from shared ONLY the runtime trio: @/shared/auth, @/shared/errors, useAuthStore, useOrganizationStore (see file-structure.mdc → Import Rules).',
+                'The core kernel may import from shared ONLY the runtime trio: @/shared/auth, @/shared/errors, useAuthStore, useOrganizationStore (see fe-file-structure.mdc → Import Rules).',
             },
           ],
         },

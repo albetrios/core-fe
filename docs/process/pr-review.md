@@ -1,7 +1,7 @@
 # Pull request review (core-fe)
 
 **Authors:** use [`.github/PULL_REQUEST_TEMPLATE.md`](../../.github/PULL_REQUEST_TEMPLATE.md) and run `pnpm health` (or wait for CI).
-**Reviewers (human and agent):** use this doc as the shared rubric. Severity labels match [engineering-principles](../../agent-os/rules/engineering-principles.mdc) PR review mode. Structure mirrors core-be's `docs/process/pr-review.md`.
+**Reviewers (human and agent):** use this doc as the shared rubric. Severity labels match [fe-engineering-principles](../../agent-os/rules/fe-engineering-principles.mdc) PR review mode. Structure mirrors core-be's `docs/process/pr-review.md`.
 
 ---
 
@@ -10,7 +10,7 @@
 | Item                    | Reference                                                                                    |
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | **Required CI checks**  | `Quality gate` + `unit / Unit + global` (pr-ci.yml) + `Checks` (pr-governance.yml)           |
-| **Author gate (local)** | `pnpm health` or the `/ci-local` command                                                     |
+| **Author gate (local)** | `pnpm health` or the `/fe-ci-local` command                                                  |
 | **PR template**         | [`.github/PULL_REQUEST_TEMPLATE.md`](../../.github/PULL_REQUEST_TEMPLATE.md)                 |
 | **New work intake**     | [requirement-intake.md](../getting-started/requirement-intake.md)                            |
 | **Severity**            | **Blocker** = must fix before merge · **Major** = should fix or justify · **Nit** = optional |
@@ -64,7 +64,7 @@ Check only what the PR touches.
 | Check           | What to look for                                                                                    | Typical severity |
 | --------------- | --------------------------------------------------------------------------------------------------- | ---------------- |
 | Semantic tokens | No raw palette classes (`bg-blue-500`, `text-white`) — `pnpm validate:tokens` clean                 | Blocker          |
-| shadcn sources  | Components from allowed sources only (`agent-os/rules/ui-sources.mdc`)                              | Major            |
+| shadcn sources  | Components from allowed sources only (`agent-os/rules/fe-ui-sources.mdc`)                           | Major            |
 | Dark surfaces   | Icons on `bg-brand` / `bg-sidebar` / `bg-primary` use foreground tokens (`src/lib/icon-surface.ts`) | Major            |
 | Deferred chunks | No static import of `@sentry/react`, `posthog-js`, SettingsModal/CommandPalette trees               | Blocker          |
 | A11y            | Interactive elements have ARIA; component tests use vitest-axe (`axeForDialog` for portals)         | Major            |
@@ -122,23 +122,23 @@ Check only what the PR touches.
 
 ### Dependencies
 
-| Check         | What to look for                                                                 | Typical severity |
-| ------------- | -------------------------------------------------------------------------------- | ---------------- |
-| Audit         | `pnpm deps:audit` / CI security audit green                                      | Blocker          |
-| Atomic lock   | `package.json` change and `pnpm-lock.yaml` regen land in the SAME commit         | Blocker          |
-| Justification | New packages necessary; bundle impact considered (`dependency-management` skill) | Major            |
+| Check         | What to look for                                                                    | Typical severity |
+| ------------- | ----------------------------------------------------------------------------------- | ---------------- |
+| Audit         | `pnpm deps:audit` / CI security audit green                                         | Blocker          |
+| Atomic lock   | `package.json` change and `pnpm-lock.yaml` regen land in the SAME commit            | Blocker          |
+| Justification | New packages necessary; bundle impact considered (`fe-dependency-management` skill) | Major            |
 
 ---
 
 ## Section B — Agent reviewer checklist
 
-Use when reviewing as a Cursor/Claude agent or via `/pre-merge-review`. Read the
-[skill registry](../../agent-os/skills/skill-registry/SKILL.md) first.
+Use when reviewing as a Cursor/Claude agent or via `/fe-pre-merge-review`. Read the
+[skill registry](../../agent-os/skills/fe-skill-registry/SKILL.md) first.
 
 ### Workflow
 
 1. Read PR **Summary**, **Test plan**, and the diff file list.
-2. Map each changed path to skill-registry triggers; flag if a matched skill was likely skipped (e.g. a new route with no manifest/OVERVIEW/routes-and-ui touch).
+2. Map each changed path to fe-skill-registry triggers; flag if a matched skill was likely skipped (e.g. a new route with no manifest/OVERVIEW/routes-and-ui touch).
 3. Run the targeted greps below on changed files only.
 4. Post findings in the output format below; never weaken a gate to go green.
 
@@ -174,16 +174,16 @@ Use when reviewing as a Cursor/Claude agent or via `/pre-merge-review`. Read the
 
 ### Skills / CI
 
-- Expected skills: <list from skill-registry>
+- Expected skills: <list from fe-skill-registry>
 - Author test plan: <confirm or gap>
 ```
 
 ### Related skills
 
-- **full-code-review** — full report across security/perf/quality when asked.
-- **ci-investigator** — one failing check diagnosis.
-- **code-smells-best-practices** — fix lint/idiom issues in touched files.
-- **lint-guard** — background lint/type fixes after implementation.
+- **fe-full-code-review** — full report across security/perf/quality when asked.
+- **fe-ci-investigator** — one failing check diagnosis.
+- **fe-code-smells-best-practices** — fix lint/idiom issues in touched files.
+- **fe-lint-guard** — background lint/type fixes after implementation.
 
 ---
 
@@ -207,21 +207,21 @@ What stays in sync automatically vs what reviewers must verify.
 
 ### Soft-enforced (reviewer / agent should verify)
 
-| Item                                   | How it stays in sync                                  |
-| -------------------------------------- | ----------------------------------------------------- |
-| `docs/README.md` index completeness    | **documentation-maintenance** when docs change        |
-| `routes-and-ui.md` prose accuracy      | Author + reviewer on route changes                    |
-| Locale key parity across languages     | **i18n-auditor** (finds) → **i18n-constants** (fixes) |
-| Whole-page a11y beyond component axe   | **a11y-auditor** sweep                                |
-| Review snapshots under `docs/reviews/` | Dated files; do not rewrite history                   |
+| Item                                   | How it stays in sync                                        |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `docs/README.md` index completeness    | **fe-documentation-maintenance** when docs change           |
+| `routes-and-ui.md` prose accuracy      | Author + reviewer on route changes                          |
+| Locale key parity across languages     | **fe-i18n-auditor** (finds) → **fe-i18n-constants** (fixes) |
+| Whole-page a11y beyond component axe   | **fe-a11y-auditor** sweep                                   |
+| Review snapshots under `docs/reviews/` | Dated files; do not rewrite history                         |
 
 ### Periodic maintenance
 
-| Cadence              | Action                                                        |
-| -------------------- | ------------------------------------------------------------- |
-| After renaming gates | Grep `docs/` + skills for old script/workflow names           |
-| Per theme-axis work  | Update visual baselines (`visual-regression` skill)           |
-| Before releases      | `/prod-readiness` pipeline (deps → bundle → perf → hardening) |
+| Cadence              | Action                                                           |
+| -------------------- | ---------------------------------------------------------------- |
+| After renaming gates | Grep `docs/` + skills for old script/workflow names              |
+| Per theme-axis work  | Update visual baselines (`fe-visual-regression` skill)           |
+| Before releases      | `/fe-prod-readiness` pipeline (deps → bundle → perf → hardening) |
 
 ---
 

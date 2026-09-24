@@ -150,8 +150,8 @@ The official **shadcn skill** is vendored at **`agent-os/skills/shadcn/`** (inst
 
 - **One skill for everything shadcn:** _how_ to add/fix/style/compose (CLI + Critical Rules in `SKILL.md` + `rules/`) **and** _where_ a block comes from (its "Project rules — core-fe" section folds in the 20 allowed sources + selection workflow). The former shadcn-component-selection skill was merged into `agent-os/skills/shadcn/` and removed.
 - **Use the project runner:** `pnpm dlx shadcn@latest <info|search|docs|view|add> …`.
-- **Always-applied policy:** `agent-os/rules/ui-sources.mdc`. **Router:** `agent-os/rules/skill-router.mdc` (rule 13).
-- **Updating:** re-running `skills add` overwrites `agent-os/skills/shadcn/`; the local "Project rules — core-fe" block at the end of its `SKILL.md` must be re-appended (the same policy is preserved in `ui-sources.mdc`, which is always applied).
+- **Always-applied policy:** `agent-os/rules/fe-ui-sources.mdc`. **Router:** `agent-os/rules/fe-skill-router.mdc` (rule 13).
+- **Updating:** re-running `skills add` overwrites `agent-os/skills/shadcn/`; the local "Project rules — core-fe" block at the end of its `SKILL.md` must be re-appended (the same policy is preserved in `fe-ui-sources.mdc`, which is always applied).
 
 ## Agent skills — frontend-design
 
@@ -159,15 +159,15 @@ Design-thinking + aesthetic-quality skill vendored at **`agent-os/skills/fronten
 
 - **Use for:** building/styling/beautifying UI — typography hierarchy, intentional color/theme, high-impact motion, spatial composition, depth, memorable details; avoid generic "AI slop".
 - **Precedence:** apply _within_ project guardrails — shadcn components (`agent-os/skills/shadcn`), neutral semantic tokens in `src/index.css` (no raw colors / no purple-on-white), configured fonts/brand, and `web-design-guidelines` for a11y. It elevates craft, it does **not** override the component library, design tokens, or brand. Standalone artifacts may get more creative latitude.
-- **Router:** `agent-os/rules/skill-router.mdc` (rule 14). **Registry:** `agent-os/skills/skill-registry/SKILL.md` (#4b).
+- **Router:** `agent-os/rules/fe-skill-router.mdc` (rule 14). **Registry:** `agent-os/skills/fe-skill-registry/SKILL.md` (#4b).
 
 ## Agent skills — find-skills
 
 Meta-skill for discovering/installing skills, vendored at **`agent-os/skills/find-skills/`** (installed via `npx skills add https://github.com/vercel-labs/skills --skill find-skills`).
 
-- **Use for:** "is there a skill for X", discovering new capabilities, or any task not covered by `skill-router.mdc` / `skill-registry`.
-- **Workflow:** check [skills.sh](https://skills.sh/) → `npx skills find <query>` → prefer reputable/high-install skills → present options → install into `agent-os/skills/` → **wire the new skill into router + registry + docs**.
-- **Router:** `agent-os/rules/skill-router.mdc` (rule 15). **Registry:** `agent-os/skills/skill-registry/SKILL.md` (#14).
+- **Use for:** "is there a skill for X", discovering new capabilities, or any task not covered by `fe-skill-router.mdc` / `fe-skill-registry`.
+- **Workflow:** check [skills.sh](https://skills.sh/) → `npx skills find <query>` → prefer reputable/high-install skills → present options → install into `agent-os/skills/` (it keeps its upstream name; its `skills-lock.json` entry exempts it from the `fe-` prefix) → **wire the new skill into router + registry + docs**.
+- **Router:** `agent-os/rules/fe-skill-router.mdc` (rule 15). **Registry:** `agent-os/skills/fe-skill-registry/SKILL.md` (#14).
 
 ### Installed skills (tracked in `skills-lock.json`)
 
@@ -186,7 +186,7 @@ Run `npx skills check` / `npx skills update` to update them; re-append the local
 
 ## Public static assets (frontend)
 
-All files in **`public/`** are served from the root of the built site. See **[public/README.md](../../public/README.md)** and **`docs/reference/pwa-manifest-and-app-icon.md`** for manifest/icon rules. Skill: **`agent-os/skills/pwa-manifest/SKILL.md`**.
+All files in **`public/`** are served from the root of the built site. See **[public/README.md](../../public/README.md)** and **`docs/reference/pwa-manifest-and-app-icon.md`** for manifest/icon rules. Skill: **`agent-os/skills/fe-pwa-manifest/SKILL.md`**.
 
 | Asset                                    | Purpose                                                                                              |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------- |

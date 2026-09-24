@@ -216,7 +216,7 @@ Each environment's deploy values live in a gitignored `.env.<environment>` at th
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | **Commit (pre-commit)** | **`.env.example` check** — schema ↔ template parity via `pnpm tool:sync-env-example`. Run: `pnpm run validate:env-example`. |
 
-When you add a new env var, follow **`agent-os/skills/env-schema-add/SKILL.md`**:
+When you add a new env var, follow **`agent-os/skills/fe-env-schema-add/SKILL.md`**:
 
 1. Add the field to **`src/core/config/env-schema.ts`**.
 2. Add it to **`.env.example`** under the correct Secrets/Variables half.

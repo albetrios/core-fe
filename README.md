@@ -286,23 +286,23 @@ This repo uses **Cursor rules** and **skills** so the AI follows project convent
 
 ### Always-on rules (no need to ask)
 
-- **project-conventions** — Architecture, imports, state (TanStack vs Zustand), file shape.
-- **file-structure** — Directory layout, `route.tsx` convention, dialog vs full page.
-- **context7-libraries** — Use Context7 MCP for up-to-date docs (e.g. shadcn, Tailwind, React).
-- **skill-router** — Routes your request to the right skill when relevant.
+- **fe-project-conventions** — Architecture, imports, state (TanStack vs Zustand), file shape.
+- **fe-file-structure** — Directory layout, `route.tsx` convention, dialog vs full page.
+- **fe-context7-libraries** — Use Context7 MCP for up-to-date docs (e.g. shadcn, Tailwind, React).
+- **fe-skill-router** — Routes your request to the right skill when relevant.
 
 ### Skills (invoked by task type)
 
-| Skill                     | When to use                               | What it does                                                                                          |
-| ------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **page-scaffolding**      | New page/route, “scaffold page”           | Creates `route.tsx`, page component, `contracts.ts`, `api.ts`, hooks, registers route, can add tests. |
-| **component-promotion**   | “Move to shared”, “make reusable”         | Moves a page component to `shared/` when used by 2+ page groups; updates imports and tests.           |
-| **react-best-practices**  | Performance, re-renders, bundle size      | Applies Vercel-style React/Next.js performance rules (waterfalls, memo, lazy, etc.).                  |
-| **web-design-guidelines** | “Review UI”, “check a11y”, “audit design” | Reviews code against accessibility, focus, forms, typography, dark mode, WCAG.                        |
-| **composition-patterns**  | “Compound component”, “too many props”    | Refactors component API (compound components, fewer booleans, state lifting).                         |
-| **code-quality-security** | Lint rules, pre-commit, CI, security      | ESLint, Husky, Gitleaks, Semgrep, CI workflows, bundle size.                                          |
-| **test-generation**       | “Add test”, “coverage”, “generate test”   | Generates/updates unit/integration tests (Vitest, RTL, vitest-axe, data-testid).                      |
-| **skill-registry**        | “Which skill?”, “list skills”             | Points you to the right skill and file locations.                                                     |
+| Skill                        | When to use                               | What it does                                                                                          |
+| ---------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **fe-page-scaffolding**      | New page/route, “scaffold page”           | Creates `route.tsx`, page component, `contracts.ts`, `api.ts`, hooks, registers route, can add tests. |
+| **fe-component-promotion**   | “Move to shared”, “make reusable”         | Moves a page component to `shared/` when used by 2+ page groups; updates imports and tests.           |
+| **react-best-practices**     | Performance, re-renders, bundle size      | Applies Vercel-style React/Next.js performance rules (waterfalls, memo, lazy, etc.).                  |
+| **web-design-guidelines**    | “Review UI”, “check a11y”, “audit design” | Reviews code against accessibility, focus, forms, typography, dark mode, WCAG.                        |
+| **composition-patterns**     | “Compound component”, “too many props”    | Refactors component API (compound components, fewer booleans, state lifting).                         |
+| **fe-code-quality-security** | Lint rules, pre-commit, CI, security      | ESLint, Husky, Gitleaks, Semgrep, CI workflows, bundle size.                                          |
+| **fe-test-generation**       | “Add test”, “coverage”, “generate test”   | Generates/updates unit/integration tests (Vitest, RTL, vitest-axe, data-testid).                      |
+| **fe-skill-registry**        | “Which skill?”, “list skills”             | Points you to the right skill and file locations.                                                     |
 
 **MCPs:** **Context7** for library docs; **shadcn** and **Tailwind** MCPs for components and styling. Mention “use context7” or the library name when you need exact API usage. **Onboarding:** set up MCP locally — [agent-os/docs/cursor-mcp-setup.md](agent-os/docs/cursor-mcp-setup.md).
 
@@ -341,7 +341,7 @@ Paste your filled requirement into the chat; the AI will parse it and implement 
 
 ### 4. Ask for the right skill when you know it
 
-- **Good:** “Use the page-scaffolding skill to add a new page `notifications` with a list and mark-as-read action.”
+- **Good:** “Use the fe-page-scaffolding skill to add a new page `notifications` with a list and mark-as-read action.”
 - **Good:** “Review `shared/components/ui/dialog.tsx` for accessibility using the web-design-guidelines skill.”
 
 ### 5. Use Context7 for library-specific work
@@ -414,7 +414,7 @@ For **larger or feature-sized requests**, use the full requirement format: **[do
 4. Add a row in `docs/reference/routes-and-ui.md`.
 5. Add permissions in `src/core/rbac/policies.ts` if needed.
 
-For a full scaffold (including tests and route registration), ask for the **page-scaffolding** skill.
+For a full scaffold (including tests and route registration), ask for the **fe-page-scaffolding** skill.
 
 ---
 
@@ -429,7 +429,7 @@ For a full scaffold (including tests and route registration), ask for the **page
 | E2E              | Playwright | `tests/e2e/*.e2e.test.ts`           | `pnpm test:e2e`      |
 | Visual           | Playwright | `visual.e2e.test.ts`                | `pnpm test:visual`   |
 
-E2E uses **hybrid selectors** (`data-testid` actions + role/label guards) — `agent-os/skills/playwright-e2e/SKILL.md`. Gates: `pnpm validate:testids`, `pnpm validate:structure`. Utilities in `tests/utils/` (`e2e-hybrid`, `axe-for-dialog`, `renderWithProviders`).
+E2E uses **hybrid selectors** (`data-testid` actions + role/label guards) — `agent-os/skills/fe-playwright-e2e/SKILL.md`. Gates: `pnpm validate:testids`, `pnpm validate:structure`. Utilities in `tests/utils/` (`e2e-hybrid`, `axe-for-dialog`, `renderWithProviders`).
 
 ---
 

@@ -89,9 +89,9 @@ for (const skill of skillDirectoryNames) {
   if (!name)
     error('skill-frontmatter', `skills/${skill}/SKILL.md missing frontmatter \`name\``);
   else if (name !== skill)
-    warn(
+    error(
       'skill-frontmatter',
-      `skills/${skill}/SKILL.md name "${name}" != directory "${skill}" (vendored skill — OK if intentional)`,
+      `skills/${skill}/SKILL.md name "${name}" != directory "${skill}" (the declared name must equal the folder, vendored skills included)`,
     );
   if (!description)
     error(
@@ -106,7 +106,7 @@ for (const skill of skillDirectoryNames) {
 }
 
 // ── Skill-registry ↔ disk: paths resolve, every skill referenced, count matches ──
-const registryFile = join(agentOsDirectory, 'skills', 'skill-registry', 'SKILL.md');
+const registryFile = join(agentOsDirectory, 'skills', 'fe-skill-registry', 'SKILL.md');
 if (existsSync(registryFile)) {
   const registryText = readText(registryFile);
   const registryPaths = new Set(
@@ -116,14 +116,14 @@ if (existsSync(registryFile)) {
   );
   for (const path of registryPaths) {
     if (!existsSync(join(repositoryRoot, path)))
-      error('skill-registry-path', `skill-registry Path \`${path}\` does not exist`);
+      error('skill-registry-path', `fe-skill-registry Path \`${path}\` does not exist`);
   }
   for (const skill of skillsWithManifest) {
     const expected = `agent-os/skills/${skill}/SKILL.md`;
     if (!registryText.includes(expected))
       error(
         'skill-registry-coverage',
-        `skill "${skill}" is not referenced in the skill-registry inventory (add an entry with its \`Path:\`)`,
+        `skill "${skill}" is not referenced in the fe-skill-registry inventory (add an entry with its \`Path:\`)`,
       );
   }
   const claimedCounts = new Set(
@@ -132,13 +132,13 @@ if (existsSync(registryFile)) {
   if (claimedCounts.size === 0)
     error(
       'skill-registry-count',
-      'skill-registry is missing a gate-able count — the "## Skill Inventory (N skills)" header',
+      'fe-skill-registry is missing a gate-able count — the "## Skill Inventory (N skills)" header',
     );
   for (const count of claimedCounts)
     if (count !== skillsWithManifest.length)
       error(
         'skill-registry-count',
-        `skill-registry states ${count} skills; ${skillsWithManifest.length} SKILL.md files exist`,
+        `fe-skill-registry states ${count} skills; ${skillsWithManifest.length} SKILL.md files exist`,
       );
 }
 
@@ -507,6 +507,43 @@ if (existsSync(commandsDirectory)) {
   }
 }
 
+// ── Repo name prefix: every agent-os item this repo owns starts with `fe-` ──
+// core-fe and core-be (`be-`) are often loaded in one session, where a shared name lets
+// one repo's skill, agent, command or rule hide the other's. Vendored skills keep their
+// upstream names: every skills-lock.json entry, plus the Vercel skills installed outside it.
+const repositoryPrefix = 'fe-';
+const vendoredSkills = new Set<string>([
+  'composition-patterns',
+  'react-best-practices',
+  'web-design-guidelines',
+]);
+if (existsSync(skillsLockFile)) {
+  try {
+    const lock = JSON.parse(readText(skillsLockFile)) as {
+      skills?: Record<string, unknown>;
+    };
+    for (const vendored of Object.keys(lock.skills ?? {})) vendoredSkills.add(vendored);
+  } catch {
+    // The skills-lock check above reports a malformed lock file.
+  }
+}
+const requirePrefix = (kind: string, name: string) => {
+  if (!name.startsWith(repositoryPrefix))
+    error(
+      'name-prefix',
+      `${kind} "${name}" must start with "${repositoryPrefix}" — rename it "${repositoryPrefix}${name}"` +
+        (kind === 'skill' ? ', or record a vendored skill in skills-lock.json' : ''),
+    );
+};
+for (const skill of skillDirectoryNames)
+  if (!vendoredSkills.has(skill)) requirePrefix('skill', skill);
+for (const file of agentFiles) requirePrefix('agent', basename(file, '.md'));
+if (existsSync(commandsDirectory))
+  for (const file of listFilesWithExtension(commandsDirectory, '.md'))
+    requirePrefix('command', basename(file, '.md'));
+for (const file of listFilesWithExtension(join(agentOsDirectory, 'rules'), '.mdc'))
+  requirePrefix('rule', basename(file, '.mdc'));
+
 // ── Plugin manifest references resolve to real paths ──
 // agent-os/.claude-plugin/plugin.json makes agent-os/ itself the installable
 // plugin root, so every component path is agent-os-relative; each must exist so
@@ -562,6 +599,7 @@ const checkLabels: Record<string, string> = {
   'agent-pipelines': 'Agent pipelines ↔ disk',
   'requirement-form': 'Requirement intake doc',
   'plugin-refs': 'Plugin manifest references',
+  'name-prefix': 'Repo name prefix (fe-)',
 };
 
 console.log('\nagent-os integrity evals (Tier 1 — core-fe)\n');

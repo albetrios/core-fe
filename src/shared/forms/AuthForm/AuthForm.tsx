@@ -289,7 +289,7 @@ export function AuthForm() {
   // click the handler is still reachable and a double-click or an impatient
   // second tap fires it again. This ref flips in the same tick, so the second
   // gesture cannot start a second oauthStart / passkey request (house rule:
-  // agent-os/rules/resilient-interactions.mdc §1). `pending` stays as the
+  // agent-os/rules/fe-resilient-interactions.mdc §1). `pending` stays as the
   // visible affordance; this is the correctness net under it.
   const methodStartedRef = useRef(false);
 

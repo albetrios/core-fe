@@ -93,7 +93,7 @@ Cross-repo auth example (unified login/signup, email + phone OTP): **[unified-au
 When you submit a requirement in this format, the AI will:
 
 1. **Parse** each section and map it to the codebase (pages, shared, core, routes, RBAC).
-2. **Invoke** the right skills (e.g. code-structure, page-scaffolding) and follow project conventions.
+2. **Invoke** the right skills (e.g. fe-code-structure, fe-page-scaffolding) and follow project conventions.
 3. **Implement** the full set: route, page, contracts, api, hooks, components/forms, **tests**, route registration, RBAC — **without asking** "Do you want tests?" or "Should I add RBAC?".
 4. **Verify** acceptance criteria against what was built (e.g. list, mark all read, empty state).
 

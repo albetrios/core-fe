@@ -9,8 +9,8 @@
 # `pnpm install --frozen-lockfile` is exactly what CI runs: it errors immediately
 # on any lockfile/config mismatch (before network work), so we run it locally.
 #
-# See agent-os/skills/before-commit-guard/SKILL.md and
-# agent-os/skills/platform-hygiene/SKILL.md.
+# See agent-os/skills/fe-before-commit-guard/SKILL.md and
+# agent-os/skills/fe-platform-hygiene/SKILL.md.
 set -e
 
 cd "$(dirname "$0")/../.."

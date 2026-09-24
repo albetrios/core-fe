@@ -18,7 +18,7 @@ export type ApiKeysListParams = OrgListKeyParams;
 
 /**
  * API keys of the active organization — windowed list query + create/rename/revoke
- * mutations. Server state only — never mirrored into Zustand (file-structure.mdc).
+ * mutations. Server state only — never mirrored into Zustand (fe-file-structure.mdc).
  */
 export function useApiKeys(params: ApiKeysListParams = {}): CursorListResult<ApiKey> {
   const orgId = useOrganizationStore((s) => s.organizationId);

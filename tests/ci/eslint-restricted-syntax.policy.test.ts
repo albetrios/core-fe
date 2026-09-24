@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 // REAL config — wiring (which files they reach) and behaviour (what they flag).
 //
 // Both were first proven with a throwaway probe file, which shows a rule fired
-// once, on the day it was written (agent-os/skills/guard-authoring: "keep the
+// once, on the day it was written (agent-os/skills/fe-guard-authoring: "keep the
 // probe — make it a test"). Flat config REPLACES a rule's options rather than
 // merging them, so the realistic way to lose either guard is a future block that
 // declares `no-restricted-syntax` again for the same files: nothing fails, the

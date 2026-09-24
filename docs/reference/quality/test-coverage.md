@@ -3,7 +3,7 @@
 How coverage is measured, gated, and ratcheted in this repo. For the **full test
 matrix** see [`docs/reference/testing.md`](../testing.md); for layout and naming
 rules see [`tests/README.md`](../../../tests/README.md) and
-[`agent-os/rules/testing-requirements.mdc`](../../../agent-os/rules/testing-requirements.mdc).
+[`agent-os/rules/fe-testing-requirements.mdc`](../../../agent-os/rules/fe-testing-requirements.mdc).
 
 ## Runners
 
@@ -65,13 +65,13 @@ Both run in `pnpm health` and PR CI (`static-sync` job).
 
 ## E2E (Playwright)
 
-Requires **core-be** on `:3000` — verified in `tests/e2e/global-setup.ts` before any spec runs. Hybrid selectors: **`agent-os/skills/playwright-e2e/SKILL.md`**, helpers in
+Requires **core-be** on `:3000` — verified in `tests/e2e/global-setup.ts` before any spec runs. Hybrid selectors: **`agent-os/skills/fe-playwright-e2e/SKILL.md`**, helpers in
 `tests/utils/e2e-hybrid.ts`. Inventory: `docs/reference/e2e-testids-inventory.md`.
 
 ## Accessibility in tests
 
 Component tests include `vitest-axe` assertions (`toHaveNoViolations()`); E2E uses
-`@axe-core/playwright`. See the [test-generation skill](../../../agent-os/skills/test-generation/SKILL.md).
+`@axe-core/playwright`. See the [fe-test-generation skill](../../../agent-os/skills/fe-test-generation/SKILL.md).
 
 ## Related
 

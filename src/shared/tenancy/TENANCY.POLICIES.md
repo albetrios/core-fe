@@ -53,4 +53,4 @@ org APIs, storage). The `core/` kernel stays app-state-free.
 **Because:** the one-way dependency rule — `core` must not depend on `shared`
 runtime; only the documented kernel exception applies.
 **Enforced by:** the import-boundary rules in `eslint.config.mjs` /
-`agent-os/rules/file-structure.mdc`.
+`agent-os/rules/fe-file-structure.mdc`.

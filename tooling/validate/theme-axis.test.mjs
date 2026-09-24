@@ -13,7 +13,7 @@ const GATE = join(ROOT, 'tooling/validate/theme-axis.sh');
  * Run the gate against a throwaway tree holding ONE app file.
  *
  * A gate that has never been watched failing is a green checkmark, not a gate
- * (agent-os/skills/guard-authoring). The fixtures that make it fail cannot live
+ * (agent-os/skills/fe-guard-authoring). The fixtures that make it fail cannot live
  * in the real `src/` — the gate would then fail for everybody — so the script
  * takes `THEME_AXIS_ROOT`. The allowlist still comes from beside the script.
  */

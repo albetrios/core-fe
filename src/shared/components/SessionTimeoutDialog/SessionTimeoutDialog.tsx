@@ -81,7 +81,7 @@ function SessionTimeoutDialogBody() {
   const idleRef = useRef<IdleTimeoutHandle | null>(null);
   const stayRef = useRef<HTMLButtonElement>(null);
   /**
-   * Synchronous single-flight latch (agent-os/rules/resilient-interactions
+   * Synchronous single-flight latch (agent-os/rules/fe-resilient-interactions.mdc
    * section 1). `phase` only disables the buttons a render later, and the
    * deadline can fire in the same frame as a press on "Sign out" — without this
    * both would start a sign-out. `logout()` is single-flight underneath too;

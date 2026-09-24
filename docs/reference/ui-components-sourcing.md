@@ -13,7 +13,7 @@
 4. [shadcnuikit.com](https://shadcnuikit.com)
 5. Official blocks on ui.shadcn.com
 
-Broader gallery: [agent-os/rules/ui-sources.mdc](../../agent-os/rules/ui-sources.mdc) (20 allowed sources).
+Broader gallery: [agent-os/rules/fe-ui-sources.mdc](../../agent-os/rules/fe-ui-sources.mdc) (20 allowed sources).
 
 ## Workflow
 

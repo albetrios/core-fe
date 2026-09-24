@@ -3,11 +3,11 @@
   "name": "core-fe",
   "owner": { "name": "core-fe" },
   "metadata": {
-    "description": "core-fe single-source agent tooling (agentforge): skills, agents, workflow commands, and the requirement to production-ready build pipeline."
+    "description": "core-fe single-source agent tooling (fe-agentforge): skills, agents, workflow commands, and the requirement to production-ready build pipeline."
   },
   "plugins": [
     {
-      "name": "agentforge",
+      "name": "fe-agentforge",
       "source": "./",
       "description": "Single-source, multi-runtime agent tooling for core-fe, driven from agent-os/."
     }

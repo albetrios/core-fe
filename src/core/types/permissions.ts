@@ -10,7 +10,7 @@ import { z } from 'zod';
  *
  * Lives in `core/types/` (not `core/rbac/`) so the `lib` layer — e.g. the
  * route-island page manifest — can reference the permission type without
- * importing the RBAC engine (see file-structure.mdc → Import Rules).
+ * importing the RBAC engine (see fe-file-structure.mdc → Import Rules).
  */
 export const organizationPermissionSchema = z.enum([
   'organization:read',

@@ -1,0 +1,113 @@
+---
+description: Core frontend project architecture, conventions, and coding standards
+globs: 
+alwaysApply: true
+---
+
+# Core Frontend — Project Conventions
+
+## Architecture
+
+This is an enterprise React 19 + TypeScript + Vite frontend with a page-first architecture:
+
+- **Core** (`src/core/`): Framework-agnostic services — HTTP, RBAC, config, data-provider, resources, security, types, version. No React components here. (Auth runtime lives in `src/shared/auth/`, tenancy in `src/shared/tenancy/`, errors in `src/shared/errors/`, and observability bootstrap in `src/app/observability/`.)
+- **Pages** (`src/pages/`): Page-first feature directories. Each directory maps to a frontend route via a `<page>.route.tsx` marker file. Pages never import from other pages.
+- **Shared** (`src/shared/`): Cross-page reusables — components (shadcn/ui primitives in `components/ui/` stay flat; everything else is folder-per-unit), forms, layouts, hooks, global Zustand stores in `store/`.
+- **Lib** (`src/lib/`): Pure utilities (cn(), animations). No side effects.
+- **App** (`src/app/`): Application shell — route tree, guards, providers, error boundaries.
+
+**Dependency rule (one-way):** `ui → lib → core → shared → pages → app`. Pages never import from other pages.
+
+## File Conventions
+
+- Use `.ts` extension for pure logic, `.tsx` for files with JSX
+- Always include `.ts`/`.tsx` extension in imports (e.g., `import { cn } from '@/lib/utils.ts'`)
+- Use the `@/` path alias for all imports from `src/`
+- **Role files** (single-per-page) are page-prefixed lowercase-dotted: `<page>.route.tsx`, `<page>.manifest.ts`, `<page>.api.ts`, `<page>.contracts.ts`, `<page>.search.ts`, `<page>.fixtures.ts`
+- **Sub-units** (components, forms, hooks, dialogs, stores) are folder-per-unit + `index.ts` barrel: `<Name>/{<Name>.tsx, <Name>.test.tsx, index.ts}`
+- **Exception:** shadcn primitives in `shared/components/ui/` stay flat
+
+## Route Marker Convention
+
+Every directory under `src/pages/` that maps to a frontend URL **must** contain a `<page>.route.tsx` file that exports `Component` (required). Optional: `ErrorBoundary` when wired in routeTree. **Do not** export `loader()` for RBAC — use `routeTree.tsx` `beforeLoad` + `gatewayFromManifest`.
+
+## TypeScript
+
+- Strict mode is ON: `strict: true`, `noUncheckedIndexedAccess: true`, `noUnusedLocals: true`
+- Use `type` imports for type-only imports: `import type { User } from './types.ts'`
+- Define all data shapes as Zod schemas in `contracts.ts`, infer TS types from them
+- Never use `any` — use `unknown` and narrow with type guards
+
+## State Management
+
+- **Server state**: TanStack Query (queries + mutations) in `pages/<page>/hooks/use<X>/` or `shared/hooks/use{List,One,...}/`. Never store API data in Zustand.
+- **Global client state**: Zustand in `src/shared/store/use<X>Store/` — all stores live here (auth, organization, theme, UI, onboarding, consent, locale). There is no `core/<feature>/store.ts` pattern.
+- **Page-local client state** (rare): Zustand in `src/pages/<page>/store/use<X>Store/`
+- **Component-local**: `useState` / `useReducer` inline; extract reducer to `<Component>.reducer.ts` only when complex
+- **Form state**: react-hook-form + Zod resolver. Never manage form state in Zustand.
+- **URL state**: TanStack Router via `<page>.search.ts` (validateSearch schema)
+- Access stores outside React via `useStore.getState()` (e.g., in the fetch client or other non-React modules)
+
+## Component Patterns
+
+- Functional components only (no class components)
+- shadcn/ui components use plain functions with `data-slot` attributes (not `React.forwardRef`; `ui/input.tsx` + `ui/textarea.tsx` are the two exceptions — they keep `forwardRef` for RHF `register()`)
+- Compose styles with `cn()` from `@/lib/utils.ts` (clsx + tailwind-merge)
+- Use `class-variance-authority` (cva) for variant-based component APIs
+- All interactive elements must have proper ARIA attributes
+- Never put API calls or business logic directly in React components
+
+## Page Directory Structure (route island)
+
+Full tree + rules: [`agent-os/rules/fe-file-structure.mdc`](fe-file-structure.mdc) (contract) and [`agent-os/skills/fe-route-island/SKILL.md`](../skills/fe-route-island/SKILL.md) (workflow). Reference: [`docs/reference/route-island-structure.md`](../../docs/reference/route-island-structure.md).
+
+```
+pages/<page>/
+├── <PAGE>.OVERVIEW.md                # required — AI/human entry doc
+├── <page>.route.tsx                  # required — lazy boundary
+├── <page>.manifest.ts                    # required — manifest (path, RBAC, testId, kind, children)
+├── <Page>Page.tsx | <Page>Layout.tsx # required — top-level UI
+├── <page>.contracts.ts               # optional — Zod schemas
+├── <page>.api.ts                     # optional — fetchers
+├── components/<Name>/                # folder-per-unit
+├── forms/<Name>Form/                 # folder-per-unit
+├── hooks/use<Name>/                  # folder-per-unit
+├── __tests__/integration/            # cross-component flows
+└── <child>/                          # nested routes — direct children (recursive)
+```
+
+## Routing
+
+- All routes are lazy loaded: `lazy: () => import('@/pages/<name>/<name>.route.tsx').then(m => ({ default: m.Component }))`
+- Route modules export `Component` (required), `ErrorBoundary` (optional, when wired in routeTree)
+- Protected routes are wrapped with guards in `routeTree.tsx` `beforeLoad`
+- RBAC enforcement: `gatewayFromManifest(manifest)` (+ org/tenancy gates per route)
+
+## HTTP / API
+
+- Use `apiClient` from `@/core/http/fetch-client.ts` (a hand-rolled `fetch` client) for all API calls (never raw fetch except auth)
+- Exception: auth service uses raw `fetch` to avoid interceptor recursion
+- The fetch client handles 401 refresh + replay (single-flight refresh + one replay) — never handle 401 in components
+- TanStack Query's retry skips 401s (handled by the fetch client)
+
+## Styling
+
+- Tailwind CSS v4 with CSS-first config in `src/index.css`
+- Design tokens are defined via `@theme` directive (OKLCH color space)
+- Dark mode via `.dark` class — managed by `useThemeStore`
+- Never use inline styles — use Tailwind utility classes
+- shadcn/ui components live in `src/shared/components/ui/`
+
+## Auth & Security
+
+- Access token stored in memory only (module closure in `shared/auth/token.ts`)
+- Refresh token is an HttpOnly cookie (set by backend)
+- Never store tokens in localStorage or sessionStorage
+- `assetsInlineLimit: 0` in Vite config for CSP compliance
+
+## Testing
+
+- E2E specs live in **`tests/`** at project root (see `tests/README.md`); unit tests are colocated in `src/`
+- Unit tests: colocated `*.test.{ts,tsx}` next to source across `pages/`, `shared/`, `core/`, `lib/`, `store/`; cross-component flows in `pages/**/__tests__/integration/`; run with Vitest
+- E2E: `tests/e2e/` — Playwright browser tests
+- Test utilities: `tests/utils/` (renderWithProviders); import as `@/tests/utils/...`

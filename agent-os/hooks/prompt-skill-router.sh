@@ -2,7 +2,7 @@
 # Claude Code UserPromptSubmit hook for core-fe.
 #
 # When a prompt describes a build/change task, inject the relevant skill chain —
-# plus the "consult skill-registry FIRST" rule — as additionalContext. This
+# plus the "consult fe-skill-registry FIRST" rule — as additionalContext. This
 # operationalizes CLAUDE.md's skill-first workflow at PROMPT time; the PostToolUse
 # skill-reminder ([`skill-reminder.sh`](skill-reminder.sh)) only fires reactively,
 # AFTER an edit. The keyword→skill map mirrors
@@ -29,35 +29,35 @@ printf '%s' "$lower" \
 HINTS=()
 
 printf '%s' "$lower" | grep -Eq '\b(page|route|screen)\b' && \
-  HINTS+=("page/route → page-scaffolding → route-island (path, manifest, RBAC permission, routeTree + docs/reference/routes-and-ui.md)")
+  HINTS+=("page/route → fe-page-scaffolding → fe-route-island (path, manifest, RBAC permission, routeTree + docs/reference/routes-and-ui.md)")
 
 printf '%s' "$lower" | grep -Eq '\b(component|widget|card|button|modal|dialog|drawer|sheet|table|menu|dropdown)\b' && \
-  HINTS+=("component/UI → shadcn (pick + add) → frontend-design → composition-patterns → test-generation")
+  HINTS+=("component/UI → shadcn (pick + add) → frontend-design → composition-patterns → fe-test-generation")
 
 printf '%s' "$lower" | grep -Eq '\b(form|input|field|validation)\b' && \
-  HINTS+=("form → composition-patterns (react-hook-form + Zod) → test-generation")
+  HINTS+=("form → composition-patterns (react-hook-form + Zod) → fe-test-generation")
 
 printf '%s' "$lower" | grep -Eq '\b(hook|query|mutation|fetch|api|endpoint)\b' && \
   HINTS+=("data/hook → react-best-practices (TanStack Query owns server state; contracts.ts Zod schemas)")
 
 printf '%s' "$lower" | grep -Eq '\b(style|styles|styling|theme|tokens|tailwind|css|design|beautify|premium)\b' && \
-  HINTS+=("styling/theme → frontend-design (semantic tokens only — pnpm validate:tokens; ui-sources rule)")
+  HINTS+=("styling/theme → frontend-design (semantic tokens only — pnpm validate:tokens; fe-ui-sources rule)")
 
 printf '%s' "$lower" | grep -Eq '\b(test|tests|e2e|playwright|spec|coverage)\b' && \
-  HINTS+=("tests → test-generation → e2e-testids")
+  HINTS+=("tests → fe-test-generation → fe-e2e-testids")
 
 printf '%s' "$lower" | grep -Eq '\b(icon|icons)\b' && \
-  HINTS+=("icons → import from @/shared/icons (ui-sources rule), never lucide-react directly")
+  HINTS+=("icons → import from @/shared/icons (fe-ui-sources rule), never lucide-react directly")
 
 printf '%s' "$lower" | grep -Eq '\b(accessib|a11y|aria|keyboard|screen reader)\b' && \
   HINTS+=("a11y/UX → web-design-guidelines / ui-ux-pro-max")
 
 printf '%s' "$lower" | grep -Eq 'env var|environment variable|\.env\b' && \
-  HINTS+=("env var → documentation-maintenance (VITE_ = public; secrets via environment, .env.example template)")
+  HINTS+=("env var → fe-documentation-maintenance (VITE_ = public; secrets via environment, .env.example template)")
 
 [[ "${#HINTS[@]}" -eq 0 ]] && exit 0
 
-context="🧭 core-fe skill routing — consult agent-os/skills/skill-registry/SKILL.md FIRST, then run:"
+context="🧭 core-fe skill routing — consult agent-os/skills/fe-skill-registry/SKILL.md FIRST, then run:"
 for h in "${HINTS[@]}"; do
   context="${context}"$'\n'"  • ${h}"
 done

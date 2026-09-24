@@ -430,7 +430,7 @@ let logoutPromise: Promise<void> | null = null;
  * it too. A second call would POST `/auth/logout` again — the first has already
  * cleared the access token by then, so it goes out unauthenticated against a
  * backend that treats refresh-session reuse as an attack. One gesture, one
- * revoke (agent-os/rules/resilient-interactions section 1).
+ * revoke (agent-os/rules/fe-resilient-interactions.mdc section 1).
  */
 export async function logout(
   opts: { reason?: Exclude<SessionEndReason, 'force_logout' | 'cross_tab'> } = {},

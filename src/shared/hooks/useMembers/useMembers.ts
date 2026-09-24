@@ -22,7 +22,7 @@ export type MembersListParams = OrgListKeyParams;
 
 /**
  * Members of the active organization — windowed list query + role/status/removal
- * mutations. Server state only — never mirrored into Zustand (file-structure.mdc).
+ * mutations. Server state only — never mirrored into Zustand (fe-file-structure.mdc).
  * The list is cursor-paginated server-side (search `q`, sort, + `Load more`);
  * mutations patch every cached page optimistically via `optimisticInfinite`.
  */

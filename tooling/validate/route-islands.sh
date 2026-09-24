@@ -5,7 +5,7 @@
 #   2. Every path-like backtick reference in an island <PAGE>.OVERVIEW.md resolves on
 #      disk — overview files are the entry docs AI agents read first; a stale
 #      reference misleads them more than a missing one.
-# Contract: agent-os/rules/file-structure.mdc
+# Contract: agent-os/rules/fe-file-structure.mdc
 # Run from project root: pnpm run validate:structure
 
 cd "$(dirname "$0")/../.."
@@ -93,7 +93,7 @@ done
 # + index.ts). Documented flat exceptions: shared/components/ui (shadcn) and
 # the SettingsModal panel groups (cohesive flat groups).
 for f in $(find src/shared/components src/shared/hooks src/shared/forms -maxdepth 1 -type f \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null | sort); do
-  fail "$f: flat unit file — folder-per-unit required (file-structure.mdc)"
+  fail "$f: flat unit file — folder-per-unit required (fe-file-structure.mdc)"
 done
 
 # ── 4. Unit folders expose an index.ts barrel ──
@@ -108,7 +108,7 @@ done
 
 # ── 5. Strict test colocation: every unit folder ships a test ──
 # Components, forms, hooks, dialogs, and stores are folder-per-unit; the unit
-# is incomplete without its colocated *.test.* (file-structure.mdc).
+# is incomplete without its colocated *.test.* (fe-file-structure.mdc).
 for unit in $(find src/pages src/shared -type d 2>/dev/null | sort); do
   case "$(basename "$(dirname "$unit")")" in
     components|forms|hooks|dialogs|store) : ;;
@@ -140,6 +140,6 @@ if [ "$FAIL" -eq 0 ]; then
   echo "Route-island structure OK ($ISLANDS islands, all overview references resolve)"
   exit 0
 else
-  echo "$FAIL structure violation(s) across $ISLANDS islands. Contract: agent-os/rules/file-structure.mdc"
+  echo "$FAIL structure violation(s) across $ISLANDS islands. Contract: agent-os/rules/fe-file-structure.mdc"
   exit 1
 fi

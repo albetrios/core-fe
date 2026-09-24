@@ -30,7 +30,7 @@ obtain a real access token, then redirects to `/`.
 
 ## Resilience
 
-Two standing rules from `agent-os/rules/resilient-interactions.mdc` apply here, and
+Two standing rules from `agent-os/rules/fe-resilient-interactions.mdc` apply here, and
 both are covered by regression tests that fail if the guard is removed:
 
 - **Single-flight (rule 1).** The MFA session token is **single use**, so a duplicate

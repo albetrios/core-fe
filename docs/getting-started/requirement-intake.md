@@ -6,11 +6,11 @@ Use this when submitting a new requirement so the AI can implement it fully with
 flowchart LR
   A[Copy template] --> B[Fill What, Where, Acceptance criteria]
   B --> C[Paste in chat or ticket]
-  C --> D[AI: auto-implement]
-  D --> E[code-structure]
-  E --> F[page-scaffolding]
-  F --> G[test-generation]
-  G --> H[lint-guard]
+  C --> D[AI: fe-auto-implement]
+  D --> E[fe-code-structure]
+  E --> F[fe-page-scaffolding]
+  F --> G[fe-test-generation]
+  G --> H[fe-lint-guard]
   H --> I[Done: route, tests, RBAC]
 ```
 
@@ -50,11 +50,11 @@ Always include **Acceptance criteria** as a checklist so the implementation can 
 
 When you submit a requirement in this format, the AI will:
 
-1. **auto-implement** — Master pipeline: parse → implement → route → RBAC → test → lint → docs → verify.
-2. **code-structure** — Place code in the right layers (pages, shared, core) and follow dependency rules.
-3. **page-scaffolding** (if new page) — Create route.tsx, page component, contracts.ts, api.ts, hooks/, register route, data-testid.
-4. **test-generation** — Add or update colocated tests (Vitest, RTL, vitest-axe).
-5. **lint-guard** — Fix ESLint and TypeScript errors before finishing.
+1. **fe-auto-implement** — Master pipeline: parse → implement → route → RBAC → test → lint → docs → verify.
+2. **fe-code-structure** — Place code in the right layers (pages, shared, core) and follow dependency rules.
+3. **fe-page-scaffolding** (if new page) — Create route.tsx, page component, contracts.ts, api.ts, hooks/, register route, data-testid.
+4. **fe-test-generation** — Add or update colocated tests (Vitest, RTL, vitest-axe).
+5. **fe-lint-guard** — Fix ESLint and TypeScript errors before finishing.
 
 No need to ask "add tests?" or "register route?" — the skills do that by default.
 
@@ -62,10 +62,10 @@ No need to ask "add tests?" or "register route?" — the skills do that by defau
 
 ## Rules that apply
 
-- **file-structure** — Route marker (`route.tsx`), page directory shape, dialog vs full page.
-- **project-conventions** — Architecture, imports, state (TanStack vs Zustand), file conventions.
-- **testing-requirements** — Colocated tests, data-testid, coverage; see `agent-os/rules/testing-requirements.mdc`.
-- **skill-router** — Which skill runs for which task; see `agent-os/rules/skill-router.mdc`.
+- **fe-file-structure** — Route marker (`route.tsx`), page directory shape, dialog vs full page.
+- **fe-project-conventions** — Architecture, imports, state (TanStack vs Zustand), file conventions.
+- **fe-testing-requirements** — Colocated tests, data-testid, coverage; see `agent-os/rules/fe-testing-requirements.mdc`.
+- **fe-skill-router** — Which skill runs for which task; see `agent-os/rules/fe-skill-router.mdc`.
 
 ---
 

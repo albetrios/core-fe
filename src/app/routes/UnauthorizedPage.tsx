@@ -12,7 +12,7 @@ export function Component() {
   const [signingOut, setSigningOut] = useState(false);
   // `logout()` is single-flight underneath, but the button still owes the user
   // an answer: without this it looks inert on a slow revoke and invites the
-  // second click (agent-os/rules/resilient-interactions section 1).
+  // second click (agent-os/rules/fe-resilient-interactions.mdc section 1).
   const signOutRef = useRef(false);
 
   const handleSignOut = () => {

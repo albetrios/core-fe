@@ -1,5 +1,5 @@
 ---
-name: vercel-react-best-practices
+name: react-best-practices
 description: React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.
 license: MIT
 metadata:
@@ -20,7 +20,7 @@ Reference these guidelines when:
 - Reviewing code for performance issues
 - Refactoring React code or optimizing bundle size
 
-**This repo (core-fe):** Prioritize `async-*`, `bundle-*`, `client-*`, and `rerender-*` rules. The `server-*` category targets Next.js server rendering and does not apply here — use lazy routes (`route.tsx` + `routeTree.tsx`) and TanStack Query instead (see `agent-os/rules/component-patterns.mdc`).
+**This repo (core-fe):** Prioritize `async-*`, `bundle-*`, `client-*`, and `rerender-*` rules. The `server-*` category targets Next.js server rendering and does not apply here — use lazy routes (`route.tsx` + `routeTree.tsx`) and TanStack Query instead (see `agent-os/rules/fe-component-patterns.mdc`).
 
 ## Rule Categories by Priority
 

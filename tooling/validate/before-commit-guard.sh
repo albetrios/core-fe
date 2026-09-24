@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # Before-commit guard — runs on every git commit via .husky/pre-commit.
 # Ensures path-to-production gates pass: env docs, public assets, format, lint, types.
-# See agent-os/skills/before-commit-guard/SKILL.md for full documentation.
+# See agent-os/skills/fe-before-commit-guard/SKILL.md for full documentation.
 set -e
 
 cd "$(dirname "$0")/../.."

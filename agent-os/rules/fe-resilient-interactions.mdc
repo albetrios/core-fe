@@ -1,0 +1,48 @@
+---
+description: Thirty-one standing UI-resilience rules, one line each: writes are single-flight, a component crash stays contained, a success message never outruns the work, no flow is derived from state that has not loaded, and every data surface renders all of its states. Applies to every mutating control, every composed surface, every success toast, and every screen whose shape comes from a query. The worked reasoning, the failure each rule came from and the code that holds are in the fe-resilient-interactions SKILL.
+alwaysApply: true
+---
+
+# Resilient Interactions
+
+Thirty-one failure modes that cost real money, a whole screen, or the user's
+trust. Each has a house answer; use it rather than re-solving per feature.
+
+**These are the rules. The reasoning is not here on purpose** — this file loads
+into every session, so the failure stories, the wrong fixes and the code
+examples live in `agent-os/skills/fe-resilient-interactions/SKILL.md`. Read that
+skill before arguing with a rule or applying an unfamiliar one.
+
+Section numbers are cited from code (`§1`, `§6` today). **Never renumber.**
+
+1. Writes are single-flight — never trust `disabled` alone
+2. A component crash stays inside that component
+3. A success message never outruns the work
+4. Never derive a flow from state that has not loaded
+5. Local optimistic state gets rolled back too
+6. A failed follow-up step never routes the user backwards
+7. A repeatable confirmation replaces itself
+8. Every query renders all three of its states
+9. A `catch` wraps only the step whose failure it describes
+10. A deferred action owns its optimism, its messages and its timer
+11. A param change dims the list; it never blanks it
+12. A failed fetch is loud unless silence was chosen on purpose
+13. An async helper returns its promise
+14. A form pre-fills once, not on every refetch
+15. A live control is a promise to act
+16. A screen's SHAPE waits for the query; it does not guess
+17. A countdown is a deadline, and it owns exactly one timer
+18. A list under a search dims; it never disappears
+19. Four states, and the same three components every time
+20. Every write goes through `useAppMutation` — including the generic ones
+21. A disabled query is not a loading one
+22. Keep ready shells visible; skeletons match only unavailable dynamic content; coordinate translation readiness across startup and navigation, release failed-switch waiters, and recheck the committed locale for late namespaces
+23. A cold entry is never a blank page
+24. A listener does not outlive the thing that installed it
+25. Per-row state belongs to the row
+26. A form dialog holds every exit, and keeps its own failure
+27. A gate on startup has a deadline
+28. User-facing copy lives in the locale files — error screens included
+29. A global listener never answers the prompt it raised
+30. A hint warms; it never decides — and work that needs no answer starts before the answer
+31. A fallback that gets written down waits for every answer — "not known yet" is never persisted as "no"
