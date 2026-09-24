@@ -164,7 +164,7 @@ sequence on one toast id, and takes the confirmation copy as `committedMessage`)
 nothing is awaited, the toast reports success before the request lands, and a rejection
 can never reach the rollback.
 
-## Current inventory (snapshot — 2026-09-02)
+## Current inventory (snapshot — 2026-09-24)
 
 **Optimistic** (instant, auto-rollback) — all safe removals + field-patches:
 
@@ -173,6 +173,7 @@ can never reach the rollback.
 | Roles         | `useUpdateRole`, `useDeleteRole`                                  | `optimisticInfinite`             |
 | API keys      | `useRenameApiKey`, `useRevokeApiKey`                              | `optimisticInfinite`             |
 | Members       | `useUpdateMemberRole`, `useUpdateMemberStatus`, `useRemoveMember` | `optimisticInfinite`             |
+| Invitations   | `useRevokeInvitation` (patches the members list)                  | `optimisticInfinite`             |
 | Sessions      | `useRevokeSession`                                                | `optimistic`                     |
 | Passkeys      | `useRemovePasskey`                                                | `optimistic`                     |
 | Webhooks      | `useDeleteWebhook`                                                | `optimistic`                     |
@@ -182,21 +183,27 @@ The cursor-paginated panels (members, roles, API keys) are `optimisticInfinite`;
 single-key lists are `optimistic`. `useMarkNotificationRead` is the one write that does
 **not** go through `useAppMutation` — it patches and rolls back the list and the unread
 count by hand, so it has none of the shared toast, single-flight or rollback machinery
-described above. `useRemoveMember` and `useDeleteRole` are additionally scheduled behind
-the undo toast by their panels (see above), which is why both take a
+described above. `useRemoveMember`, `useRevokeInvitation` and `useDeleteRole` are additionally scheduled
+behind the undo toast by their panels (see above), which is why all three take a
 `suppressSuccessToast` option.
 
 **Non-optimistic** (must show in-progress) — creates + shapes we can't safely patch:
 
 - **Creates:** `useInviteMember`, `useCreateRole`, `useCreateApiKey`, `useCreateWebhook`, `useRegisterPasskey`
-- `useMarkAllNotificationsRead`, `useUpdateNotificationPreferences`, `useUpdateOrganization`, billing/MFA
+- `useResendInvitation` (core-be sets the new expiry), `useMarkAllNotificationsRead`, `useUpdateNotificationPreferences`, `useUpdateOrganization`, billing/MFA
 
-> **Invitations are memberships, not a separate resource.** core-be has no
-> standalone `/invitations` endpoint, so `useInviteMember` (a create — hence
-> non-optimistic) is the _only_ invitation-specific hook. Revoking an invite
-> removes the still-`invited` membership through `useRemoveMember` (Members row
-> above); there is no separate revoke or resend hook. See the docstring on
-> [`useInviteMember`](../../src/shared/hooks/useInvitations/useInvitations.ts).
+> **Invitations ride on memberships.** core-be has no invitation list: an invite is
+> created as an `INVITED` membership (`POST .../memberships`), so `useInviteMember` (a
+> create — hence non-optimistic) refreshes the members list, and each invited row
+> carries its live invitation (`invitation: { id, expires_at }`). Resend and cancel act
+> on that id: `useResendInvitation` (`POST .../invitations/:id/resend`) and
+> `useRevokeInvitation` (`DELETE .../invitations/:id`, which revokes the invitation
+> **and** removes the invited membership). Cancel no longer goes through
+> `useRemoveMember` — deleting the membership alone left the invitation unrevoked, so
+> the invitee's link answered "not found" instead of "revoked". `useRemoveMember` stays
+> the fallback for a caller holding `membership:manage` but not `invitation:manage`. See
+> the docstrings in
+> [`useInvitations.ts`](../../src/shared/hooks/useInvitations/useInvitations.ts).
 >
 > The inventory drifts as hooks are added — the **policy** above is the durable
 > contract. When adding or changing a mutation, classify it and update this table.

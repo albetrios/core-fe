@@ -147,7 +147,16 @@
       "emailPlaceholder": "member@example.com",
       "rolePlaceholder": "اختر دورًا",
       "invite": "دعوة عضو",
-      "memberFallback": "هذا العضو"
+      "memberFallback": "هذا العضو",
+      "resendInvite": "إعادة إرسال الدعوة",
+      "cancelInvite": "إلغاء الدعوة",
+      "inviteExpires": "تنتهي صلاحية الدعوة في {{date}}",
+      "inviteExpired": "انتهت صلاحية الدعوة",
+      "cancelInviteTitle": "إلغاء الدعوة المرسلة إلى {{email}}؟",
+      "cancelInviteDescription": "سيتوقف الرابط الموجود في بريدهم الإلكتروني عن العمل. يمكنك التراجع لبضع ثوانٍ بعد التأكيد، أو دعوتهم مرة أخرى لاحقًا.",
+      "cancelInviteConfirm": "إلغاء الدعوة",
+      "cancelInviteKeep": "الإبقاء على الدعوة",
+      "cancelInvitePending": "جارٍ إلغاء الدعوة المرسلة إلى {{email}}…"
     },
     "roles": {
       "title": "الأدوار",

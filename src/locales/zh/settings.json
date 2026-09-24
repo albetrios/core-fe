@@ -138,7 +138,16 @@
       "emailPlaceholder": "tongshi@gongsi.com",
       "rolePlaceholder": "选择角色",
       "invite": "邀请成员",
-      "memberFallback": "该成员"
+      "memberFallback": "该成员",
+      "resendInvite": "重新发送邀请",
+      "cancelInvite": "取消邀请",
+      "inviteExpires": "邀请将于 {{date}} 过期",
+      "inviteExpired": "邀请已过期",
+      "cancelInviteTitle": "取消发送给 {{email}} 的邀请？",
+      "cancelInviteDescription": "邮件中的链接将失效。确认后几秒内可撤销，也可以稍后重新邀请。",
+      "cancelInviteConfirm": "取消邀请",
+      "cancelInviteKeep": "保留邀请",
+      "cancelInvitePending": "正在取消发送给 {{email}} 的邀请…"
     },
     "roles": {
       "title": "角色",

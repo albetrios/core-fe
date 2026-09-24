@@ -166,7 +166,9 @@
       },
       "invitations": {
         "sendFailed": "无法发送邀请",
-        "sendSuccess": "邀请已发送至 {{email}}"
+        "sendSuccess": "邀请已发送至 {{email}}",
+        "resendSuccess": "邀请已重新发送至 {{email}}",
+        "cancelSuccess": "邀请已取消"
       }
     },
     "profileUpdated": "个人资料已更新"

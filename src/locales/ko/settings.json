@@ -138,7 +138,16 @@
       "emailPlaceholder": "member@example.com",
       "rolePlaceholder": "역할 선택",
       "invite": "멤버 초대",
-      "memberFallback": "이 멤버"
+      "memberFallback": "이 멤버",
+      "resendInvite": "초대 다시 보내기",
+      "cancelInvite": "초대 취소",
+      "inviteExpires": "초대 만료일: {{date}}",
+      "inviteExpired": "초대가 만료됨",
+      "cancelInviteTitle": "{{email}}(으)로 보낸 초대를 취소하시겠습니까?",
+      "cancelInviteDescription": "이메일의 링크가 더 이상 작동하지 않습니다. 확인 후 몇 초 동안 취소할 수 있으며, 나중에 다시 초대할 수도 있습니다.",
+      "cancelInviteConfirm": "초대 취소",
+      "cancelInviteKeep": "초대 유지",
+      "cancelInvitePending": "{{email}}(으)로 보낸 초대 취소 중…"
     },
     "roles": {
       "title": "역할",

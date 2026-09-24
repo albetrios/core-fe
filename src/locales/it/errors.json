@@ -166,7 +166,9 @@
       },
       "invitations": {
         "sendFailed": "Impossibile inviare l'invito",
-        "sendSuccess": "Invito inviato a {{email}}"
+        "sendSuccess": "Invito inviato a {{email}}",
+        "resendSuccess": "Invito inviato di nuovo a {{email}}",
+        "cancelSuccess": "Invito annullato"
       }
     },
     "profileUpdated": "Profilo aggiornato"

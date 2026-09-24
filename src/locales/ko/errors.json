@@ -166,7 +166,9 @@
       },
       "invitations": {
         "sendFailed": "초대를 보낼 수 없습니다",
-        "sendSuccess": "{{email}}(으)로 초대를 보냄"
+        "sendSuccess": "{{email}}(으)로 초대를 보냄",
+        "resendSuccess": "{{email}}(으)로 초대를 다시 보냄",
+        "cancelSuccess": "초대가 취소됨"
       }
     },
     "profileUpdated": "프로필이 업데이트됨"

@@ -138,7 +138,16 @@
       "emailPlaceholder": "member@example.com",
       "rolePlaceholder": "ロールを選択",
       "invite": "メンバーを招待",
-      "memberFallback": "このメンバー"
+      "memberFallback": "このメンバー",
+      "resendInvite": "招待を再送信",
+      "cancelInvite": "招待を取り消す",
+      "inviteExpires": "招待の有効期限: {{date}}",
+      "inviteExpired": "招待の有効期限が切れています",
+      "cancelInviteTitle": "{{email}} への招待を取り消しますか？",
+      "cancelInviteDescription": "メールのリンクは使えなくなります。確認後数秒間は元に戻せます。後から再度招待することもできます。",
+      "cancelInviteConfirm": "招待を取り消す",
+      "cancelInviteKeep": "招待を残す",
+      "cancelInvitePending": "{{email}} への招待を取り消し中…"
     },
     "roles": {
       "title": "ロール",

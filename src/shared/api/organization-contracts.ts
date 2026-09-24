@@ -32,6 +32,18 @@ export type Member = {
   joinedAt: string;
   avatarUrl?: string;
   lastActiveAt?: string;
+  /**
+   * The live invitation behind an `invited` row: its id (for resend / cancel) and
+   * when its link expires. `null` for everyone who has joined.
+   */
+  invitation: MemberInvitation | null;
+};
+
+/** A pending invitation as the members list reports it. */
+export type MemberInvitation = {
+  id: string;
+  /** ISO-8601. Past this, core-be refuses to resend it; cancel and invite again. */
+  expiresAt: string;
 };
 
 // `InvitationStatus` still backs the accept-invite status badge

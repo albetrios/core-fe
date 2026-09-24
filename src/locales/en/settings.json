@@ -139,7 +139,16 @@
       "emailPlaceholder": "teammate@company.com",
       "rolePlaceholder": "Select a role",
       "invite": "Invite member",
-      "memberFallback": "this member"
+      "memberFallback": "this member",
+      "resendInvite": "Resend invitation",
+      "cancelInvite": "Cancel invitation",
+      "inviteExpires": "Invitation expires {{date}}",
+      "inviteExpired": "Invitation expired",
+      "cancelInviteTitle": "Cancel the invitation to {{email}}?",
+      "cancelInviteDescription": "The link in their email will stop working. You can undo for a few seconds after confirming, or invite them again later.",
+      "cancelInviteConfirm": "Cancel invitation",
+      "cancelInviteKeep": "Keep invitation",
+      "cancelInvitePending": "Cancelling the invitation to {{email}}…"
     },
     "roles": {
       "title": "Roles",

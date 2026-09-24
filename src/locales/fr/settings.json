@@ -141,7 +141,16 @@
       "emailPlaceholder": "collegue@entreprise.com",
       "rolePlaceholder": "Sélectionnez un rôle",
       "invite": "Inviter un membre",
-      "memberFallback": "ce membre"
+      "memberFallback": "ce membre",
+      "resendInvite": "Renvoyer l'invitation",
+      "cancelInvite": "Annuler l'invitation",
+      "inviteExpires": "L'invitation expire le {{date}}",
+      "inviteExpired": "Invitation expirée",
+      "cancelInviteTitle": "Annuler l'invitation envoyée à {{email}} ?",
+      "cancelInviteDescription": "Le lien reçu par e-mail ne fonctionnera plus. Vous pourrez annuler pendant quelques secondes après confirmation, ou renvoyer une invitation plus tard.",
+      "cancelInviteConfirm": "Annuler l'invitation",
+      "cancelInviteKeep": "Conserver l'invitation",
+      "cancelInvitePending": "Annulation de l'invitation envoyée à {{email}}…"
     },
     "roles": {
       "title": "Rôles",

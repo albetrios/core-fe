@@ -166,7 +166,9 @@
       },
       "invitations": {
         "sendFailed": "निमंत्रण नहीं भेजा जा सका",
-        "sendSuccess": "{{email}} को निमंत्रण भेजा गया"
+        "sendSuccess": "{{email}} को निमंत्रण भेजा गया",
+        "resendSuccess": "{{email}} को निमंत्रण फिर से भेजा गया",
+        "cancelSuccess": "निमंत्रण रद्द किया गया"
       }
     },
     "profileUpdated": "प्रोफ़ाइल अपडेट की गई"

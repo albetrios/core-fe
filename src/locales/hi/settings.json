@@ -139,7 +139,16 @@
       "emailPlaceholder": "member@example.com",
       "rolePlaceholder": "एक भूमिका चुनें",
       "invite": "सदस्य आमंत्रित करें",
-      "memberFallback": "इस सदस्य"
+      "memberFallback": "इस सदस्य",
+      "resendInvite": "निमंत्रण फिर से भेजें",
+      "cancelInvite": "निमंत्रण रद्द करें",
+      "inviteExpires": "निमंत्रण {{date}} को समाप्त होगा",
+      "inviteExpired": "निमंत्रण की अवधि समाप्त हो गई",
+      "cancelInviteTitle": "{{email}} को भेजा गया निमंत्रण रद्द करें?",
+      "cancelInviteDescription": "उनके ईमेल का लिंक काम करना बंद कर देगा। पुष्टि के बाद कुछ सेकंड के लिए पूर्ववत कर सकते हैं, या बाद में उन्हें फिर से आमंत्रित कर सकते हैं।",
+      "cancelInviteConfirm": "निमंत्रण रद्द करें",
+      "cancelInviteKeep": "निमंत्रण रखें",
+      "cancelInvitePending": "{{email}} को भेजा गया निमंत्रण रद्द किया जा रहा है…"
     },
     "roles": {
       "title": "भूमिकाएँ",
