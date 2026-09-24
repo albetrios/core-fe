@@ -449,6 +449,32 @@ describe('fetch-client', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
+    it('a dropped connection on a GET is retried after the backoff, then succeeds', async () => {
+      vi.useFakeTimers();
+      try {
+        fetchMock
+          .mockRejectedValueOnce(new TypeError('network'))
+          .mockResolvedValueOnce(ok());
+        const request = apiClient.get<{ ok: boolean }>('/x');
+        await vi.advanceTimersByTimeAsync(999);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        const { data } = await request;
+        expect(data).toEqual({ ok: true });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('a dropped connection on a POST is not retried, and surfaces as status 0', async () => {
+      fetchMock.mockRejectedValueOnce(new TypeError('network'));
+      const failure = await apiClient.post('/x', {}).catch((error: unknown) => error);
+      expect(failure).toBeInstanceOf(HttpError);
+      expect((failure as HttpError).status).toBe(0);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
     it('a timeout (AbortError) is not retried (3.3)', async () => {
       const abort = Object.assign(new Error('timeout'), { name: 'AbortError' });
       fetchMock.mockRejectedValueOnce(abort);
