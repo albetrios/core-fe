@@ -1,5 +1,60 @@
 # Changelog
 
+## [1.10.0](https://github.com/albetrios/core-fe/compare/v1.9.2...v1.10.0) (2026-09-24)
+
+
+### Added
+
+* **auth:** let the login buttons be pressed, and put the captcha where the click was ([#326](https://github.com/albetrios/core-fe/issues/326)) ([dc28b1b](https://github.com/albetrios/core-fe/commit/dc28b1b33be65fad856c441e6ea619600e661c07))
+* **members:** resend and cancel pending invitations from Settings → Members ([#352](https://github.com/albetrios/core-fe/issues/352)) ([26478cc](https://github.com/albetrios/core-fe/commit/26478cc408ab70a9c399ed25dcd14052bc92bec3))
+* **settings:** let a user set and clear their own avatar ([#331](https://github.com/albetrios/core-fe/issues/331)) ([a67558e](https://github.com/albetrios/core-fe/commit/a67558edc1127398ac06746547acfe6b6a9c6f54))
+* **tenancy:** read the organization list from its own endpoint ([#332](https://github.com/albetrios/core-fe/issues/332)) ([a604823](https://github.com/albetrios/core-fe/commit/a6048239060236d1fa2dc40fcd1d2029954674fc))
+
+
+### Fixed
+
+* **auth:** cancel a pending shake frame when the form unmounts ([#343](https://github.com/albetrios/core-fe/issues/343)) ([a3825e2](https://github.com/albetrios/core-fe/commit/a3825e29fb4656e3800cf86c51938878975bbbde))
+* **auth:** leave no sign-in entries behind the landing page ([#339](https://github.com/albetrios/core-fe/issues/339)) ([7df4213](https://github.com/albetrios/core-fe/commit/7df421353c00f18644a4b8e673086509dc08824a))
+* **docs:** correct route and helper names the code no longer uses ([#335](https://github.com/albetrios/core-fe/issues/335)) ([e936903](https://github.com/albetrios/core-fe/commit/e9369036c65f80cdf635526a66fdff0600fd3294))
+* **http:** wait out a 5xx's Retry-After before retrying it ([#351](https://github.com/albetrios/core-fe/issues/351)) ([3b49022](https://github.com/albetrios/core-fe/commit/3b490221a2a0450cc1c0a3be2618594f0f3aa04f))
+* **settings:** gate each control on the permission the API actually enforces ([#327](https://github.com/albetrios/core-fe/issues/327)) ([efc0c78](https://github.com/albetrios/core-fe/commit/efc0c785681c44e80c3697e4798189a8b5e5cd19))
+* **settings:** make signing out another session actually work ([#337](https://github.com/albetrios/core-fe/issues/337)) ([c020f57](https://github.com/albetrios/core-fe/commit/c020f577fce9c033d197ddf2953d14b0fc8c9b51))
+* **settings:** move Integrations under Account ([#338](https://github.com/albetrios/core-fe/issues/338)) ([c472af1](https://github.com/albetrios/core-fe/commit/c472af1973a8e82ef644d639c539c5483880033f))
+* **settings:** unblank billing, and stop the loading state lying twice ([#336](https://github.com/albetrios/core-fe/issues/336)) ([e26fc35](https://github.com/albetrios/core-fe/commit/e26fc35a18f839f39e74432da28a970f8477433b))
+* **tenancy:** serve the organization list from one cache ([#348](https://github.com/albetrios/core-fe/issues/348)) ([aff4be5](https://github.com/albetrios/core-fe/commit/aff4be54eda1f5b0d8bc0e81f64a3d1f1b9cc504))
+
+
+### Performance
+
+* **auth:** warm the signed-in chunks while the user reads their inbox ([#329](https://github.com/albetrios/core-fe/issues/329)) ([2558c4e](https://github.com/albetrios/core-fe/commit/2558c4e422658db67b0cff6a3e89ffa8647eab52))
+* **mfa:** let the React Compiler optimize MfaForm ([#349](https://github.com/albetrios/core-fe/issues/349)) ([09e663d](https://github.com/albetrios/core-fe/commit/09e663dfe583dfb13019a5b0283ca4c5ef04ba4c))
+* **notifications:** stop polling an inbox nobody has open ([#333](https://github.com/albetrios/core-fe/issues/333)) ([76ae1b8](https://github.com/albetrios/core-fe/commit/76ae1b82334e67ee09515d39c510821f6f3f485c))
+* **tenancy:** send the organization list alongside me/context ([#350](https://github.com/albetrios/core-fe/issues/350)) ([c9cde93](https://github.com/albetrios/core-fe/commit/c9cde93fe96e841e331cf687834bdff11925436c))
+* trim the entry chunk and pin production builds ([#347](https://github.com/albetrios/core-fe/issues/347)) ([83bd759](https://github.com/albetrios/core-fe/commit/83bd7594a611279d271cd337e83114dc750777c0))
+
+
+### Changed
+
+* **appearance:** split AppearancePanel into one component per card ([#362](https://github.com/albetrios/core-fe/issues/362)) ([75a217b](https://github.com/albetrios/core-fe/commit/75a217b939630495ec77b978551be34bf0a0ae57))
+* **auth:** split AuthEmailPanel into its shake hook, email step and verify footer ([#360](https://github.com/albetrios/core-fe/issues/360)) ([6e055a9](https://github.com/albetrios/core-fe/commit/6e055a999dc4a5a69ec7c486276d643312dd2daa))
+* **auth:** split AuthForm's redirect watchdog and method sections out ([#359](https://github.com/albetrios/core-fe/issues/359)) ([4e1fc81](https://github.com/albetrios/core-fe/commit/4e1fc81125332e69793b992830d2cc07f9806068))
+* **http:** move the fetch client's connection-error retry out of run ([#354](https://github.com/albetrios/core-fe/issues/354)) ([eef7adc](https://github.com/albetrios/core-fe/commit/eef7adcae5d68929b584273b1136236e8132fd8c))
+* **loading:** one skeleton per wait, and no copy that churns ([#334](https://github.com/albetrios/core-fe/issues/334)) ([5d7e1a4](https://github.com/albetrios/core-fe/commit/5d7e1a44ae4a624583b79812db5bbadede582cb0))
+* **members:** move the members panel's list area into MembersList ([#357](https://github.com/albetrios/core-fe/issues/357)) ([f4013b6](https://github.com/albetrios/core-fe/commit/f4013b600a3c49486a686cd3b5fd6c99caccc2a7))
+* **members:** remove the orphaned shared MembersTable ([#342](https://github.com/albetrios/core-fe/issues/342)) ([f75b1ec](https://github.com/albetrios/core-fe/commit/f75b1ecfad24958e6e8bf42a2d1a03b4de64ae81))
+* **notifications:** split NotificationCenter into its inbox, row and badge ([#355](https://github.com/albetrios/core-fe/issues/355)) ([3b7a0a0](https://github.com/albetrios/core-fe/commit/3b7a0a0993be71905ffad9a4605e299ed89e8d73))
+* **onboarding:** split OnboardingPage into its card, hand-off and stale-org hooks ([#361](https://github.com/albetrios/core-fe/issues/361)) ([7efd1c8](https://github.com/albetrios/core-fe/commit/7efd1c8c868a76f1c7f9dba88223bf3b0f7469c3))
+* **settings:** split SettingsModalBody into its section hook, discard guard and pieces ([#358](https://github.com/albetrios/core-fe/issues/358)) ([8b9fbca](https://github.com/albetrios/core-fe/commit/8b9fbcad4d9e0427e2404e8c6ec983dfbbf4c828))
+* **tenancy:** split OrganizationSwitcher into its option, sections and trigger styling ([#356](https://github.com/albetrios/core-fe/issues/356)) ([8d1d513](https://github.com/albetrios/core-fe/commit/8d1d51306d2ad834d7f99fae57f01f0638ad1767))
+* **ui:** replace hand-placed spinners with one Spinner ([#341](https://github.com/albetrios/core-fe/issues/341)) ([5086bea](https://github.com/albetrios/core-fe/commit/5086beab4493ec83a366cebe7c93aac7b7cfe1d6))
+
+
+### Documentation
+
+* add the 2026-09-24 production readiness review ([#365](https://github.com/albetrios/core-fe/issues/365)) ([6776760](https://github.com/albetrios/core-fe/commit/67767609adb7efeeaafdada58e0883c70d0ea554))
+* drop the API host that never existed from the README ([#364](https://github.com/albetrios/core-fe/issues/364)) ([eaa585e](https://github.com/albetrios/core-fe/commit/eaa585e7ca18dd3e1801a497843cc0ee33d57d68))
+* **principles:** reuse before you create, and fix the existing one in the same PR ([#340](https://github.com/albetrios/core-fe/issues/340)) ([0d68b3c](https://github.com/albetrios/core-fe/commit/0d68b3c2f947d52582d3ade60591744c6a18b491))
+
 ## [1.9.2](https://github.com/albetrios/core-fe/compare/v1.9.1...v1.9.2) (2026-09-22)
 
 
