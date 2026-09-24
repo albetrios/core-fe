@@ -314,7 +314,10 @@ function FieldLabel({ children }: { children: string }) {
   return <p className="text-sm font-medium">{children}</p>;
 }
 
-/** A small per-section shuffle button (re-rolls just one card's axes). */
+/**
+ * A small per-section shuffle button (re-rolls just one card's axes). The global
+ * Shuffle in the dialog header rolls everything, incl. the orthogonal base/menu/icons.
+ */
 function SectionShuffle({
   onClick,
   label,
@@ -344,68 +347,23 @@ function SectionShuffle({
 }
 
 /**
- * Appearance controls — a shadcn-create-style theme studio: light/dark/system
- * mode plus per-axis pickers (colour, fonts, radius, density, motion, …), each
- * section re-rollable via its own shuffle. Rendered inside the dedicated
- * AppearanceDialog, persisted via {@link useThemeStore}. The GLOBAL shuffle lives
- * in the dialog header. When `platformConfig.themeLock` is set the controls are hidden.
+ * The current look for the per-axis pickers: the ids `lookFields` derives, and
+ * the fully-defaulted look — the current value for every other axis.
  */
-export function AppearancePanel() {
+function useCurrentLook() {
+  const customTheme = useThemeStore((s) => s.customTheme);
+  return { ...lookFields(customTheme), look: normalizeLook(customTheme) };
+}
+
+/** The named presets, and the shareable theme code: copy a link to it, or apply a pasted one. */
+function ThemeCard() {
   const { t: tCommon } = useTranslation(LOCALE_NS);
   const { t: tAppearance } = useTranslation(APPEARANCE_NS);
-  const { t } = useTranslation(ERRORS_NS);
-  const theme = useThemeStore((s) => s.theme);
-  const setTheme = useThemeStore((s) => s.setTheme);
   const preset = useThemeStore((s) => s.preset);
   const setPreset = useThemeStore((s) => s.setPreset);
-  const customTheme = useThemeStore((s) => s.customTheme);
-  const baseId = useThemeStore((s) => s.baseId);
-  const menu = useThemeStore((s) => s.menu);
-  const iconWeight = useThemeStore((s) => s.iconWeight);
-  const iconColor = useThemeStore((s) => s.iconColor);
-  const iconLibrary = useThemeStore((s) => s.iconLibrary);
-  const updateLook = useThemeStore((s) => s.updateLook);
-  const setBaseColor = useThemeStore((s) => s.setBaseColor);
-  const setMenu = useThemeStore((s) => s.setMenu);
-  const setIconWeight = useThemeStore((s) => s.setIconWeight);
-  const setIconColor = useThemeStore((s) => s.setIconColor);
-  const setIconLibrary = useThemeStore((s) => s.setIconLibrary);
-  const toastVariant = useThemeStore((s) => s.toastVariant);
-  const setToastVariant = useThemeStore((s) => s.setToastVariant);
-  const toastPosition = useThemeStore((s) => s.toastPosition);
-  const setToastPosition = useThemeStore((s) => s.setToastPosition);
-  const layoutWidth = useThemeStore((s) => s.layoutWidth);
-  const setLayoutWidth = useThemeStore((s) => s.setLayoutWidth);
-  const dashboardVariant = useThemeStore((s) => s.dashboardVariant);
-  const setDashboardVariant = useThemeStore((s) => s.setDashboardVariant);
   const seed = useThemeStore((s) => s.seed);
   const applyThemeSeed = useThemeStore((s) => s.applyThemeSeed);
   const [seedInput, setSeedInput] = useState('');
-
-  // Per-section shuffle — re-roll just one card's axes. (The global Shuffle in the
-  // dialog header rolls everything, incl. the orthogonal base/menu/icons.)
-  const shuffleColour = () => updateLook(rollColour());
-  const shuffleTypography = () => updateLook(rollTypography());
-  const shuffleSurface = () => updateLook(rollSurface());
-  const shuffleDashboard = () =>
-    setDashboardVariant(nextDashboardVariant(dashboardVariant));
-  const shuffleNotifications = () => {
-    const next = nextToastVariant(toastVariant);
-    setToastVariant(next);
-    const name = TOAST_VARIANTS[next] ?? 'tint';
-    notify.success(
-      i18n.t(ERRORS_KEYS.frontend.account.notificationStylePreview, { ns: ERRORS_NS }),
-      {
-        description: i18n.t(
-          ERRORS_KEYS.frontend.account.notificationStylePreviewDescription,
-          {
-            ns: ERRORS_NS,
-            variant: `${name.charAt(0).toUpperCase() + name.slice(1)}`,
-          },
-        ),
-      },
-    );
-  };
 
   // Copy a shareable link that reproduces the current look (?theme=<seed>).
   const handleCopyLink = () => {
@@ -432,6 +390,680 @@ export function AppearancePanel() {
     setSeedInput('');
   };
 
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.themeTitle)}
+        </CardTitle>
+        <CardDescription>{tAppearance(APPEARANCE_KEYS.themeDescription)}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Choices
+          ariaLabel={tAppearance(APPEARANCE_KEYS.presetAria)}
+          value={preset === GENERATED_PRESET ? '__none__' : preset}
+          options={THEME_PRESETS}
+          onPick={setPreset}
+          testPrefix="named-preset"
+        />
+        <Separator />
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              disabled={seed == null}
+              data-testid="theme-copy-link"
+            >
+              {tAppearance(APPEARANCE_KEYS.copyLink)}
+            </Button>
+            {seed == null ? (
+              <span className="text-muted-foreground text-sm">
+                {tAppearance(APPEARANCE_KEYS.shuffleHint)}
+              </span>
+            ) : (
+              <span className="text-muted-foreground text-sm" data-testid="theme-seed">
+                {tAppearance(APPEARANCE_KEYS.codeLabel, { seed })}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              inputMode="numeric"
+              value={seedInput}
+              onChange={(e) => setSeedInput(e.target.value)}
+              placeholder={tAppearance(APPEARANCE_KEYS.codePlaceholder)}
+              aria-label={tCommon(LOCALE_KEYS.themeCode)}
+              data-testid="theme-seed-input"
+              className="w-44"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleApplySeed}
+              data-testid="theme-seed-apply"
+            >
+              {tAppearance(APPEARANCE_KEYS.apply)}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Light, dark, or follow the OS. */
+function ModeCard() {
+  const { t: tCommon } = useTranslation(LOCALE_NS);
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.modeTitle)}
+        </CardTitle>
+        <CardDescription>{tAppearance(APPEARANCE_KEYS.modeDescription)}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div
+          className="grid gap-3 sm:grid-cols-3"
+          role="radiogroup"
+          aria-label={tCommon(LOCALE_KEYS.mode)}
+        >
+          {THEMES.map((t) => {
+            const active = theme === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                data-slot="button"
+                aria-checked={active}
+                onClick={() => setTheme(t.id)}
+                data-testid={`theme-${t.id}`}
+                className={cn(
+                  appearanceModeCardClassName,
+                  active ? appearanceTileActiveClassName : appearanceTileIdleClassName,
+                )}
+              >
+                <div className="flex w-full items-center justify-between">
+                  <t.icon className="text-muted-foreground size-5" aria-hidden />
+                  {active && <Check className="text-primary size-4" aria-hidden />}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{t.label}</p>
+                  <p className="text-muted-foreground text-xs">{t.description}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The accent and chart colours, the base colour, the harmony rule and the accent intensity. */
+function ColourCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const baseId = useThemeStore((s) => s.baseId);
+  const updateLook = useThemeStore((s) => s.updateLook);
+  const setBaseColor = useThemeStore((s) => s.setBaseColor);
+  const { accentId, chartId, look } = useCurrentLook();
+  const accentChroma = ACCENT_INTENSITIES[look.intensityId]?.chroma ?? 0.16;
+  const accentHex = oklchToHex(0.58, accentChroma, look.hue);
+  const chartHex = oklchToHex(0.64, 0.17, look.chartHue);
+  const shuffleColour = () => updateLook(rollColour());
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.colourTitle)}
+        </CardTitle>
+        <CardDescription>
+          {tAppearance(APPEARANCE_KEYS.colourDescription)}
+        </CardDescription>
+        <CardAction>
+          <SectionShuffle
+            onClick={shuffleColour}
+            label={tAppearance(APPEARANCE_KEYS.sectionColour)}
+            testId="shuffle-colour"
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.accentColour)}</FieldLabel>
+          <ColourField
+            ariaLabel={tAppearance(APPEARANCE_KEYS.accentColour)}
+            selectedId={accentId}
+            currentHex={accentHex}
+            onPickHue={(hue) => updateLook({ hue })}
+            testPrefix="accent"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.chartColour)}</FieldLabel>
+          <ColourField
+            ariaLabel={tAppearance(APPEARANCE_KEYS.chartColour)}
+            selectedId={chartId}
+            currentHex={chartHex}
+            onPickHue={(hue) => updateLook({ chartHue: hue })}
+            testPrefix="chart"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.baseColour)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.baseColour)}
+            value={baseId}
+            options={BASE_COLORS}
+            onPick={setBaseColor}
+            testPrefix="base"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.harmony)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.harmonyAria)}
+            value={look.harmonyId}
+            options={HARMONY_OPTIONS}
+            onPick={(value) => updateLook({ harmonyId: value })}
+            testPrefix="harmony"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.accentIntensity)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.accentIntensity)}
+            value={look.intensityId}
+            options={INTENSITY_OPTIONS}
+            onPick={(value) => updateLook({ intensityId: value })}
+            testPrefix="intensity"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The body and heading fonts, radius, shape language, type scale and menu style. */
+function TypographyCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const menu = useThemeStore((s) => s.menu);
+  const updateLook = useThemeStore((s) => s.updateLook);
+  const setMenu = useThemeStore((s) => s.setMenu);
+  const { bodyFontId, headingFontId, radiusId, look } = useCurrentLook();
+  const shuffleTypography = () => updateLook(rollTypography());
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.typeTitle)}
+        </CardTitle>
+        <CardDescription>{tAppearance(APPEARANCE_KEYS.typeDescription)}</CardDescription>
+        <CardAction>
+          <SectionShuffle
+            onClick={shuffleTypography}
+            label={tAppearance(APPEARANCE_KEYS.sectionType)}
+            testId="shuffle-type"
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FontSelect
+            id="font-body"
+            label={tAppearance(APPEARANCE_KEYS.bodyFont)}
+            value={bodyFontId}
+            onChange={(value) => updateLook({ bodyFontId: value })}
+          />
+          <FontSelect
+            id="font-heading"
+            label={tAppearance(APPEARANCE_KEYS.headingFont)}
+            value={headingFontId}
+            onChange={(value) => updateLook({ headingFontId: value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.radius)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.radius)}
+            value={radiusId}
+            options={RADIUS_OPTIONS}
+            onPick={(value) => updateLook({ radiusId: value })}
+            testPrefix="radius"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.shapeLanguage)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.shapeLanguage)}
+            value={look.shapeId}
+            options={SHAPE_LANGUAGES}
+            onPick={(value) => updateLook({ shapeId: value })}
+            testPrefix="shape"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.typeScale)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.typeScale)}
+            value={look.typeScaleId}
+            options={TYPE_SCALE_OPTIONS}
+            onPick={(value) => updateLook({ typeScaleId: value })}
+            testPrefix="typescale"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.menu)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.menuAria)}
+            value={menu}
+            options={MENU_STYLES}
+            onPick={setMenu}
+            testPrefix="menu"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Icon weight, colour and library, over a live preview. */
+function IconsCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const iconWeight = useThemeStore((s) => s.iconWeight);
+  const iconColor = useThemeStore((s) => s.iconColor);
+  const iconLibrary = useThemeStore((s) => s.iconLibrary);
+  const setIconWeight = useThemeStore((s) => s.setIconWeight);
+  const setIconColor = useThemeStore((s) => s.setIconColor);
+  const setIconLibrary = useThemeStore((s) => s.setIconLibrary);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.iconsTitle)}
+        </CardTitle>
+        <CardDescription>{tAppearance(APPEARANCE_KEYS.iconsDescription)}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <div className={appearancePreviewWellClassName} aria-hidden>
+          <Sparkles className="size-6" data-testid="icon-preview-star" />
+          <Sun className="size-6" data-testid="icon-preview-sun" />
+          <Moon className="size-6" data-testid="icon-preview-moon" />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.iconWeight)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.iconWeight)}
+            value={iconWeight}
+            options={ICON_WEIGHTS}
+            onPick={setIconWeight}
+            testPrefix="icon"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.iconColour)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.iconColour)}
+            value={iconColor}
+            options={ICON_COLORS}
+            onPick={setIconColor}
+            testPrefix="iconcolor"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.iconLibrary)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.iconLibrary)}
+            value={iconLibrary}
+            options={ICON_LIBRARIES}
+            onPick={setIconLibrary}
+            testPrefix="iconlib"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The content width — shown only when the deployment does not force one. */
+function LayoutWidthCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const layoutWidth = useThemeStore((s) => s.layoutWidth);
+  const setLayoutWidth = useThemeStore((s) => s.setLayoutWidth);
+  return (
+    <Card data-testid="layout-width-card">
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.layoutTitle)}
+        </CardTitle>
+        <CardDescription>
+          {tAppearance(APPEARANCE_KEYS.layoutDescription)}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <FieldLabel>{tAppearance(APPEARANCE_KEYS.contentWidth)}</FieldLabel>
+        <Choices
+          ariaLabel={tAppearance(APPEARANCE_KEYS.contentWidth)}
+          value={layoutWidth}
+          options={LAYOUT_WIDTHS.map(({ id, label }) => ({ id, label }))}
+          onPick={(value) => setLayoutWidth(value as typeof layoutWidth)}
+          testPrefix="layout-width"
+        />
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          {LAYOUT_WIDTHS.find((option) => option.id === layoutWidth)?.description}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The dashboard's arrangement. */
+function DashboardVariantCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const dashboardVariant = useThemeStore((s) => s.dashboardVariant);
+  const setDashboardVariant = useThemeStore((s) => s.setDashboardVariant);
+  const shuffleDashboard = () =>
+    setDashboardVariant(nextDashboardVariant(dashboardVariant));
+  return (
+    <Card data-testid="dashboard-variant-card">
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.dashboardTitle)}
+        </CardTitle>
+        <CardDescription>
+          {tAppearance(APPEARANCE_KEYS.dashboardDescription)}
+        </CardDescription>
+        <CardAction>
+          <SectionShuffle
+            onClick={shuffleDashboard}
+            label={tAppearance(APPEARANCE_KEYS.sectionDashboard)}
+            testId="shuffle-dashboard"
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <FieldLabel>{tAppearance(APPEARANCE_KEYS.dashboardArrangement)}</FieldLabel>
+        <Choices
+          ariaLabel={tAppearance(APPEARANCE_KEYS.dashboardArrangement)}
+          value={
+            (
+              DASHBOARD_VARIANTS_CATALOG[dashboardVariant] ??
+              DASHBOARD_VARIANTS_CATALOG[0]
+            ).id
+          }
+          options={DASHBOARD_VARIANTS_CATALOG.map(({ id, label }) => ({ id, label }))}
+          onPick={(value) =>
+            setDashboardVariant(
+              Math.max(
+                0,
+                DASHBOARD_VARIANTS_CATALOG.findIndex((option) => option.id === value),
+              ),
+            )
+          }
+          testPrefix="dashboard-variant"
+        />
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          {
+            (
+              DASHBOARD_VARIANTS_CATALOG[dashboardVariant] ??
+              DASHBOARD_VARIANTS_CATALOG[0]
+            ).description
+          }
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Density, contrast, elevation, separation, motion and the focus ring. */
+function SurfaceCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const updateLook = useThemeStore((s) => s.updateLook);
+  const { look } = useCurrentLook();
+  const shuffleSurface = () => updateLook(rollSurface());
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.surfaceTitle)}
+        </CardTitle>
+        <CardDescription>
+          {tAppearance(APPEARANCE_KEYS.surfaceDescription)}
+        </CardDescription>
+        <CardAction>
+          <SectionShuffle
+            onClick={shuffleSurface}
+            label={tAppearance(APPEARANCE_KEYS.sectionSurface)}
+            testId="shuffle-surface"
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.density)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.density)}
+            value={look.densityId}
+            options={DENSITY_OPTIONS}
+            onPick={(value) => updateLook({ densityId: value })}
+            testPrefix="density"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.contrast)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.contrast)}
+            value={look.contrastId}
+            options={CONTRAST_MODES}
+            onPick={(value) => updateLook({ contrastId: value })}
+            testPrefix="contrast"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.elevation)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.elevation)}
+            value={look.elevationId}
+            options={ELEVATION_LEVELS}
+            onPick={(value) => updateLook({ elevationId: value })}
+            testPrefix="elevation"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.separation)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.separationAria)}
+            value={look.separationId}
+            options={SEPARATION_STRATEGIES}
+            onPick={(value) => updateLook({ separationId: value })}
+            testPrefix="separation"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.motion)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.motion)}
+            value={look.motionId}
+            options={MOTION_OPTIONS}
+            onPick={(value) => updateLook({ motionId: value })}
+            testPrefix="motion"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.focusRing)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.focusRing)}
+            value={look.focusId}
+            options={FOCUS_RINGS}
+            onPick={(value) => updateLook({ focusId: value })}
+            testPrefix="focus"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The toast design and position, with a preview button for each kind. */
+function NotificationsCard() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const { t } = useTranslation(ERRORS_NS);
+  const toastVariant = useThemeStore((s) => s.toastVariant);
+  const setToastVariant = useThemeStore((s) => s.setToastVariant);
+  const toastPosition = useThemeStore((s) => s.toastPosition);
+  const setToastPosition = useThemeStore((s) => s.setToastPosition);
+  const shuffleNotifications = () => {
+    const next = nextToastVariant(toastVariant);
+    setToastVariant(next);
+    const name = TOAST_VARIANTS[next] ?? 'tint';
+    notify.success(
+      i18n.t(ERRORS_KEYS.frontend.account.notificationStylePreview, { ns: ERRORS_NS }),
+      {
+        description: i18n.t(
+          ERRORS_KEYS.frontend.account.notificationStylePreviewDescription,
+          {
+            ns: ERRORS_NS,
+            variant: `${name.charAt(0).toUpperCase() + name.slice(1)}`,
+          },
+        ),
+      },
+    );
+  };
+
+  return (
+    <Card data-testid="toast-preview-card">
+      <CardHeader>
+        <CardTitle className="text-base">
+          {tAppearance(APPEARANCE_KEYS.notificationsTitle)}
+        </CardTitle>
+        <CardDescription>
+          {tAppearance(APPEARANCE_KEYS.notificationsDescription)}
+        </CardDescription>
+        <CardAction>
+          <SectionShuffle
+            onClick={shuffleNotifications}
+            label={tAppearance(APPEARANCE_KEYS.sectionNotifications)}
+            testId="shuffle-notifications"
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.toastDesign)}</FieldLabel>
+          <ToastVariantSwatches activeIndex={toastVariant} onPick={setToastVariant} />
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.toastDesign)}
+            value={TOAST_VARIANTS[toastVariant] ?? TOAST_VARIANTS[0]}
+            options={TOAST_VARIANT_OPTIONS}
+            onPick={(id) => setToastVariant(TOAST_VARIANTS.indexOf(id as ToastVariant))}
+            testPrefix="toast"
+          />
+        </div>
+        <div className="space-y-2">
+          <FieldLabel>{tAppearance(APPEARANCE_KEYS.position)}</FieldLabel>
+          <Choices
+            ariaLabel={tAppearance(APPEARANCE_KEYS.positionAria)}
+            value={toastPosition as ToastPosition}
+            options={TOAST_POSITION_OPTIONS}
+            onPick={setToastPosition}
+            testPrefix="toastpos"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              notify.success(t(ERRORS_KEYS.toast.preview.successTitle), {
+                description: t(ERRORS_KEYS.toast.preview.successDescription),
+              })
+            }
+            data-testid="toast-preview-success"
+          >
+            {tAppearance(APPEARANCE_KEYS.previewSuccess)}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              notify.error(t(ERRORS_KEYS.toast.preview.errorTitle), {
+                description: t(ERRORS_KEYS.toast.preview.errorDescription),
+              })
+            }
+            data-testid="toast-preview-error"
+          >
+            {tAppearance(APPEARANCE_KEYS.previewError)}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              notify.warning(t(ERRORS_KEYS.toast.preview.warningTitle), {
+                description: t(ERRORS_KEYS.toast.preview.warningDescription),
+              })
+            }
+            data-testid="toast-preview-warning"
+          >
+            {tAppearance(APPEARANCE_KEYS.previewWarning)}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              notify.info(t(ERRORS_KEYS.toast.preview.infoTitle), {
+                description: t(ERRORS_KEYS.toast.preview.infoDescription),
+              })
+            }
+            data-testid="toast-preview-info"
+          >
+            {tAppearance(APPEARANCE_KEYS.previewInfo)}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** "Custom" under the cards while a generated look is applied, naming it when it can. */
+function CustomLookNote() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+  const preset = useThemeStore((s) => s.preset);
+  const { customLook } = useCurrentLook();
+  return preset === GENERATED_PRESET ? (
+    <div
+      className="text-muted-foreground mt-2 inline-flex items-center gap-1.5 text-sm"
+      data-testid="preset-custom"
+    >
+      <Check className="text-primary size-4" aria-hidden />
+      {customLook
+        ? tAppearance(APPEARANCE_KEYS.customWith, { look: customLook })
+        : tAppearance(APPEARANCE_KEYS.custom)}
+    </div>
+  ) : null;
+}
+
+/**
+ * Appearance controls — a shadcn-create-style theme studio: light/dark/system
+ * mode plus per-axis pickers (colour, fonts, radius, density, motion, …), each
+ * section re-rollable via its own shuffle. Rendered inside the dedicated
+ * AppearanceDialog, persisted via {@link useThemeStore}. The GLOBAL shuffle lives
+ * in the dialog header. When `platformConfig.themeLock` is set the controls are hidden.
+ */
+export function AppearancePanel() {
+  const { t: tAppearance } = useTranslation(APPEARANCE_NS);
+
   if (platformConfig.themeLock) {
     return (
       <div className="flex flex-col gap-4" data-testid="appearance-panel">
@@ -452,582 +1084,22 @@ export function AppearancePanel() {
     );
   }
 
-  const { accentId, chartId, bodyFontId, headingFontId, radiusId, customLook } =
-    lookFields(customTheme);
-  // Fully-defaulted look → current value for every per-axis picker below.
-  const look = normalizeLook(customTheme);
-  const accentChroma = ACCENT_INTENSITIES[look.intensityId]?.chroma ?? 0.16;
-  const accentHex = oklchToHex(0.58, accentChroma, look.hue);
-  const chartHex = oklchToHex(0.64, 0.17, look.chartHue);
-
   return (
     <div className="flex flex-col gap-4" data-testid="appearance-panel">
       <LanguagePrefsCard />
       <DateTimePrefsCard />
       <MoneyPrefsCard />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.themeTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.themeDescription)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Choices
-            ariaLabel={tAppearance(APPEARANCE_KEYS.presetAria)}
-            value={preset === GENERATED_PRESET ? '__none__' : preset}
-            options={THEME_PRESETS}
-            onPick={setPreset}
-            testPrefix="named-preset"
-          />
-          <Separator />
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCopyLink}
-                disabled={seed == null}
-                data-testid="theme-copy-link"
-              >
-                {tAppearance(APPEARANCE_KEYS.copyLink)}
-              </Button>
-              {seed == null ? (
-                <span className="text-muted-foreground text-sm">
-                  {tAppearance(APPEARANCE_KEYS.shuffleHint)}
-                </span>
-              ) : (
-                <span className="text-muted-foreground text-sm" data-testid="theme-seed">
-                  {tAppearance(APPEARANCE_KEYS.codeLabel, { seed })}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                inputMode="numeric"
-                value={seedInput}
-                onChange={(e) => setSeedInput(e.target.value)}
-                placeholder={tAppearance(APPEARANCE_KEYS.codePlaceholder)}
-                aria-label={tCommon(LOCALE_KEYS.themeCode)}
-                data-testid="theme-seed-input"
-                className="w-44"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleApplySeed}
-                data-testid="theme-seed-apply"
-              >
-                {tAppearance(APPEARANCE_KEYS.apply)}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.modeTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.modeDescription)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div
-            className="grid gap-3 sm:grid-cols-3"
-            role="radiogroup"
-            aria-label={tCommon(LOCALE_KEYS.mode)}
-          >
-            {THEMES.map((t) => {
-              const active = theme === t.id;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="radio"
-                  data-slot="button"
-                  aria-checked={active}
-                  onClick={() => setTheme(t.id)}
-                  data-testid={`theme-${t.id}`}
-                  className={cn(
-                    appearanceModeCardClassName,
-                    active ? appearanceTileActiveClassName : appearanceTileIdleClassName,
-                  )}
-                >
-                  <div className="flex w-full items-center justify-between">
-                    <t.icon className="text-muted-foreground size-5" aria-hidden />
-                    {active && <Check className="text-primary size-4" aria-hidden />}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{t.label}</p>
-                    <p className="text-muted-foreground text-xs">{t.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.colourTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.colourDescription)}
-          </CardDescription>
-          <CardAction>
-            <SectionShuffle
-              onClick={shuffleColour}
-              label={tAppearance(APPEARANCE_KEYS.sectionColour)}
-              testId="shuffle-colour"
-            />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.accentColour)}</FieldLabel>
-            <ColourField
-              ariaLabel={tAppearance(APPEARANCE_KEYS.accentColour)}
-              selectedId={accentId}
-              currentHex={accentHex}
-              onPickHue={(hue) => updateLook({ hue })}
-              testPrefix="accent"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.chartColour)}</FieldLabel>
-            <ColourField
-              ariaLabel={tAppearance(APPEARANCE_KEYS.chartColour)}
-              selectedId={chartId}
-              currentHex={chartHex}
-              onPickHue={(hue) => updateLook({ chartHue: hue })}
-              testPrefix="chart"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.baseColour)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.baseColour)}
-              value={baseId}
-              options={BASE_COLORS}
-              onPick={setBaseColor}
-              testPrefix="base"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.harmony)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.harmonyAria)}
-              value={look.harmonyId}
-              options={HARMONY_OPTIONS}
-              onPick={(value) => updateLook({ harmonyId: value })}
-              testPrefix="harmony"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.accentIntensity)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.accentIntensity)}
-              value={look.intensityId}
-              options={INTENSITY_OPTIONS}
-              onPick={(value) => updateLook({ intensityId: value })}
-              testPrefix="intensity"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.typeTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.typeDescription)}
-          </CardDescription>
-          <CardAction>
-            <SectionShuffle
-              onClick={shuffleTypography}
-              label={tAppearance(APPEARANCE_KEYS.sectionType)}
-              testId="shuffle-type"
-            />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FontSelect
-              id="font-body"
-              label={tAppearance(APPEARANCE_KEYS.bodyFont)}
-              value={bodyFontId}
-              onChange={(value) => updateLook({ bodyFontId: value })}
-            />
-            <FontSelect
-              id="font-heading"
-              label={tAppearance(APPEARANCE_KEYS.headingFont)}
-              value={headingFontId}
-              onChange={(value) => updateLook({ headingFontId: value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.radius)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.radius)}
-              value={radiusId}
-              options={RADIUS_OPTIONS}
-              onPick={(value) => updateLook({ radiusId: value })}
-              testPrefix="radius"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.shapeLanguage)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.shapeLanguage)}
-              value={look.shapeId}
-              options={SHAPE_LANGUAGES}
-              onPick={(value) => updateLook({ shapeId: value })}
-              testPrefix="shape"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.typeScale)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.typeScale)}
-              value={look.typeScaleId}
-              options={TYPE_SCALE_OPTIONS}
-              onPick={(value) => updateLook({ typeScaleId: value })}
-              testPrefix="typescale"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.menu)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.menuAria)}
-              value={menu}
-              options={MENU_STYLES}
-              onPick={setMenu}
-              testPrefix="menu"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.iconsTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.iconsDescription)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-5">
-          <div className={appearancePreviewWellClassName} aria-hidden>
-            <Sparkles className="size-6" data-testid="icon-preview-star" />
-            <Sun className="size-6" data-testid="icon-preview-sun" />
-            <Moon className="size-6" data-testid="icon-preview-moon" />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.iconWeight)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.iconWeight)}
-              value={iconWeight}
-              options={ICON_WEIGHTS}
-              onPick={setIconWeight}
-              testPrefix="icon"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.iconColour)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.iconColour)}
-              value={iconColor}
-              options={ICON_COLORS}
-              onPick={setIconColor}
-              testPrefix="iconcolor"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.iconLibrary)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.iconLibrary)}
-              value={iconLibrary}
-              options={ICON_LIBRARIES}
-              onPick={setIconLibrary}
-              testPrefix="iconlib"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {platformConfig.layoutWidthForced === null ? (
-        <Card data-testid="layout-width-card">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {tAppearance(APPEARANCE_KEYS.layoutTitle)}
-            </CardTitle>
-            <CardDescription>
-              {tAppearance(APPEARANCE_KEYS.layoutDescription)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.contentWidth)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.contentWidth)}
-              value={layoutWidth}
-              options={LAYOUT_WIDTHS.map(({ id, label }) => ({ id, label }))}
-              onPick={(value) => setLayoutWidth(value as typeof layoutWidth)}
-              testPrefix="layout-width"
-            />
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              {LAYOUT_WIDTHS.find((option) => option.id === layoutWidth)?.description}
-            </p>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card data-testid="dashboard-variant-card">
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.dashboardTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.dashboardDescription)}
-          </CardDescription>
-          <CardAction>
-            <SectionShuffle
-              onClick={shuffleDashboard}
-              label={tAppearance(APPEARANCE_KEYS.sectionDashboard)}
-              testId="shuffle-dashboard"
-            />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <FieldLabel>{tAppearance(APPEARANCE_KEYS.dashboardArrangement)}</FieldLabel>
-          <Choices
-            ariaLabel={tAppearance(APPEARANCE_KEYS.dashboardArrangement)}
-            value={
-              (
-                DASHBOARD_VARIANTS_CATALOG[dashboardVariant] ??
-                DASHBOARD_VARIANTS_CATALOG[0]
-              ).id
-            }
-            options={DASHBOARD_VARIANTS_CATALOG.map(({ id, label }) => ({ id, label }))}
-            onPick={(value) =>
-              setDashboardVariant(
-                Math.max(
-                  0,
-                  DASHBOARD_VARIANTS_CATALOG.findIndex((option) => option.id === value),
-                ),
-              )
-            }
-            testPrefix="dashboard-variant"
-          />
-          <p className="text-muted-foreground text-xs leading-relaxed">
-            {
-              (
-                DASHBOARD_VARIANTS_CATALOG[dashboardVariant] ??
-                DASHBOARD_VARIANTS_CATALOG[0]
-              ).description
-            }
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.surfaceTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.surfaceDescription)}
-          </CardDescription>
-          <CardAction>
-            <SectionShuffle
-              onClick={shuffleSurface}
-              label={tAppearance(APPEARANCE_KEYS.sectionSurface)}
-              testId="shuffle-surface"
-            />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.density)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.density)}
-              value={look.densityId}
-              options={DENSITY_OPTIONS}
-              onPick={(value) => updateLook({ densityId: value })}
-              testPrefix="density"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.contrast)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.contrast)}
-              value={look.contrastId}
-              options={CONTRAST_MODES}
-              onPick={(value) => updateLook({ contrastId: value })}
-              testPrefix="contrast"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.elevation)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.elevation)}
-              value={look.elevationId}
-              options={ELEVATION_LEVELS}
-              onPick={(value) => updateLook({ elevationId: value })}
-              testPrefix="elevation"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.separation)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.separationAria)}
-              value={look.separationId}
-              options={SEPARATION_STRATEGIES}
-              onPick={(value) => updateLook({ separationId: value })}
-              testPrefix="separation"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.motion)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.motion)}
-              value={look.motionId}
-              options={MOTION_OPTIONS}
-              onPick={(value) => updateLook({ motionId: value })}
-              testPrefix="motion"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.focusRing)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.focusRing)}
-              value={look.focusId}
-              options={FOCUS_RINGS}
-              onPick={(value) => updateLook({ focusId: value })}
-              testPrefix="focus"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card data-testid="toast-preview-card">
-        <CardHeader>
-          <CardTitle className="text-base">
-            {tAppearance(APPEARANCE_KEYS.notificationsTitle)}
-          </CardTitle>
-          <CardDescription>
-            {tAppearance(APPEARANCE_KEYS.notificationsDescription)}
-          </CardDescription>
-          <CardAction>
-            <SectionShuffle
-              onClick={shuffleNotifications}
-              label={tAppearance(APPEARANCE_KEYS.sectionNotifications)}
-              testId="shuffle-notifications"
-            />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.toastDesign)}</FieldLabel>
-            <ToastVariantSwatches activeIndex={toastVariant} onPick={setToastVariant} />
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.toastDesign)}
-              value={TOAST_VARIANTS[toastVariant] ?? TOAST_VARIANTS[0]}
-              options={TOAST_VARIANT_OPTIONS}
-              onPick={(id) => setToastVariant(TOAST_VARIANTS.indexOf(id as ToastVariant))}
-              testPrefix="toast"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel>{tAppearance(APPEARANCE_KEYS.position)}</FieldLabel>
-            <Choices
-              ariaLabel={tAppearance(APPEARANCE_KEYS.positionAria)}
-              value={toastPosition as ToastPosition}
-              options={TOAST_POSITION_OPTIONS}
-              onPick={setToastPosition}
-              testPrefix="toastpos"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                notify.success(t(ERRORS_KEYS.toast.preview.successTitle), {
-                  description: t(ERRORS_KEYS.toast.preview.successDescription),
-                })
-              }
-              data-testid="toast-preview-success"
-            >
-              {tAppearance(APPEARANCE_KEYS.previewSuccess)}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                notify.error(t(ERRORS_KEYS.toast.preview.errorTitle), {
-                  description: t(ERRORS_KEYS.toast.preview.errorDescription),
-                })
-              }
-              data-testid="toast-preview-error"
-            >
-              {tAppearance(APPEARANCE_KEYS.previewError)}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                notify.warning(t(ERRORS_KEYS.toast.preview.warningTitle), {
-                  description: t(ERRORS_KEYS.toast.preview.warningDescription),
-                })
-              }
-              data-testid="toast-preview-warning"
-            >
-              {tAppearance(APPEARANCE_KEYS.previewWarning)}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                notify.info(t(ERRORS_KEYS.toast.preview.infoTitle), {
-                  description: t(ERRORS_KEYS.toast.preview.infoDescription),
-                })
-              }
-              data-testid="toast-preview-info"
-            >
-              {tAppearance(APPEARANCE_KEYS.previewInfo)}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {preset === GENERATED_PRESET ? (
-        <div
-          className="text-muted-foreground mt-2 inline-flex items-center gap-1.5 text-sm"
-          data-testid="preset-custom"
-        >
-          <Check className="text-primary size-4" aria-hidden />
-          {customLook
-            ? tAppearance(APPEARANCE_KEYS.customWith, { look: customLook })
-            : tAppearance(APPEARANCE_KEYS.custom)}
-        </div>
-      ) : null}
+      <ThemeCard />
+      <ModeCard />
+      <ColourCard />
+      <TypographyCard />
+      <IconsCard />
+      {platformConfig.layoutWidthForced === null ? <LayoutWidthCard /> : null}
+      <DashboardVariantCard />
+      <SurfaceCard />
+      <NotificationsCard />
+      <CustomLookNote />
     </div>
   );
 }
