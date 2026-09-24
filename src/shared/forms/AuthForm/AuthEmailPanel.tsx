@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FieldError, useForm, type UseFormRegister } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
@@ -127,6 +127,222 @@ function navigateAfterEmailLogin(
   return navigate({ to: rootTarget.to, replace: true });
 }
 
+/**
+ * Replay-safe shake. The timer id is held so a rapid second failure can
+ * restart the animation instead of being swallowed by the first timer, and so
+ * it can be released on unmount — previously a bare `window.setTimeout` fired
+ * `setCodeShake` on an unmounted component when the user left inside the
+ * 450ms window (LOGIN-8).
+ *
+ * The frame that re-adds the class is owned too: releasing only the timer let
+ * a frame still pending at unmount run afterwards and start a timer nobody
+ * owned.
+ */
+function useCodeShake() {
+  const [codeShake, setCodeShake] = useState(false);
+  const codeShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const codeShakeFrameRef = useRef<number | null>(null);
+
+  const startCodeShake = () => {
+    if (codeShakeFrameRef.current !== null)
+      cancelAnimationFrame(codeShakeFrameRef.current);
+    if (codeShakeTimerRef.current) clearTimeout(codeShakeTimerRef.current);
+    setCodeShake(false);
+    // Next frame, so the class is genuinely removed and re-added — otherwise a
+    // second failure re-sets an already-true flag and the animation never replays.
+    codeShakeFrameRef.current = requestAnimationFrame(() => {
+      codeShakeFrameRef.current = null;
+      setCodeShake(true);
+      codeShakeTimerRef.current = setTimeout(() => {
+        codeShakeTimerRef.current = null;
+        setCodeShake(false);
+      }, CODE_SHAKE_MS);
+    });
+  };
+
+  useEffect(
+    () => () => {
+      if (codeShakeFrameRef.current !== null) {
+        cancelAnimationFrame(codeShakeFrameRef.current);
+        codeShakeFrameRef.current = null;
+      }
+      if (codeShakeTimerRef.current) {
+        clearTimeout(codeShakeTimerRef.current);
+        codeShakeTimerRef.current = null;
+      }
+    },
+    [],
+  );
+
+  return { codeShake, startCodeShake };
+}
+
+/** After "Didn't get it?": "Sending…", the resend countdown, or the resend link. */
+function ResendHint({
+  sending,
+  onCooldown,
+  remainingMs,
+  disabled,
+  onResend,
+}: {
+  sending: boolean;
+  onCooldown: boolean;
+  remainingMs: number;
+  disabled: boolean;
+  onResend: () => void;
+}) {
+  const { t } = useTranslation(AUTH_NS);
+  if (sending) {
+    return <span className="text-foreground">{t(AUTH_KEYS.common.sendingEllipsis)}</span>;
+  }
+  if (onCooldown) {
+    return (
+      <>
+        {t(AUTH_KEYS.auth.tryAgainPrefix)}{' '}
+        <span
+          aria-live="polite"
+          className="text-foreground inline-block w-10 font-medium tabular-nums"
+          data-testid="auth-email-resend-countdown"
+        >
+          {formatResendCooldown(remainingMs)}
+        </span>
+      </>
+    );
+  }
+  return (
+    <Button
+      type="button"
+      variant="link"
+      className={inlineLinkClassName}
+      disabled={disabled}
+      onClick={onResend}
+      data-testid={AUTH_FORM_TEST_IDS.emailResend}
+    >
+      {t(AUTH_KEYS.auth.email.resendCode)}
+    </Button>
+  );
+}
+
+/** The verify step's footer: resend the code, or go back and change the email. */
+function VerifyStepFooter({
+  sending,
+  onCooldown,
+  remainingMs,
+  resendDisabled,
+  onResend,
+  changeDisabled,
+  onChangeEmail,
+}: {
+  sending: boolean;
+  onCooldown: boolean;
+  remainingMs: number;
+  resendDisabled: boolean;
+  onResend: () => void;
+  changeDisabled: boolean;
+  onChangeEmail: () => void;
+}) {
+  const { t } = useTranslation(AUTH_NS);
+  return (
+    <footer className="flex flex-col gap-2.5 text-center text-sm lg:text-start">
+      <p className="text-muted-foreground text-pretty">
+        {t(AUTH_KEYS.auth.email.resendHint)}{' '}
+        <ResendHint
+          sending={sending}
+          onCooldown={onCooldown}
+          remainingMs={remainingMs}
+          disabled={resendDisabled}
+          onResend={onResend}
+        />
+      </p>
+      <p className="text-muted-foreground text-pretty">
+        {t(AUTH_KEYS.auth.email.wrongEmailPrompt)}{' '}
+        <Button
+          type="button"
+          variant="link"
+          className={inlineLinkClassName}
+          disabled={changeDisabled}
+          onClick={onChangeEmail}
+          data-testid={AUTH_FORM_TEST_IDS.emailChange}
+        >
+          {t(AUTH_KEYS.auth.email.changeEmailAddress)}
+        </Button>
+      </p>
+    </footer>
+  );
+}
+
+/** The first step: the email field, its captcha slot and "Continue with email". */
+function EmailStepForm({
+  formError,
+  register,
+  emailError,
+  disabled,
+  isSubmitting,
+  pending,
+  captchaActive,
+  onSubmit,
+  onInteract,
+}: {
+  formError: string | null;
+  register: UseFormRegister<EmailOnlyInput>;
+  emailError: FieldError | undefined;
+  disabled: boolean;
+  isSubmitting: boolean;
+  pending: AuthContinuePending | null;
+  captchaActive: boolean;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onInteract: (() => void) | undefined;
+}) {
+  const { t } = useTranslation(AUTH_NS);
+  return (
+    <div className="space-y-4" data-testid={AUTH_FORM_TEST_IDS.emailPanel}>
+      <FormError message={formError} data-testid={AUTH_FORM_TEST_IDS.emailErrorBanner} />
+      <form onSubmit={onSubmit}>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="auth-email">{t(AUTH_KEYS.common.email)}</Label>
+            <Input
+              id="auth-email"
+              type="email"
+              placeholder={t(AUTH_KEYS.common.emailPlaceholder)}
+              autoComplete="email"
+              aria-invalid={!!emailError}
+              disabled={disabled}
+              data-testid={AUTH_FORM_TEST_IDS.email}
+              {...register('email')}
+              onFocus={() => onInteract?.()}
+            />
+            {emailError ? (
+              <p
+                className="text-destructive text-xs"
+                role="alert"
+                data-testid={AUTH_FORM_TEST_IDS.emailError}
+              >
+                {translateFormMessage(emailError.message)}
+              </p>
+            ) : null}
+          </div>
+
+          {/* Between the email field and its button: the challenge belongs to the
+              action below it, and appearing here keeps it in the reading order the
+              user is already following. Active only while THIS step raised it. */}
+          <CaptchaSlot active={captchaActive} testId={AUTH_FORM_TEST_IDS.captchaSlot} />
+
+          <AuthMethodButton
+            type="submit"
+            variant="default"
+            target={{ method: 'email-send' }}
+            pending={pending}
+            label={t(AUTH_KEYS.auth.emailContinue)}
+            extraDisabled={isSubmitting}
+            testId={AUTH_FORM_TEST_IDS.emailSubmit}
+          />
+        </div>
+      </form>
+    </div>
+  );
+}
+
 type AuthEmailPanelProps = {
   pending?: AuthContinuePending | null;
   onPendingChange?: (pending: AuthContinuePending | null) => void;
@@ -144,9 +360,7 @@ export function AuthEmailPanel({
   const [step, setStep] = useState<'email' | 'verify'>('email');
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  const [codeShake, setCodeShake] = useState(false);
-  const codeShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const codeShakeFrameRef = useRef<number | null>(null);
+  const { codeShake, startCodeShake } = useCodeShake();
   // Inline error surface — the reliable one. Toasts fired from this submit's
   // async catch can be dropped by sonner (created into history but never made
   // active), so a failed send/verify would otherwise give the user NO feedback.
@@ -181,48 +395,6 @@ export function AuthEmailPanel({
     setFormError(message);
     notify.error(message);
   };
-
-  /**
-   * Replay-safe shake. The timer id is held so a rapid second failure can
-   * restart the animation instead of being swallowed by the first timer, and so
-   * it can be released on unmount — previously a bare `window.setTimeout` fired
-   * `setCodeShake` on an unmounted component when the user left inside the
-   * 450ms window (LOGIN-8).
-   *
-   * The frame that re-adds the class is owned too: releasing only the timer let
-   * a frame still pending at unmount run afterwards and start a timer nobody
-   * owned.
-   */
-  const startCodeShake = () => {
-    if (codeShakeFrameRef.current !== null)
-      cancelAnimationFrame(codeShakeFrameRef.current);
-    if (codeShakeTimerRef.current) clearTimeout(codeShakeTimerRef.current);
-    setCodeShake(false);
-    // Next frame, so the class is genuinely removed and re-added — otherwise a
-    // second failure re-sets an already-true flag and the animation never replays.
-    codeShakeFrameRef.current = requestAnimationFrame(() => {
-      codeShakeFrameRef.current = null;
-      setCodeShake(true);
-      codeShakeTimerRef.current = setTimeout(() => {
-        codeShakeTimerRef.current = null;
-        setCodeShake(false);
-      }, CODE_SHAKE_MS);
-    });
-  };
-
-  useEffect(
-    () => () => {
-      if (codeShakeFrameRef.current !== null) {
-        cancelAnimationFrame(codeShakeFrameRef.current);
-        codeShakeFrameRef.current = null;
-      }
-      if (codeShakeTimerRef.current) {
-        clearTimeout(codeShakeTimerRef.current);
-        codeShakeTimerRef.current = null;
-      }
-    },
-    [],
-  );
 
   const sendCode = async (email: string) => {
     const value = email.trim();
@@ -364,97 +536,22 @@ export function AuthEmailPanel({
 
   if (step === 'email') {
     return (
-      <div className="space-y-4" data-testid={AUTH_FORM_TEST_IDS.emailPanel}>
-        <FormError
-          message={formError}
-          data-testid={AUTH_FORM_TEST_IDS.emailErrorBanner}
-        />
-        <form
-          onSubmit={(event) => {
-            // Built at event time, not during render: onEmailSubmit reads the
-            // synchronous send guard, and handing a ref-reading callback to a
-            // render-time call is what react-hooks/refs-during-render forbids.
-            void handleSubmit(onEmailSubmit)(event);
-          }}
-        >
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="auth-email">{t(AUTH_KEYS.common.email)}</Label>
-              <Input
-                id="auth-email"
-                type="email"
-                placeholder={t(AUTH_KEYS.common.emailPlaceholder)}
-                autoComplete="email"
-                aria-invalid={!!errors.email}
-                disabled={emailBlocked || emailSendLoading}
-                data-testid={AUTH_FORM_TEST_IDS.email}
-                {...register('email')}
-                onFocus={() => onInteract?.()}
-              />
-              {errors.email ? (
-                <p
-                  className="text-destructive text-xs"
-                  role="alert"
-                  data-testid={AUTH_FORM_TEST_IDS.emailError}
-                >
-                  {translateFormMessage(errors.email.message)}
-                </p>
-              ) : null}
-            </div>
-
-            {/* Between the email field and its button: the challenge belongs to the
-                action below it, and appearing here keeps it in the reading order the
-                user is already following. Active only while THIS step raised it. */}
-            <CaptchaSlot
-              active={challengeFor === AUTH_CHALLENGE_KEYS.emailSend}
-              testId={AUTH_FORM_TEST_IDS.captchaSlot}
-            />
-
-            <AuthMethodButton
-              type="submit"
-              variant="default"
-              target={{ method: 'email-send' }}
-              pending={pending}
-              label={t(AUTH_KEYS.auth.emailContinue)}
-              extraDisabled={isSubmitting}
-              testId={AUTH_FORM_TEST_IDS.emailSubmit}
-            />
-          </div>
-        </form>
-      </div>
-    );
-  }
-
-  let resendHint: ReactNode;
-  if (emailSendLoading) {
-    resendHint = (
-      <span className="text-foreground">{t(AUTH_KEYS.common.sendingEllipsis)}</span>
-    );
-  } else if (resendOnCooldown) {
-    resendHint = (
-      <>
-        {t(AUTH_KEYS.auth.tryAgainPrefix)}{' '}
-        <span
-          aria-live="polite"
-          className="text-foreground inline-block w-10 font-medium tabular-nums"
-          data-testid="auth-email-resend-countdown"
-        >
-          {formatResendCooldown(resendCooldownRemainingMs)}
-        </span>
-      </>
-    );
-  } else {
-    resendHint = (
-      <Button
-        type="button"
-        variant="link"
-        className={inlineLinkClassName}
-        disabled={emailBlocked || emailSendLoading || resendOnCooldown}
-        onClick={() => void sendCode(submittedEmail)}
-        data-testid={AUTH_FORM_TEST_IDS.emailResend}
-      >
-        {t(AUTH_KEYS.auth.email.resendCode)}
-      </Button>
+      <EmailStepForm
+        formError={formError}
+        register={register}
+        emailError={errors.email}
+        disabled={emailBlocked || emailSendLoading}
+        isSubmitting={isSubmitting}
+        pending={pending}
+        captchaActive={challengeFor === AUTH_CHALLENGE_KEYS.emailSend}
+        onSubmit={(event) => {
+          // Built at event time, not during render: onEmailSubmit reads the
+          // synchronous send guard, and handing a ref-reading callback to a
+          // render-time call is what react-hooks/refs-during-render forbids.
+          void handleSubmit(onEmailSubmit)(event);
+        }}
+        onInteract={onInteract}
+      />
     );
   }
 
@@ -505,24 +602,15 @@ export function AuthEmailPanel({
         testId={AUTH_FORM_TEST_IDS.emailVerify}
       />
 
-      <footer className="flex flex-col gap-2.5 text-center text-sm lg:text-start">
-        <p className="text-muted-foreground text-pretty">
-          {t(AUTH_KEYS.auth.email.resendHint)} {resendHint}
-        </p>
-        <p className="text-muted-foreground text-pretty">
-          {t(AUTH_KEYS.auth.email.wrongEmailPrompt)}{' '}
-          <Button
-            type="button"
-            variant="link"
-            className={inlineLinkClassName}
-            disabled={emailBlocked || emailSendLoading || emailVerifyLoading}
-            onClick={changeEmail}
-            data-testid={AUTH_FORM_TEST_IDS.emailChange}
-          >
-            {t(AUTH_KEYS.auth.email.changeEmailAddress)}
-          </Button>
-        </p>
-      </footer>
+      <VerifyStepFooter
+        sending={emailSendLoading}
+        onCooldown={resendOnCooldown}
+        remainingMs={resendCooldownRemainingMs}
+        resendDisabled={emailBlocked || emailSendLoading || resendOnCooldown}
+        onResend={() => void sendCode(submittedEmail)}
+        changeDisabled={emailBlocked || emailSendLoading || emailVerifyLoading}
+        onChangeEmail={changeEmail}
+      />
     </div>
   );
 }
