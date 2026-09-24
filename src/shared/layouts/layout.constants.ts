@@ -98,17 +98,6 @@ export const LAYOUT_KEYS = {
       settingsLink: 'app.notifications.settingsLink',
       retry: 'app.notifications.retry',
     },
-    membersTable: {
-      actionsAria: 'app.membersTable.actionsAria',
-      changeRole: 'app.membersTable.changeRole',
-      suspend: 'app.membersTable.suspend',
-      reactivate: 'app.membersTable.reactivate',
-      remove: 'app.membersTable.remove',
-      removeTitle: 'app.membersTable.removeTitle',
-      removeDescription: 'app.membersTable.removeDescription',
-      cancel: 'app.membersTable.cancel',
-      confirmRemove: 'app.membersTable.confirmRemove',
-    },
     commandPalette: {
       ariaLabel: 'app.commandPalette.ariaLabel',
       placeholder: 'app.commandPalette.placeholder',

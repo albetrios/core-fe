@@ -128,20 +128,6 @@
       "signingOut": "正在退出登录…",
       "signingOutDescription": "正在安全地结束您的会话，随后将转到登录页面。"
     },
-    "membersTable": {
-      "actionsAria": "{{name}} 的操作",
-      "changeRole": "更改角色",
-      "suspend": "暂停成员",
-      "reactivate": "重新激活成员",
-      "remove": "从组织中移除",
-      "removeTitle": "移除 {{name}}？",
-      "removeDescription": "他们将失去对此组织的访问权限。此操作无法撤销。",
-      "cancel": "取消",
-      "confirmRemove": "移除",
-      "rolePlaceholder": "角色",
-      "searchPlaceholder": "搜索成员…",
-      "removing": "正在移除…"
-    },
     "shortcuts": {
       "title": "键盘快捷键",
       "description": "导航与操作的快速参考。",

@@ -5,15 +5,22 @@ whole org-scoped lists into the browser. Drafted from core-fe; **no core-be code
 is changed here** — implement in core-be on a clean branch, then land the small
 frontend follow-ups noted under each item.
 
+> **Status (2026-09-24):** members, roles and API keys are done on the frontend.
+> `listMembers` / `listRoles` / `listApiKeys` now fetch one server-side page at a
+> time through `shared/api/fetch-list-page.ts`, and Settings → Members sends its
+> search `q` and sort to the server and loads more on demand. Billing invoices
+> still read every page through `fetch-all-pages`. The shared members table this
+> spec first targeted was removed as dead code; nothing rendered it.
+
 ## Why
 
-Today the frontend fetches **every** row of org-scoped lists and paginates,
-sorts, and filters in the browser:
+When this spec was drafted, the frontend fetched **every** row of org-scoped
+lists and paginated, sorted, and filtered in the browser:
 
 - `shared/api/organization-api.ts` `listMembers` / `listRoles` / `listApiKeys`
-  and `shared/api/billing-api.ts` `listBillingInvoices` follow the cursor with
-  `shared/api/fetch-all-pages.ts` (up to 50 pages × 100 rows) and hand the full
-  set to `MembersTable`, which sorts/filters client-side via
+  and `shared/api/billing-api.ts` `listBillingInvoices` followed the cursor with
+  `shared/api/fetch-all-pages.ts` (up to 50 pages × 100 rows) and handed the full
+  set to a table that sorted/filtered client-side via
   `shared/hooks/useDataTableUrlState`.
 - This is fine for small orgs but is O(n) round-trips + full-list render + memory
   for large ones. For **invoices** it is worse: core-be caps the list at 24 with
@@ -28,7 +35,7 @@ reads `meta.pagination.{has_more,next}`. The missing half is server-side.
 
 | Endpoint                                                                    | Cursor pagination                                                                                                                | Server sort    | Server filter / search |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------- | ---------------------- |
-| `GET /tenancy/organization/memberships` (`membership.repository.ts`)            | ✅ keyset `after`/`limit`, `orderBy(asc(created_at), asc(id))`                                                                   | ❌ fixed order | ❌ none                |
+| `GET /tenancy/organization/memberships` (`membership.repository.ts`)        | ✅ keyset `after`/`limit`, `orderBy(asc(created_at), asc(id))`                                                                   | ❌ fixed order | ❌ none                |
 | `GET …/roles` (`member-role.repository.ts`)                                 | ✅ keyset, `orderBy(asc(name), asc(id))`                                                                                         | ❌ fixed order | ❌ none                |
 | `GET …/api-keys`                                                            | ✅ keyset                                                                                                                        | ❌             | ❌                     |
 | `GET /billing/invoices` (`subscription.controller.ts` → `stripe.client.ts`) | ❌ returns a bare array via `successResponse`; `listStripeInvoices` hardcodes `limit: 24` and drops Stripe's `has_more` + cursor | ❌             | ❌                     |
@@ -113,12 +120,11 @@ sort (no dupes/skips); `.strict()` still rejects unknown query params.
 
 **Frontend follow-up (core-fe, after BE ships):**
 
-- `useMembers`/`listMembers` pass `useDataTableUrlState`'s `q`/`sort`/`order`/page
-  params to the request (drop `fetch-all-pages` for this list).
-- `MembersTable` switches TanStack Table to `manualPagination`/`manualSorting`/
-  `manualFiltering` and renders `meta.pagination` (server total / next), instead
-  of `getFilteredRowModel()` over the full set. The URL-state hook already holds
-  every needed param, so this is contained.
+- **Members: done, differently.** `useMembers` passes Settings → Members' search
+  `q` and sort to `listMembers`, which fetches one keyset page at a time (no
+  `fetch-all-pages`), and the panel loads more on demand instead of switching a
+  TanStack table to `manualPagination`/`manualSorting`/`manualFiltering`. The
+  shared members table this bullet targeted was removed as dead code.
 - If a list uses offset paging server-side, surface `page`/`size`; if keyset,
   surface `next` only (no jump-to-page). Pick one per list and keep the table's
   controls consistent with it.

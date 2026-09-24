@@ -136,20 +136,6 @@
       "signingOut": "جارٍ تسجيل الخروج…",
       "signingOutDescription": "يجري إنهاء جلستك بأمان. ستنتقل إلى صفحة تسجيل الدخول."
     },
-    "membersTable": {
-      "actionsAria": "إجراءات لـ {{name}}",
-      "changeRole": "تغيير الدور",
-      "suspend": "تعليق العضو",
-      "reactivate": "إعادة تفعيل العضو",
-      "remove": "إزالة من المؤسسة",
-      "removeTitle": "إزالة {{name}}؟",
-      "removeDescription": "سيفقدون الوصول إلى هذه المؤسسة. لا يمكن التراجع عن هذا الإجراء.",
-      "cancel": "إلغاء",
-      "confirmRemove": "إزالة",
-      "rolePlaceholder": "الدور",
-      "searchPlaceholder": "ابحث عن الأعضاء…",
-      "removing": "جارٍ الإزالة…"
-    },
     "orgCreate": {
       "namePlaceholder": "Acme Inc.",
       "slugPlaceholder": "acme",
