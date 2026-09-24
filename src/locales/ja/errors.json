@@ -166,7 +166,9 @@
       },
       "invitations": {
         "sendFailed": "招待を送信できませんでした",
-        "sendSuccess": "{{email}} に招待を送信しました"
+        "sendSuccess": "{{email}} に招待を送信しました",
+        "resendSuccess": "{{email}} に招待を再送信しました",
+        "cancelSuccess": "招待を取り消しました"
       }
     },
     "profileUpdated": "プロフィールを更新しました"

@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { OrganizationPermission } from '@/core/rbac/policies.ts';
 import type { RoleSummary } from '@/shared/api/organization-contracts.ts';
 import { useAuthStore } from '@/shared/store/useAuthStore/index.ts';
 import { useOrganizationStore } from '@/shared/store/useOrganizationStore/index.ts';
@@ -69,6 +70,20 @@ vi.mock('@/shared/hooks/useMembers/index.ts', async () => {
   };
 });
 vi.mock('@/shared/hooks/useRoles/index.ts', () => ({ useRoles: useRolesMock }));
+const { resendMutate, revokeMutateAsync, revokeInvitationOptions } = vi.hoisted(() => ({
+  resendMutate: vi.fn(),
+  /** `mutateAsync` — the deferred commit has to await the revoke, as it does a removal. */
+  revokeMutateAsync: vi.fn(),
+  /** Every options object `useRevokeInvitation` was constructed with. */
+  revokeInvitationOptions: [] as (Record<string, unknown> | undefined)[],
+}));
+vi.mock('@/shared/hooks/useInvitations/index.ts', () => ({
+  useResendInvitation: () => ({ isPending: false, mutate: resendMutate }),
+  useRevokeInvitation: (options?: Record<string, unknown>) => {
+    revokeInvitationOptions.push(options);
+    return { mutateAsync: revokeMutateAsync };
+  },
+}));
 vi.mock('@/shared/components/InviteMemberDialog/index.ts', () => ({
   InviteMemberDialog: () => (
     <button type="button" data-testid="invite-member-open">
@@ -137,6 +152,19 @@ const INVITED = {
   status: 'invited',
   joinedAt: '', // never joined
 };
+/** An invited row as core-be reports it: the membership plus its live invitation. */
+const PENDING_INVITE = {
+  ...INVITED,
+  invitation: { id: 'inv_aaaaaaaaaaaaaaaaaaaaa', expiresAt: '2099-01-01T00:00:00.000Z' },
+};
+/** An invitation whose link has lapsed — core-be refuses to resend it. */
+const EXPIRED_INVITE = {
+  ...INVITED,
+  id: 'mem_lapsed',
+  name: 'Lee Lapsed',
+  email: 'lee@acme.test',
+  invitation: { id: 'inv_bbbbbbbbbbbbbbbbbbbbb', expiresAt: '2020-01-01T00:00:00.000Z' },
+};
 
 function role(id: string, name: string): RoleSummary {
   return {
@@ -195,6 +223,24 @@ function setCanManage(value: boolean) {
   });
 }
 
+/** A resolved TEAM session holding exactly these permissions. */
+function setPermissions(permissions: OrganizationPermission[]) {
+  useAuthStore.setState({
+    user: { id: 'u', email: 'a@b.test', role: 'user' },
+    isAuthenticated: true,
+  });
+  useOrganizationStore.setState({
+    organizationType: 'TEAM',
+    permissions,
+    permissionsResolved: true,
+  });
+}
+const MANAGES_EVERYTHING: OrganizationPermission[] = [
+  'membership:manage',
+  'role:read',
+  'invitation:manage',
+];
+
 beforeEach(() => {
   vi.resetAllMocks();
   // `clearAllMocks` keeps implementations, so a per-test `mockReturnValue` for
@@ -202,6 +248,7 @@ beforeEach(() => {
   removeMutate.mockReset();
   removeMutateSync.mockReset();
   removeMemberOptions.length = 0;
+  revokeInvitationOptions.length = 0;
   deferredCommits.length = 0;
   useOrganizationStore.getState().clearOrganization();
   useRolesMock.mockReturnValue(
@@ -575,5 +622,161 @@ describe('OrganizationMembersPanel', () => {
 
     expect(screen.getByTestId('invite-member-open')).toBeInTheDocument();
     expect(screen.queryByTestId('invite-member-pending')).not.toBeInTheDocument();
+  });
+});
+
+describe('OrganizationMembersPanel — pending invitations', () => {
+  /** Open an invited row's menu and pick Cancel invitation. */
+  async function openCancel(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByTestId('member-actions-mem_inv'));
+    await user.click(await screen.findByTestId('member-cancel-invite-mem_inv'));
+  }
+
+  it('offers resend and cancel on a pending invitation, in place of Remove', async () => {
+    // Remove deleted the membership but left the invitation live, so the
+    // invitee's link failed with "not found" instead of saying it was revoked.
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await user.click(screen.getByTestId('member-actions-mem_inv'));
+
+    expect(await screen.findByTestId('member-resend-invite-mem_inv')).toBeInTheDocument();
+    expect(screen.getByTestId('member-cancel-invite-mem_inv')).toBeInTheDocument();
+    expect(screen.queryByTestId('member-remove-mem_inv')).not.toBeInTheDocument();
+  });
+
+  it('shows when a pending invitation expires', () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.getByTestId('member-invite-expiry-mem_inv')).toHaveTextContent(
+      /^Invitation expires .*2099/,
+    );
+  });
+
+  it('says an invitation has expired, and offers cancel but not resend', async () => {
+    // core-be answers a resend of a lapsed invitation with 400; cancel and
+    // invite again is the only way forward.
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [EXPIRED_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.getByTestId('member-invite-expiry-mem_lapsed')).toHaveTextContent(
+      'Invitation expired',
+    );
+    await user.click(screen.getByTestId('member-actions-mem_lapsed'));
+    expect(
+      await screen.findByTestId('member-cancel-invite-mem_lapsed'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('member-resend-invite-mem_lapsed'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('resends by the INVITATION id, not the membership id', async () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await user.click(screen.getByTestId('member-actions-mem_inv'));
+    await user.click(await screen.findByTestId('member-resend-invite-mem_inv'));
+
+    expect(resendMutate).toHaveBeenCalledWith('inv_aaaaaaaaaaaaaaaaaaaaa');
+  });
+
+  it('confirms, then revokes the invitation — never the bare membership delete', async () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await openCancel(user);
+    const dialog = await screen.findByTestId('confirm-dialog');
+    expect(dialog).toHaveTextContent('sam@acme.test');
+    // "Keep invitation", not a bare "Cancel" beside "Cancel invitation".
+    expect(screen.getByTestId('confirm-cancel')).toHaveTextContent('Keep invitation');
+    await user.click(screen.getByTestId('confirm-accept'));
+
+    await waitFor(() => expect(deferredCommits).toHaveLength(1));
+    await act(async () => {
+      await lastDeferred().commit;
+    });
+    expect(revokeMutateAsync).toHaveBeenCalledWith('inv_aaaaaaaaaaaaaaaaaaaaa');
+    expect(removeMutate).not.toHaveBeenCalled();
+    expect(removeMutateSync).not.toHaveBeenCalled();
+  });
+
+  it('keeps the invitation when the dialog is dismissed', async () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await openCancel(user);
+    await user.click(await screen.findByTestId('confirm-cancel'));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId('confirm-dialog')).not.toBeInTheDocument(),
+    );
+    expect(deferredCommits).toHaveLength(0);
+    expect(revokeMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('lets a failed revoke reject, so the row comes back', async () => {
+    const failure = new Error('Forbidden');
+    revokeMutateAsync.mockImplementation(() => Promise.reject(failure));
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await openCancel(user);
+    await user.click(await screen.findByTestId('confirm-accept'));
+    await waitFor(() => expect(deferredCommits).toHaveLength(1));
+
+    await expect(lastDeferred().commit).rejects.toBe(failure);
+  });
+
+  it('silences the revoke toast so one cancel is confirmed once', () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(MANAGES_EVERYTHING);
+    render(<OrganizationMembersPanel />);
+
+    expect(revokeInvitationOptions.at(-1)).toEqual({ suppressSuccessToast: true });
+  });
+
+  it('falls back to Remove without invitation:manage', async () => {
+    useMembersMock.mockReturnValue(membersQueryResult({ rows: [PENDING_INVITE] }));
+    setPermissions(['membership:manage', 'role:read']);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    await user.click(screen.getByTestId('member-actions-mem_inv'));
+
+    expect(await screen.findByTestId('member-remove-mem_inv')).toBeInTheDocument();
+    expect(screen.queryByTestId('member-resend-invite-mem_inv')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('member-cancel-invite-mem_inv')).not.toBeInTheDocument();
+  });
+
+  it('with invitation:manage alone, menus only the invited rows, and only their actions', async () => {
+    useMembersMock.mockReturnValue(
+      membersQueryResult({ rows: [MEMBER, PENDING_INVITE] }),
+    );
+    setPermissions(['invitation:manage']);
+    const user = userEvent.setup();
+    render(<OrganizationMembersPanel />);
+
+    expect(screen.queryByTestId('member-actions-mem_1')).not.toBeInTheDocument();
+    await user.click(screen.getByTestId('member-actions-mem_inv'));
+
+    expect(await screen.findByTestId('member-resend-invite-mem_inv')).toBeInTheDocument();
+    expect(screen.getByTestId('member-cancel-invite-mem_inv')).toBeInTheDocument();
+    expect(screen.queryByTestId('member-set-role-rol_member')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('member-remove-mem_inv')).not.toBeInTheDocument();
   });
 });

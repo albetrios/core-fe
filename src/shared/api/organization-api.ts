@@ -101,6 +101,12 @@ const membershipWire = z.object({
   last_active_at: isoDateString.nullable().optional(),
   user: membershipUserWire,
   role: z.object({ id: publicId('rol'), name: z.string() }),
+  // The live pending invitation, present only on INVITED rows. Optional so a
+  // response from before core-be sent it still parses.
+  invitation: z
+    .object({ id: publicId('inv'), expires_at: isoDateString })
+    .nullable()
+    .optional(),
 });
 type MembershipWire = z.infer<typeof membershipWire>;
 
@@ -130,6 +136,9 @@ function toMember(w: MembershipWire): Member {
     avatarUrl: w.user.avatar_url ?? undefined,
     joinedAt: w.joined_at ?? '',
     lastActiveAt: w.last_active_at ?? undefined,
+    invitation: w.invitation
+      ? { id: w.invitation.id, expiresAt: w.invitation.expires_at }
+      : null,
   };
 }
 
@@ -190,7 +199,7 @@ export async function removeMember(membershipId: string): Promise<{ id: string }
  * resource: `POST /organization/memberships` provisions/resolves the user and
  * creates an **INVITED** membership with the given role, emailing an invite
  * token. The invitee then appears in the members list as `invited` until they
- * accept. Requires `invitation:manage`.
+ * accept. Requires `membership:manage`.
  */
 export async function inviteMember(input: {
   email: string;
@@ -203,10 +212,54 @@ export async function inviteMember(input: {
   return toMember(membershipWire.parse(res.data));
 }
 
-// Invitations are INVITED memberships (see `inviteMember` above), not a
-// standalone resource. The old /organization/invitations list/create/revoke/
-// resend calls were removed — core-be has no such route (they 404'd). The
-// separate accept-invite flow (`acceptInvitation`) is unrelated and lives above.
+// Invitations are created as INVITED memberships (see `inviteMember` above), and
+// each INVITED row carries its live invitation (`Member.invitation`). There is
+// no list or create route under /organization/invitations — only resend and
+// revoke, keyed by that invitation's id. Accepting (`acceptInvitation`) is the
+// invitee's side and lives above.
+
+const resentInvitationWire = z.object({
+  invitation: z.object({
+    id: publicId('inv'),
+    email: z.string(),
+    expires_at: isoDateString,
+  }),
+});
+
+/**
+ * Send a pending invitation again.
+ *
+ * @remarks
+ * The invitee gets a fresh link and core-be's default expiry (7 days). core-be
+ * refuses once the invitation has expired, been accepted or been revoked, and
+ * rate-limits the route strictly. Requires `invitation:manage`.
+ */
+export async function resendInvitation(
+  invitationId: string,
+): Promise<{ email: string; expiresAt: string }> {
+  const res = await apiClient.post<unknown>(
+    `${ORG_API}/invitations/${encodeURIComponent(invitationId)}/resend`,
+    {},
+  );
+  const { invitation } = resentInvitationWire.parse(res.data);
+  return { email: invitation.email, expiresAt: invitation.expires_at };
+}
+
+/**
+ * Revoke a pending invitation.
+ *
+ * @remarks
+ * core-be revokes it and removes the invited membership in one step, so the row
+ * leaves the members list. Removing the membership alone left the invitation
+ * unrevoked: the invitee's link then failed with "not found" instead of saying
+ * the invitation was revoked. Requires `invitation:manage`.
+ */
+export async function revokeInvitation(invitationId: string): Promise<{ id: string }> {
+  await apiClient.delete<unknown>(
+    `${ORG_API}/invitations/${encodeURIComponent(invitationId)}`,
+  );
+  return { id: invitationId };
+}
 
 // ── Roles ──
 

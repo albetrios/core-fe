@@ -179,6 +179,8 @@ export const ERRORS_KEYS = {
       invitations: {
         sendFailed: 'frontend.hooks.invitations.sendFailed',
         sendSuccess: 'frontend.hooks.invitations.sendSuccess',
+        resendSuccess: 'frontend.hooks.invitations.resendSuccess',
+        cancelSuccess: 'frontend.hooks.invitations.cancelSuccess',
       },
     },
   },

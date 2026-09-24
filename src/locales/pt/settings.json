@@ -141,7 +141,16 @@
       "emailPlaceholder": "colega@empresa.com",
       "rolePlaceholder": "Selecione uma função",
       "invite": "Convidar membro",
-      "memberFallback": "este membro"
+      "memberFallback": "este membro",
+      "resendInvite": "Reenviar convite",
+      "cancelInvite": "Cancelar convite",
+      "inviteExpires": "O convite expira em {{date}}",
+      "inviteExpired": "Convite expirado",
+      "cancelInviteTitle": "Cancelar o convite para {{email}}?",
+      "cancelInviteDescription": "O link no e-mail deixará de funcionar. Você pode desfazer por alguns segundos após confirmar ou enviar um novo convite mais tarde.",
+      "cancelInviteConfirm": "Cancelar convite",
+      "cancelInviteKeep": "Manter convite",
+      "cancelInvitePending": "Cancelando o convite para {{email}}…"
     },
     "roles": {
       "title": "Funções",

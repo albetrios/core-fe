@@ -5,7 +5,11 @@ import { ERRORS_KEYS, ERRORS_NS } from '@/lib/i18n/errors.constants.ts';
 import i18n from '@/lib/i18n/i18n.ts';
 import { isListStale, listRefreshClass } from '@/lib/list-refresh.ts';
 import { cn } from '@/lib/utils.ts';
-import type { Member, OrgRole } from '@/shared/api/organization-contracts.ts';
+import type {
+  Member,
+  MemberInvitation,
+  OrgRole,
+} from '@/shared/api/organization-contracts.ts';
 import { orgQueryKeys } from '@/shared/api/organization-query-keys.ts';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog/index.ts';
 import { EmptyState } from '@/shared/components/EmptyState/index.ts';
@@ -36,6 +40,11 @@ import { SectionErrorBoundary } from '@/shared/components/WidgetErrorBoundary/in
 import { useAccessResolved, useCan } from '@/shared/hooks/useCan/index.ts';
 import { useDebouncedSearch } from '@/shared/hooks/useDebouncedValue/index.ts';
 import { useDeferredRowRemoval } from '@/shared/hooks/useDeferredRowRemoval/index.ts';
+import {
+  useResendInvitation,
+  useRevokeInvitation,
+} from '@/shared/hooks/useInvitations/index.ts';
+import { useLocaleFormat } from '@/shared/hooks/useLocaleFormat/index.ts';
 import {
   useMembers,
   useRemoveMember,
@@ -76,6 +85,24 @@ function MembersLoading() {
   return <PanelSkeleton testId="members-loading" />;
 }
 
+/**
+ * Whether the invitation's link has expired. core-be refuses to resend it after
+ * that, so the row offers Cancel only. Read at render: an invitation that expires
+ * while the panel is open keeps its Resend until the list refreshes, and core-be
+ * then answers the resend with its own "expired" reason.
+ */
+function isInvitationExpired(invitation: MemberInvitation): boolean {
+  return Date.parse(invitation.expiresAt) <= Date.now();
+}
+
+/**
+ * The live invitation behind an invited row, or `null` for everyone else
+ * (including an invited row core-be reported without one).
+ */
+function pendingInvitationOf(member: Member): MemberInvitation | null {
+  return member.status === 'invited' ? (member.invitation ?? null) : null;
+}
+
 /** Best-effort map of a role's display name to the coarse OrgRole (optimistic label only). */
 function toOrgRoleName(name: string): OrgRole {
   const n = name.toLowerCase();
@@ -83,23 +110,96 @@ function toOrgRoleName(name: string): OrgRole {
 }
 
 /**
- * Per-member management menu (gated by the caller on `membership:manage`):
- * change role — to any of the org's real non-owner roles — suspend/reactivate,
- * and remove. The owner's own row shows no actions (an org can't manage its
- * owner from here).
+ * The row menu's last group. For an invitation the caller may manage: resend
+ * (until its link expires) and cancel. Otherwise Remove, for a caller who may
+ * manage members.
+ *
+ * Cancel replaces Remove on an invited row: removing the membership alone left
+ * the invitation unrevoked, so the invitee's link failed with "not found" instead
+ * of saying it was revoked. Remove stays as the fallback for a caller who may
+ * manage members but not invitations.
+ */
+function MemberRowEndItems({
+  member,
+  canManageMembers,
+  canManageInvitations,
+  isWriting,
+  onResend,
+  onRemove,
+  onCancelInvitation,
+}: {
+  member: Member;
+  canManageMembers: boolean;
+  canManageInvitations: boolean;
+  isWriting: boolean;
+  onResend: (invitation: MemberInvitation) => void;
+  onRemove: (member: Member) => void;
+  onCancelInvitation: (member: Member, invitation: MemberInvitation) => void;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const panels = SETTINGS_KEYS.panels.members;
+  const invitation = pendingInvitationOf(member);
+
+  if (canManageInvitations && invitation) {
+    return (
+      <>
+        {isInvitationExpired(invitation) ? null : (
+          <DropdownMenuItem
+            disabled={isWriting}
+            onSelect={() => onResend(invitation)}
+            data-testid={`member-resend-invite-${member.id}`}
+          >
+            {t(panels.resendInvite)}
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          variant="destructive"
+          onSelect={() => onCancelInvitation(member, invitation)}
+          data-testid={`member-cancel-invite-${member.id}`}
+        >
+          {t(panels.cancelInvite)}
+        </DropdownMenuItem>
+      </>
+    );
+  }
+  if (!canManageMembers) return null;
+  return (
+    <DropdownMenuItem
+      variant="destructive"
+      onSelect={() => onRemove(member)}
+      data-testid={`member-remove-${member.id}`}
+    >
+      {t(panels.removeAction)}
+    </DropdownMenuItem>
+  );
+}
+
+/**
+ * Per-member management menu. With `membership:manage`: change role (to any of
+ * the org's real non-owner roles), suspend/reactivate a joined member, and
+ * remove. With `invitation:manage`, an invited row also gets resend (until the
+ * link expires) and cancel. The owner's own row shows no actions (an org can't
+ * manage its owner from here).
  */
 function MemberRowActions({
   member,
+  canManageMembers,
+  canManageInvitations,
   onRemove,
+  onCancelInvitation,
 }: {
   member: Member;
+  canManageMembers: boolean;
+  canManageInvitations: boolean;
   onRemove: (member: Member) => void;
+  onCancelInvitation: (member: Member, invitation: MemberInvitation) => void;
 }) {
   const { t } = useTranslation(SETTINGS_NS);
   const panels = SETTINGS_KEYS.panels.members;
   const roles = useRoles();
   const updateRole = useUpdateMemberRole();
   const updateStatus = useUpdateMemberStatus();
+  const resendInvitation = useResendInvitation();
 
   // Exclude the system roles by their flag, not by matching the name "owner" — a custom role
   // called "Owners" slipped straight through that string compare. This is UI robustness only;
@@ -112,10 +212,11 @@ function MemberRowActions({
    * is in flight, and `useAppMutation` JOINS a second call to the first - so
    * the second pick looked accepted and then vanished. Disable it (SET-12).
    */
-  const isWriting = updateRole.isPending || updateStatus.isPending;
+  const isWriting =
+    updateRole.isPending || updateStatus.isPending || resendInvitation.isPending;
   // Suspend/reactivate only applies once a member has actually joined — core-be
   // rejects flipping a never-joined (invited) membership to active. Invited
-  // members get role-change + remove (which revokes the invite).
+  // members get role-change plus the invitation actions below.
   const hasJoined = member.joinedAt !== '';
 
   return (
@@ -134,7 +235,7 @@ function MemberRowActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {assignableRoles.length > 0 ? (
+        {canManageMembers && assignableRoles.length > 0 ? (
           <>
             <DropdownMenuLabel>{t(panels.changeRole)}</DropdownMenuLabel>
             <DropdownMenuRadioGroup
@@ -168,7 +269,7 @@ function MemberRowActions({
             <DropdownMenuSeparator />
           </>
         ) : null}
-        {hasJoined ? (
+        {canManageMembers && hasJoined ? (
           <DropdownMenuItem
             disabled={isWriting}
             onSelect={() =>
@@ -182,15 +283,144 @@ function MemberRowActions({
             {isSuspended ? t(panels.reactivate) : t(panels.suspend)}
           </DropdownMenuItem>
         ) : null}
-        <DropdownMenuItem
-          variant="destructive"
-          onSelect={() => onRemove(member)}
-          data-testid={`member-remove-${member.id}`}
-        >
-          {t(panels.removeAction)}
-        </DropdownMenuItem>
+        <MemberRowEndItems
+          member={member}
+          canManageMembers={canManageMembers}
+          canManageInvitations={canManageInvitations}
+          isWriting={isWriting}
+          onResend={(invitation) => resendInvitation.mutate(invitation.id)}
+          onRemove={onRemove}
+          onCancelInvitation={onCancelInvitation}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** An invited member together with the invitation a cancel acts on. */
+type InvitationTarget = { member: Member; invitation: MemberInvitation };
+
+/** When an invited row's link expires, or that it already has. */
+function InvitationExpiry({
+  memberId,
+  invitation,
+}: {
+  memberId: string;
+  invitation: MemberInvitation;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const { formatDate } = useLocaleFormat();
+  const panels = SETTINGS_KEYS.panels.members;
+  const expired = isInvitationExpired(invitation);
+  return (
+    <p
+      className={cn(
+        'truncate text-xs',
+        expired ? 'text-destructive' : 'text-muted-foreground',
+      )}
+      data-testid={`member-invite-expiry-${memberId}`}
+    >
+      {expired
+        ? t(panels.inviteExpired)
+        : t(panels.inviteExpires, { date: formatDate(invitation.expiresAt) })}
+    </p>
+  );
+}
+
+/**
+ * One member: who they are, their role and status, an invited row's expiry, and
+ * the row menu.
+ */
+function MemberRow({
+  member,
+  canManageMembers,
+  canManageInvitations,
+  onRemove,
+  onCancelInvitation,
+}: {
+  member: Member;
+  canManageMembers: boolean;
+  canManageInvitations: boolean;
+  onRemove: (member: Member) => void;
+  onCancelInvitation: (member: Member, invitation: MemberInvitation) => void;
+}) {
+  const invitation = pendingInvitationOf(member);
+  // A caller who may manage invitations but not members still gets the menu on
+  // an invited row: resend and cancel are all it holds.
+  const hasActions = canManageMembers || (canManageInvitations && invitation !== null);
+
+  return (
+    <li className="flex items-center gap-3 p-3">
+      <Avatar className="size-9">
+        <AvatarFallback className="text-xs">{initials(member.name)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{member.name}</p>
+        {member.email !== member.name ? (
+          <p className="text-muted-foreground truncate text-xs">{member.email}</p>
+        ) : null}
+        {invitation ? (
+          <InvitationExpiry memberId={member.id} invitation={invitation} />
+        ) : null}
+      </div>
+      <Badge variant="secondary" className="hidden capitalize sm:inline-flex">
+        {member.roleName}
+      </Badge>
+      <Badge variant={statusVariant(member.status)} className="capitalize">
+        {member.status}
+      </Badge>
+      {hasActions && member.role !== 'owner' ? (
+        // One row's menu is its own failure domain - a member with
+        // malformed data must not blank the whole list.
+        <SectionErrorBoundary
+          variant="inline"
+          title={member.name}
+          testId={`member-actions-error-${member.id}`}
+        >
+          <MemberRowActions
+            member={member}
+            canManageMembers={canManageMembers}
+            canManageInvitations={canManageInvitations}
+            onRemove={onRemove}
+            onCancelInvitation={onCancelInvitation}
+          />
+        </SectionErrorBoundary>
+      ) : null}
+    </li>
+  );
+}
+
+/**
+ * Confirms cancelling an invitation. The dismiss button says "Keep invitation":
+ * next to "Cancel invitation", a plain "Cancel" reads as a second way to do the
+ * same thing.
+ */
+function CancelInvitationDialog({
+  target,
+  onClose,
+  onConfirm,
+}: {
+  target: InvitationTarget | null;
+  onClose: () => void;
+  onConfirm: (target: InvitationTarget) => void;
+}) {
+  const { t } = useTranslation(SETTINGS_NS);
+  const panels = SETTINGS_KEYS.panels.members;
+  return (
+    <ConfirmDialog
+      open={target !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title={t(panels.cancelInviteTitle, { email: target?.member.email ?? '' })}
+      description={t(panels.cancelInviteDescription)}
+      confirmLabel={t(panels.cancelInviteConfirm)}
+      cancelLabel={t(panels.cancelInviteKeep)}
+      destructive
+      onConfirm={() => {
+        if (target) onConfirm(target);
+      }}
+    />
   );
 }
 
@@ -198,8 +428,8 @@ function MemberRowActions({
  * Whether this caller can complete an invite, which takes two grants rather than one.
  *
  * Invite calls `POST /tenancy/organization/memberships`, gated on `membership:manage` —
- * NOT `invitation:manage`, which guards only the resend/revoke routes this client never
- * calls, so gating on it showed the button to a caller the API answers with 403. The dialog
+ * NOT `invitation:manage`, which guards only resend and cancel (the invited row's menu),
+ * so gating on it showed the button to a caller the API answers with 403. The dialog
  * also has to list roles to pick one (`GET .../roles`, `role:read`); without that the picker
  * renders empty and the invite cannot be finished, so offering the trigger would be a dead end.
  */
@@ -215,7 +445,9 @@ function useCanInviteMembers(): boolean {
 /**
  * Members panel — the active organization's people. Lists members with their
  * role + status; removal is gated on the membership:manage permission (team
- * orgs only) and confirmed via undo-capable deferred commit.
+ * orgs only) and confirmed via undo-capable deferred commit. An invited row shows
+ * when its invitation expires, and `invitation:manage` can resend or cancel it —
+ * cancel through the same confirm + undo flow as removal.
  */
 export function OrganizationMembersPanel() {
   const { t } = useTranslation(SETTINGS_NS);
@@ -233,6 +465,8 @@ export function OrganizationMembersPanel() {
     teamOrganizationOnly: true,
   });
   const canInvite = useCanInviteMembers();
+  // Resend and cancel are the invitation routes' own permission, not membership's.
+  const canManageInvitations = useCan({ permission: 'invitation:manage' });
   /**
    * `useCan` is synchronous and the guard chain fills the permission set a beat
    * after this panel first renders, so a `false` here can mean "not yet". A
@@ -259,6 +493,9 @@ export function OrganizationMembersPanel() {
     orgQueryKeys.members(organizationId),
   );
   const [toRemove, setToRemove] = useState<Member | null>(null);
+  // Same contract as removal: the undo toast owns the messages (SET-7).
+  const revokeInvitation = useRevokeInvitation({ suppressSuccessToast: true });
+  const [toCancel, setToCancel] = useState<InvitationTarget | null>(null);
 
   const panels = SETTINGS_KEYS.panels.members;
   const isSearching = debouncedSearch.length > 0;
@@ -313,38 +550,16 @@ export function OrganizationMembersPanel() {
           >
             <ul className="divide-border divide-y" data-testid="members-list">
               {members.rows.map((member) => (
-                <li key={member.id} className="flex items-center gap-3 p-3">
-                  <Avatar className="size-9">
-                    <AvatarFallback className="text-xs">
-                      {initials(member.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{member.name}</p>
-                    {member.email !== member.name ? (
-                      <p className="text-muted-foreground truncate text-xs">
-                        {member.email}
-                      </p>
-                    ) : null}
-                  </div>
-                  <Badge variant="secondary" className="hidden capitalize sm:inline-flex">
-                    {member.roleName}
-                  </Badge>
-                  <Badge variant={statusVariant(member.status)} className="capitalize">
-                    {member.status}
-                  </Badge>
-                  {canManage && member.role !== 'owner' ? (
-                    // One row's menu is its own failure domain - a member with
-                    // malformed data must not blank the whole list.
-                    <SectionErrorBoundary
-                      variant="inline"
-                      title={member.name}
-                      testId={`member-actions-error-${member.id}`}
-                    >
-                      <MemberRowActions member={member} onRemove={setToRemove} />
-                    </SectionErrorBoundary>
-                  ) : null}
-                </li>
+                <MemberRow
+                  key={member.id}
+                  member={member}
+                  canManageMembers={canManage}
+                  canManageInvitations={canManageInvitations}
+                  onRemove={setToRemove}
+                  onCancelInvitation={(row, invitation) =>
+                    setToCancel({ member: row, invitation })
+                  }
+                />
               ))}
             </ul>
           </Card>
@@ -393,6 +608,29 @@ export function OrganizationMembersPanel() {
             // before the request landed and a rejection could never reach
             // `onCommitError` — the row stayed gone after a failed delete.
             commit: () => removeMember.mutateAsync(member.id),
+          });
+        }}
+      />
+
+      <CancelInvitationDialog
+        target={toCancel}
+        onClose={() => setToCancel(null)}
+        onConfirm={({ member, invitation }) => {
+          setToCancel(null);
+          // The row leaves now and comes back on undo or a failed revoke, exactly
+          // as a removal does. The write is the invitation's revoke, which core-be
+          // pairs with removing the invited membership.
+          scheduleRemoval({
+            id: member.id,
+            pendingMessage: t(panels.cancelInvitePending, { email: member.email }),
+            committedMessage: i18n.t(
+              ERRORS_KEYS.frontend.hooks.invitations.cancelSuccess,
+              {
+                ns: ERRORS_NS,
+              },
+            ),
+            toastId: `cancel-invite-${member.id}`,
+            commit: () => revokeInvitation.mutateAsync(invitation.id),
           });
         }}
       />

@@ -29,7 +29,9 @@ import {
   listPermissionCatalog,
   listRoles,
   removeMember,
+  resendInvitation,
   revokeApiKey,
+  revokeInvitation,
   toOrganizationPermissions,
   updateMemberRole,
   updateMemberStatus,
@@ -167,6 +169,69 @@ describe('organization-api memberships (live)', () => {
     });
     expect(postMock.mock.calls[0]?.[0]).not.toContain('/invitations');
     expect(member.status).toBe('invited');
+  });
+});
+
+describe('organization-api invitations (live)', () => {
+  const INV = 'inv_abcdefghij0123456789x';
+  const EXPIRES = '2026-10-01T00:00:00.000Z';
+
+  it('carries the live invitation of an INVITED row, and none for a joined member', async () => {
+    getMock.mockResolvedValue({
+      data: [
+        {
+          ...WIRE_MEMBER,
+          id: 'mem_invited0123456789abcd',
+          status: 'INVITED',
+          joined_at: null,
+          invitation: { id: INV, expires_at: EXPIRES },
+        },
+        { ...WIRE_MEMBER, invitation: null },
+        // A response from before core-be sent the field still parses.
+        WIRE_MEMBER,
+      ],
+    });
+
+    const [invited, joined, older] = (await listMembers()).rows;
+
+    expect(invited?.invitation).toEqual({ id: INV, expiresAt: EXPIRES });
+    expect(joined?.invitation).toBeNull();
+    expect(older?.invitation).toBeNull();
+  });
+
+  it('resendInvitation POSTs to the invitation’s resend route and reads back the new expiry', async () => {
+    postMock.mockResolvedValue({
+      data: {
+        invitation: {
+          id: INV,
+          membership_id: 'mem_invited0123456789abcd',
+          email: 'sam@acme.test',
+          expires_at: EXPIRES,
+          accepted_at: null,
+          revoked_at: null,
+          created_at: TS,
+        },
+      },
+    });
+
+    const result = await resendInvitation(INV);
+
+    // An empty body takes core-be's default expiry (7 days).
+    expect(postMock).toHaveBeenCalledWith(
+      expect.stringContaining(`/tenancy/organization/invitations/${INV}/resend`),
+      {},
+    );
+    expect(result).toEqual({ email: 'sam@acme.test', expiresAt: EXPIRES });
+  });
+
+  it('revokeInvitation DELETEs the invitation, not the membership', async () => {
+    deleteMock.mockResolvedValue({ data: null });
+
+    expect(await revokeInvitation(INV)).toEqual({ id: INV });
+
+    const url = deleteMock.mock.calls[0]?.[0] as string;
+    expect(url).toContain(`/tenancy/organization/invitations/${INV}`);
+    expect(url).not.toContain('/memberships');
   });
 });
 

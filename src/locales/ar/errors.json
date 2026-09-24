@@ -166,7 +166,9 @@
       },
       "invitations": {
         "sendFailed": "تعذّر إرسال الدعوة",
-        "sendSuccess": "تم إرسال الدعوة إلى {{email}}"
+        "sendSuccess": "تم إرسال الدعوة إلى {{email}}",
+        "resendSuccess": "تمت إعادة إرسال الدعوة إلى {{email}}",
+        "cancelSuccess": "تم إلغاء الدعوة"
       }
     },
     "profileUpdated": "تم تحديث الملف الشخصي"

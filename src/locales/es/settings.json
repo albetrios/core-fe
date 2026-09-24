@@ -141,7 +141,16 @@
       "emailPlaceholder": "companero@empresa.com",
       "rolePlaceholder": "Selecciona un rol",
       "invite": "Invitar miembro",
-      "memberFallback": "este miembro"
+      "memberFallback": "este miembro",
+      "resendInvite": "Reenviar invitación",
+      "cancelInvite": "Cancelar invitación",
+      "inviteExpires": "La invitación caduca el {{date}}",
+      "inviteExpired": "Invitación caducada",
+      "cancelInviteTitle": "¿Cancelar la invitación a {{email}}?",
+      "cancelInviteDescription": "El enlace de su correo dejará de funcionar. Puedes deshacerlo durante unos segundos tras confirmar o enviar una nueva invitación más tarde.",
+      "cancelInviteConfirm": "Cancelar invitación",
+      "cancelInviteKeep": "Mantener invitación",
+      "cancelInvitePending": "Cancelando la invitación a {{email}}…"
     },
     "roles": {
       "title": "Roles y permisos",

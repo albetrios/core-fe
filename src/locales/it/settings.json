@@ -141,7 +141,16 @@
       "emailPlaceholder": "collega@azienda.com",
       "rolePlaceholder": "Seleziona un ruolo",
       "invite": "Invita membro",
-      "memberFallback": "questo membro"
+      "memberFallback": "questo membro",
+      "resendInvite": "Invia di nuovo l'invito",
+      "cancelInvite": "Annulla l'invito",
+      "inviteExpires": "L'invito scade il {{date}}",
+      "inviteExpired": "Invito scaduto",
+      "cancelInviteTitle": "Annullare l'invito a {{email}}?",
+      "cancelInviteDescription": "Il link nell'email smetterà di funzionare. Potrai annullare per alcuni secondi dopo la conferma o invitare di nuovo più tardi.",
+      "cancelInviteConfirm": "Annulla l'invito",
+      "cancelInviteKeep": "Mantieni l'invito",
+      "cancelInvitePending": "Annullamento dell'invito a {{email}}…"
     },
     "roles": {
       "title": "Ruoli",

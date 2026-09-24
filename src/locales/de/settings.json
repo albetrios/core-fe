@@ -139,7 +139,16 @@
       "emailPlaceholder": "kollege@firma.com",
       "rolePlaceholder": "Rolle auswählen",
       "invite": "Mitglied einladen",
-      "memberFallback": "dieses Mitglied"
+      "memberFallback": "dieses Mitglied",
+      "resendInvite": "Einladung erneut senden",
+      "cancelInvite": "Einladung zurückziehen",
+      "inviteExpires": "Einladung läuft am {{date}} ab",
+      "inviteExpired": "Einladung abgelaufen",
+      "cancelInviteTitle": "Einladung an {{email}} zurückziehen?",
+      "cancelInviteDescription": "Der Link in der E-Mail funktioniert dann nicht mehr. Sie können kurz nach der Bestätigung rückgängig machen oder die Person später erneut einladen.",
+      "cancelInviteConfirm": "Einladung zurückziehen",
+      "cancelInviteKeep": "Einladung behalten",
+      "cancelInvitePending": "Einladung an {{email}} wird zurückgezogen…"
     },
     "roles": {
       "title": "Rollen",
